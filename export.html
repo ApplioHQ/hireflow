@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Export — HireFlow</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .export-grid { display:grid; grid-template-columns: 1fr 320px; gap:20px; padding:24px; }
+  .resume-page {
+    background:#fff; color:#111; aspect-ratio: 8.5/11;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3); padding:36px;
+    font-family: var(--res-font, Inter), sans-serif; font-size:11px; line-height:1.4;
+  }
+  .resume-page h1 { font-size:24px; margin-bottom:4px; color:var(--res-accent, #4f46e5); }
+  .resume-page h2 { font-size:13px; color:var(--res-accent, #4f46e5); border-bottom:1px solid #ddd; padding-bottom:2px; margin:14px 0 6px; text-transform:uppercase; letter-spacing:.05em; }
+  .resume-page .contact { color:#555; font-size:10px; margin-bottom:8px; }
+  .resume-page .entry { margin-bottom:8px; }
+  .resume-page .entry-head { display:flex; justify-content:space-between; font-weight:600; }
+  .resume-page .entry-sub { color:#555; font-style:italic; font-size:10px; }
+  .resume-page p { margin: 2px 0; }
+  @media print {
+    .export-grid { display:block; padding:0; }
+    .export-side { display:none; }
+    .resume-page { box-shadow:none; aspect-ratio:auto; }
+  }
+</style>
+</head>
+<body class="app-body">
+<header class="app-topbar">
+  <div class="brand"><div class="brand-icon"></div><span>HireFlow</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html">← Back to Editor</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<div class="export-grid">
+  <div id="resume-preview"></div>
+  <aside class="export-side">
+    <div class="section-card">
+      <h3 style="margin-bottom:14px;">📄 Export Settings</h3>
+      <div class="form-field">
+        <label>File Format</label>
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="exportPDF()">PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportHTML()">HTML</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportTXT()">TXT</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Page Size</label>
+        <select><option>US Letter (8.5×11)</option><option>A4</option></select>
+      </div>
+      <div class="form-field">
+        <label>Margins</label>
+        <select><option>Normal</option><option>Narrow</option><option>Wide</option></select>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="exportPDF()">⬇ Download PDF</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="window.print()">🖨 Print</button>
+    </div>
+  </aside>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+function render() {
+  const p = resume.personal || {};
+  const c = resume.customize || {};
+  document.documentElement.style.setProperty('--res-accent', c.accent || '#4f46e5');
+  document.documentElement.style.setProperty('--res-font', c.font || 'Inter');
+
+  const html = `
+    <div class="resume-page">
+      <h1>${esc(p.fullName || 'Your Name')}</h1>
+      <div class="contact">${esc([p.email, p.phone, p.location, p.linkedin, p.github].filter(Boolean).join(' · '))}</div>
+
+      ${p.summary ? `<h2>Summary</h2><p>${esc(p.summary)}</p>` : ''}
+
+      ${(resume.experience||[]).length ? `<h2>Experience</h2>${(resume.experience||[]).map(e => `
+        <div class="entry">
+          <div class="entry-head"><span>${esc(e.title)} — ${esc(e.company)}</span><span>${esc(e.start)} – ${esc(e.end)}</span></div>
+          <div class="entry-sub">${esc(e.location||'')}</div>
+          <p>${esc(e.description||'').split('\\n').map(l=>esc(l)).join('<br>')}</p>
+        </div>`).join('')}` : ''}
+
+      ${(resume.education||[]).length ? `<h2>Education</h2>${(resume.education||[]).map(e => `
+        <div class="entry">
+          <div class="entry-head"><span>${esc(e.school)}</span><span>${esc(e.start)} – ${esc(e.end)}</span></div>
+          <div class="entry-sub">${esc(e.degree)} ${esc(e.field)}${e.gpa?(' · GPA '+esc(e.gpa)):''}</div>
+        </div>`).join('')}` : ''}
+
+      ${(resume.skills?.categories||[]).length ? `<h2>Skills</h2><p>${esc((resume.skills.categories||[]).flatMap(c=>c.items).join(' · '))}</p>` : ''}
+
+      ${(resume.projects||[]).length ? `<h2>Projects</h2>${(resume.projects||[]).map(pr => `
+        <div class="entry">
+          <div class="entry-head"><span>${esc(pr.name)}</span><span>${esc(pr.tech||'')}</span></div>
+          <p>${esc(pr.description||'')}</p>
+        </div>`).join('')}` : ''}
+
+      ${(resume.certifications||[]).length ? `<h2>Certifications</h2>${(resume.certifications||[]).map(cert => `
+        <div class="entry"><div class="entry-head"><span>${esc(cert.name)} — ${esc(cert.issuer)}</span><span>${esc(cert.date)}</span></div></div>`).join('')}` : ''}
+
+      ${(resume.awards||[]).length ? `<h2>Awards</h2>${(resume.awards||[]).map(a => `
+        <div class="entry"><div class="entry-head"><span>${esc(a.name)} — ${esc(a.issuer)}</span><span>${esc(a.date)}</span></div></div>`).join('')}` : ''}
+
+      ${(resume.leadership||[]).length ? `<h2>Leadership</h2>${(resume.leadership||[]).map(l => `
+        <div class="entry"><div class="entry-head"><span>${esc(l.role)} — ${esc(l.org)}</span><span>${esc(l.start)} – ${esc(l.end)}</span></div><p>${esc(l.description||'')}</p></div>`).join('')}` : ''}
+
+      ${(resume.volunteer||[]).length ? `<h2>Volunteer</h2>${(resume.volunteer||[]).map(v => `
+        <div class="entry"><div class="entry-head"><span>${esc(v.role)} — ${esc(v.org)}</span><span>${esc(v.start)} – ${esc(v.end)}</span></div></div>`).join('')}` : ''}
+
+      ${(resume.publications||[]).length ? `<h2>Publications</h2>${(resume.publications||[]).map(pub => `
+        <div class="entry"><div class="entry-head"><span>${esc(pub.title)}</span><span>${esc(pub.date)}</span></div><div class="entry-sub">${esc(pub.venue)}</div></div>`).join('')}` : ''}
+    </div>`;
+  document.getElementById('resume-preview').innerHTML = html;
+}
+
+function exportPDF() { window.print(); }
+function exportHTML() {
+  const html = document.getElementById('resume-preview').outerHTML;
+  const blob = new Blob([`<!DOCTYPE html><meta charset="utf-8"><style>body{font-family:Inter,sans-serif;padding:36px;}</style>${html}`], {type:'text/html'});
+  download(blob, 'resume.html');
+}
+function exportTXT() {
+  const txt = document.getElementById('resume-preview').innerText;
+  download(new Blob([txt], {type:'text/plain'}), 'resume.txt');
+}
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+render();
+</script>
+</body>
+</html>

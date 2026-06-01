@@ -1,0 +1,22 @@
+name = "hireflow-api"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+# Workers AI binding (free tier — 10k requests/day)
+[ai]
+binding = "AI"
+
+# KV namespace for users and resumes
+# Run: wrangler kv:namespace create "HIREFLOW_KV"
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "HIREFLOW_KV"
+id = "fc33acc438fc484f860e880cb93de810"
+
+# Secret — set with:
+#   wrangler secret put JWT_SECRET
+# (generate one with: openssl rand -hex 32)
+
+# Set this to your GitHub Pages origin so CORS works.
+[vars]
+ALLOWED_ORIGIN = "https://YOUR-USERNAME.github.io"

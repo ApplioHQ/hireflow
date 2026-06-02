@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interview Prep — HireFlow</title>
+<title>Interview Prep — Applio</title>
+<link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
-  <div class="brand"><div class="brand-icon"></div><span>HireFlow</span></div>
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
     <a class="topbar-tab" href="editor.html">Resume Builder</a>
     <a class="topbar-tab" href="jobs.html">Job Tracker</a>
@@ -40,6 +41,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
@@ -51,7 +53,7 @@ async function generate() {
   if (isFree()) { showUpgradeModal('interview'); return; }
   const role = document.getElementById('role').value;
   const jd = document.getElementById('jd').value;
-  if (!role) return alert('Enter a role');
+  if (!role) return toast('Enter a role first', { type: 'warn' });
   const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
   document.getElementById('results').innerHTML = '<div class="section-card" style="text-align:center;">Generating…</div>';
   try {

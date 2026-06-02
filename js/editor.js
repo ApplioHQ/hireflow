@@ -501,52 +501,66 @@ async function ai(endpoint, body) {
 async function aiImprove(target) {
   try {
     const text = target==='summary' ? resume.personal.summary : JSON.stringify(resume[target]||{});
+    toast('AI is rewriting…', { type: 'info', duration: 1800 });
     const r = await ai('improve', { target, text });
-    if (target==='summary') { resume.personal.summary = r.text; save(); renderMain(); }
-    else { alert('AI suggestion:\n\n'+r.text); }
-  } catch(e) { alert('AI failed: '+e.message); }
+    if (target==='summary') {
+      resume.personal.summary = r.text;
+      save(); renderMain();
+      toast('Summary improved', { type: 'success' });
+    } else {
+      await notify({ title: 'AI suggestion', body: r.text, copyable: true });
+    }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 async function aiSuggestSkills() {
   try {
+    toast('Generating skills…', { type: 'info', duration: 1800 });
     const r = await ai('skills', { experience: resume.experience });
     const items = (r.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
     if (items.length) {
       resume.skills.categories = [{ name:'All', items: Array.from(new Set([...(resume.skills.categories.flatMap(c=>c.items)||[]),...items]))}];
       save(); renderMain();
+      toast(`Added ${items.length} skills`, { type: 'success' });
+    } else {
+      toast('No skills suggested', { type: 'warn' });
     }
-  } catch(e) { alert('AI failed: '+e.message); }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 async function aiTailor() {
   try {
+    toast('Tailoring resume…', { type: 'info', duration: 1800 });
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
     resume.tailor.tailoredSummary = r.text;
     if (r.summary) resume.personal.summary = r.summary;
     save(); renderMain();
-  } catch(e) { alert('AI failed: '+e.message); }
+    toast('Resume tailored', { type: 'success' });
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 async function aiATS() {
   const jd = document.getElementById('ats-jd').value;
   try {
+    toast('Running ATS check…', { type: 'info', duration: 1800 });
     const r = await ai('ats', { jobDescription: jd, resume });
     document.getElementById('ats-result').innerHTML = `
       <div class="section-card" style="background:var(--bg-2);">
         <h4>ATS Score: <span style="color:${r.score>=70?'var(--success)':r.score>=50?'var(--warning)':'var(--danger)'};">${r.score}/100</span></h4>
         <p style="white-space:pre-wrap; margin-top:8px;">${esc(r.feedback||'')}</p>
       </div>`;
-  } catch(e) { alert('AI failed: '+e.message); }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 async function aiAnalyze() {
   try {
+    toast('Analyzing resume…', { type: 'info', duration: 1800 });
     const r = await ai('analyze', { resume });
     document.getElementById('analysis-result').innerHTML = `
       <div class="section-card" style="background:var(--bg-2);">
         <p style="white-space:pre-wrap;">${esc(r.text||'')}</p>
       </div>`;
-  } catch(e) { alert('AI failed: '+e.message); }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 function openModal(id) {
@@ -567,21 +581,33 @@ function renderVersions() {
     </div>`).join('');
   document.getElementById('version-list').innerHTML = list || '<p style="color:var(--muted);">No versions yet.</p>';
 }
-function restoreVersion(i) {
-  if (!confirm('Restore this version? Current changes will be replaced.')) return;
+async function restoreVersion(i) {
+  const ok = await confirmDialog({
+    title: 'Restore this version?',
+    body: 'Your current changes will be replaced with the snapshot from ' + new Date(resume.versions[i].ts).toLocaleString() + '.',
+    confirmText: 'Restore',
+    cancelText: 'Keep current',
+    danger: true
+  });
+  if (!ok) return;
   resume = resume.versions[i].data; save(); closeModal('version'); renderMain();
+  toast('Version restored', { type: 'success' });
 }
 
 async function importResume() {
   const text = document.getElementById('import-text').value;
-  if (!text) return alert('Paste some text first');
+  if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
   try {
+    toast('AI is parsing your resume…', { type: 'info', duration: 2200 });
     const r = await ai('parse', { text });
     if (r.resume) {
       resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
       save(); closeModal('import'); renderMain();
-    } else { alert('AI returned no resume data'); }
-  } catch(e) { alert('AI failed: '+e.message); }
+      toast('Resume imported', { type: 'success' });
+    } else {
+      toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
+    }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 // ============ Boot ============

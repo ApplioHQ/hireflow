@@ -11,7 +11,10 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
-const AI_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+// Smaller, faster: free-form writing tasks
+const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+// Larger, better at structured output + reasoning: parse, analyze, tailor, ats
+const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
@@ -394,49 +397,382 @@ async function ai(req, env, action) {
 }
 
 async function runAI(env, system, user, opts = {}) {
-  const res = await env.AI.run(AI_MODEL, {
+  const model = opts.model || FAST_MODEL;
+  const res = await env.AI.run(model, {
     messages: [{ role: "system", content: system }, { role: "user", content: user }],
-    max_tokens: opts.max_tokens || 600,
-    temperature: opts.temperature ?? 0.4,
+    max_tokens: opts.max_tokens || 800,
+    temperature: opts.temperature ?? 0.3,
   });
   return (res.response || "").trim();
 }
 
+// ============ Improve writing ============
 async function aiImprove(env, { target, text }) {
-  const sys = `You are an expert resume writer. Improve the user's content to be concise, achievement-focused, and ATS-friendly. Use strong action verbs and quantify impact when possible. Respond ONLY with the improved text — no preamble.`;
-  return { text: await runAI(env, sys, `Section: ${target}\n\nContent:\n${text || "(empty)"}\n\nImprove it.`) };
+  if (!text || !text.trim()) {
+    return { text: "Add some content first, then click AI Improve to refine it." };
+  }
+  const isSummary = target === "summary" || target === "personal";
+  const sys = isSummary
+    ? `You are an elite resume writer. Rewrite the candidate's professional summary so it:
+- Is 2-3 sentences, ~40-60 words
+- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…")
+- Names 2-3 standout competencies with specifics
+- Ends with a value statement aimed at hiring managers
+- Uses active voice, no buzzwords ("synergy", "dynamic", "passionate")
+- Is in third-person implied (no "I", no "you")
+- Is plain text only — no markdown, no headers, no quotation marks
+
+OUTPUT: Only the rewritten summary. Nothing else.`
+    : `You are an elite resume writer. Rewrite the following ${target} content into achievement-focused bullets. Rules:
+- Each bullet starts with a strong past-tense action verb (Led, Built, Shipped, Reduced, Architected, Drove, Designed, etc. — never repeat a verb)
+- Each bullet shows measurable impact (%, $, time saved, scale, headcount, users)
+- Keep each bullet under ~20 words
+- 3-6 bullets total
+- Use the • character to mark each bullet, one per line
+- If the input lacks numbers, make conservative inferences from context (e.g. "led 5-person team" if they mention managing engineers); never invent specific company-private metrics
+- Plain text only — no markdown bold, no headers
+
+OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
+  const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, { max_tokens: 500, temperature: 0.5 });
+  // Strip common AI preambles
+  const cleaned = out
+    .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  return { text: cleaned };
 }
+
+// ============ Suggest skills ============
 async function aiSkills(env, { experience }) {
-  const sys = `You extract resume-ready skills. Given work experience, return a comma-separated list of 10-20 relevant hard and soft skills. No explanations.`;
-  return { skills: await runAI(env, sys, `Experience:\n${JSON.stringify(experience).slice(0,2000)}`) };
+  const sys = `You extract resume-ready skills from work history.
+
+Given the candidate's experience, return a clean comma-separated list of 12-18 skills they likely have, balanced across:
+- Hard/technical skills (e.g. Python, SQL, AWS, Figma, Salesforce)
+- Methodologies (e.g. Agile, A/B Testing, Customer Discovery)
+- Soft skills (e.g. Cross-functional Collaboration, Stakeholder Management)
+
+Rules:
+- Infer skills from job titles AND from the described work
+- Use industry-standard naming (e.g. "Project Management", not "managing projects")
+- No duplicates, no generic words like "Teamwork", "Hard worker", "Detail-oriented"
+- No explanations, no numbering, no preamble
+
+OUTPUT: Just the comma-separated list. Nothing else.`;
+  const raw = await runAI(env, sys,
+    `Experience:\n${JSON.stringify(experience).slice(0, 3000)}`,
+    { max_tokens: 250, temperature: 0.4 });
+  // Strip preambles and quotation marks
+  const cleaned = raw
+    .replace(/^[^a-z]*here[^:]*:\s*/i, "")
+    .replace(/^["']|["']$/g, "")
+    .split("\n")[0]
+    .trim();
+  return { skills: cleaned };
 }
+
+// ============ Tailor to job ============
 async function aiTailor(env, { jobDescription, resume }) {
-  const sys = `You tailor resumes to job descriptions. Output JSON: { "summary": "<rewritten 2-3 sentence summary>", "notes": "<3 things to emphasize>" }. Only JSON.`;
+  const sys = `You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.
+
+Analyze the job description and the candidate's resume, then output STRICT JSON in exactly this shape:
+
+{
+  "summary": "<2-3 sentence professional summary, rewritten to mirror the language of the JD while staying truthful to the candidate's actual experience. ~40-60 words. No 'I'. No buzzwords.>",
+  "matchedKeywords": ["<keyword 1>", "<keyword 2>", "..."],
+  "missingKeywords": ["<important JD keyword the resume doesn't mention>", "..."],
+  "emphasize": [
+    "<short, actionable note: 'Lead with your AWS migration work — JD heavily emphasizes cloud infra'>",
+    "<another note>",
+    "<another note>"
+  ],
+  "bulletSuggestions": [
+    "<a rewritten bullet from their experience that better matches the JD>",
+    "<another>",
+    "<another>"
+  ]
+}
+
+Rules:
+- matchedKeywords: 6-10 entries the JD asks for that the resume already shows
+- missingKeywords: 3-6 important JD keywords the resume is missing
+- emphasize: 3 short coaching notes, each one sentence
+- bulletSuggestions: 3 specific bullet rewrites grounded in the candidate's actual experience
+- Never invent experience or credentials they don't have
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
+
   const raw = await runAI(env, sys,
-    `Job description:\n${(jobDescription||'').slice(0,2000)}\n\nResume:\n${JSON.stringify(resume).slice(0,3000)}`, { max_tokens: 500 });
+    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
+    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
-  return { text: j?.notes || raw, summary: j?.summary };
+  if (!j) return { text: raw, summary: null };
+
+  // Build human-readable notes blob
+  const lines = [];
+  if (j.matchedKeywords?.length) lines.push(`Matched keywords:\n${j.matchedKeywords.map(k => `  ✓ ${k}`).join("\n")}`);
+  if (j.missingKeywords?.length) lines.push(`\nMissing keywords (add these if true):\n${j.missingKeywords.map(k => `  ✗ ${k}`).join("\n")}`);
+  if (j.emphasize?.length) lines.push(`\nWhat to emphasize:\n${j.emphasize.map(e => `  • ${e}`).join("\n")}`);
+  if (j.bulletSuggestions?.length) lines.push(`\nSuggested bullet rewrites:\n${j.bulletSuggestions.map(b => `  → ${b}`).join("\n")}`);
+  return { text: lines.join("\n"), summary: j.summary };
 }
+
+// ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const sys = `You are an ATS scorer. Output JSON: { "score": <0-100>, "feedback": "<2-4 bullet points>" }. Only JSON.`;
+  const sys = `You are an ATS (Applicant Tracking System) and resume scoring expert.
+
+Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
+
+{
+  "score": <integer 0-100>,
+  "breakdown": {
+    "keywords": <0-100>,
+    "experience": <0-100>,
+    "formatting": <0-100>,
+    "completeness": <0-100>
+  },
+  "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
+  "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
+  "issues": ["<specific weakness — name the section and what to fix>", "<another>", "<another>", "<another>"],
+  "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
+}
+
+Scoring rubric:
+- 90-100: strong match, ready to submit
+- 70-89: solid, needs minor tweaks
+- 50-69: relevant but needs significant work
+- below 50: major gaps
+
+Rules:
+- score is the weighted overall (not just the average)
+- wins/issues should reference specific resume content, not generic advice
+- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, completeness)
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+
   const raw = await runAI(env, sys,
-    `Job description:\n${(jobDescription||'').slice(0,1500)}\n\nResume:\n${JSON.stringify(resume).slice(0,3000)}`, { max_tokens: 400 });
-  return safeJSON(raw) || { score: 50, feedback: raw };
+    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
+    { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
+  const j = safeJSON(raw);
+  if (!j) return { score: 50, feedback: raw };
+
+  // Build readable feedback string from structured output
+  const parts = [];
+  if (j.feedback) parts.push(j.feedback);
+  if (j.breakdown) {
+    parts.push(`\nBreakdown:`);
+    parts.push(`  Keywords: ${j.breakdown.keywords}/100`);
+    parts.push(`  Experience match: ${j.breakdown.experience}/100`);
+    parts.push(`  Formatting: ${j.breakdown.formatting}/100`);
+    parts.push(`  Completeness: ${j.breakdown.completeness}/100`);
+  }
+  if (j.wins?.length) parts.push(`\nWhat's working:\n${j.wins.map(w => `  ✓ ${w}`).join("\n")}`);
+  if (j.issues?.length) parts.push(`\nWhat to fix:\n${j.issues.map(i => `  ✗ ${i}`).join("\n")}`);
+  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k => `  → ${k}`).join("\n")}`);
+  return { score: j.score ?? 50, feedback: parts.join("\n") };
 }
+
+// ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
-  const sys = `You are a career coach. Analyze the resume and give a concise critique: strengths, weaknesses, top 3 improvements. Short bullets.`;
-  return { text: await runAI(env, sys, `Resume:\n${JSON.stringify(resume).slice(0,4000)}`, { max_tokens: 600 }) };
+  const sys = `You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique.
+
+Output STRICT JSON:
+
+{
+  "overallScore": <0-100>,
+  "summary": "<2-3 sentence overall impression>",
+  "strengths": [
+    "<specific strength, referencing a section or bullet from the resume>",
+    "<another>",
+    "<another>"
+  ],
+  "weaknesses": [
+    "<specific weakness with a section name, e.g. 'Experience bullets at Acme lack metrics'>",
+    "<another>",
+    "<another>"
+  ],
+  "topFixes": [
+    {"action": "<one concrete change>", "where": "<which section>", "impact": "<why it matters>"},
+    {"action": "...", "where": "...", "impact": "..."},
+    {"action": "...", "where": "...", "impact": "..."}
+  ],
+  "missingSections": ["<section the resume is missing that would help, e.g. 'Skills', 'Projects'>"]
 }
+
+Rules:
+- Be specific, not generic. Always cite the actual section/role you're critiquing.
+- topFixes should be the 3 highest-leverage changes, ordered by impact.
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+
+  const raw = await runAI(env, sys,
+    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
+    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+  const j = safeJSON(raw);
+  if (!j) return { text: raw };
+
+  const parts = [];
+  if (j.overallScore != null) parts.push(`Overall Resume Score: ${j.overallScore}/100\n`);
+  if (j.summary) parts.push(j.summary);
+  if (j.strengths?.length) parts.push(`\nStrengths:\n${j.strengths.map(s => `  ✓ ${s}`).join("\n")}`);
+  if (j.weaknesses?.length) parts.push(`\nWeaknesses:\n${j.weaknesses.map(w => `  ✗ ${w}`).join("\n")}`);
+  if (j.topFixes?.length) {
+    parts.push(`\nTop 3 fixes:`);
+    j.topFixes.forEach((f, i) => parts.push(`  ${i+1}. ${f.action}\n     Where: ${f.where}\n     Why: ${f.impact}`));
+  }
+  if (j.missingSections?.length) parts.push(`\nConsider adding:\n${j.missingSections.map(s => `  + ${s}`).join("\n")}`);
+  return { text: parts.join("\n") };
+}
+
+// ============ Parse (resume import — most important!) ============
 async function aiParse(env, { text }) {
-  const sys = `You parse plain-text resumes into JSON:
-{"personal":{"fullName":"","email":"","phone":"","location":"","linkedin":"","github":"","website":"","summary":""},"experience":[{"title":"","company":"","start":"","end":"","location":"","description":""}],"education":[{"school":"","degree":"","field":"","gpa":"","start":"","end":"","notes":""}],"skills":{"categories":[{"name":"All","items":[]}]},"projects":[{"name":"","role":"","tech":"","link":"","description":""}],"certifications":[{"name":"","issuer":"","date":"","url":""}],"awards":[{"name":"","issuer":"","date":"","description":""}]}
-Output ONLY JSON.`;
-  return { resume: safeJSON(await runAI(env, sys, text.slice(0, 4000), { max_tokens: 1500 })) };
+  const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy — line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
+
+Extract everything into this EXACT JSON schema. Fill every field you can confidently extract. Use "" for unknown strings and [] for empty arrays.
+
+SCHEMA:
+{
+  "personal": {
+    "fullName": "<full name from top of resume>",
+    "email": "<email address>",
+    "phone": "<phone number — keep original format>",
+    "location": "<city, state OR city, country>",
+    "linkedin": "<linkedin URL or username>",
+    "github": "<github URL or username>",
+    "website": "<personal website URL>",
+    "summary": "<professional summary / objective / about section, kept verbatim>"
+  },
+  "experience": [
+    {
+      "title": "<job title>",
+      "company": "<company name>",
+      "start": "<start date — e.g. 'Jan 2022' or '2022'>",
+      "end": "<end date or 'Present'>",
+      "location": "<city, state or 'Remote'>",
+      "description": "<all bullets joined with newlines, each starting with '• '>"
+    }
+  ],
+  "education": [
+    {
+      "school": "<school name>",
+      "degree": "<degree type — B.S., M.S., Ph.D., B.A., etc.>",
+      "field": "<major / field of study>",
+      "gpa": "<GPA if mentioned>",
+      "start": "<start year>",
+      "end": "<end year or graduation year>",
+      "notes": "<honors, thesis, relevant coursework>"
+    }
+  ],
+  "skills": {
+    "categories": [
+      {"name": "All", "items": ["<skill 1>", "<skill 2>", "..."]}
+    ]
+  },
+  "projects": [
+    {
+      "name": "<project name>",
+      "role": "<role/title>",
+      "tech": "<tech stack, comma-separated>",
+      "link": "<URL>",
+      "description": "<what the project did, key outcomes>"
+    }
+  ],
+  "certifications": [
+    {"name": "<cert name>", "issuer": "<issuing org>", "date": "<date>", "url": "<credential URL>"}
+  ],
+  "awards": [
+    {"name": "<award name>", "issuer": "<issuing org>", "date": "<date>", "description": "<short description>"}
+  ],
+  "leadership": [
+    {"role": "<role>", "org": "<organization>", "start": "<date>", "end": "<date>", "description": "<what you did>"}
+  ],
+  "volunteer": [
+    {"role": "<role>", "org": "<organization>", "start": "<date>", "end": "<date>", "description": "<what you did>"}
+  ],
+  "publications": [
+    {"title": "<title>", "venue": "<journal/conference>", "date": "<date>", "url": "<URL>", "abstract": ""}
+  ]
 }
+
+CRITICAL RULES:
+1. Section detection: identify sections by their headers (e.g. "EXPERIENCE", "WORK HISTORY", "Professional Experience" → experience). Common synonyms:
+   - Experience: Work Experience, Professional Experience, Employment, Work History, Career
+   - Education: Academic Background, Schooling
+   - Skills: Technical Skills, Core Competencies, Technologies, Proficiencies
+   - Projects: Personal Projects, Side Projects, Notable Projects
+   - Leadership: Activities, Extracurriculars, Leadership Experience
+   - Volunteer: Community Service, Volunteer Work
+2. Bullet extraction: detect bullets by markers (•, *, -, ▪, →, ●) OR by short paragraph breaks. Strip the original marker; output as "• <text>" joined by "\\n".
+3. Dates: keep the original format. If you see "May 2022 - Present", set start="May 2022", end="Present".
+4. Name + contact: usually the first 1-5 lines of the resume.
+5. Skills: extract every listed skill, comma/pipe/bullet separated. Put all under one category "All" unless the resume explicitly groups them.
+6. Don't hallucinate. If a field isn't in the text, leave it empty.
+7. Don't truncate descriptions — keep all bullet content.
+
+OUTPUT FORMAT:
+- ONLY the JSON object.
+- NO markdown code fences (no \`\`\`).
+- NO preamble like "Here's the parsed JSON".
+- Start directly with {.`;
+
+  const raw = await runAI(env, sys,
+    `Resume text:\n${text.slice(0, 8000)}`,
+    { model: SMART_MODEL, max_tokens: 3500, temperature: 0.1 });
+  const j = safeJSON(raw);
+  return { resume: j };
+}
+
+// ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
-  const sys = `You are an interview coach. Generate 8 practice interview questions tailored to the role and resume. Mix behavioral and role-specific. Number each. Add a one-line tip under each.`;
+  const sys = `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
+
+Generate 10 high-quality practice interview questions, mixing:
+- 3 behavioral (STAR-friendly: "Tell me about a time you…")
+- 4 role-specific / technical
+- 2 situational / hypothetical
+- 1 closing / motivational
+
+Format EXACTLY like this (no markdown, no JSON, plain text):
+
+[Behavioral]
+1. <Question>
+   Tip: <One-line strategic tip — what they're really testing, what to emphasize from the candidate's resume>
+
+2. <Question>
+   Tip: <Tip>
+
+3. <Question>
+   Tip: <Tip>
+
+[Role-Specific]
+4. <Question>
+   Tip: <Tip>
+
+5. <Question>
+   Tip: <Tip>
+
+6. <Question>
+   Tip: <Tip>
+
+7. <Question>
+   Tip: <Tip>
+
+[Situational]
+8. <Question>
+   Tip: <Tip>
+
+9. <Question>
+   Tip: <Tip>
+
+[Closing]
+10. <Question>
+    Tip: <Tip>
+
+Rules:
+- Questions should reference specifics from the candidate's actual resume when natural
+- Tips should mention which resume bullet/experience to lean on for the answer
+- Avoid generic questions like "What's your greatest weakness?" — interviewers ask sharper questions today
+- No preamble. Start directly with "[Behavioral]".`;
+
   return { text: await runAI(env, sys,
-    `Role: ${role}\nJD: ${(jobDescription||'').slice(0,1500)}\nResume: ${JSON.stringify(resume).slice(0,2500)}`, { max_tokens: 800 }) };
+    `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
+    { max_tokens: 1400, temperature: 0.55 }) };
 }
 
 function safeJSON(s) {

@@ -40,7 +40,8 @@ async function startCheckout(plan) {
     if (!r.ok) throw new Error(data.error || 'Failed to start checkout');
     location.href = data.url;
   } catch (e) {
-    alert('Could not start checkout: ' + e.message);
+    if (window.toast) toast('Could not start checkout: ' + e.message, { type: 'error' });
+    else console.error(e);
   }
 }
 
@@ -56,7 +57,8 @@ async function openBillingPortal() {
     if (!r.ok) throw new Error(data.error || 'Failed to open portal');
     location.href = data.url;
   } catch (e) {
-    alert('Could not open billing portal: ' + e.message);
+    if (window.toast) toast('Could not open billing portal: ' + e.message, { type: 'error' });
+    else console.error(e);
   }
 }
 

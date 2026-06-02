@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign in — HireFlow</title>
+<title>Sign in — Applio</title>
+<link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="auth-body">
   <div class="auth-card">
     <div class="brand">
-      <div class="brand-icon"></div>
-      <span>HireFlow</span>
+      <img src="logo.jpeg" class="brand-logo" alt="Applio">
+      <span>Applio</span>
     </div>
 
     <!-- Sign in -->
@@ -30,7 +31,7 @@
         <button type="submit" class="btn btn-primary btn-block">Sign in</button>
       </form>
       <div class="auth-foot">
-        <a href="#" onclick="alert('Password reset coming soon');return false;">Forgot password?</a>
+        <a href="#" onclick="notify({title:'Password reset',body:'Password reset is coming soon. Contact support@appliohq.com if you need access now.'});return false;">Forgot password?</a>
         <span>Need an account? <a href="#" onclick="showView('signup');return false;">Sign up</a></span>
       </div>
     </div>
@@ -39,7 +40,7 @@
     <div id="view-signup" style="display:none;">
       <a href="#" class="btn btn-ghost btn-xs" onclick="showView('signin');return false;" style="margin-bottom:12px;display:inline-flex;">← Back to sign in</a>
       <h2>Create your account</h2>
-      <p class="sub">Get started with HireFlow</p>
+      <p class="sub">Get started with Applio</p>
       <div id="msg-signup" class="auth-msg"></div>
       <form id="form-signup">
         <div class="form-field">
@@ -60,6 +61,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/notify.js"></script>
   <script src="js/auth.js"></script>
   <script>
     // initial view from ?mode=signup

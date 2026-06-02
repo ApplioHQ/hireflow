@@ -54,14 +54,14 @@
       </div>
       <div class="form-field">
         <label>Page Size</label>
-        <select id="page-size">
+        <select id="page-size" onchange="updatePageSize()">
           <option value="letter">US Letter (8.5×11)</option>
           <option value="a4">A4</option>
         </select>
       </div>
       <div class="form-field">
         <label>Margins</label>
-        <select id="margins">
+        <select id="margins" onchange="render()">
           <option>Normal</option><option>Narrow</option><option>Wide</option>
         </select>
       </div>
@@ -83,8 +83,9 @@ if (!TOKEN) location.href = 'login.html';
 const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
 
 function render() {
+  const marginsKey = document.getElementById('margins')?.value || 'Normal';
   document.getElementById('resume-preview').innerHTML =
-    renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent);
+    renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent, marginsKey);
 }
 
 async function tryExport(fmt) {
@@ -106,6 +107,13 @@ async function tryExport(fmt) {
   if (fmt === 'pdf') window.print();
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
+}
+
+function updatePageSize() {
+  const v = document.getElementById('page-size').value;
+  const el = document.getElementById('resume-preview');
+  if (v === 'a4') { el.style.maxWidth = '794px'; el.style.minHeight = '1123px'; }
+  else { el.style.maxWidth = '850px'; el.style.minHeight = '1100px'; }
 }
 
 function exportHTML() {

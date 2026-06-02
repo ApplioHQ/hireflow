@@ -39,23 +39,33 @@ const SAMPLE = {
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-// Merge real resume with sample fallbacks for preview
+// Always returns a fully-populated resume object so templates never crash.
+// If mini=true AND the user hasn't filled anything in, fall back to sample data.
 function withFallback(resume, mini) {
-  if (!mini) return resume;
   const r = resume || {};
-  return {
-    personal: Object.assign({}, SAMPLE.personal, r.personal),
-    experience: (r.experience && r.experience.length) ? r.experience : SAMPLE.experience,
-    education: (r.education && r.education.length) ? r.education : SAMPLE.education,
-    skills: (r.skills && r.skills.categories && r.skills.categories.length) ? r.skills : SAMPLE.skills,
-    projects: (r.projects && r.projects.length) ? r.projects : SAMPLE.projects,
-    certifications: r.certifications || [],
-    awards: r.awards || [],
-    leadership: r.leadership || [],
-    volunteer: r.volunteer || [],
-    publications: r.publications || [],
-    customize: r.customize || {}
+  const empty = { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' };
+  const safe = {
+    personal: Object.assign({}, empty, r.personal || {}),
+    experience: Array.isArray(r.experience) ? r.experience : [],
+    education: Array.isArray(r.education) ? r.education : [],
+    skills: (r.skills && Array.isArray(r.skills.categories)) ? r.skills : { categories: [] },
+    projects: Array.isArray(r.projects) ? r.projects : [],
+    certifications: Array.isArray(r.certifications) ? r.certifications : [],
+    awards: Array.isArray(r.awards) ? r.awards : [],
+    leadership: Array.isArray(r.leadership) ? r.leadership : [],
+    volunteer: Array.isArray(r.volunteer) ? r.volunteer : [],
+    publications: Array.isArray(r.publications) ? r.publications : [],
+    customize: r.customize || {},
+    template: r.template || 'modern'
   };
+  if (mini) {
+    if (!safe.personal.fullName) safe.personal = Object.assign({}, SAMPLE.personal);
+    if (!safe.experience.length)  safe.experience  = SAMPLE.experience;
+    if (!safe.education.length)   safe.education   = SAMPLE.education;
+    if (!safe.skills.categories.length) safe.skills = SAMPLE.skills;
+    if (!safe.projects.length)    safe.projects    = SAMPLE.projects;
+  }
+  return safe;
 }
 
 // Common section data builders for each template

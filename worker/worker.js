@@ -17,7 +17,7 @@ const AI_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    const cors = corsHeaders(env);
+    const cors = corsHeaders(env, req);
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
@@ -36,9 +36,16 @@ export default {
 };
 
 // ============ CORS ============
-function corsHeaders(env) {
+function corsHeaders(env, req) {
+  const allowed = (env.ALLOWED_ORIGIN || "*").split(",").map(s => s.trim());
+  const reqOrigin = req && req.headers.get("Origin");
+  let origin = "*";
+  if (allowed.includes("*")) origin = "*";
+  else if (reqOrigin && allowed.includes(reqOrigin)) origin = reqOrigin;
+  else origin = allowed[0]; // fallback — browser will block mismatched
   return {
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
+    "Access-Control-Allow-Origin": origin,
+    "Vary": "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — HireFlow</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .pricing-page { max-width: 1100px; margin: 0 auto; padding: 60px 24px; }
+  .pricing-head { text-align: center; margin-bottom: 50px; }
+  .pricing-head h1 { font-size: 44px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .pricing-head .sub { font-size: 17px; color: var(--muted); max-width: 540px; margin: 0 auto; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .tier {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px 28px; display: flex; flex-direction: column;
+  }
+  .tier.featured {
+    border-color: var(--accent); background: linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-1));
+    position: relative;
+  }
+  .tier.featured::before {
+    content: "Most popular"; position: absolute; top: -12px; right: 24px;
+    background: var(--gradient); color: #fff; font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 12px; letter-spacing: .05em; text-transform: uppercase;
+  }
+  .tier h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .tier .sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+  .tier .price { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+  .tier .price-period { font-size: 14px; font-weight: 400; color: var(--muted); }
+  .tier .price-note { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .tier ul { list-style: none; margin: 0 0 24px; flex-grow: 1; }
+  .tier li {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 0;
+    font-size: 14px; color: var(--text);
+  }
+  .tier li.muted { color: var(--muted); }
+  .tier li .ico { color: var(--success); margin-top: 1px; }
+  .tier li.muted .ico { color: var(--muted); }
+  .tier .btn { width: 100%; padding: 13px; font-size: 14px; }
+  .pricing-foot { text-align: center; margin-top: 40px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="index.html" class="brand"><div class="brand-icon"></div><span>HireFlow</span></a>
+  <div class="topbar-right" id="topbar-actions"></div>
+</header>
+
+<main class="pricing-page">
+  <div class="pricing-head">
+    <h1>Choose your plan</h1>
+    <p class="sub">Start free. Upgrade anytime for AI-powered tools and unlimited resume downloads.</p>
+  </div>
+
+  <div class="pricing-grid">
+    <!-- Free -->
+    <div class="tier">
+      <h3>Free</h3>
+      <p class="sub">For trying things out</p>
+      <div class="price">$0<span class="price-period">/forever</span></div>
+      <div class="price-note">No credit card required</div>
+      <ul id="free-list"></ul>
+      <button class="btn btn-secondary" id="free-btn"></button>
+    </div>
+
+    <!-- Premium -->
+    <div class="tier featured">
+      <h3>Premium</h3>
+      <p class="sub">Everything you need to land the job</p>
+      <div class="price">$9.99<span class="price-period">/month</span></div>
+      <div class="price-note">Cancel anytime</div>
+      <ul id="premium-list"></ul>
+      <button class="btn btn-primary" onclick="startCheckout('premium')" id="premium-btn"></button>
+    </div>
+
+    <!-- Lifetime -->
+    <div class="tier">
+      <h3>Lifetime</h3>
+      <p class="sub">Pay once. Use forever.</p>
+      <div class="price">$39.99<span class="price-period"> once</span></div>
+      <div class="price-note">Best long-term value</div>
+      <ul id="lifetime-list"></ul>
+      <button class="btn btn-secondary" onclick="startCheckout('lifetime')" id="lifetime-btn"></button>
+    </div>
+  </div>
+
+  <p class="pricing-foot">Secure payments by Stripe · All prices in USD</p>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/plan.js"></script>
+<script>
+const FREE_FEATURES = [
+  { t: 'Resume Builder (build + customize)', on: true },
+  { t: 'All 9 templates', on: true },
+  { t: 'Job Tracker', on: true },
+  { t: '10 resume downloads (total)', on: true },
+  { t: 'AI Improve, Tailor, ATS Check, Analysis', on: false },
+  { t: 'Interview Prep', on: false },
+  { t: 'Unlimited downloads', on: false },
+];
+const PREMIUM_FEATURES = [
+  { t: 'Everything in Free', on: true },
+  { t: 'Unlimited resume downloads', on: true },
+  { t: 'AI Improve writing', on: true },
+  { t: 'Tailor to Job (AI)', on: true },
+  { t: 'ATS Compatibility Check', on: true },
+  { t: 'AI Resume Analysis', on: true },
+  { t: 'AI Interview Prep', on: true },
+];
+const LIFETIME_FEATURES = [
+  { t: 'Everything in Premium', on: true },
+  { t: 'One-time payment', on: true },
+  { t: 'No recurring charges', on: true },
+  { t: 'Unlimited everything, forever', on: true },
+];
+
+function checkMark(on) {
+  return on
+    ? '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
+    : '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></span>';
+}
+function renderList(elId, features) {
+  document.getElementById(elId).innerHTML = features.map(f =>
+    `<li class="${f.on?'':'muted'}">${checkMark(f.on)} <span>${f.t}</span></li>`
+  ).join('');
+}
+
+renderList('free-list', FREE_FEATURES);
+renderList('premium-list', PREMIUM_FEATURES);
+renderList('lifetime-list', LIFETIME_FEATURES);
+
+// Wire buttons based on auth + current plan
+(async () => {
+  const tb = document.getElementById('topbar-actions');
+  const token = localStorage.getItem('hf_token');
+  if (!token) {
+    tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="login.html">Sign in</a><a class="btn btn-primary btn-sm" href="login.html?mode=signup">Sign up</a>`;
+    document.getElementById('free-btn').textContent = 'Get started — free';
+    document.getElementById('free-btn').onclick = () => location.href = 'login.html?mode=signup';
+    document.getElementById('premium-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Upgrade to Premium</span>`;
+    document.getElementById('lifetime-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Buy Lifetime</span>`;
+    return;
+  }
+  await loadCurrentUser();
+  const plan = CURRENT_USER?.plan || 'free';
+  tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="editor.html">Back to app</a>`;
+
+  // Free button
+  const fb = document.getElementById('free-btn');
+  fb.textContent = plan === 'free' ? 'You are on Free' : 'Free plan';
+  fb.disabled = true; fb.style.opacity = .6;
+
+  // Premium
+  const pb = document.getElementById('premium-btn');
+  if (plan === 'premium') { pb.textContent = 'Your current plan'; pb.disabled = true; pb.style.opacity = .6; pb.onclick = null; }
+  else if (plan === 'lifetime') { pb.textContent = 'Lifetime active'; pb.disabled = true; pb.style.opacity = .6; pb.onclick = null; }
+  else pb.innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Upgrade to Premium</span>`;
+
+  // Lifetime
+  const lb = document.getElementById('lifetime-btn');
+  if (plan === 'lifetime') { lb.textContent = 'Your current plan'; lb.disabled = true; lb.style.opacity = .6; lb.onclick = null; }
+  else lb.innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Buy Lifetime</span>`;
+})();
+</script>
+</body>
+</html>

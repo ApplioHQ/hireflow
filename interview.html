@@ -15,6 +15,7 @@
     <a class="topbar-tab active" href="interview.html">Interview Prep</a>
   </nav>
   <div class="topbar-right">
+    <span id="plan-pill"></span>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
@@ -39,6 +40,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
+<script src="js/plan.js"></script>
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
@@ -46,6 +48,7 @@ if (!TOKEN) location.href = 'login.html';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
+  if (isFree()) { showUpgradeModal('interview'); return; }
   const role = document.getElementById('role').value;
   const jd = document.getElementById('jd').value;
   if (!role) return alert('Enter a role');
@@ -57,6 +60,7 @@ async function generate() {
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
       body: JSON.stringify({ role, jobDescription: jd, resume })
     });
+    if (r.status === 402) { showUpgradeModal('interview'); document.getElementById('results').innerHTML=''; return; }
     if (!r.ok) throw new Error('AI failed');
     const data = await r.json();
     document.getElementById('results').innerHTML = `
@@ -70,8 +74,24 @@ async function generate() {
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
 
-document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;
-document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
+(async () => {
+  await loadCurrentUser();
+  document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;
+  document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
+  const planPill = document.getElementById('plan-pill');
+  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  if (isFree()) {
+    // Show pre-upgrade card instead of letting them waste effort
+    document.querySelector('main .section-card').innerHTML = `
+      <div style="text-align:center; padding:30px 20px;">
+        <div style="display:flex; justify-content:center; margin-bottom:16px; color:var(--accent);">${ICON('lock','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"')}</div>
+        <h2 style="font-size:22px; margin-bottom:8px;">Interview Prep is Premium</h2>
+        <p style="color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto;">Get AI-generated practice questions tailored to any role and your resume.</p>
+        <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock with Premium</span></a>
+      </div>`;
+  }
+})();
 </script>
 </body>
 </html>

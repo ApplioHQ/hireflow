@@ -46,7 +46,10 @@ function hydrate() {
   document.querySelectorAll('.sidebar-item').forEach(el => {
     const s = el.dataset.section;
     const info = SECTION_INFO[s];
-    if (info) el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>`;
+    if (!info) return;
+    const isPro = PRO_SECTIONS.has(s);
+    const showLock = isPro && isFree();
+    el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>${showLock ? `<span class="ico ico-sm" style="margin-left:auto; opacity:.7;">${ICONS.lock}</span>` : ''}`;
   });
   document.getElementById('btn-import').innerHTML = `${ICON('upload')} <span>Import</span>`;
   document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span>`;
@@ -57,14 +60,59 @@ function hydrate() {
   document.getElementById('modal-import-title').innerHTML = `${ICON('upload','ico ico-lg')} <span style="margin-left:8px;">Import Your Resume</span>`;
   document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span style="margin-left:8px;">Version History</span>`;
   document.getElementById('btn-import-go').innerHTML = `${ICON('sparkle')} <span>Import with AI</span>`;
+
+  // Plan pill + download counter
+  const planPill = document.getElementById('plan-pill');
+  const dlPill = document.getElementById('download-pill');
+  const ipTab = document.getElementById('ip-tab');
+  const obadge = document.getElementById('optimize-badge');
+
+  if (isPaid()) {
+    planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+    if (dlPill) dlPill.style.display = 'none';
+    if (obadge) obadge.innerHTML = '';
+  } else {
+    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    const left = downloadsLeft();
+    if (dlPill) {
+      dlPill.style.display = '';
+      dlPill.innerHTML = `<span class="pill ${left<=2?'warn':''}" title="Free plan downloads">${ICON('download','ico ico-sm')} ${CURRENT_USER?.downloadsUsed || 0} / ${CURRENT_USER?.downloadLimit || 10}</span>`;
+    }
+    if (obadge) obadge.innerHTML = ` <span class="ico ico-sm" style="opacity:.5; vertical-align:middle;">${ICONS.lock}</span>`;
+  }
+
+  // Interview Prep tab — always visible, but show lock for free
+  if (ipTab && isFree()) {
+    ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
+    ipTab.onclick = (e) => { e.preventDefault(); showUpgradeModal('interview'); };
+  } else if (ipTab) {
+    ipTab.innerHTML = 'Interview Prep';
+    ipTab.onclick = null;
+  }
+
+  // Welcome banner
+  const params = new URLSearchParams(location.search);
+  const welcome = params.get('welcome');
+  if (welcome) {
+    const b = document.getElementById('welcome-banner');
+    b.style.display = '';
+    b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to ${welcome === 'lifetime' ? 'Lifetime' : 'Premium'}! All features are now unlocked.</span>`;
+    setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor.html'); }, 6000);
+  }
 }
 
-// ---- Sidebar ----
+// ---- Sidebar (with plan gating) ----
+const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
+    const sec = item.dataset.section;
+    if (PRO_SECTIONS.has(sec) && isFree()) {
+      showUpgradeModal('optimize');
+      return;
+    }
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     item.classList.add('active');
-    currentSection = item.dataset.section;
+    currentSection = sec;
     renderMain();
   });
 });
@@ -439,11 +487,13 @@ function signOut() {
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
+  if (isFree()) { showUpgradeModal('ai'); throw new Error('Premium required'); }
   const r = await fetch(API + '/ai/' + endpoint, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
     body: JSON.stringify(body)
   });
+  if (r.status === 402) { showUpgradeModal('ai'); throw new Error('Premium required'); }
   if (!r.ok) throw new Error('AI request failed');
   return r.json();
 }
@@ -499,7 +549,11 @@ async function aiAnalyze() {
   } catch(e) { alert('AI failed: '+e.message); }
 }
 
-function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); if(id==='version') renderVersions(); }
+function openModal(id) {
+  if (id === 'import' && isFree()) { showUpgradeModal('ai'); return; }
+  document.getElementById('modal-'+id).classList.add('open');
+  if(id==='version') renderVersions();
+}
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
 function renderVersions() {
@@ -531,5 +585,8 @@ async function importResume() {
 }
 
 // ============ Boot ============
-hydrate();
-renderMain();
+(async () => {
+  await loadCurrentUser();
+  hydrate();
+  renderMain();
+})();

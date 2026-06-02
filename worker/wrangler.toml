@@ -19,4 +19,4 @@ id = "fc33acc438fc484f860e880cb93de810"
 
 # Set this to your GitHub Pages origin so CORS works.
 [vars]
-ALLOWED_ORIGIN = "https://YOUR-USERNAME.github.io"
+ALLOWED_ORIGIN = "https://codehost-commit.github.io"

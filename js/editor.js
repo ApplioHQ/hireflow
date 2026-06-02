@@ -1,37 +1,63 @@
 // ============ HireFlow Editor ============
 const API = window.HIREFLOW_CONFIG.API_URL;
 
-// ---- Auth gate ----
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
 
-// ---- State ----
+// ---- Default state ----
 const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
-    accent: '#4f46e5',
-    font: 'Inter',
-    spacing: 'medium',
-    headerStyle: 'centered',
-    sectionStyle: 'underline',
+    accent: '#4f46e5', font: 'Inter', spacing: 'medium',
     sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true }
   },
   personal: { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' },
-  experience: [],
-  education: [],
-  skills: { categories: [] },
-  projects: [],
-  certifications: [],
-  awards: [],
-  leadership: [],
-  volunteer: [],
-  publications: [],
+  experience: [], education: [], skills: { categories: [] }, projects: [],
+  certifications: [], awards: [], leadership: [], volunteer: [], publications: [],
   tailor: { jobDescription:'', tailoredSummary:'' },
   versions: []
 };
 
 let resume = JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME);
 let currentSection = 'template';
+
+// ---- Section label/icon map ----
+const SECTION_INFO = {
+  template:      { label: 'Templates',      icon: 'doc' },
+  personal:      { label: 'Personal Info',  icon: 'user' },
+  experience:    { label: 'Experience',     icon: 'briefcase' },
+  education:     { label: 'Education',      icon: 'grad' },
+  skills:        { label: 'Skills',         icon: 'bolt' },
+  projects:      { label: 'Projects',       icon: 'tool' },
+  certifications:{ label: 'Certifications', icon: 'badge' },
+  awards:        { label: 'Awards',         icon: 'trophy' },
+  leadership:    { label: 'Leadership',     icon: 'team' },
+  volunteer:     { label: 'Volunteer',      icon: 'heart' },
+  publications:  { label: 'Publications',   icon: 'book' },
+  tailor:        { label: 'Tailor to Job',  icon: 'target' },
+  ats:           { label: 'ATS Check',      icon: 'check' },
+  analysis:      { label: 'AI Analysis',    icon: 'beaker' },
+  dashboard:     { label: 'Dashboard',      icon: 'chart' },
+  customize:     { label: 'Customize',      icon: 'settings' }
+};
+
+// ---- Hydrate icons in static markup ----
+function hydrate() {
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    const s = el.dataset.section;
+    const info = SECTION_INFO[s];
+    if (info) el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>`;
+  });
+  document.getElementById('btn-import').innerHTML = `${ICON('upload')} <span>Import</span>`;
+  document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span>`;
+  document.getElementById('btn-export').innerHTML = `${ICON('arrowRight')} <span>Preview &amp; Export</span>`;
+  document.getElementById('copilot-label').innerHTML = `${ICON('sparkle')} <span>Smart writing copilot</span>`;
+  document.getElementById('rp-export').innerHTML = `${ICON('download')} <span>Export PDF</span>`;
+  document.getElementById('rp-history').innerHTML = `${ICON('clock')} <span>Version History</span>`;
+  document.getElementById('modal-import-title').innerHTML = `${ICON('upload','ico ico-lg')} <span style="margin-left:8px;">Import Your Resume</span>`;
+  document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span style="margin-left:8px;">Version History</span>`;
+  document.getElementById('btn-import-go').innerHTML = `${ICON('sparkle')} <span>Import with AI</span>`;
+}
 
 // ---- Sidebar ----
 document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -45,69 +71,42 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
 
 // ---- Renderers ----
 const SECTIONS = {
-  template: renderTemplate,
-  personal: renderPersonal,
-  experience: renderExperience,
-  education: renderEducation,
-  skills: renderSkills,
-  projects: renderProjects,
-  certifications: renderCertifications,
-  awards: renderAwards,
-  leadership: renderLeadership,
-  volunteer: renderVolunteer,
-  publications: renderPublications,
-  tailor: renderTailor,
-  ats: renderATS,
-  analysis: renderAnalysis,
-  dashboard: renderDashboard,
-  customize: renderCustomize
+  template: renderTemplateSection, personal: renderPersonal, experience: renderExperience,
+  education: renderEducation, skills: renderSkills, projects: renderProjects,
+  certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
+  volunteer: renderVolunteer, publications: renderPublications,
+  tailor: renderTailor, ats: renderATS, analysis: renderAnalysis,
+  dashboard: renderDashboard, customize: renderCustomize
 };
 
 function renderMain() {
-  const main = document.getElementById('main');
-  main.innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
+  document.getElementById('main').innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
   bindAutoSave();
   renderPreview();
 }
 
-// ============ Templates ============
-const TEMPLATES = [
-  { id:'modern', name:'Modern', color:'linear-gradient(135deg,#4f46e5,#7c3aed)' },
-  { id:'classic', name:'Classic', color:'#1f2937' },
-  { id:'creative', name:'Creative', color:'linear-gradient(135deg,#ec4899,#f43f5e)' },
-  { id:'minimal', name:'Minimal', color:'#f3f4f6' },
-  { id:'professional', name:'Professional', color:'#0f766e' },
-  { id:'tech', name:'Tech', color:'#0ea5e9' },
-  { id:'executive', name:'Executive', color:'#7c2d12' },
-  { id:'compact', name:'Compact', color:'#4b5563' },
-  { id:'elegant', name:'Elegant', color:'linear-gradient(135deg,#7c3aed,#a855f7)' }
-];
-
-function renderTemplate() {
+// ============ Section: Templates ============
+function renderTemplateSection() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>🎨 Templates</h3><span class="pill">${TEMPLATES.length} templates</span></div>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Choose a template. You can customize colors and fonts later.</p>
+      <div class="section-head">
+        <h3>${ICON('doc')} Templates</h3>
+        <span class="pill">${TEMPLATE_DEFS.length} templates</span>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">Choose a template. You can change colors and fonts later.</p>
       <div class="template-grid">
-        ${TEMPLATES.map(t => `
+        ${TEMPLATE_DEFS.map(t => `
           <div class="template-card ${resume.template===t.id?'selected':''}" onclick="selectTemplate('${t.id}')">
-            <div class="template-preview" style="background:${t.color};">
-              <div style="background:#fff; height:100%; padding:8px; color:#111;">
-                <div style="font-weight:700; font-size:8px;">Your Name</div>
-                <div style="height:1px; background:#ccc; margin:4px 0;"></div>
-                <div style="font-size:5px; line-height:1.4;">Lorem ipsum dolor sit amet consectetur.</div>
-              </div>
-            </div>
+            <div class="template-preview">${renderTemplate(t.id, resume, true, resume.customize.accent)}</div>
             <div class="template-name">${t.name}</div>
           </div>
         `).join('')}
       </div>
       <div class="action-row">
         <span></span>
-        <button class="btn btn-primary" onclick="nextSection('personal')">Customize →</button>
+        <button class="btn btn-primary" onclick="nextSection('personal')">Continue ${ICON('arrowRight')}</button>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 function selectTemplate(id) { resume.template = id; save(); renderMain(); }
 
@@ -117,8 +116,8 @@ function renderPersonal() {
   return `
     <div class="section-card">
       <div class="section-head">
-        <h3>👤 Personal Info</h3>
-        <button class="ai-btn" onclick="aiImprove('summary')">✨ AI Improve</button>
+        <h3>${ICON('user')} Personal Info</h3>
+        <button class="ai-btn" onclick="aiImprove('summary')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
       </div>
       <div class="form-field"><label>Full Name</label><input data-bind="personal.fullName" value="${esc(p.fullName)}"></div>
       <div class="form-field"><label>Email</label><input data-bind="personal.email" value="${esc(p.email)}" type="email"></div>
@@ -135,62 +134,51 @@ function renderPersonal() {
         <label>Professional Summary</label>
         <textarea data-bind="personal.summary" rows="4" placeholder="A short summary highlighting your strengths…">${esc(p.summary)}</textarea>
       </div>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('template')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('experience')">Continue →</button>
-      </div>
-    </div>
-  `;
+      ${navRow('template','experience')}
+    </div>`;
 }
 
-// ============ Experience ============
+// ============ Experience / list-style sections ============
 function renderExperience() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>💼 Experience</h3>
-        <button class="ai-btn" onclick="aiImprove('experience')">✨ AI Improve</button>
+      <div class="section-head">
+        <h3>${ICON('briefcase')} Experience</h3>
+        <button class="ai-btn" onclick="aiImprove('experience')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
       </div>
-      ${resume.experience.length === 0 ? `
-        <div class="empty-state">No work experience added yet — add your first role to get started.</div>
-      ` : resume.experience.map((e,i) => itemCard('experience', i, [
-        ['Job Title', 'title', e.title], ['Company', 'company', e.company],
-        ['Start Date', 'start', e.start], ['End Date / Present', 'end', e.end],
-        ['Location', 'location', e.location]
-      ], 'description', e.description)).join('')}
-      <button class="add-btn" onclick="addItem('experience',{title:'',company:'',start:'',end:'',location:'',description:''})">+ Add Experience</button>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('personal')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('education')">Continue →</button>
-      </div>
+      ${resume.experience.length === 0 ? `<div class="empty-state">No work experience added yet — add your first role to get started.</div>`
+        : resume.experience.map((e,i) => itemCard('experience', i, [
+            ['Job Title','title',e.title], ['Company','company',e.company],
+            ['Start Date','start',e.start], ['End Date / Present','end',e.end],
+            ['Location','location',e.location]
+          ], 'description', e.description)).join('')}
+      <button class="add-btn" onclick="addItem('experience',{title:'',company:'',start:'',end:'',location:'',description:''})">${ICON('plus','ico ico-sm')} Add Experience</button>
+      ${navRow('personal','education')}
     </div>`;
 }
 
-// ============ Education ============
 function renderEducation() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>🎓 Education</h3></div>
-      ${resume.education.length === 0 ? `<div class="empty-state">No education added yet.</div>` :
-        resume.education.map((e,i) => itemCard('education', i, [
-          ['School','school',e.school], ['Degree','degree',e.degree],
-          ['Field of Study','field',e.field], ['GPA','gpa',e.gpa],
-          ['Start','start',e.start], ['End','end',e.end]
-        ], 'notes', e.notes)).join('')}
-      <button class="add-btn" onclick="addItem('education',{school:'',degree:'',field:'',gpa:'',start:'',end:'',notes:''})">+ Add Education</button>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('experience')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('skills')">Continue →</button>
-      </div>
+      <div class="section-head"><h3>${ICON('grad')} Education</h3></div>
+      ${resume.education.length === 0 ? `<div class="empty-state">No education added yet.</div>`
+        : resume.education.map((e,i) => itemCard('education', i, [
+            ['School','school',e.school], ['Degree','degree',e.degree],
+            ['Field of Study','field',e.field], ['GPA','gpa',e.gpa],
+            ['Start','start',e.start], ['End','end',e.end]
+          ], 'notes', e.notes)).join('')}
+      <button class="add-btn" onclick="addItem('education',{school:'',degree:'',field:'',gpa:'',start:'',end:'',notes:''})">${ICON('plus','ico ico-sm')} Add Education</button>
+      ${navRow('experience','skills')}
     </div>`;
 }
 
-// ============ Skills ============
 function renderSkills() {
   const cats = resume.skills.categories;
   return `
     <div class="section-card">
-      <div class="section-head"><h3>⚡ Skills</h3>
-        <button class="ai-btn" onclick="aiSuggestSkills()">✨ Suggest Skills from Experience</button>
+      <div class="section-head">
+        <h3>${ICON('bolt')} Skills</h3>
+        <button class="ai-btn" onclick="aiSuggestSkills()">${ICON('sparkle','ico ico-sm')} Suggest from Experience</button>
       </div>
       <div class="form-field">
         <label>Add skills (comma-separated)</label>
@@ -200,82 +188,44 @@ function renderSkills() {
       <div class="tag-list" style="margin-top:14px;">
         ${cats.flatMap(c=>c.items).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}
       </div>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('education')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('projects')">Continue →</button>
-      </div>
+      ${navRow('education','projects')}
     </div>`;
 }
 function saveSkills() {
   const raw = document.getElementById('skills-input').value;
-  const items = raw.split(',').map(s=>s.trim()).filter(Boolean);
-  resume.skills.categories = [{ name:'All', items }];
+  resume.skills.categories = [{ name:'All', items: raw.split(',').map(s=>s.trim()).filter(Boolean) }];
   save(); renderMain();
 }
 
-// ============ Projects ============
-function renderProjects() {
-  return sectionList('projects','🛠 Projects', resume.projects, [
-    ['Name','name'],['Role','role'],['Tech','tech'],['Link','link']
-  ], 'description', 'education','certifications');
-}
-// ============ Certifications ============
-function renderCertifications() {
-  return sectionList('certifications','📜 Certifications', resume.certifications, [
-    ['Name','name'],['Issuer','issuer'],['Date','date'],['Credential URL','url']
-  ], null, 'projects','awards');
-}
-// ============ Awards ============
-function renderAwards() {
-  return sectionList('awards','🏆 Awards', resume.awards, [
-    ['Name','name'],['Issuer','issuer'],['Date','date']
-  ], 'description','certifications','leadership');
-}
-// ============ Leadership ============
-function renderLeadership() {
-  return sectionList('leadership','🤝 Leadership', resume.leadership, [
-    ['Role','role'],['Organization','org'],['Start','start'],['End','end']
-  ], 'description','awards','volunteer');
-}
-// ============ Volunteer ============
-function renderVolunteer() {
-  return sectionList('volunteer','❤️ Volunteer', resume.volunteer, [
-    ['Role','role'],['Organization','org'],['Start','start'],['End','end']
-  ], 'description','leadership','publications');
-}
-// ============ Publications ============
-function renderPublications() {
-  return sectionList('publications','📚 Publications', resume.publications, [
-    ['Title','title'],['Venue','venue'],['Date','date'],['URL','url']
-  ], 'abstract','volunteer','tailor');
-}
+function renderProjects()      { return sectionList('projects','tool','Projects', resume.projects, [['Name','name'],['Role','role'],['Tech','tech'],['Link','link']], 'description', 'skills','certifications'); }
+function renderCertifications(){ return sectionList('certifications','badge','Certifications', resume.certifications, [['Name','name'],['Issuer','issuer'],['Date','date'],['Credential URL','url']], null, 'projects','awards'); }
+function renderAwards()        { return sectionList('awards','trophy','Awards', resume.awards, [['Name','name'],['Issuer','issuer'],['Date','date']], 'description','certifications','leadership'); }
+function renderLeadership()    { return sectionList('leadership','team','Leadership', resume.leadership, [['Role','role'],['Organization','org'],['Start','start'],['End','end']], 'description','awards','volunteer'); }
+function renderVolunteer()     { return sectionList('volunteer','heart','Volunteer', resume.volunteer, [['Role','role'],['Organization','org'],['Start','start'],['End','end']], 'description','leadership','publications'); }
+function renderPublications()  { return sectionList('publications','book','Publications', resume.publications, [['Title','title'],['Venue','venue'],['Date','date'],['URL','url']], 'abstract','volunteer','tailor'); }
 
-function sectionList(key, title, list, fields, longField, prev, next) {
+function sectionList(key, icon, title, list, fields, longField, prev, next) {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>${title}</h3>
-        ${longField ? `<button class="ai-btn" onclick="aiImprove('${key}')">✨ AI Improve</button>`:''}
+      <div class="section-head">
+        <h3>${ICON(icon)} ${title}</h3>
+        ${longField ? `<button class="ai-btn" onclick="aiImprove('${key}')">${ICON('sparkle','ico ico-sm')} AI Improve</button>`:''}
       </div>
       ${list.length===0 ? `<div class="empty-state">No ${key} added yet.</div>` :
         list.map((it,i)=> itemCard(key, i, fields.map(f=>[f[0],f[1],it[f[1]]]), longField, longField?it[longField]:null)).join('')}
-      <button class="add-btn" onclick='addItem("${key}",${JSON.stringify(blank(fields,longField))})'>+ Add ${title.split(' ')[1]}</button>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('${prev}')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('${next}')">Continue →</button>
-      </div>
+      <button class="add-btn" onclick='addItem("${key}",${JSON.stringify(blank(fields,longField))})'>${ICON('plus','ico ico-sm')} Add ${title}</button>
+      ${navRow(prev,next)}
     </div>`;
 }
 
-function blank(fields, longField) {
-  const o = {}; fields.forEach(f => o[f[1]] = ''); if (longField) o[longField] = ''; return o;
-}
+function blank(fields, longField) { const o = {}; fields.forEach(f => o[f[1]] = ''); if (longField) o[longField] = ''; return o; }
 
 function itemCard(key, idx, fields, longField, longValue) {
   return `
     <div class="section-card" style="background:var(--bg-2); margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-        <strong>${fields[0][2] || 'New entry'}</strong>
-        <button class="btn btn-ghost btn-xs" onclick="removeItem('${key}',${idx})">🗑 Remove</button>
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+        <strong style="font-size:13px;">${fields[0][2] || 'New entry'}</strong>
+        <button class="btn btn-ghost btn-xs" onclick="removeItem('${key}',${idx})">${ICON('trash','ico ico-sm')} Remove</button>
       </div>
       <div class="grid-2">
         ${fields.map(f => `
@@ -290,12 +240,13 @@ function itemCard(key, idx, fields, longField, longValue) {
     </div>`;
 }
 
-// ============ Tailor ============
+// ============ Tailor / ATS / Analysis / Dashboard / Customize ============
 function renderTailor() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>🎯 Tailor to Job</h3>
-        <button class="ai-btn" onclick="aiTailor()">✨ Generate Tailored Resume</button>
+      <div class="section-head">
+        <h3>${ICON('target')} Tailor to Job</h3>
+        <button class="ai-btn" onclick="aiTailor()">${ICON('sparkle','ico ico-sm')} Generate Tailored Resume</button>
       </div>
       <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Paste a job description and our AI will tailor your summary &amp; highlight the right experience.</p>
       <div class="form-field">
@@ -306,55 +257,44 @@ function renderTailor() {
         <div class="notice" style="background:rgba(99,102,241,.1); border-color:rgba(99,102,241,.3); color:#c4b5fd;">
           <strong>Tailored summary:</strong><br>${esc(resume.tailor.tailoredSummary)}
         </div>` : ''}
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('publications')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('ats')">Continue →</button>
-      </div>
+      ${navRow('publications','ats')}
     </div>`;
 }
 
-// ============ ATS ============
 function renderATS() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>✅ ATS Compatibility Check</h3></div>
+      <div class="section-head"><h3>${ICON('check')} ATS Compatibility Check</h3></div>
       <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Paste a job posting and we'll score your resume's ATS match.</p>
       <div class="form-field">
         <label>Job Description</label>
-        <textarea id="ats-jd" rows="4" placeholder="Paste job description…"></textarea>
+        <textarea id="ats-jd" rows="5" placeholder="Paste job description…"></textarea>
       </div>
-      <button class="btn btn-primary btn-block" onclick="aiATS()">⚙️ Run ATS Check</button>
+      <button class="btn btn-primary btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
       <div id="ats-result" style="margin-top:16px;"></div>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('tailor')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('analysis')">Continue →</button>
-      </div>
+      ${navRow('tailor','analysis')}
     </div>`;
 }
 
-// ============ AI Analysis ============
 function renderAnalysis() {
   return `
     <div class="section-card">
-      <div class="section-head"><h3>🔬 AI Resume Analysis</h3>
-        <button class="ai-btn" onclick="aiAnalyze()">✨ Run Analysis</button>
+      <div class="section-head">
+        <h3>${ICON('beaker')} AI Resume Analysis</h3>
+        <button class="ai-btn" onclick="aiAnalyze()">${ICON('sparkle','ico ico-sm')} Run Analysis</button>
       </div>
       <p style="color:var(--muted); font-size:13px;">Get AI-powered insights on your resume's strengths and areas to improve.</p>
       <div id="analysis-result" style="margin-top:16px;"></div>
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('ats')">← Back</button>
-        <button class="btn btn-primary" onclick="nextSection('dashboard')">Continue →</button>
-      </div>
+      ${navRow('ats','dashboard')}
     </div>`;
 }
 
-// ============ Dashboard ============
 function renderDashboard() {
   const filled = countFilled();
   const pct = Math.round(filled.score * 100);
   return `
     <div class="section-card">
-      <div class="section-head"><h3>📊 Dashboard</h3></div>
+      <div class="section-head"><h3>${ICON('chart')} Dashboard</h3></div>
       <div class="grid-2" style="margin-bottom:16px;">
         <div style="background:var(--bg-2); padding:18px; border-radius:10px; border:1px solid var(--border);">
           <div style="font-size:12px; color:var(--muted);">Your Progress</div>
@@ -373,31 +313,30 @@ function renderDashboard() {
         <strong>Selected Template:</strong> ${esc(resume.template)}
       </div>
       <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('analysis')">← Back</button>
-        <a href="export.html" class="btn btn-primary">Preview &amp; Export →</a>
+        <button class="btn btn-secondary" onclick="nextSection('analysis')">${ICON('arrowLeft')} Back</button>
+        <a href="export.html" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
       </div>
     </div>`;
 }
 
 function countFilled() {
-  const sections = ['personal','experience','education','skills','projects'];
   let done = 0;
   if (resume.personal.fullName && resume.personal.email) done++;
   if (resume.experience.length) done++;
   if (resume.education.length) done++;
   if (resume.skills.categories.length) done++;
   if (resume.projects.length) done++;
-  return { done, total: sections.length, score: done/sections.length };
+  return { done, total: 5, score: done/5 };
 }
 
-// ============ Customize ============
-const SWATCHES = ['#4f46e5','#7c3aed','#ec4899','#f43f5e','#f59e0b','#10b981','#0ea5e9','#3b82f6','#8b5cf6','#1f2937'];
-const FONTS = ['Inter','Helvetica','Georgia','Times','Roboto'];
+const SWATCHES = ['#4f46e5','#7c3aed','#ec4899','#0f766e','#f59e0b','#10b981','#0ea5e9','#3b82f6','#1f2937','#7c2d12'];
+const FONTS = ['Inter','Helvetica','Georgia','Times'];
+
 function renderCustomize() {
   const c = resume.customize;
   return `
     <div class="section-card">
-      <div class="section-head"><h3>⚙️ Customize Template</h3></div>
+      <div class="section-head"><h3>${ICON('settings')} Customize Template</h3></div>
       <div style="margin-bottom:18px;">
         <label style="font-size:13px; color:var(--muted);">Accent Color</label>
         <div class="swatch-grid" style="margin-top:8px;">
@@ -416,7 +355,6 @@ function renderCustomize() {
           <option value="relaxed" ${c.spacing==='relaxed'?'selected':''}>Relaxed</option>
         </select>
       </div>
-
       <div style="margin-top:18px;">
         <strong>Resume Sections</strong>
         <div style="margin-top:10px;">
@@ -432,35 +370,26 @@ function renderCustomize() {
 function setCustom(k,v) { resume.customize[k]=v; save(); renderMain(); }
 function toggleSection(k){ resume.customize.sections[k]=!resume.customize.sections[k]; save(); renderMain(); }
 
-// ============ Preview ============
+// ============ Nav row helper ============
+function navRow(prev, next) {
+  return `<div class="action-row">
+    ${prev ? `<button class="btn btn-secondary" onclick="nextSection('${prev}')">${ICON('arrowLeft')} Back</button>` : '<span></span>'}
+    ${next ? `<button class="btn btn-primary" onclick="nextSection('${next}')">Continue ${ICON('arrowRight')}</button>` : ''}
+  </div>`;
+}
+
+// ============ Preview (uses template renderer) ============
 function renderPreview() {
-  const p = resume.personal;
-  const accent = resume.customize.accent;
-  const html = `
-    <div style="font-family:${resume.customize.font},sans-serif;">
-      <div style="background:${accent}; color:#fff; padding:8px; margin:-12px -12px 8px;">
-        <div style="font-weight:700; font-size:14px;">${esc(p.fullName||'Your Name')}</div>
-        <div style="font-size:7px; opacity:.85;">${esc([p.email,p.phone,p.location].filter(Boolean).join(' · '))}</div>
-      </div>
-      ${p.summary ? `<h2 style="color:${accent};">Summary</h2><p>${esc(p.summary)}</p>`:''}
-      ${resume.experience.length ? `<h2 style="color:${accent};">Experience</h2>${resume.experience.map(e=>`
-        <p><strong>${esc(e.title)}</strong> · ${esc(e.company)}<br><em>${esc(e.start)} – ${esc(e.end)}</em></p>
-        <p style="font-size:7px;">${esc(e.description||'').slice(0,200)}</p>`).join('')}` : ''}
-      ${resume.education.length ? `<h2 style="color:${accent};">Education</h2>${resume.education.map(e=>`
-        <p><strong>${esc(e.school)}</strong> — ${esc(e.degree)} ${esc(e.field)}</p>`).join('')}` : ''}
-      ${resume.skills.categories.length ? `<h2 style="color:${accent};">Skills</h2><p>${esc(resume.skills.categories.flatMap(c=>c.items).join(' · '))}</p>` : ''}
-    </div>`;
-  document.getElementById('preview').innerHTML = html;
+  document.getElementById('preview').innerHTML = renderTemplate(resume.template, resume, true, resume.customize.accent);
 }
 
 // ============ Helpers ============
-function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function nextSection(s) {
   currentSection = s;
   document.querySelectorAll('.sidebar-item').forEach(i => i.classList.toggle('active', i.dataset.section === s));
   renderMain();
 }
-function addItem(key, blank) { resume[key].push(blank); save(); renderMain(); }
+function addItem(key, b) { resume[key].push(b); save(); renderMain(); }
 function removeItem(key, idx) { resume[key].splice(idx,1); save(); renderMain(); }
 
 function bindAutoSave() {
@@ -470,19 +399,15 @@ function bindAutoSave() {
       let obj = resume;
       for (let i=0;i<path.length-1;i++) obj = obj[path[i]];
       obj[path[path.length-1]] = el.value;
-      save();
-      renderPreview();
+      save(); renderPreview();
     });
   });
 }
 
-function save() {
-  localStorage.setItem('hf_resume', JSON.stringify(resume));
-}
+function save() { localStorage.setItem('hf_resume', JSON.stringify(resume)); }
 
 async function saveResume() {
   save();
-  // push a version snapshot
   resume.versions = resume.versions || [];
   resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(resume)) });
   resume.versions = resume.versions.slice(0, 10);
@@ -493,14 +418,15 @@ async function saveResume() {
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
       body: JSON.stringify({ resume })
     });
-    flashSaved();
-  } catch (e) { console.warn('sync failed', e); flashSaved('local'); }
+    toast('Saved to cloud');
+  } catch (e) { toast('Saved locally', true); }
 }
 
-function flashSaved(mode) {
+function toast(msg, warn) {
   const m = document.createElement('div');
-  m.textContent = mode==='local' ? '💾 Saved locally' : '✓ Saved to cloud';
-  m.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--success);color:#fff;padding:10px 16px;border-radius:8px;z-index:200;';
+  m.className = 'toast';
+  if (warn) m.style.background = 'var(--warning)';
+  m.innerHTML = `${ICON('check')} ${msg}`;
   document.body.appendChild(m);
   setTimeout(()=>m.remove(), 1800);
 }
@@ -573,13 +499,12 @@ async function aiAnalyze() {
   } catch(e) { alert('AI failed: '+e.message); }
 }
 
-// ============ Modals ============
 function openModal(id) { document.getElementById('modal-'+id).classList.add('open'); if(id==='version') renderVersions(); }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
 function renderVersions() {
   const list = (resume.versions || []).map((v,i)=> `
-    <div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg-2); border-radius:8px;">
+    <div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg-2); border-radius:8px; align-items:center;">
       <div>
         <strong>${v.label}</strong>
         <div style="color:var(--muted); font-size:12px;">${new Date(v.ts).toLocaleString()}</div>
@@ -606,4 +531,5 @@ async function importResume() {
 }
 
 // ============ Boot ============
+hydrate();
 renderMain();

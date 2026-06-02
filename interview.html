@@ -6,7 +6,7 @@
 <title>Interview Prep — HireFlow</title>
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="app-body">
+<body class="app-body-scroll">
 <header class="app-topbar">
   <div class="brand"><div class="brand-icon"></div><span>HireFlow</span></div>
   <nav class="topbar-tabs">
@@ -19,9 +19,9 @@
   </div>
 </header>
 
-<main style="padding:32px; max-width:780px; margin:0 auto;">
+<main style="padding:32px 20px; max-width:820px; margin:0 auto;">
   <div class="section-card">
-    <div class="section-head"><h3>🎤 AI Interview Preparation</h3></div>
+    <div class="section-head"><h3 id="ip-title"></h3></div>
     <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Tell us about the role and we'll generate practice interview questions tailored to your resume.</p>
     <div class="form-field">
       <label>Role / Title</label>
@@ -31,18 +31,18 @@
       <label>Job Description (optional)</label>
       <textarea id="jd" rows="5" placeholder="Paste job description for more targeted questions…"></textarea>
     </div>
-    <button class="btn btn-primary btn-block" onclick="generate()">✨ Generate Practice Questions</button>
+    <button class="btn btn-primary btn-block" onclick="generate()" id="gen-btn"></button>
   </div>
 
   <div id="results"></div>
 </main>
 
 <script src="js/config.js"></script>
+<script src="js/icons.js"></script>
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
-
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
@@ -61,14 +61,17 @@ async function generate() {
     const data = await r.json();
     document.getElementById('results').innerHTML = `
       <div class="section-card">
-        <h3 style="margin-bottom:12px;">Practice Questions</h3>
-        <div style="white-space:pre-wrap;">${esc(data.text || '')}</div>
+        <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">${ICON('mic')} Practice Questions</h3>
+        <div style="white-space:pre-wrap; line-height:1.7;">${esc(data.text || '')}</div>
       </div>`;
   } catch(e) {
     document.getElementById('results').innerHTML = `<div class="section-card" style="color:var(--danger);">Error: ${e.message}</div>`;
   }
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;
+document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
 </script>
 </body>
 </html>

@@ -6,7 +6,7 @@
 <title>Job Tracker — HireFlow</title>
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="app-body">
+<body class="app-body-scroll">
 <header class="app-topbar">
   <div class="brand"><div class="brand-icon"></div><span>HireFlow</span></div>
   <nav class="topbar-tabs">
@@ -19,13 +19,13 @@
   </div>
 </header>
 
-<main style="padding:32px; max-width:900px; margin:0 auto;">
+<main style="padding:32px 20px; max-width:960px; margin:0 auto;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <div>
-      <h2 style="font-size:22px;">Job Tracker</h2>
+      <h2 style="font-size:22px; display:flex; align-items:center; gap:10px;" id="jt-title"></h2>
       <p style="color:var(--muted); font-size:13px;" id="job-count">0 jobs tracked</p>
     </div>
-    <button class="btn btn-primary" onclick="toggleForm()">+ Add Job</button>
+    <button class="btn btn-primary" onclick="toggleForm()" id="add-btn"></button>
   </div>
 
   <div id="add-form" style="display:none; margin-bottom:20px;">
@@ -63,14 +63,15 @@
   <div id="job-list"></div>
 
   <div id="empty" class="section-card" style="text-align:center; padding:60px 20px;">
-    <div style="font-size:48px; margin-bottom:12px;">💼</div>
+    <div id="empty-icon" style="display:flex; justify-content:center; margin-bottom:12px; color:var(--muted);"></div>
     <h3>No jobs tracked yet</h3>
     <p style="color:var(--muted); font-size:13px; margin:8px 0 16px;">Start tracking your job applications to stay organized.</p>
-    <button class="btn btn-primary" onclick="toggleForm()">+ Add Your First Job</button>
+    <button class="btn btn-primary" onclick="toggleForm()" id="empty-btn"></button>
   </div>
 </main>
 
 <script src="js/config.js"></script>
+<script src="js/icons.js"></script>
 <script>
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
@@ -82,7 +83,8 @@ function toggleForm(){ const f=document.getElementById('add-form'); f.style.disp
 function setFilter(f){ filter=f; render(); }
 function saveJob(){
   const j = {
-    id: Date.now(), title:document.getElementById('j-title').value,
+    id: Date.now(),
+    title:document.getElementById('j-title').value,
     company: document.getElementById('j-company').value,
     location: document.getElementById('j-location').value,
     status: document.getElementById('j-status').value,
@@ -105,23 +107,28 @@ function render(){
   document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('success', b.dataset.filter===filter));
   document.getElementById('job-list').innerHTML = list.map(j => `
     <div class="section-card" style="margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between;">
+      <div style="display:flex; justify-content:space-between; gap:16px;">
         <div>
           <h4>${esc(j.title)} <span style="color:var(--muted); font-weight:normal;">at</span> ${esc(j.company)}</h4>
           <div style="color:var(--muted); font-size:12px; margin-top:4px;">${esc(j.location)} · added ${new Date(j.addedAt).toLocaleDateString()}</div>
           ${j.notes ? `<p style="font-size:13px; margin-top:8px;">${esc(j.notes)}</p>`:''}
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-          <select onchange="updateStatus(${j.id}, this.value)" style="padding:4px 8px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
+          <select onchange="updateStatus(${j.id}, this.value)" style="padding:5px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
             ${['Saved','Applied','Interviewing','Offer','Rejected'].map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
-          <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">🗑 Remove</button>
+          <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
         </div>
       </div>
     </div>
   `).join('');
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+document.getElementById('jt-title').innerHTML = `${ICON('briefcase','ico ico-lg')} <span>Job Tracker</span>`;
+document.getElementById('add-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Job</span>`;
+document.getElementById('empty-icon').innerHTML = ICON('briefcase','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"');
+document.getElementById('empty-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Your First Job</span>`;
 render();
 </script>
 </body>

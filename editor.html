@@ -8,7 +8,6 @@
 </head>
 <body class="app-body">
 
-<!-- Top bar -->
 <header class="app-topbar">
   <div class="brand"><div class="brand-icon"></div><span>HireFlow</span></div>
   <nav class="topbar-tabs">
@@ -17,49 +16,45 @@
     <a class="topbar-tab" href="interview.html">Interview Prep</a>
   </nav>
   <div class="topbar-right">
-    <button class="btn btn-ghost btn-sm" onclick="openModal('import')">⬆ Import</button>
-    <button class="btn btn-secondary btn-sm" onclick="saveResume()">Save</button>
-    <a class="btn btn-primary btn-sm" href="export.html">Preview &amp; Export</a>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('import')" id="btn-import"></button>
+    <button class="btn btn-secondary btn-sm" onclick="saveResume()" id="btn-save"></button>
+    <a class="btn btn-primary btn-sm" href="export.html" id="btn-export"></a>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
 
-<!-- Body -->
 <div class="app-shell-inner">
 
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="banner-gradient">
-      <span>✨ Smart writing copilot</span>
+      <span style="display:flex;align-items:center;gap:6px;" id="copilot-label"></span>
       <span class="kbd">AI</span>
     </div>
     <div class="sidebar-section">Build</div>
-    <div class="sidebar-item active" data-section="template">🎨 Templates</div>
-    <div class="sidebar-item" data-section="personal">👤 Personal Info</div>
-    <div class="sidebar-item" data-section="experience">💼 Experience</div>
-    <div class="sidebar-item" data-section="education">🎓 Education</div>
-    <div class="sidebar-item" data-section="skills">⚡ Skills</div>
-    <div class="sidebar-item" data-section="projects">🛠 Projects</div>
-    <div class="sidebar-item" data-section="certifications">📜 Certifications</div>
-    <div class="sidebar-item" data-section="awards">🏆 Awards</div>
-    <div class="sidebar-item" data-section="leadership">🤝 Leadership</div>
-    <div class="sidebar-item" data-section="volunteer">❤️ Volunteer</div>
-    <div class="sidebar-item" data-section="publications">📚 Publications</div>
+    <div class="sidebar-item active" data-section="template" data-icon="doc"></div>
+    <div class="sidebar-item" data-section="personal" data-icon="user"></div>
+    <div class="sidebar-item" data-section="experience" data-icon="briefcase"></div>
+    <div class="sidebar-item" data-section="education" data-icon="grad"></div>
+    <div class="sidebar-item" data-section="skills" data-icon="bolt"></div>
+    <div class="sidebar-item" data-section="projects" data-icon="tool"></div>
+    <div class="sidebar-item" data-section="certifications" data-icon="badge"></div>
+    <div class="sidebar-item" data-section="awards" data-icon="trophy"></div>
+    <div class="sidebar-item" data-section="leadership" data-icon="team"></div>
+    <div class="sidebar-item" data-section="volunteer" data-icon="heart"></div>
+    <div class="sidebar-item" data-section="publications" data-icon="book"></div>
 
     <div class="sidebar-section">Optimize</div>
-    <div class="sidebar-item" data-section="tailor">🎯 Tailor to Job</div>
-    <div class="sidebar-item" data-section="ats">✅ ATS Check</div>
-    <div class="sidebar-item" data-section="analysis">🔬 AI Analysis</div>
-    <div class="sidebar-item" data-section="dashboard">📊 Dashboard</div>
+    <div class="sidebar-item" data-section="tailor" data-icon="target"></div>
+    <div class="sidebar-item" data-section="ats" data-icon="check"></div>
+    <div class="sidebar-item" data-section="analysis" data-icon="beaker"></div>
+    <div class="sidebar-item" data-section="dashboard" data-icon="chart"></div>
 
     <div class="sidebar-section">Customize</div>
-    <div class="sidebar-item" data-section="customize">⚙️ Customize</div>
+    <div class="sidebar-item" data-section="customize" data-icon="settings"></div>
   </aside>
 
-  <!-- Main -->
   <main class="main-area" id="main"></main>
 
-  <!-- Right preview -->
   <aside class="right-panel">
     <div class="preview-panel">
       <h4>Live Preview</h4>
@@ -67,12 +62,11 @@
         <button class="preview-btn">100%</button>
         <button class="preview-btn">−</button>
         <button class="preview-btn">+</button>
-        <button class="preview-btn" style="margin-left:auto;">⤢</button>
       </div>
       <div class="preview-mini" id="preview"></div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-secondary btn-block btn-sm" onclick="location.href='export.html'">⬇ Export PDF</button>
-        <button class="btn btn-ghost btn-block btn-sm" onclick="openModal('version')">🕒 Version History</button>
+      <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px;">
+        <button class="btn btn-secondary btn-block btn-sm" onclick="location.href='export.html'" id="rp-export"></button>
+        <button class="btn btn-ghost btn-block btn-sm" onclick="openModal('version')" id="rp-history"></button>
       </div>
     </div>
   </aside>
@@ -80,28 +74,27 @@
 
 <!-- Import modal -->
 <div class="modal-backdrop" id="modal-import">
-  <div class="modal" style="position:relative;">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal('import')">×</button>
-    <h3>📥 Import Your Resume</h3>
+    <h3 id="modal-import-title">Import Your Resume</h3>
     <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Upload a PDF, DOCX, or TXT — we'll parse it with AI and fill in your sections.</p>
-    <input type="file" id="import-file" accept=".pdf,.docx,.txt" style="display:none;">
-    <button class="btn btn-secondary btn-block" onclick="document.getElementById('import-file').click()">📎 Choose file</button>
-    <div style="text-align:center; color:var(--muted); margin:12px 0; font-size:12px;">or paste text</div>
-    <textarea id="import-text" rows="5" placeholder="Paste your resume text here…" style="width:100%; padding:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text);"></textarea>
-    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="importResume()">✨ Import with AI</button>
+    <textarea id="import-text" rows="6" placeholder="Paste your resume text here…" style="width:100%; padding:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text);"></textarea>
+    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="importResume()" id="btn-import-go"></button>
   </div>
 </div>
 
 <!-- Version modal -->
 <div class="modal-backdrop" id="modal-version">
-  <div class="modal" style="position:relative;">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal('version')">×</button>
-    <h3>🕒 Version History</h3>
+    <h3 id="modal-version-title">Version History</h3>
     <div id="version-list" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
   </div>
 </div>
 
 <script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/templates.js"></script>
 <script src="js/editor.js"></script>
 </body>
 </html>

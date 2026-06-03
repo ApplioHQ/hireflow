@@ -48,6 +48,19 @@ async function startCheckout(plan) {
 async function openBillingPortal() {
   const token = localStorage.getItem('hf_token');
   if (!token) return;
+
+  // If we know there's no Stripe customer yet, don't even try — show a clean menu.
+  if (CURRENT_USER && !CURRENT_USER.hasStripeCustomer) {
+    if (window.notify) {
+      await window.notify({
+        title: `${planLabel()} plan — ${CURRENT_USER.email}`,
+        body: `Your account doesn't have a Stripe billing record yet. This happens if the plan was activated manually (without going through Stripe checkout). To manage subscription details, complete a real checkout from the pricing page first.`
+      });
+      location.href = 'pricing.html';
+    }
+    return;
+  }
+
   try {
     const r = await fetch(API_BASE + '/stripe/portal', {
       method: 'POST',

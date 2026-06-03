@@ -494,7 +494,10 @@ async function ai(endpoint, body) {
     body: JSON.stringify(body)
   });
   if (r.status === 402) { showUpgradeModal('ai'); throw new Error('Premium required'); }
-  if (!r.ok) throw new Error('AI request failed');
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.error || `Request failed (${r.status})`);
+  }
   return r.json();
 }
 

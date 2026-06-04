@@ -23,17 +23,16 @@ async function checkSiteStatus() {
     const r = await fetch(API_BASE + '/status');
     if (!r.ok) return null;
     SYSTEM_STATUS = await r.json();
-    if (SYSTEM_STATUS.maintenance && !isAdmin()) renderOfflineScreen(SYSTEM_STATUS.maintenanceUntil);
+    if (SYSTEM_STATUS.maintenance && !isAdmin()) renderOfflineScreen();
     return SYSTEM_STATUS;
   } catch { return null; }
 }
 
-function renderOfflineScreen(untilUnix) {
-  const minsLeft = Math.max(0, Math.ceil((untilUnix - Math.floor(Date.now()/1000)) / 60));
+function renderOfflineScreen() {
+  // Bare-bones offline screen — no timing info exposed.
   document.body.innerHTML = `
-    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:var(--bg-0); color:var(--text);">
+    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:#07091a; color:#e6e9f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;">
       <svg viewBox="0 0 120 100" width="180" height="150" style="margin-bottom:32px; image-rendering:pixelated;" xmlns="http://www.w3.org/2000/svg">
-        <!-- Custom pixel robot — original art, not Chrome's dinosaur -->
         <g fill="#6366f1">
           <rect x="40" y="20" width="40" height="30"/>
           <rect x="35" y="25" width="5" height="20"/>
@@ -49,7 +48,6 @@ function renderOfflineScreen(untilUnix) {
           <rect x="35" y="88" width="20" height="5"/>
           <rect x="65" y="88" width="20" height="5"/>
         </g>
-        <!-- Eyes (X marks — sleeping/offline) -->
         <g fill="#fff">
           <rect x="48" y="28" width="3" height="3"/>
           <rect x="54" y="28" width="3" height="3"/>
@@ -62,23 +60,21 @@ function renderOfflineScreen(untilUnix) {
           <rect x="63" y="34" width="3" height="3"/>
           <rect x="69" y="34" width="3" height="3"/>
         </g>
-        <!-- Antenna with dot -->
         <rect x="58" y="2" width="4" height="8" fill="#6366f1"/>
         <rect x="55" y="0" width="10" height="3" fill="#ef4444"/>
       </svg>
       <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Applio is offline</h1>
-      <p style="color:var(--muted); font-size:15px; max-width:420px; line-height:1.5; margin-bottom:24px;">
-        We're temporarily down for maintenance. Hold tight — your work is safe.
+      <p style="color:#9aa3c7; font-size:15px; max-width:420px; line-height:1.5;">
+        We'll be back soon. Hold tight — your work is safe.
       </p>
-      <p style="font-size:13px; color:var(--muted);">Back in approximately <strong style="color:var(--text);" id="offline-countdown">${minsLeft} minute${minsLeft===1?'':'s'}</strong></p>
     </div>`;
-  // Live countdown
-  const tick = setInterval(() => {
-    const left = Math.max(0, Math.ceil((untilUnix - Math.floor(Date.now()/1000)) / 60));
-    const el = document.getElementById('offline-countdown');
-    if (!el) { clearInterval(tick); return; }
-    if (left <= 0) { clearInterval(tick); location.reload(); return; }
-    el.textContent = `${left} minute${left===1?'':'s'}`;
+  // Periodically re-check status so the page auto-recovers when maintenance ends.
+  setInterval(async () => {
+    try {
+      const r = await fetch(API_BASE + '/status');
+      const s = await r.json();
+      if (!s.maintenance) location.reload();
+    } catch {}
   }, 30000);
 }
 
@@ -233,17 +229,40 @@ function signOutFromMenu() {
   location.href = 'index.html';
 }
 
+// Toggle the ADMIN tier on/off (super-admin only). Used from the admin console.
+async function setAdminAccess(enabled) {
+  const token = localStorage.getItem('hf_token');
+  try {
+    const r = await fetch(API_BASE + '/admin/admin-access', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ enabled: !!enabled })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed');
+    if (window.toast) toast(enabled ? 'ADMIN access enabled' : 'ADMIN access disabled', { type: 'success' });
+    return data;
+  } catch (e) {
+    if (window.toast) toast('Failed: ' + e.message, { type: 'error' });
+  }
+}
+
 // ============ Auto-boot on every page ============
-// Checks maintenance and adds ADMIN CONSOLE link to topbar if user is admin.
+// Order is important:
+// 1) Load current user FIRST so isAdmin() resolves correctly.
+// 2) Then run status check — admins bypass the offline screen.
+// 3) Inject ADMIN CONSOLE link into topbar if admin.
 async function _applioPageBoot() {
-  // Always check status (handles offline screen for non-admins)
-  await checkSiteStatus();
-  // Load user (caches into CURRENT_USER)
+  // Skip on login.html so admins can log in even during maintenance.
+  const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const isLogin = here === 'login.html';
+
   if (localStorage.getItem('hf_token')) await loadCurrentUser();
-  // If admin, inject the console link into the topbar
+  if (!isLogin) await checkSiteStatus();
+
   const tabs = document.querySelector('.topbar-tabs');
   if (tabs && isAdmin() && !document.getElementById('admin-console-link')
-      && !location.pathname.endsWith('admin.html')) {
+      && !here.endsWith('admin.html')) {
     const link = document.createElement('a');
     link.id = 'admin-console-link';
     link.href = 'admin.html';

@@ -36,11 +36,18 @@ export default {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
+      if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
+      if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
+      if (path === "/admin/users")             return json(await adminListUsers(req, env), 200, cors);
+      if (path === "/admin/users/delete")      return json(await adminDeleteUser(req, env), 200, cors);
+      if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
+      if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
+      if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -124,7 +131,13 @@ async function verifyToken(token, secret) {
 async function authenticate(req, env) {
   const h = req.headers.get("Authorization") || "";
   const token = h.replace(/^Bearer\s+/i, "");
-  return verifyToken(token, env.JWT_SECRET);
+  const payload = await verifyToken(token, env.JWT_SECRET);
+  // Immediately revoke admin sessions if super disabled the ADMIN tier
+  if (payload.role === "admin") {
+    const adminDisabled = await env.HIREFLOW_KV.get("system:admin_disabled");
+    if (adminDisabled === "1") throw err(401, "Invalid token");
+  }
+  return payload;
 }
 
 // ============ User helpers ============
@@ -159,6 +172,34 @@ async function signup(req, env) {
 async function login(req, env) {
   const { email, password } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
+
+  // SUPER admin: both email and password are secret env vars
+  if (env.SUPERADMIN_EMAIL && env.SUPERADMIN_PASSWORD
+      && email === env.SUPERADMIN_EMAIL
+      && timingEqual(password, env.SUPERADMIN_PASSWORD)) {
+    const token = await signToken({
+      email: env.SUPERADMIN_EMAIL,
+      role: "super",
+      exp: Math.floor(Date.now()/1000) + 3600 * 8
+    }, env.JWT_SECRET);
+    return { token, email: env.SUPERADMIN_EMAIL, role: "super" };
+  }
+
+  // Regular ADMIN: literal "ADMIN" username + secret password
+  // Blocked if super-admin has disabled the ADMIN tier.
+  if (email === "ADMIN" && env.ADMIN_PASSWORD
+      && timingEqual(password, env.ADMIN_PASSWORD)) {
+    const adminDisabled = await env.HIREFLOW_KV.get("system:admin_disabled");
+    if (adminDisabled === "1") throw err(401, "Invalid email or password");
+    const token = await signToken({
+      email: "ADMIN",
+      role: "admin",
+      exp: Math.floor(Date.now()/1000) + 3600 * 8
+    }, env.JWT_SECRET);
+    return { token, email: "ADMIN", role: "admin" };
+  }
+
+  // Normal user lookup
   const user = await getUser(env, email);
   if (!user) throw err(401, "Invalid email or password");
   if (!await verifyPassword(password, user.salt, user.hash)) throw err(401, "Invalid email or password");
@@ -169,6 +210,21 @@ async function login(req, env) {
 // ============ Me ============
 async function me(req, env) {
   const payload = await authenticate(req, env);
+
+  // Admin tokens don't have a real user record
+  if (payload.role === "admin" || payload.role === "super") {
+    return {
+      email: payload.email,
+      plan: "premium",
+      isPaid: true,
+      role: payload.role,
+      downloadsUsed: 0,
+      downloadLimit: 999999,
+      currentPeriodEnd: null,
+      hasStripeCustomer: false,
+    };
+  }
+
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
@@ -176,11 +232,106 @@ async function me(req, env) {
     email: user.email,
     plan: user.plan || "free",
     isPaid: isPaidPlan(user),
+    role: null,
     downloadsUsed: user.downloadsUsed || 0,
     downloadLimit: limit,
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
   };
+}
+
+// ============ System status (public — no auth needed) ============
+async function getStatus(req, env) {
+  const now = Math.floor(Date.now()/1000);
+  const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
+  const maintUntil = parseInt(await env.HIREFLOW_KV.get("system:maintenance_until") || "0", 10);
+  const adminDisabled = (await env.HIREFLOW_KV.get("system:admin_disabled")) === "1";
+  return {
+    aiDisabled: aiUntil > now,
+    aiDisabledUntil: aiUntil > now ? aiUntil : null,
+    maintenance: maintUntil > now,
+    maintenanceUntil: maintUntil > now ? maintUntil : null,
+    adminEnabled: !adminDisabled,
+    now,
+  };
+}
+
+// ============ Admin endpoints ============
+async function requireAdmin(req, env, requireSuper = false) {
+  const payload = await authenticate(req, env);
+  if (requireSuper && payload.role !== "super") throw err(403, "Super admin only");
+  if (payload.role !== "admin" && payload.role !== "super") throw err(403, "Admin only");
+  return payload;
+}
+
+async function adminListUsers(req, env) {
+  await requireAdmin(req, env);
+  const list = await env.HIREFLOW_KV.list({ prefix: "user:" });
+  const users = [];
+  for (const key of list.keys) {
+    const raw = await env.HIREFLOW_KV.get(key.name);
+    if (!raw) continue;
+    const u = JSON.parse(raw);
+    users.push({
+      email: u.email,
+      plan: u.plan || "free",
+      createdAt: u.createdAt || null,
+      currentPeriodEnd: u.currentPeriodEnd || null,
+      downloadsUsed: u.downloadsUsed || 0,
+      hasStripeCustomer: !!u.stripeCustomerId,
+      updatedAt: u.updatedAt || u.createdAt || null,
+    });
+  }
+  // Newest first
+  users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return { users, total: users.length };
+}
+
+async function adminDeleteUser(req, env) {
+  await requireAdmin(req, env, true);
+  const { email } = await req.json();
+  if (!email) throw err(400, "Email required");
+  const key = email.toLowerCase();
+  await env.HIREFLOW_KV.delete(`user:${key}`);
+  await env.HIREFLOW_KV.delete(`resume:${key}`);
+  return { ok: true, email };
+}
+
+async function adminSetAIDisabled(req, env) {
+  await requireAdmin(req, env, true);
+  const { minutes } = await req.json();
+  const m = parseInt(minutes, 10);
+  if (m && m > 0) {
+    const until = Math.floor(Date.now()/1000) + (m * 60);
+    await env.HIREFLOW_KV.put("system:ai_disabled_until", String(until));
+    return { ok: true, aiDisabledUntil: until };
+  }
+  await env.HIREFLOW_KV.delete("system:ai_disabled_until");
+  return { ok: true, aiDisabledUntil: null };
+}
+
+async function adminSetMaintenance(req, env) {
+  await requireAdmin(req, env, true);
+  const { minutes } = await req.json();
+  const m = parseInt(minutes, 10);
+  if (m && m > 0) {
+    const until = Math.floor(Date.now()/1000) + (m * 60);
+    await env.HIREFLOW_KV.put("system:maintenance_until", String(until));
+    return { ok: true, maintenanceUntil: until };
+  }
+  await env.HIREFLOW_KV.delete("system:maintenance_until");
+  return { ok: true, maintenanceUntil: null };
+}
+
+async function adminSetAdminAccess(req, env) {
+  await requireAdmin(req, env, true);
+  const { enabled } = await req.json();
+  if (enabled === false) {
+    await env.HIREFLOW_KV.put("system:admin_disabled", "1");
+  } else {
+    await env.HIREFLOW_KV.delete("system:admin_disabled");
+  }
+  return { ok: true, adminEnabled: enabled !== false };
 }
 
 // ============ Resume ============
@@ -264,6 +415,70 @@ async function createCheckout(req, env) {
 
   const session = await stripeCall(env, "POST", "/v1/checkout/sessions", params);
   return { url: session.url };
+}
+
+// Reconcile this user's account with Stripe (for cases where the webhook
+// didn't fire or failed signature verification). Looks up the Stripe customer
+// by email and pulls plan info from there.
+async function syncWithStripe(req, env) {
+  const payload = await authenticate(req, env);
+  const user = await getUser(env, payload.email);
+  if (!user) throw err(404, "User not found");
+
+  // 1) Find the Stripe customer with matching email
+  const search = await stripeCall(env, "GET",
+    `/v1/customers?email=${encodeURIComponent(user.email)}&limit=1`);
+  if (!search.data || !search.data.length) {
+    return { ok: false, message: "No Stripe customer found for " + user.email + ". If you paid, make sure the same email was used at checkout." };
+  }
+  const customer = search.data[0];
+  user.stripeCustomerId = customer.id;
+  await env.HIREFLOW_KV.put(`stripeCustomer:${customer.id}`, user.email);
+
+  // 2) Look for an active subscription (Premium)
+  const subs = await stripeCall(env, "GET",
+    `/v1/subscriptions?customer=${customer.id}&status=active&limit=1`);
+  if (subs.data && subs.data.length) {
+    const sub = subs.data[0];
+    user.plan = "premium";
+    user.stripeSubscriptionId = sub.id;
+    user.currentPeriodEnd = sub.current_period_end;
+    user.updatedAt = Date.now();
+    await putUser(env, user);
+    return {
+      ok: true,
+      linked: true,
+      plan: "premium",
+      hasStripeCustomer: true,
+      currentPeriodEnd: sub.current_period_end,
+      message: "Synced — Premium subscription active",
+    };
+  }
+
+  // 3) Look for completed one-time checkout sessions (Lifetime)
+  const sessions = await stripeCall(env, "GET",
+    `/v1/checkout/sessions?customer=${customer.id}&limit=20`);
+  const lifetimeSession = (sessions.data || []).find(
+    s => s.payment_status === "paid" && s.mode === "payment"
+  );
+  if (lifetimeSession) {
+    user.plan = "lifetime";
+    user.currentPeriodEnd = null;
+    user.updatedAt = Date.now();
+    await putUser(env, user);
+    return { ok: true, linked: true, plan: "lifetime", hasStripeCustomer: true, message: "Synced — Lifetime access active" };
+  }
+
+  // 4) Customer exists but no active subscription or paid one-time
+  user.updatedAt = Date.now();
+  await putUser(env, user);
+  return {
+    ok: true,
+    linked: true,
+    plan: user.plan || "free",
+    hasStripeCustomer: true,
+    message: "Customer linked, but no active subscription found. If you just paid, wait ~30 seconds and try again.",
+  };
 }
 
 async function createPortal(req, env) {
@@ -372,9 +587,27 @@ async function verifyStripeSig(body, sigHeader, secret) {
   return false;
 }
 
-// ============ AI (gated by plan) ============
+// ============ AI (gated by plan + global kill switch) ============
 async function ai(req, env, action) {
   const payload = await authenticate(req, env);
+
+  // Admin/super bypass plan and global-disable checks
+  const isAdmin = payload.role === "admin" || payload.role === "super";
+
+  // Global AI kill switch — return a generic error so users don't learn it was disabled on purpose.
+  if (!isAdmin) {
+    const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
+    if (aiUntil > Math.floor(Date.now()/1000)) {
+      throw err(503, "Service temporarily unavailable. Please try again later.");
+    }
+  }
+
+  // Admin tokens have no user record — let them through
+  if (isAdmin) {
+    const body = await req.json();
+    return await aiDispatch(env, action, body);
+  }
+
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
 
@@ -384,6 +617,10 @@ async function ai(req, env, action) {
   }
 
   const body = await req.json();
+  return await aiDispatch(env, action, body);
+}
+
+async function aiDispatch(env, action, body) {
   switch (action) {
     case "improve":   return aiImprove(env, body);
     case "skills":    return aiSkills(env, body);

@@ -6,45 +6,408 @@
 <title>Applio — Land your dream job faster</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/home.css">
 </head>
-<body class="landing-body">
-  <div class="landing-grid">
-    <!-- Left hero -->
-    <section class="hero-left">
-      <div class="brand">
-        <img src="logo.jpeg" class="brand-logo" alt="Applio">
-        <span>Applio</span>
-      </div>
+<body class="home-body">
 
-      <div class="hero-content">
-        <h1>Land your<br>dream job<br><span class="accent">faster.</span></h1>
-        <p class="hero-sub">AI-powered resume builder that helps you stand out and get more interviews.</p>
-
-        <ul class="feature-list">
-          <li><span class="dot dot-amber"></span> AI tailoring in seconds</li>
-          <li><span class="dot dot-emerald"></span> ATS optimization &amp; scoring</li>
-          <li><span class="dot dot-violet"></span> Professional templates</li>
-          <li><span class="dot dot-sky"></span> Export PDF, DOCX &amp; more</li>
-        </ul>
-
-        <p class="hero-foot">Join thousands of job seekers</p>
-      </div>
-    </section>
-
-    <!-- Right CTA -->
-    <section class="hero-right">
-      <div class="cta-card">
-        <h2>Start Building Free</h2>
-        <p class="cta-sub">Create a professional, ATS-optimized resume in minutes with AI-powered guidance and industry-leading templates.</p>
-
-        <a href="login.html?mode=signup" class="btn btn-primary btn-block">Start Building — It's Free →</a>
-        <a href="login.html" class="btn btn-secondary btn-block">Sign in to existing account</a>
-
-        <p class="fine-print">✓ No credit card required  ·  <a href="pricing.html" style="color:inherit; text-decoration:underline;">See plans</a></p>
-      </div>
-    </section>
+<!-- ============ NAV ============ -->
+<nav class="home-nav">
+  <a href="#top" class="home-brand"><img src="logo.jpeg" alt="Applio"><span>Applio</span></a>
+  <div class="home-nav-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#how">How It Works</a>
+    <a href="#faq">FAQ</a>
   </div>
-  <script src="js/config.js"></script>
-  <script src="js/plan.js"></script>
+  <a href="login.html?mode=signup" class="btn btn-primary btn-sm">Try It Free</a>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <span class="hero-badge"><span class="dot dot-violet"></span> AI-Powered Resume Builder</span>
+      <h1 class="hero-title">
+        Get More<br>
+        <span class="rotator" id="hero-rotator">Interviews</span><br>
+        with AI
+      </h1>
+      <p class="hero-sub">AI-optimized resumes that land you the interview. Tailor your resume to any job in seconds.</p>
+      <div class="hero-ctas">
+        <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Get Started Free →</a>
+        <a href="#how" class="btn btn-outline btn-lg">See How It Works</a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <!-- Resume mockup card -->
+      <div class="mock-resume" aria-hidden="true">
+        <div class="mock-header">
+          <h3>Jane Doe</h3>
+          <div class="mock-contact">
+            <span>✉ jane@email.com</span>
+            <span>◎ San Francisco</span>
+          </div>
+        </div>
+        <div class="mock-body">
+          <h4>EXPERIENCE</h4>
+          <div class="mock-job">
+            <div class="mock-job-head"><strong>Lead Frontend Engineer</strong><span>2021–Present</span></div>
+            <ul>
+              <li>Led migration to <em>React 18</em>, improving load times by <strong>40%</strong></li>
+              <li>Mentored cross-functional team of <strong>8 engineers</strong></li>
+              <li>Redesigned checkout flow, boosting conversions <strong>23%</strong></li>
+            </ul>
+          </div>
+          <div class="mock-job">
+            <div class="mock-job-head"><strong>Frontend Developer</strong><span>2019–2021</span></div>
+            <ul>
+              <li>Built component library used across <strong>5 products</strong></li>
+              <li>Bullet points rewritten to match job requirements</li>
+            </ul>
+          </div>
+          <h4>SKILLS</h4>
+          <div class="mock-skills">
+            <span>React</span><span>TypeScript</span><span>Node.js</span><span>AWS</span><span>CI/CD</span><span>Agile</span><span>GraphQL</span><span>Docker</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating ATS score -->
+      <div class="float-ats">
+        <div class="float-ats-label">ATS Score</div>
+        <div class="ats-ring">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#e0e7ff" stroke-width="8"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#22c55e" stroke-width="8"
+              stroke-dasharray="213.6" stroke-dashoffset="8.5" stroke-linecap="round"
+              transform="rotate(-90 40 40)"/>
+          </svg>
+          <div class="ats-num">96</div>
+        </div>
+        <div class="float-ats-tag">✓ Excellent</div>
+      </div>
+
+      <!-- Floating keywords -->
+      <div class="float-keywords">
+        <div class="float-kw-label">KEYWORDS</div>
+        <div class="float-kw-list">
+          <span>✓ React</span><span>✓ CI/CD</span>
+          <span>✓ AWS</span>
+          <span>✓ TypeScript</span>
+          <span>✓ Agile</span>
+        </div>
+        <div class="float-kw-match">5/5 matched</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEM ============ -->
+<section class="section-light">
+  <div class="container">
+    <h2 class="section-title">Sound familiar?</h2>
+    <p class="section-sub">You're doing everything right — except your resume isn't working for you.</p>
+    <div class="grid-3">
+      <div class="problem-card">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg></div>
+        <h3>Not getting interviews?</h3>
+        <p>You're applying everywhere but hearing nothing back. It's not you — it's your resume.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3>Your resume doesn't pass ATS</h3>
+        <p>75% of resumes get filtered out by automated systems before a human ever sees them.</p>
+        <div class="problem-stat"><span class="stat-big">70</span><span class="stat-tail">% of resumes rejected by ATS</span></div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Tailoring takes too long</h3>
+        <p>Customizing your resume for every job posting is exhausting and time-consuming.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOLUTION ============ -->
+<section class="section-light">
+  <div class="container narrow">
+    <span class="kicker">The solution</span>
+    <h2 class="section-title">Your resume, optimized in <span class="accent-blue">seconds</span></h2>
+    <p class="section-sub">Stop spending hours tweaking your resume. Let AI do the heavy lifting so you can focus on preparing for interviews.</p>
+    <div class="sol-grid">
+      <div class="sol-item"><span class="sol-check">✓</span> Paste a job description → AI tailors your resume instantly</div>
+      <div class="sol-item"><span class="sol-check">✓</span> AI rewrites your bullet points with metrics and impact</div>
+      <div class="sol-item"><span class="sol-check">✓</span> ATS optimization ensures your resume gets past filters</div>
+      <div class="sol-item"><span class="sol-check">✓</span> 9 beautiful templates — Modern, Creative, Bold &amp; more</div>
+      <div class="sol-item"><span class="sol-check">✓</span> AI Interview Prep based on your resume and target role</div>
+      <div class="sol-item"><span class="sol-check">✓</span> Download a polished PDF ready to submit in seconds</div>
+    </div>
+    <div class="sol-progress">
+      <div class="sol-progress-label">Checklist progress<span>100%</span></div>
+      <div class="sol-progress-bar"><div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section-light" id="features">
+  <div class="container">
+    <h2 class="section-title">Everything you need to land interviews</h2>
+    <p class="section-sub">Powerful AI tools designed to get your resume noticed by recruiters and past ATS filters.</p>
+    <p class="section-hint">Click any card to see more details</p>
+    <div class="feature-grid">
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></div>
+        <h3>AI Resume Tailoring</h3>
+        <p>Paste any job description and our AI rewrites your bullet points to match perfectly.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>ATS Optimization &amp; Scoring</h3>
+        <p>Get an instant ATS score and actionable fixes so your resume passes automated filters.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8"/></svg></div>
+        <h3>9 Professional Templates</h3>
+        <p>Modern, Creative, Bold, Elegant, and more — each fully customizable to your style.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <h3>Instant PDF Export</h3>
+        <p>Download a polished, recruiter-ready PDF instantly — ready to submit in one click.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3>AI Bullet Generator</h3>
+        <p>Turn basic job duties into powerful, metrics-driven achievement bullets with AI.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <h3>AI Job Matcher</h3>
+        <p>Automatically match your skills and experience to any job posting's requirements.</p>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>AI Interview Prep</h3>
+        <p>Get personalized interview questions and answers based on your resume and target role.</p>
+        <span class="feat-cta">Click to learn more →</span>
+      </a>
+      <a href="login.html?mode=signup" class="feat-card">
+        <div class="feat-icon feat-emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
+        <h3>AI Proofreader &amp; Scorer</h3>
+        <p>Catch grammar issues, weak phrasing, and get an overall quality score for your resume.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section-light" id="how">
+  <div class="container">
+    <h2 class="section-title">Three steps. That's it.</h2>
+    <p class="section-sub">No complicated setup. No learning curve. Just results.</p>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <div class="step-line"></div>
+        <span class="step-num">STEP 01</span>
+        <h3>Enter your experience</h3>
+        <p>Add your work history, skills, education, certifications, and more. We'll organize it beautifully.</p>
+        <div class="step-mock terminal">
+          <div class="term-dots"><span></span><span></span><span></span></div>
+          <div class="term-line">› Senior Frontend Engineer</div>
+          <div class="term-line">› <span class="term-cursor"></span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <div class="step-line"></div>
+        <span class="step-num">STEP 02</span>
+        <h3>Paste a job description</h3>
+        <p>Drop in any job posting and our AI tailors your resume, rewrites bullets, and optimizes keywords.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <span class="step-num">STEP 03</span>
+        <h3>Download your resume</h3>
+        <p>Choose from 9 templates, customize colors and fonts, and download an ATS-optimized PDF instantly.</p>
+        <div class="step-mock terminal">
+          <div class="term-dots"><span></span><span></span><span></span></div>
+          <div class="term-line">› ATS Score: <span class="term-green">96/100 ✓</span></div>
+          <div class="term-line">› Template: Modern Blue</div>
+          <div class="term-line">› Generating PDF...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section class="section-light">
+  <div class="container narrow">
+    <h2 class="section-title">Loved by job seekers everywhere</h2>
+    <p class="section-sub">See what our users have to say about their experience with Applio.</p>
+    <div class="testimonial-stage">
+      <div class="testimonial-card" id="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <blockquote id="t-quote">"I was skeptical about AI resumes, but the ATS score went from 42 to 96. Got my dream job within a month."</blockquote>
+        <div class="t-meta"><span class="ats-pill" id="t-pill">ATS: 42 → 96</span></div>
+        <div class="t-author">
+          <div class="t-avatar" id="t-avatar">👨‍💼</div>
+          <div>
+            <strong id="t-name">Marcus T.</strong>
+            <div class="t-role" id="t-role">Product Manager at Stripe</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-nav">
+        <button onclick="testimonialPrev()" aria-label="Previous">‹</button>
+        <div class="testimonial-dots" id="t-dots"></div>
+        <button onclick="testimonialNext()" aria-label="Next">›</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">30s</div><div class="stat-label">Average build time</div></div>
+      <div class="stat"><div class="stat-num">95%</div><div class="stat-label">ATS pass rate</div></div>
+      <div class="stat"><div class="stat-num">10k+</div><div class="stat-label">Resumes created</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST ============ -->
+<section class="section-light">
+  <div class="container">
+    <h2 class="section-title">Why people trust Applio</h2>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <h3>Built for students &amp; job seekers</h3>
+        <p>Designed for people entering the workforce or making their next career move.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <h3>Designed to help you stand out</h3>
+        <p>9 professional templates and AI optimization to get past the first filter.</p>
+        <span class="trust-pill">9 ATS-tested templates with 95%+ pass rate</span>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3>Simple, fast, and effective</h3>
+        <p>No bloat. No fluff. Just a tool that works when you need it most.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section class="section-light" id="pricing">
+  <div class="container">
+    <h2 class="section-title">Simple, transparent pricing</h2>
+    <p class="section-sub">Start for free. Upgrade anytime, cancel anytime.</p>
+
+    <div class="price-toggle" role="tablist">
+      <button class="pt-btn active" data-plan="monthly" onclick="setPriceMode('monthly')">Monthly</button>
+      <button class="pt-btn" data-plan="lifetime" onclick="setPriceMode('lifetime')">Lifetime <span class="pt-badge pt-badge-best">Best</span></button>
+    </div>
+
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-icon feat-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></div>
+        <h3>Free</h3>
+        <div class="price"><span class="price-num">$0</span><span class="price-period">forever</span></div>
+        <p class="price-sub">Perfect for getting started</p>
+        <ul class="price-list">
+          <li>✓ Resume Builder (all 9 templates)</li>
+          <li>✓ Job Tracker</li>
+          <li>✓ Basic customization</li>
+          <li>✓ 10 PDF downloads (lifetime)</li>
+          <li class="muted">✕ No AI features</li>
+          <li class="muted">✕ No Interview Prep</li>
+        </ul>
+        <a href="login.html?mode=signup" class="btn btn-outline btn-block">Get Started Free</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="price-badge">MOST POPULAR</span>
+        <div class="price-icon feat-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3 id="paid-name">Premium</h3>
+        <div class="price"><span class="price-num" id="paid-price">$9.99</span><span class="price-period" id="paid-period">/month</span></div>
+        <p class="price-sub" id="paid-sub">Best for serious job seekers</p>
+        <ul class="price-list">
+          <li>✓ Everything in Free</li>
+          <li>✓ Unlimited PDF downloads</li>
+          <li>✓ AI Resume Tailoring</li>
+          <li>✓ ATS Check &amp; Score</li>
+          <li>✓ AI Bullet Improvements</li>
+          <li>✓ AI Interview Prep</li>
+          <li>✓ AI Resume Analysis</li>
+          <li>✓ Resume Import (AI parse)</li>
+        </ul>
+        <a href="pricing.html" class="btn btn-primary btn-block" id="paid-cta">Go Premium</a>
+      </div>
+    </div>
+    <p class="price-foot">Cancel anytime · No questions asked · Secure payments by Stripe</p>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section-light" id="faq">
+  <div class="container narrow">
+    <h2 class="section-title">Frequently asked questions</h2>
+    <p class="section-sub">Got questions? We've got answers.</p>
+    <div class="faq">
+      <details><summary>Is Applio really free to use?</summary><p>Yes. The Free plan gives you the full Resume Builder, all 9 templates, Job Tracker, and 10 PDF downloads — no credit card required. AI features and unlimited downloads are part of Premium or Lifetime.</p></details>
+      <details><summary>How does the AI tailor my resume?</summary><p>You paste a job description and our AI rewrites your bullets, optimizes keywords, and rewrites your summary to match what the role is asking for — grounded in your actual experience, never inventing things.</p></details>
+      <details><summary>What is ATS and why does it matter?</summary><p>An Applicant Tracking System filters resumes before a human ever sees them. Around 70% of resumes never make it past this stage. Applio scores your resume against the ATS rubric and tells you exactly what to fix.</p></details>
+      <details><summary>What templates are available?</summary><p>9 professionally designed templates: Modern, Classic, Creative, Minimal, Professional, Tech, Executive, Compact, and Elegant. Every template is fully customizable — change colors, fonts, spacing, and toggle sections on or off.</p></details>
+      <details><summary>Can I cancel my subscription anytime?</summary><p>Yes. Cancel from your account menu inside the app — no questions, no friction. You keep Premium access until the end of your billing period.</p></details>
+      <details><summary>Is my data secure?</summary><p>Passwords are hashed with PBKDF2-SHA256 (100k iterations), never stored in plain text. Payment data is handled by Stripe directly — Applio never touches your card. Your resume data is encrypted in transit and at rest.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA + COUNTDOWN ============ -->
+<section class="final-cta">
+  <div class="container narrow center">
+    <h2 class="section-title light">Ready to land more interviews?</h2>
+    <p class="section-sub light">Join thousands of job seekers using Applio to get noticed by recruiters.</p>
+    <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Start Free →</a>
+    <div class="countdown">
+      <span class="countdown-label">LIMITED OFFER ENDS IN</span>
+      <div class="countdown-clock">
+        <div class="cd-box"><span id="cd-h">23</span><small>h</small></div>
+        <div class="cd-box"><span id="cd-m">59</span><small>m</small></div>
+        <div class="cd-box"><span id="cd-s">59</span><small>s</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="home-footer">
+  <div class="container">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <div class="home-brand"><img src="logo.jpeg" alt="Applio"><span>Applio</span></div>
+        <p>AI-powered resume builder for serious job seekers.</p>
+      </div>
+      <div class="footer-cols">
+        <div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#how">How It Works</a></div>
+        <div><h4>Account</h4><a href="login.html">Sign in</a><a href="login.html?mode=signup">Sign up</a><a href="pricing.html">Pricing</a></div>
+        <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a></div>
+      </div>
+    </div>
+    <div class="footer-bot">© 2026 Applio · All rights reserved</div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/home.js"></script>
 </body>
 </html>

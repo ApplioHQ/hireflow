@@ -1,6 +1,7 @@
 // ============ Plan/User helpers (shared across pages) ============
 const API_BASE = window.HIREFLOW_CONFIG.API_URL;
 let CURRENT_USER = null;
+let SYSTEM_STATUS = null;
 
 async function loadCurrentUser() {
   const token = localStorage.getItem('hf_token');
@@ -11,6 +12,89 @@ async function loadCurrentUser() {
     CURRENT_USER = await r.json();
     return CURRENT_USER;
   } catch { return null; }
+}
+
+function isAdmin()      { return CURRENT_USER && (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super'); }
+function isSuperAdmin() { return CURRENT_USER && CURRENT_USER.role === 'super'; }
+
+// Check site status; if maintenance is on and user is not admin, show offline screen.
+async function checkSiteStatus() {
+  try {
+    const r = await fetch(API_BASE + '/status');
+    if (!r.ok) return null;
+    SYSTEM_STATUS = await r.json();
+    if (SYSTEM_STATUS.maintenance && !isAdmin()) renderOfflineScreen(SYSTEM_STATUS.maintenanceUntil);
+    return SYSTEM_STATUS;
+  } catch { return null; }
+}
+
+function renderOfflineScreen(untilUnix) {
+  const minsLeft = Math.max(0, Math.ceil((untilUnix - Math.floor(Date.now()/1000)) / 60));
+  document.body.innerHTML = `
+    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:var(--bg-0); color:var(--text);">
+      <svg viewBox="0 0 120 100" width="180" height="150" style="margin-bottom:32px; image-rendering:pixelated;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Custom pixel robot — original art, not Chrome's dinosaur -->
+        <g fill="#6366f1">
+          <rect x="40" y="20" width="40" height="30"/>
+          <rect x="35" y="25" width="5" height="20"/>
+          <rect x="80" y="25" width="5" height="20"/>
+          <rect x="45" y="15" width="5" height="5"/>
+          <rect x="70" y="15" width="5" height="5"/>
+          <rect x="50" y="10" width="20" height="10"/>
+          <rect x="35" y="50" width="50" height="25"/>
+          <rect x="30" y="55" width="5" height="15"/>
+          <rect x="85" y="55" width="5" height="15"/>
+          <rect x="40" y="75" width="10" height="15"/>
+          <rect x="70" y="75" width="10" height="15"/>
+          <rect x="35" y="88" width="20" height="5"/>
+          <rect x="65" y="88" width="20" height="5"/>
+        </g>
+        <!-- Eyes (X marks — sleeping/offline) -->
+        <g fill="#fff">
+          <rect x="48" y="28" width="3" height="3"/>
+          <rect x="54" y="28" width="3" height="3"/>
+          <rect x="51" y="31" width="3" height="3"/>
+          <rect x="48" y="34" width="3" height="3"/>
+          <rect x="54" y="34" width="3" height="3"/>
+          <rect x="63" y="28" width="3" height="3"/>
+          <rect x="69" y="28" width="3" height="3"/>
+          <rect x="66" y="31" width="3" height="3"/>
+          <rect x="63" y="34" width="3" height="3"/>
+          <rect x="69" y="34" width="3" height="3"/>
+        </g>
+        <!-- Antenna with dot -->
+        <rect x="58" y="2" width="4" height="8" fill="#6366f1"/>
+        <rect x="55" y="0" width="10" height="3" fill="#ef4444"/>
+      </svg>
+      <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Applio is offline</h1>
+      <p style="color:var(--muted); font-size:15px; max-width:420px; line-height:1.5; margin-bottom:24px;">
+        We're temporarily down for maintenance. Hold tight — your work is safe.
+      </p>
+      <p style="font-size:13px; color:var(--muted);">Back in approximately <strong style="color:var(--text);" id="offline-countdown">${minsLeft} minute${minsLeft===1?'':'s'}</strong></p>
+    </div>`;
+  // Live countdown
+  const tick = setInterval(() => {
+    const left = Math.max(0, Math.ceil((untilUnix - Math.floor(Date.now()/1000)) / 60));
+    const el = document.getElementById('offline-countdown');
+    if (!el) { clearInterval(tick); return; }
+    if (left <= 0) { clearInterval(tick); location.reload(); return; }
+    el.textContent = `${left} minute${left===1?'':'s'}`;
+  }, 30000);
+}
+
+// Auto-redirect admin users to admin console if they land elsewhere by mistake
+function redirectIfAdmin() {
+  if (!CURRENT_USER || !isAdmin()) return false;
+  const here = location.pathname.split('/').pop() || 'index.html';
+  if (here !== 'admin.html' && here !== 'index.html' && here !== 'login.html') {
+    // Don't force-redirect on every page — let them browse, but show the link prominently
+    return false;
+  }
+  if (here === 'index.html' || here === '' || here === 'login.html') {
+    location.href = 'admin.html';
+    return true;
+  }
+  return false;
 }
 
 function isPaid() { return CURRENT_USER && CURRENT_USER.isPaid; }
@@ -147,6 +231,33 @@ function signOutFromMenu() {
   localStorage.removeItem('hf_token');
   localStorage.removeItem('hf_email');
   location.href = 'index.html';
+}
+
+// ============ Auto-boot on every page ============
+// Checks maintenance and adds ADMIN CONSOLE link to topbar if user is admin.
+async function _applioPageBoot() {
+  // Always check status (handles offline screen for non-admins)
+  await checkSiteStatus();
+  // Load user (caches into CURRENT_USER)
+  if (localStorage.getItem('hf_token')) await loadCurrentUser();
+  // If admin, inject the console link into the topbar
+  const tabs = document.querySelector('.topbar-tabs');
+  if (tabs && isAdmin() && !document.getElementById('admin-console-link')
+      && !location.pathname.endsWith('admin.html')) {
+    const link = document.createElement('a');
+    link.id = 'admin-console-link';
+    link.href = 'admin.html';
+    link.className = 'topbar-tab';
+    link.style.cssText = 'background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(139,92,246,.18)); border:1px solid rgba(239,68,68,.35); color:#fca5a5; font-weight:600;';
+    link.innerHTML = '⚡ ADMIN CONSOLE';
+    tabs.insertBefore(link, tabs.firstChild);
+  }
+}
+// Run after DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _applioPageBoot);
+} else {
+  _applioPageBoot();
 }
 
 // ============ Upgrade modal ============

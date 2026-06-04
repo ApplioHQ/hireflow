@@ -119,11 +119,20 @@
 
       <div class="ctrl-card">
         <h3>Take site offline</h3>
-        <p>Replaces every page with a "site offline" screen. Admins and you bypass it. Useful for emergency or maintenance.</p>
+        <p>Replaces every page (home, signup, sign in, editor, etc.) with a "site offline" screen for non-admin visitors. Admins and you bypass it.</p>
         <div class="ctrl-row">
           <input type="number" id="maint-mins" placeholder="minutes" min="1" max="10080">
           <button class="btn btn-danger btn-sm" onclick="setMaint()">Take offline</button>
           <button class="btn btn-ghost btn-sm" onclick="setMaint(0)">Bring online</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <h3>ADMIN tier access</h3>
+        <p>Toggle whether the literal "ADMIN" user can log in or use their existing session. You (super admin) are never affected.</p>
+        <div class="ctrl-row">
+          <button class="btn btn-success btn-sm" onclick="setAdminAccessFromPanel(true)">Enable</button>
+          <button class="btn btn-danger btn-sm" onclick="setAdminAccessFromPanel(false)">Disable</button>
         </div>
       </div>
     </div>
@@ -242,7 +251,25 @@ function renderStatus(s) {
   const m = s.maintenance
     ? `<span class="status-on">Site: OFFLINE</span> until ${fmtUnix(s.maintenanceUntil)} ${new Date(s.maintenanceUntil*1000).toLocaleTimeString()}`
     : `<span class="status-off">Site: online</span>`;
-  r.innerHTML = `<div>${ai}</div><div>${m}</div>`;
+  const a = s.adminEnabled === false
+    ? `<span class="status-on">ADMIN tier: DISABLED</span>`
+    : `<span class="status-off">ADMIN tier: enabled</span>`;
+  r.innerHTML = `<div>${ai}</div><div>${m}</div><div>${a}</div>`;
+}
+
+async function setAdminAccessFromPanel(enabled) {
+  if (!enabled) {
+    const ok = await confirmDialog({
+      title: 'Disable ADMIN tier?',
+      body: 'All ADMIN users will be signed out immediately and unable to log back in. Only you (super admin) will be able to re-enable them.',
+      confirmText: 'Disable ADMIN',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
+  }
+  const res = await setAdminAccess(enabled);
+  if (res) refresh();
 }
 
 async function deleteUser(email) {

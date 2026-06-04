@@ -34,7 +34,8 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
     });
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
-    location.href = 'editor.html';
+    // Admin / super-admin → admin console; regular users → editor
+    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin.html' : 'editor.html';
   } catch (err) {
     setMsg('signin','error', err.message);
   }

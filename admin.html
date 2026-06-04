@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+  .admin-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .admin-head h1 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .admin-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .admin-grid.single { grid-template-columns: 1fr; }
+  .user-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  .user-table th {
+    text-align: left; padding: 12px 14px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    background: var(--bg-2); border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  .user-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .user-table tr:last-child td { border-bottom: none; }
+  .user-table tr:hover { background: rgba(99,102,241,.05); }
+  .user-email { font-weight: 500; }
+  .user-meta { font-size: 11px; color: var(--muted); }
+  .ctrl-card {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .ctrl-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .ctrl-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+  .ctrl-row { display: flex; gap: 8px; align-items: center; }
+  .ctrl-row input[type=number] {
+    width: 90px; padding: 8px 10px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px;
+  }
+  .status-on { color: var(--danger); font-weight: 600; }
+  .status-off { color: var(--success); font-weight: 600; }
+  .role-banner {
+    padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 18px;
+    background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.15));
+    border: 1px solid rgba(99,102,241,.3);
+  }
+  .role-banner .role-name { color: #c4b5fd; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+  .empty-tbl { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body class="app-body-scroll">
+
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab active" href="admin.html">Admin Console</a>
+    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="role-pill"></span>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="admin-wrap">
+  <div class="role-banner">
+    <span class="role-name" id="banner-role">Loading…</span>
+    <span id="banner-msg" style="margin-left:8px; color:var(--muted);"></span>
+  </div>
+
+  <div class="admin-head">
+    <h1 id="admin-title">Admin Console</h1>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="refresh()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="admin-grid" id="admin-grid">
+    <!-- Users panel -->
+    <div>
+      <div class="ctrl-card" style="padding:0; overflow:hidden;">
+        <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="margin:0;">All Users</h3>
+            <p style="margin:4px 0 0;" id="user-summary">—</p>
+          </div>
+          <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
+        </div>
+        <div style="max-height:65vh; overflow-y:auto;" class="no-scrollbar">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>Email</th><th>Plan</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th id="actions-col" style="display:none;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+          <div id="users-empty" class="empty-tbl" style="display:none;">No users yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Super controls panel -->
+    <div id="super-controls" style="display:none;">
+      <div class="ctrl-card">
+        <h3>System Status</h3>
+        <div id="status-readout" style="font-size:13px; line-height:1.7;">Loading…</div>
+      </div>
+
+      <div class="ctrl-card">
+        <h3>Disable AI globally</h3>
+        <p>Blocks all AI endpoints (Improve, Tailor, ATS, Analyze, Parse, Interview) for every user. You bypass the block.</p>
+        <div class="ctrl-row">
+          <input type="number" id="ai-mins" placeholder="minutes" min="1" max="10080">
+          <button class="btn btn-danger btn-sm" onclick="setAI()">Disable</button>
+          <button class="btn btn-ghost btn-sm" onclick="setAI(0)">Re-enable</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <h3>Take site offline</h3>
+        <p>Replaces every page with a "site offline" screen. Admins and you bypass it. Useful for emergency or maintenance.</p>
+        <div class="ctrl-row">
+          <input type="number" id="maint-mins" placeholder="minutes" min="1" max="10080">
+          <button class="btn btn-danger btn-sm" onclick="setMaint()">Take offline</button>
+          <button class="btn btn-ghost btn-sm" onclick="setMaint(0)">Bring online</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+let ALL_USERS = [];
+let ROLE = null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—'; }
+function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—'; }
+function fmtPlan(p) {
+  if (p === 'lifetime') return '<span class="pill success">Lifetime</span>';
+  if (p === 'premium')  return '<span class="pill success">Premium</span>';
+  return '<span class="pill">Free</span>';
+}
+
+async function apiGet(path) {
+  const r = await fetch(API + path, { headers: { Authorization: 'Bearer ' + TOKEN } });
+  if (!r.ok) throw new Error((await r.json().catch(()=>({}))).error || 'Request failed');
+  return r.json();
+}
+async function apiPost(path, body) {
+  const r = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
+    body: JSON.stringify(body || {})
+  });
+  if (!r.ok) throw new Error((await r.json().catch(()=>({}))).error || 'Request failed');
+  return r.json();
+}
+
+async function init() {
+  // Check role from /me
+  let me;
+  try { me = await apiGet('/me'); }
+  catch { localStorage.removeItem('hf_token'); location.href = 'login.html'; return; }
+  ROLE = me.role;
+  if (ROLE !== 'admin' && ROLE !== 'super') {
+    document.body.innerHTML = '<div style="padding:60px 24px; max-width:480px; margin:0 auto; text-align:center;"><h1>Access denied</h1><p style="color:var(--muted); margin-top:8px;">This page is only available to admin accounts.</p><p style="margin-top:20px;"><a href="editor.html" class="btn btn-primary">Back to Editor</a></p></div>';
+    return;
+  }
+  document.getElementById('role-pill').innerHTML =
+    `<span class="pill ${ROLE==='super'?'error':''}">${ICON('crown','ico ico-sm')} ${ROLE==='super'?'SUPER ADMIN':'ADMIN'}</span>`;
+  document.getElementById('banner-role').textContent = ROLE === 'super' ? 'SUPER ADMIN ACCESS' : 'ADMIN ACCESS';
+  document.getElementById('banner-msg').textContent = ROLE === 'super'
+    ? 'Full control: view, delete users, disable AI, take site offline.'
+    : 'View-only access: see users and plans.';
+  if (ROLE === 'super') {
+    document.getElementById('super-controls').style.display = '';
+    document.getElementById('actions-col').style.display = '';
+    document.getElementById('admin-grid').classList.remove('single');
+  } else {
+    document.getElementById('admin-grid').classList.add('single');
+  }
+
+  await refresh();
+}
+
+async function refresh() {
+  try {
+    const [usersRes, statusRes] = await Promise.all([
+      apiGet('/admin/users'),
+      apiGet('/status')
+    ]);
+    ALL_USERS = usersRes.users || [];
+    renderUsers();
+    renderStatus(statusRes);
+  } catch (e) {
+    toast('Failed to load: ' + e.message, { type: 'error' });
+  }
+}
+
+function renderUsers() {
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  const list = ALL_USERS.filter(u => !q || (u.email||'').toLowerCase().includes(q));
+  document.getElementById('user-summary').textContent =
+    `${list.length} of ${ALL_USERS.length} users · ${ALL_USERS.filter(u=>u.plan!=='free').length} paid`;
+  if (!list.length) {
+    document.getElementById('users-tbody').innerHTML = '';
+    document.getElementById('users-empty').style.display = '';
+    return;
+  }
+  document.getElementById('users-empty').style.display = 'none';
+  document.getElementById('users-tbody').innerHTML = list.map(u => {
+    const notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
+                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '—';
+    const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
+    return `
+      <tr>
+        <td><div class="user-email">${esc(u.email)}</div></td>
+        <td>${fmtPlan(u.plan)}</td>
+        <td>${fmtDate(u.createdAt)}</td>
+        <td>${esc(notes)} ${stripe}</td>
+        <td>${u.downloadsUsed}</td>
+        ${ROLE === 'super' ? `<td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>` : ''}
+      </tr>`;
+  }).join('');
+}
+
+function renderStatus(s) {
+  const r = document.getElementById('status-readout');
+  if (!r) return;
+  const ai = s.aiDisabled
+    ? `<span class="status-on">AI: DISABLED</span> until ${fmtUnix(s.aiDisabledUntil)} ${new Date(s.aiDisabledUntil*1000).toLocaleTimeString()}`
+    : `<span class="status-off">AI: enabled</span>`;
+  const m = s.maintenance
+    ? `<span class="status-on">Site: OFFLINE</span> until ${fmtUnix(s.maintenanceUntil)} ${new Date(s.maintenanceUntil*1000).toLocaleTimeString()}`
+    : `<span class="status-off">Site: online</span>`;
+  r.innerHTML = `<div>${ai}</div><div>${m}</div>`;
+}
+
+async function deleteUser(email) {
+  const ok = await confirmDialog({
+    title: 'Delete this user?',
+    body: `This will permanently delete ${email} and their saved resume. The Stripe subscription (if any) is NOT cancelled — do that separately in Stripe.`,
+    confirmText: 'Delete user',
+    cancelText: 'Cancel',
+    danger: true
+  });
+  if (!ok) return;
+  try {
+    await apiPost('/admin/users/delete', { email });
+    toast('Deleted ' + email, { type: 'success' });
+    refresh();
+  } catch (e) { toast('Delete failed: ' + e.message, { type: 'error' }); }
+}
+
+async function setAI(minutesOverride) {
+  const m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('ai-mins').value, 10);
+  if (!minutesOverride && (!m || m < 1)) return toast('Enter a number of minutes', { type: 'warn' });
+  try {
+    const res = await apiPost('/admin/ai-disable', { minutes: m });
+    toast(res.aiDisabledUntil ? `AI disabled for ${m} min` : 'AI re-enabled', { type: 'success' });
+    refresh();
+  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+}
+
+async function setMaint(minutesOverride) {
+  const m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('maint-mins').value, 10);
+  if (!minutesOverride) {
+    if (!m || m < 1) return toast('Enter a number of minutes', { type: 'warn' });
+    const ok = await confirmDialog({
+      title: 'Take the site offline?',
+      body: `Every non-admin visitor will see an offline screen for ${m} minutes. Admins (including you) bypass it.`,
+      confirmText: 'Take offline',
+      cancelText: 'Cancel',
+      danger: true
+    });
+    if (!ok) return;
+  }
+  try {
+    const res = await apiPost('/admin/maintenance', { minutes: m });
+    toast(res.maintenanceUntil ? `Site offline for ${m} min` : 'Site back online', { type: 'success' });
+    refresh();
+  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+}
+
+function signOut() {
+  localStorage.removeItem('hf_token');
+  localStorage.removeItem('hf_email');
+  location.href = 'index.html';
+}
+
+init();
+</script>
+</body>
+</html>

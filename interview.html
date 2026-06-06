@@ -47,6 +47,37 @@
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
+
+function showAILoading(msg) {
+  let el = document.getElementById('ai-loading-overlay');
+  if (el) { el.querySelector('#ai-load-msg').textContent = msg; return; }
+  el = document.createElement('div');
+  el.id = 'ai-loading-overlay';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  el.innerHTML = `
+    <style>
+      @keyframes _aiSpin { to { transform:rotate(360deg) } }
+      @keyframes _aiPulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+    </style>
+    <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
+      <svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:100%;height:100%;animation:_aiSpin 1s linear infinite;">
+        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="26" fill="none" stroke="#6366f1" stroke-width="4"
+          stroke-linecap="round" stroke-dasharray="40 123" stroke-dashoffset="0"/>
+      </svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+      </svg>
+    </div>
+    <div id="ai-load-msg" style="font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:_aiPulse 1.8s ease-in-out infinite;text-align:center;max-width:260px;line-height:1.5;"></div>`;
+  el.querySelector('#ai-load-msg').textContent = msg;
+  document.body.appendChild(el);
+}
+function hideAILoading() {
+  const el = document.getElementById('ai-loading-overlay');
+  if (el) el.remove();
+}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
@@ -55,14 +86,16 @@ async function generate() {
   const jd = document.getElementById('jd').value;
   if (!role) return toast('Enter a role first', { type: 'warn' });
   const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
-  document.getElementById('results').innerHTML = '<div class="section-card" style="text-align:center;">Generating…</div>';
+  document.getElementById('results').innerHTML = '';
+  showAILoading('Generating your interview questions...');
   try {
     const r = await fetch(API + '/ai/interview', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
       body: JSON.stringify({ role, jobDescription: jd, resume })
     });
-    if (r.status === 402) { showUpgradeModal('interview'); document.getElementById('results').innerHTML=''; return; }
+    hideAILoading();
+    if (r.status === 402) { showUpgradeModal('interview'); return; }
     if (!r.ok) throw new Error('AI failed');
     const data = await r.json();
     document.getElementById('results').innerHTML = `
@@ -71,6 +104,7 @@ async function generate() {
         <div style="white-space:pre-wrap; line-height:1.7;">${esc(data.text || '')}</div>
       </div>`;
   } catch(e) {
+    hideAILoading();
     document.getElementById('results').innerHTML = `<div class="section-card" style="color:var(--danger);">Error: ${e.message}</div>`;
   }
 }

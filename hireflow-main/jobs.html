@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Tracker — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab active" href="jobs.html">Job Tracker</a>
+    <a class="topbar-tab" href="interview.html">Interview Prep</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main style="padding:32px 20px; max-width:960px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+      <h2 style="font-size:22px; display:flex; align-items:center; gap:10px;" id="jt-title"></h2>
+      <p style="color:var(--muted); font-size:13px;" id="job-count">0 jobs tracked</p>
+    </div>
+    <button class="btn btn-primary" onclick="toggleForm()" id="add-btn"></button>
+  </div>
+
+  <div id="add-form" style="display:none; margin-bottom:20px;">
+    <div class="section-card">
+      <h3 style="margin-bottom:14px;">Add New Job</h3>
+      <div class="grid-2">
+        <div class="form-field"><label>Job Title</label><input id="j-title"></div>
+        <div class="form-field"><label>Company</label><input id="j-company"></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-field"><label>Location</label><input id="j-location"></div>
+        <div class="form-field"><label>Status</label>
+          <select id="j-status">
+            <option>Saved</option><option>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label>Notes / Link</label><input id="j-notes"></div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="toggleForm()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveJob()">Save Job</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="filters" style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+    <button class="pill" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="pill" data-filter="Saved" onclick="setFilter('Saved')">Saved</button>
+    <button class="pill" data-filter="Applied" onclick="setFilter('Applied')">Applied</button>
+    <button class="pill" data-filter="Interviewing" onclick="setFilter('Interviewing')">Interviewing</button>
+    <button class="pill" data-filter="Offer" onclick="setFilter('Offer')">Offer</button>
+    <button class="pill" data-filter="Rejected" onclick="setFilter('Rejected')">Rejected</button>
+  </div>
+
+  <div id="job-list"></div>
+
+  <div id="empty" class="section-card" style="text-align:center; padding:60px 20px;">
+    <div id="empty-icon" style="display:flex; justify-content:center; margin-bottom:12px; color:var(--muted);"></div>
+    <h3>No jobs tracked yet</h3>
+    <p style="color:var(--muted); font-size:13px; margin:8px 0 16px;">Start tracking your job applications to stay organized.</p>
+    <button class="btn btn-primary" onclick="toggleForm()" id="empty-btn"></button>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script>
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+let jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]');
+let filter = 'all';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toggleForm(){ const f=document.getElementById('add-form'); f.style.display = f.style.display==='none'?'':'none'; }
+function setFilter(f){ filter=f; render(); }
+function saveJob(){
+  const j = {
+    id: Date.now(),
+    title:document.getElementById('j-title').value,
+    company: document.getElementById('j-company').value,
+    location: document.getElementById('j-location').value,
+    status: document.getElementById('j-status').value,
+    notes: document.getElementById('j-notes').value,
+    addedAt: Date.now()
+  };
+  if (!j.title || !j.company) return toast('Title and company are required', { type: 'warn' });
+  jobs.unshift(j);
+  localStorage.setItem('hf_jobs', JSON.stringify(jobs));
+  ['j-title','j-company','j-location','j-notes'].forEach(id=>document.getElementById(id).value='');
+  toggleForm(); render();
+}
+function removeJob(id){ jobs = jobs.filter(j=>j.id!==id); localStorage.setItem('hf_jobs', JSON.stringify(jobs)); render(); }
+function updateStatus(id, s){ const j=jobs.find(x=>x.id===id); if(j){j.status=s; localStorage.setItem('hf_jobs', JSON.stringify(jobs)); render();}}
+
+function render(){
+  const list = jobs.filter(j => filter==='all' || j.status===filter);
+  document.getElementById('job-count').textContent = jobs.length + ' job' + (jobs.length===1?'':'s') + ' tracked';
+  document.getElementById('empty').style.display = jobs.length===0 ? '' : 'none';
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('success', b.dataset.filter===filter));
+  document.getElementById('job-list').innerHTML = list.map(j => `
+    <div class="section-card" style="margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; gap:16px;">
+        <div>
+          <h4>${esc(j.title)} <span style="color:var(--muted); font-weight:normal;">at</span> ${esc(j.company)}</h4>
+          <div style="color:var(--muted); font-size:12px; margin-top:4px;">${esc(j.location)} · added ${new Date(j.addedAt).toLocaleDateString()}</div>
+          ${j.notes ? `<p style="font-size:13px; margin-top:8px;">${esc(j.notes)}</p>`:''}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+          <select onchange="updateStatus(${j.id}, this.value)" style="padding:5px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
+            ${['Saved','Applied','Interviewing','Offer','Rejected'].map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+document.getElementById('jt-title').innerHTML = `${ICON('briefcase','ico ico-lg')} <span>Job Tracker</span>`;
+document.getElementById('add-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Job</span>`;
+document.getElementById('empty-icon').innerHTML = ICON('briefcase','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"');
+document.getElementById('empty-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Your First Job</span>`;
+render();
+</script>
+</body>
+</html>

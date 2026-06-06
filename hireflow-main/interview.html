@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
+    <a class="topbar-tab active" href="interview.html">Interview Prep</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="plan-pill"></span>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main style="padding:32px 20px; max-width:820px; margin:0 auto;">
+  <div class="section-card">
+    <div class="section-head"><h3 id="ip-title"></h3></div>
+    <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Tell us about the role and we'll generate practice interview questions tailored to your resume.</p>
+    <div class="form-field">
+      <label>Role / Title</label>
+      <input id="role" placeholder="e.g. Senior Software Engineer, Product Manager">
+    </div>
+    <div class="form-field">
+      <label>Job Description (optional)</label>
+      <textarea id="jd" rows="5" placeholder="Paste job description for more targeted questions…"></textarea>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="generate()" id="gen-btn"></button>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+async function generate() {
+  if (isFree()) { showUpgradeModal('interview'); return; }
+  const role = document.getElementById('role').value;
+  const jd = document.getElementById('jd').value;
+  if (!role) return toast('Enter a role first', { type: 'warn' });
+  const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+  document.getElementById('results').innerHTML = '<div class="section-card" style="text-align:center;">Generating…</div>';
+  try {
+    const r = await fetch(API + '/ai/interview', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify({ role, jobDescription: jd, resume })
+    });
+    if (r.status === 402) { showUpgradeModal('interview'); document.getElementById('results').innerHTML=''; return; }
+    if (!r.ok) throw new Error('AI failed');
+    const data = await r.json();
+    document.getElementById('results').innerHTML = `
+      <div class="section-card">
+        <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">${ICON('mic')} Practice Questions</h3>
+        <div style="white-space:pre-wrap; line-height:1.7;">${esc(data.text || '')}</div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('results').innerHTML = `<div class="section-card" style="color:var(--danger);">Error: ${e.message}</div>`;
+  }
+}
+function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+(async () => {
+  await loadCurrentUser();
+  document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;
+  document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
+  const planPill = document.getElementById('plan-pill');
+  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  if (isFree()) {
+    // Show pre-upgrade card instead of letting them waste effort
+    document.querySelector('main .section-card').innerHTML = `
+      <div style="text-align:center; padding:30px 20px;">
+        <div style="display:flex; justify-content:center; margin-bottom:16px; color:var(--accent);">${ICON('lock','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"')}</div>
+        <h2 style="font-size:22px; margin-bottom:8px;">Interview Prep is Premium</h2>
+        <p style="color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto;">Get AI-generated practice questions tailored to any role and your resume.</p>
+        <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock with Premium</span></a>
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>

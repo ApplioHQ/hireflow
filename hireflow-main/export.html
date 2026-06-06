@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Export — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .export-grid { display:grid; grid-template-columns: 1fr 320px; gap:24px; padding:24px; max-width:1240px; margin:0 auto; }
+  .resume-page {
+    background:#fff; color:#111;
+    width: 100%; max-width: 850px;
+    min-height: 1100px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    overflow: hidden; border-radius: 4px;
+    font-size: 14px; line-height: 1.45;
+    margin: 0 auto;
+  }
+  @media print {
+    body, .app-body-scroll { background: #fff !important; }
+    .app-topbar, .export-side { display:none !important; }
+    .export-grid { display:block; padding:0; max-width:none; }
+    .resume-page { box-shadow:none; aspect-ratio:auto; border-radius:0; }
+  }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html" id="back-link"></a>
+  </nav>
+  <div class="topbar-right">
+    <span id="download-pill"></span>
+    <span id="plan-pill"></span>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<div class="export-grid">
+  <div id="resume-preview" class="resume-page"></div>
+
+  <aside class="export-side">
+    <div class="section-card">
+      <h3 style="margin-bottom:14px;" id="es-title"></h3>
+      <div class="form-field">
+        <label>File Format</label>
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="tryExport('pdf')">PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="tryExport('html')">HTML</button>
+          <button class="btn btn-secondary btn-sm" onclick="tryExport('txt')">TXT</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Page Size</label>
+        <select id="page-size" onchange="updatePageSize()">
+          <option value="letter">US Letter (8.5×11)</option>
+          <option value="a4">A4</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Margins</label>
+        <select id="margins" onchange="render()">
+          <option>Normal</option><option>Narrow</option><option>Wide</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="tryExport('pdf')" id="btn-pdf"></button>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="window.print()">Print</button>
+      <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
+    </div>
+  </aside>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/templates.js"></script>
+<script>
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+
+function render() {
+  const marginsKey = document.getElementById('margins')?.value || 'Normal';
+  document.getElementById('resume-preview').innerHTML =
+    renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent, marginsKey);
+}
+
+async function tryExport(fmt) {
+  // Free users have a download limit. Premium/Lifetime: unlimited.
+  if (isFree()) {
+    if (downloadsLeft() <= 0) { showUpgradeModal('downloads'); return; }
+    // Increment server-side
+    try {
+      const r = await fetch(window.HIREFLOW_CONFIG.API_URL + '/downloads/increment', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + TOKEN }
+      });
+      const data = await r.json();
+      if (!data.allowed) { showUpgradeModal('downloads'); return; }
+      CURRENT_USER.downloadsUsed = data.downloadsUsed;
+      updatePills();
+    } catch(e) { console.warn('download tracking failed', e); }
+  }
+  if (fmt === 'pdf') window.print();
+  else if (fmt === 'html') exportHTML();
+  else if (fmt === 'txt') exportTXT();
+}
+
+function updatePageSize() {
+  const v = document.getElementById('page-size').value;
+  const el = document.getElementById('resume-preview');
+  if (v === 'a4') { el.style.maxWidth = '794px'; el.style.minHeight = '1123px'; }
+  else { el.style.maxWidth = '850px'; el.style.minHeight = '1100px'; }
+}
+
+function exportHTML() {
+  const html = document.getElementById('resume-preview').innerHTML;
+  const blob = new Blob([`<!DOCTYPE html><meta charset="utf-8"><style>body{margin:0;padding:0;}.page{padding:36px;}</style><div class="page">${html}</div>`], {type:'text/html'});
+  download(blob, 'resume.html');
+}
+function exportTXT() {
+  const txt = document.getElementById('resume-preview').innerText;
+  download(new Blob([txt], {type:'text/plain'}), 'resume.txt');
+}
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+function updatePills() {
+  const planPill = document.getElementById('plan-pill');
+  const dlPill = document.getElementById('download-pill');
+  const info = document.getElementById('download-info');
+  if (isPaid()) {
+    planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+    dlPill.style.display = 'none';
+    info.textContent = 'Unlimited downloads on your plan';
+  } else {
+    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    const left = downloadsLeft();
+    dlPill.style.display = '';
+    dlPill.innerHTML = `<span class="pill ${left<=2?'warn':''}">${ICON('download','ico ico-sm')} ${CURRENT_USER?.downloadsUsed || 0} / ${CURRENT_USER?.downloadLimit || 10}</span>`;
+    info.innerHTML = `${left} of ${CURRENT_USER?.downloadLimit || 10} downloads left on Free plan. <a href="pricing.html" style="color:var(--accent);">Go unlimited →</a>`;
+  }
+}
+
+(async () => {
+  document.getElementById('back-link').innerHTML = `${ICON('arrowLeft')} <span>Back to Editor</span>`;
+  document.getElementById('es-title').innerHTML = `${ICON('settings')} <span style="margin-left:6px;">Export Settings</span>`;
+  document.getElementById('btn-pdf').innerHTML = `${ICON('download')} <span>Download PDF</span>`;
+  render();
+  await loadCurrentUser();
+  updatePills();
+})();
+</script>
+</body>
+</html>

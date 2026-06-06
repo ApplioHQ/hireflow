@@ -501,70 +501,246 @@ async function ai(endpoint, body) {
   return r.json();
 }
 
+// ---- Loading overlay ----
+function showAILoading(msg) {
+  let el = document.getElementById('ai-loading-overlay');
+  if (el) { el.querySelector('#ai-load-msg').textContent = msg; return; }
+  el = document.createElement('div');
+  el.id = 'ai-loading-overlay';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  el.innerHTML = `
+    <style>
+      @keyframes _aiSpin { to { transform:rotate(360deg) } }
+      @keyframes _aiPulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+    </style>
+    <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
+      <svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:100%;height:100%;animation:_aiSpin 1s linear infinite;">
+        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="26" fill="none" stroke="#6366f1" stroke-width="4"
+          stroke-linecap="round" stroke-dasharray="40 123" stroke-dashoffset="0"/>
+      </svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+      </svg>
+    </div>
+    <div id="ai-load-msg" style="font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:_aiPulse 1.8s ease-in-out infinite;text-align:center;max-width:260px;line-height:1.5;"></div>`;
+  el.querySelector('#ai-load-msg').textContent = msg;
+  document.body.appendChild(el);
+}
+
+function hideAILoading() {
+  const el = document.getElementById('ai-loading-overlay');
+  if (el) el.remove();
+}
+
+// ---- Apply-suggestions panel ----
+let _pendingSuggestions = null;
+
+function renderApplyPanel(containerId, suggestions) {
+  _pendingSuggestions = suggestions;
+  const container = document.getElementById(containerId);
+  if (!container || !suggestions || !suggestions.length) return;
+  // Remove any previous panel
+  container.querySelector('#apply-panel')?.remove();
+  const div = document.createElement('div');
+  div.id = 'apply-panel';
+  div.className = 'section-card';
+  div.style.cssText = 'background:var(--bg-2);margin-top:12px;border:1px solid rgba(99,102,241,.35);';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span class="ico ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>
+      <strong style="font-size:13px;">Apply suggestions to your resume</strong>
+    </div>
+    <div id="apply-checks" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      ${suggestions.map((s, i) => `
+        <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;line-height:1.5;">
+          <input type="checkbox" data-idx="${i}" checked style="margin-top:3px;accent-color:#6366f1;flex-shrink:0;">
+          <span>${esc(s.label)}</span>
+        </label>`).join('')}
+    </div>
+    <button class="btn btn-primary btn-sm" id="apply-btn">
+      <span class="ico ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span>Apply selected to resume</span>
+    </button>`;
+  container.appendChild(div);
+  div.querySelector('#apply-btn').addEventListener('click', () => applyCheckedSuggestions(containerId));
+}
+
+function applyCheckedSuggestions(containerId) {
+  if (!_pendingSuggestions) return;
+  const checks = document.querySelectorAll('#apply-checks input[type=checkbox]');
+  let applied = 0;
+  checks.forEach(cb => {
+    if (!cb.checked) return;
+    const s = _pendingSuggestions[parseInt(cb.dataset.idx)];
+    if (!s) return;
+    s.apply();
+    applied++;
+  });
+  save();
+  _pendingSuggestions = null;
+  document.getElementById('apply-panel')?.remove();
+  if (applied > 0) {
+    toast('Applied ' + applied + ' suggestion' + (applied !== 1 ? 's' : '') + ' to your resume', { type: 'success' });
+    renderPreview();
+  }
+}
+
+// ============ AI: Improve ============
 async function aiImprove(target) {
   try {
-    const text = target==='summary' ? resume.personal.summary : JSON.stringify(resume[target]||{});
-    toast('AI is rewriting…', { type: 'info', duration: 1800 });
+    showAILoading(target === 'summary' ? 'Rewriting your summary...' : 'Improving your bullets...');
+    const text = target === 'summary' ? resume.personal.summary : JSON.stringify(resume[target] || {});
     const r = await ai('improve', { target, text });
-    if (target==='summary') {
+    hideAILoading();
+    if (target === 'summary') {
       resume.personal.summary = r.text;
       save(); renderMain();
       toast('Summary improved', { type: 'success' });
     } else {
       await notify({ title: 'AI suggestion', body: r.text, copyable: true });
     }
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) {
+    hideAILoading();
+    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
+  }
 }
 
+// ============ AI: Suggest Skills ============
 async function aiSuggestSkills() {
   try {
-    toast('Generating skills…', { type: 'info', duration: 1800 });
+    showAILoading('Suggesting skills from your experience...');
     const r = await ai('skills', { experience: resume.experience });
-    const items = (r.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
-    if (items.length) {
-      resume.skills.categories = [{ name:'All', items: Array.from(new Set([...(resume.skills.categories.flatMap(c=>c.items)||[]),...items]))}];
-      save(); renderMain();
-      toast(`Added ${items.length} skills`, { type: 'success' });
-    } else {
-      toast('No skills suggested', { type: 'warn' });
-    }
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+    hideAILoading();
+    const items = (r.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!items.length) { toast('No skills suggested', { type: 'warn' }); return; }
+    const existing = new Set(resume.skills.categories.flatMap(c => c.items).map(s => s.toLowerCase()));
+    const newItems = items.filter(s => !existing.has(s.toLowerCase()));
+    if (!newItems.length) { toast('All suggested skills already added', { type: 'info' }); return; }
+    const suggestions = newItems.map(skill => ({
+      label: 'Add skill: ' + skill,
+      apply() {
+        const cats = resume.skills.categories;
+        if (!cats.length) cats.push({ name: 'All', items: [] });
+        if (!cats[0].items.map(s => s.toLowerCase()).includes(skill.toLowerCase())) cats[0].items.push(skill);
+      }
+    }));
+    renderMain();
+    renderApplyPanel('main', suggestions);
+  } catch(e) {
+    hideAILoading();
+    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
+  }
 }
 
+// ============ AI: Tailor ============
 async function aiTailor() {
   try {
-    toast('Tailoring resume…', { type: 'info', duration: 1800 });
+    showAILoading('Tailoring your resume to the job...');
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
+    hideAILoading();
     resume.tailor.tailoredSummary = r.text;
-    if (r.summary) resume.personal.summary = r.summary;
     save(); renderMain();
+    const suggestions = [];
+    if (r.summary) {
+      suggestions.push({
+        label: 'Update professional summary: "' + r.summary.slice(0, 90) + (r.summary.length > 90 ? '...' : '') + '"',
+        apply() { resume.personal.summary = r.summary; }
+      });
+    }
+    if (r.missingKeywords && r.missingKeywords.length) {
+      suggestions.push({
+        label: 'Add missing keywords to Skills: ' + r.missingKeywords.slice(0, 5).join(', '),
+        apply() {
+          const cats = resume.skills.categories;
+          if (!cats.length) cats.push({ name: 'All', items: [] });
+          r.missingKeywords.forEach(kw => {
+            if (!cats[0].items.map(s => s.toLowerCase()).includes(kw.toLowerCase())) cats[0].items.push(kw);
+          });
+        }
+      });
+    }
+    if (r.bulletSuggestions && r.bulletSuggestions.length) {
+      r.bulletSuggestions.forEach(bullet => {
+        suggestions.push({
+          label: 'Add to most recent job: "' + bullet.slice(0, 100) + (bullet.length > 100 ? '...' : '') + '"',
+          apply() {
+            if (!resume.experience.length) return;
+            const exp = resume.experience[0];
+            exp.description = (exp.description ? exp.description + '\n' : '') + '* ' + bullet.replace(/^[*\-]\s*/, '');
+          }
+        });
+      });
+    }
+    if (suggestions.length) renderApplyPanel('main', suggestions);
     toast('Resume tailored', { type: 'success' });
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) {
+    hideAILoading();
+    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
+  }
 }
 
+// ============ AI: ATS ============
 async function aiATS() {
-  const jd = document.getElementById('ats-jd').value;
+  const jdEl = document.getElementById('ats-jd');
+  const jd = jdEl ? jdEl.value : '';
   try {
-    toast('Running ATS check…', { type: 'info', duration: 1800 });
+    showAILoading('Scoring your resume against the job...');
     const r = await ai('ats', { jobDescription: jd, resume });
-    document.getElementById('ats-result').innerHTML = `
-      <div class="section-card" style="background:var(--bg-2);">
-        <h4>ATS Score: <span style="color:${r.score>=70?'var(--success)':r.score>=50?'var(--warning)':'var(--danger)'};">${r.score}/100</span></h4>
-        <p style="white-space:pre-wrap; margin-top:8px;">${esc(r.feedback||'')}</p>
-      </div>`;
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+    hideAILoading();
+    const scoreColor = r.score >= 70 ? 'var(--success)' : r.score >= 50 ? 'var(--warning)' : 'var(--danger)';
+    document.getElementById('ats-result').innerHTML =
+      '<div class="section-card" style="background:var(--bg-2);">' +
+        '<h4>ATS Score: <span style="color:' + scoreColor + ';">' + r.score + '/100</span></h4>' +
+        '<p style="white-space:pre-wrap;margin-top:8px;">' + esc(r.feedback || '') + '</p>' +
+      '</div>';
+    if (r.missingKeywords && r.missingKeywords.length) {
+      renderApplyPanel('ats-result', [{
+        label: 'Add missing keywords to Skills: ' + r.missingKeywords.slice(0, 6).join(', '),
+        apply() {
+          const cats = resume.skills.categories;
+          if (!cats.length) cats.push({ name: 'All', items: [] });
+          r.missingKeywords.forEach(kw => {
+            if (!cats[0].items.map(s => s.toLowerCase()).includes(kw.toLowerCase())) cats[0].items.push(kw);
+          });
+        }
+      }]);
+    }
+  } catch(e) {
+    hideAILoading();
+    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
+  }
 }
 
+// ============ AI: Analyze ============
 async function aiAnalyze() {
   try {
-    toast('Analyzing resume…', { type: 'info', duration: 1800 });
+    showAILoading('Analyzing your resume...');
     const r = await ai('analyze', { resume });
-    document.getElementById('analysis-result').innerHTML = `
-      <div class="section-card" style="background:var(--bg-2);">
-        <p style="white-space:pre-wrap;">${esc(r.text||'')}</p>
-      </div>`;
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+    hideAILoading();
+    document.getElementById('analysis-result').innerHTML =
+      '<div class="section-card" style="background:var(--bg-2);">' +
+        '<p style="white-space:pre-wrap;">' + esc(r.text || '') + '</p>' +
+      '</div>';
+    const suggestions = [];
+    if (r.missingSections && r.missingSections.length) {
+      r.missingSections.forEach(sec => {
+        const key = sec.toLowerCase();
+        if (resume.customize && resume.customize.sections && key in resume.customize.sections && !resume.customize.sections[key]) {
+          suggestions.push({
+            label: 'Enable "' + sec + '" section on your resume',
+            apply() { resume.customize.sections[key] = true; }
+          });
+        }
+      });
+    }
+    if (suggestions.length) renderApplyPanel('analysis-result', suggestions);
+  } catch(e) {
+    hideAILoading();
+    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
+  }
 }
+
 
 function openModal(id) {
   if (id === 'import' && isFree()) { showUpgradeModal('ai'); return; }
@@ -601,8 +777,9 @@ async function importResume() {
   const text = document.getElementById('import-text').value;
   if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
   try {
-    toast('AI is parsing your resume…', { type: 'info', duration: 2200 });
+    showAILoading('Parsing your resume with AI...');
     const r = await ai('parse', { text });
+    hideAILoading();
     if (r.resume) {
       resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
       save(); closeModal('import'); renderMain();
@@ -610,7 +787,7 @@ async function importResume() {
     } else {
       toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
 // ============ Boot ============

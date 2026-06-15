@@ -11,10 +11,11 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
-// Smaller, faster: free-form writing tasks
-const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct";
-// Larger, better at structured output + reasoning: parse, analyze, tailor, ats
-const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+// Heaviest processing & coding cost (1T Parameters, 262k context window)
+const FAST_MODEL = "@cf/moonshotai/kimi-k2.7-code"; 
+
+// Heaviest reasoning cost (DeepSeek-R1 32B Distill, massive neuron burner)
+const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b"; 
 
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);

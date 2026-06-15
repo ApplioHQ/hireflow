@@ -12,10 +12,9 @@
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
 // Heaviest processing & coding cost (1T Parameters, 262k context window)
-const FAST_MODEL = "@cf/moonshotai/kimi-k2.7-code"; 
-
+const FAST_MODEL = "@cf/moonshotai/kimi-k2.7-code";
 // Heaviest reasoning cost (DeepSeek-R1 32B Distill, massive neuron burner)
-const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b"; 
+const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
 
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
@@ -38,18 +37,11 @@ export default {
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
-      if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
-      if (path === "/admin/users")             return json(await adminListUsers(req, env), 200, cors);
-      if (path === "/admin/users/delete")      return json(await adminDeleteUser(req, env), 200, cors);
-      if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
-      if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
-      if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
-      if (path === "/admin/analytics")         return json(await adminAnalytics(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -133,13 +125,7 @@ async function verifyToken(token, secret) {
 async function authenticate(req, env) {
   const h = req.headers.get("Authorization") || "";
   const token = h.replace(/^Bearer\s+/i, "");
-  const payload = await verifyToken(token, env.JWT_SECRET);
-  // Immediately revoke admin sessions if super disabled the ADMIN tier
-  if (payload.role === "admin") {
-    const adminDisabled = await env.HIREFLOW_KV.get("system:admin_disabled");
-    if (adminDisabled === "1") throw err(401, "Invalid token");
-  }
-  return payload;
+  return verifyToken(token, env.JWT_SECRET);
 }
 
 // ============ User helpers ============
@@ -174,34 +160,6 @@ async function signup(req, env) {
 async function login(req, env) {
   const { email, password } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
-
-  // SUPER admin: both email and password are secret env vars
-  if (env.SUPERADMIN_EMAIL && env.SUPERADMIN_PASSWORD
-      && email === env.SUPERADMIN_EMAIL
-      && timingEqual(password, env.SUPERADMIN_PASSWORD)) {
-    const token = await signToken({
-      email: env.SUPERADMIN_EMAIL,
-      role: "super",
-      exp: Math.floor(Date.now()/1000) + 3600 * 8
-    }, env.JWT_SECRET);
-    return { token, email: env.SUPERADMIN_EMAIL, role: "super" };
-  }
-
-  // Regular ADMIN: literal "ADMIN" username + secret password
-  // Blocked if super-admin has disabled the ADMIN tier.
-  if (email === "ADMIN" && env.ADMIN_PASSWORD
-      && timingEqual(password, env.ADMIN_PASSWORD)) {
-    const adminDisabled = await env.HIREFLOW_KV.get("system:admin_disabled");
-    if (adminDisabled === "1") throw err(401, "Invalid email or password");
-    const token = await signToken({
-      email: "ADMIN",
-      role: "admin",
-      exp: Math.floor(Date.now()/1000) + 3600 * 8
-    }, env.JWT_SECRET);
-    return { token, email: "ADMIN", role: "admin" };
-  }
-
-  // Normal user lookup
   const user = await getUser(env, email);
   if (!user) throw err(401, "Invalid email or password");
   if (!await verifyPassword(password, user.salt, user.hash)) throw err(401, "Invalid email or password");
@@ -212,21 +170,6 @@ async function login(req, env) {
 // ============ Me ============
 async function me(req, env) {
   const payload = await authenticate(req, env);
-
-  // Admin tokens don't have a real user record
-  if (payload.role === "admin" || payload.role === "super") {
-    return {
-      email: payload.email,
-      plan: "premium",
-      isPaid: true,
-      role: payload.role,
-      downloadsUsed: 0,
-      downloadLimit: 999999,
-      currentPeriodEnd: null,
-      hasStripeCustomer: false,
-    };
-  }
-
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
@@ -234,169 +177,11 @@ async function me(req, env) {
     email: user.email,
     plan: user.plan || "free",
     isPaid: isPaidPlan(user),
-    role: null,
     downloadsUsed: user.downloadsUsed || 0,
     downloadLimit: limit,
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
   };
-}
-
-// ============ System status (public — no auth needed) ============
-async function getStatus(req, env) {
-  const now = Math.floor(Date.now()/1000);
-  const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
-  const maintUntil = parseInt(await env.HIREFLOW_KV.get("system:maintenance_until") || "0", 10);
-  const adminDisabled = (await env.HIREFLOW_KV.get("system:admin_disabled")) === "1";
-  return {
-    aiDisabled: aiUntil > now,
-    aiDisabledUntil: aiUntil > now ? aiUntil : null,
-    maintenance: maintUntil > now,
-    maintenanceUntil: maintUntil > now ? maintUntil : null,
-    adminEnabled: !adminDisabled,
-    now,
-  };
-}
-
-// ============ Admin endpoints ============
-
-// ============ Admin Analytics ============
-async function adminAnalytics(req, env) {
-  await requireAdmin(req, env);
-  // Paginate through all users and compute stats
-  const users = [];
-  let cursor = undefined;
-  while (true) {
-    const page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
-    for (const key of page.keys) {
-      const raw = await env.HIREFLOW_KV.get(key.name);
-      if (!raw) continue;
-      users.push(JSON.parse(raw));
-    }
-    if (page.list_complete) break;
-    cursor = page.cursor;
-  }
-
-  const now = Date.now();
-  const DAY = 86400000;
-  const signupsByDay = {};
-  let free = 0, premium = 0, lifetime = 0, totalDownloads = 0;
-
-  users.forEach(u => {
-    const plan = u.plan || 'free';
-    if (plan === 'premium') premium++;
-    else if (plan === 'lifetime') lifetime++;
-    else free++;
-    totalDownloads += u.downloadsUsed || 0;
-    if (u.createdAt) {
-      const d = new Date(u.createdAt).toISOString().slice(0, 10);
-      signupsByDay[d] = (signupsByDay[d] || 0) + 1;
-    }
-  });
-
-  // Last 30 days signups
-  const last30 = {};
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now - i * DAY).toISOString().slice(0, 10);
-    last30[d] = signupsByDay[d] || 0;
-  }
-
-  // Last 7 days
-  const last7Signups = Object.entries(last30).slice(-7).reduce((a, [,v]) => a + v, 0);
-  const last30Signups = Object.values(last30).reduce((a, v) => a + v, 0);
-
-  return {
-    total: users.length,
-    plans: { free, premium, lifetime },
-    conversionRate: users.length ? ((premium + lifetime) / users.length * 100).toFixed(1) : '0.0',
-    totalDownloads,
-    last7Signups,
-    last30Signups,
-    signupsByDay: last30,
-  };
-}
-
-
-async function requireAdmin(req, env, requireSuper = false) {
-  const payload = await authenticate(req, env);
-  if (requireSuper && payload.role !== "super") throw err(403, "Super admin only");
-  if (payload.role !== "admin" && payload.role !== "super") throw err(403, "Admin only");
-  return payload;
-}
-
-async function adminListUsers(req, env) {
-  await requireAdmin(req, env);
-  const users = [];
-  let _cursor = undefined;
-  while (true) {
-    const _page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor: _cursor, limit: 1000 });
-    for (const key of _page.keys) {
-    const raw = await env.HIREFLOW_KV.get(key.name);
-    if (!raw) continue;
-    const u = JSON.parse(raw);
-    users.push({
-      email: u.email,
-      plan: u.plan || "free",
-      createdAt: u.createdAt || null,
-      currentPeriodEnd: u.currentPeriodEnd || null,
-      downloadsUsed: u.downloadsUsed || 0,
-      hasStripeCustomer: !!u.stripeCustomerId,
-      updatedAt: u.updatedAt || u.createdAt || null,
-    });
-  }
-    if (_page.list_complete) break;
-    _cursor = _page.cursor;
-  }
-  // Newest first
-  users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  return { users, total: users.length };
-}
-
-async function adminDeleteUser(req, env) {
-  await requireAdmin(req, env, true);
-  const { email } = await req.json();
-  if (!email) throw err(400, "Email required");
-  const key = email.toLowerCase();
-  await env.HIREFLOW_KV.delete(`user:${key}`);
-  await env.HIREFLOW_KV.delete(`resume:${key}`);
-  return { ok: true, email };
-}
-
-async function adminSetAIDisabled(req, env) {
-  await requireAdmin(req, env, true);
-  const { minutes } = await req.json();
-  const m = parseInt(minutes, 10);
-  if (m && m > 0) {
-    const until = Math.floor(Date.now()/1000) + (m * 60);
-    await env.HIREFLOW_KV.put("system:ai_disabled_until", String(until));
-    return { ok: true, aiDisabledUntil: until };
-  }
-  await env.HIREFLOW_KV.delete("system:ai_disabled_until");
-  return { ok: true, aiDisabledUntil: null };
-}
-
-async function adminSetMaintenance(req, env) {
-  await requireAdmin(req, env, true);
-  const { minutes } = await req.json();
-  const m = parseInt(minutes, 10);
-  if (m && m > 0) {
-    const until = Math.floor(Date.now()/1000) + (m * 60);
-    await env.HIREFLOW_KV.put("system:maintenance_until", String(until));
-    return { ok: true, maintenanceUntil: until };
-  }
-  await env.HIREFLOW_KV.delete("system:maintenance_until");
-  return { ok: true, maintenanceUntil: null };
-}
-
-async function adminSetAdminAccess(req, env) {
-  await requireAdmin(req, env, true);
-  const { enabled } = await req.json();
-  if (enabled === false) {
-    await env.HIREFLOW_KV.put("system:admin_disabled", "1");
-  } else {
-    await env.HIREFLOW_KV.delete("system:admin_disabled");
-  }
-  return { ok: true, adminEnabled: enabled !== false };
 }
 
 // ============ Resume ============
@@ -652,27 +437,9 @@ async function verifyStripeSig(body, sigHeader, secret) {
   return false;
 }
 
-// ============ AI (gated by plan + global kill switch) ============
+// ============ AI (gated by plan) ============
 async function ai(req, env, action) {
   const payload = await authenticate(req, env);
-
-  // Admin/super bypass plan and global-disable checks
-  const isAdmin = payload.role === "admin" || payload.role === "super";
-
-  // Global AI kill switch — return a generic error so users don't learn it was disabled on purpose.
-  if (!isAdmin) {
-    const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
-    if (aiUntil > Math.floor(Date.now()/1000)) {
-      throw err(503, "Service temporarily unavailable. Please try again later.");
-    }
-  }
-
-  // Admin tokens have no user record — let them through
-  if (isAdmin) {
-    const body = await req.json();
-    return await aiDispatch(env, action, body);
-  }
-
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
 
@@ -682,10 +449,6 @@ async function ai(req, env, action) {
   }
 
   const body = await req.json();
-  return await aiDispatch(env, action, body);
-}
-
-async function aiDispatch(env, action, body) {
   switch (action) {
     case "improve":   return aiImprove(env, body);
     case "skills":    return aiSkills(env, body);
@@ -693,9 +456,7 @@ async function aiDispatch(env, action, body) {
     case "ats":       return aiATS(env, body);
     case "analyze":   return aiAnalyze(env, body);
     case "parse":     return aiParse(env, body);
-    case "interview":    return aiInterview(env, body);
-    case "coverletter":         return aiCoverLetter(env, body);
-    case "interview-feedback":  return aiInterviewFeedback(env, body);
+    case "interview": return aiInterview(env, body);
     default: throw err(404, "Unknown AI action");
   }
 }
@@ -721,41 +482,6 @@ async function runAI(env, system, user, opts = {}) {
     }
   }
   throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);
-}
-
-
-function resumeToText(resume) {
-  const r = resume || {};
-  const p = r.personal || {};
-  const lines = [];
-  if (p.fullName)  lines.push(p.fullName);
-  if (p.email || p.phone || p.location)
-    lines.push([p.email, p.phone, p.location].filter(Boolean).join(' | '));
-  if (p.summary)   lines.push('\nSUMMARY\n' + p.summary);
-  if (r.experience?.length) {
-    lines.push('\nEXPERIENCE');
-    r.experience.forEach(e => {
-      lines.push(`${e.title||''} at ${e.company||''} (${e.start||''} – ${e.end||''})`);
-      if (e.description) lines.push(e.description);
-    });
-  }
-  if (r.education?.length) {
-    lines.push('\nEDUCATION');
-    r.education.forEach(e => lines.push(`${e.degree||''} ${e.field||''} – ${e.school||''} (${e.end||''})`));
-  }
-  if (r.skills?.categories?.length) {
-    lines.push('\nSKILLS');
-    r.skills.categories.forEach(c => lines.push(c.items?.join(', ')||''));
-  }
-  if (r.certifications?.length) {
-    lines.push('\nCERTIFICATIONS');
-    r.certifications.forEach(c => lines.push(`${c.name||''} – ${c.issuer||''} (${c.date||c.year||''})`));
-  }
-  if (r.projects?.length) {
-    lines.push('\nPROJECTS');
-    r.projects.forEach(p => lines.push(`${p.name||''}: ${p.description||''} [${p.tech||''}]`));
-  }
-  return lines.join('\n').slice(0, 5000);
 }
 
 // ============ Improve writing ============
@@ -853,7 +579,7 @@ Rules:
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
   const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${resumeToText(resume)}`,
+    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
     { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
@@ -864,93 +590,62 @@ Rules:
   if (j.missingKeywords?.length) lines.push(`\nMissing keywords (add these if true):\n${j.missingKeywords.map(k => `  ✗ ${k}`).join("\n")}`);
   if (j.emphasize?.length) lines.push(`\nWhat to emphasize:\n${j.emphasize.map(e => `  • ${e}`).join("\n")}`);
   if (j.bulletSuggestions?.length) lines.push(`\nSuggested bullet rewrites:\n${j.bulletSuggestions.map(b => `  → ${b}`).join("\n")}`);
-  return {
-    text: lines.join("\n"),
-    summary: j.summary || null,
-    matchedKeywords: j.matchedKeywords || [],
-    missingKeywords: j.missingKeywords || [],
-    bulletSuggestions: j.bulletSuggestions || [],
-    emphasize: j.emphasize || [],
-  };
+  return { text: lines.join("\n"), summary: j.summary };
 }
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const resumeText = resumeToText(resume);
-  const jdText     = (jobDescription || '').trim().slice(0, 3000);
-  const hasJD      = jdText.length > 10;
+  const sys = `You are an ATS (Applicant Tracking System) and resume scoring expert.
 
-  const sys = `You are a strict, calibrated ATS scoring engine. Use formula-driven accuracy.
+Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
 
-${hasJD ? 'TASK: Score the resume against the provided job description.' : 'TASK: No JD provided — score against universal best-practice standards.'}
-
-SCORING FORMULA (follow exactly):
-
-STEP 1 — KEYWORD SCORE (weight 35%):
-${hasJD
-  ? `Extract every hard skill, tool, technology, certification, and role-specific term from the JD.
-Count how many appear in the resume (exact or clear synonym).
-keyword_score = round((matched / total_jd_keywords) * 100).`
-  : `Score presence of action verbs, quantified results, and industry terminology. Penalise vague language.`}
-
-STEP 2 — EXPERIENCE SCORE (weight 30%):
-- Does seniority/years/domain match the role?
-- Each bullet with a metric (%, $, number) earns full credit.
-- Deduct 8 pts per vague bullet ("responsible for", "worked on"), max 40 pts.
-- Deduct 5 pts per gap > 6 months.
-
-STEP 3 — FORMAT SCORE (weight 20%):
-+15 Summary exists | +15 All roles have dates | +15 Bullets used
-+15 Contact info complete | +10 Consistent formatting | +10 Reasonable length.
-
-STEP 4 — COMPLETENESS SCORE (weight 15%):
-+25 each: Summary, Experience, Education, Skills. +5 each: Certifications, Projects (max +10).
-
-FINAL SCORE = round(keywords*0.35 + experience*0.30 + formatting*0.20 + completeness*0.15)
-
-CRITICAL: All values 0-100. No negatives. "score" MUST equal formula. wins/issues reference actual content.
-OUTPUT ONLY JSON:
 {
   "score": <integer 0-100>,
-  "breakdown": { "keywords": <0-100>, "experience": <0-100>, "formatting": <0-100>, "completeness": <0-100> },
-  "feedback": "<2-3 sentence summary of match quality and top fix>",
-  "wins": ["<actual resume content strength>", "<another>", "<another>"],
-  "issues": ["<specific fix with section name>", "<another>", "<another>", "<another>"],
-  "missingKeywords": [${hasJD ? '"<exact JD keyword not in resume>", up to 10' : '"<keyword that would strengthen resume>", up to 6'}],
-  "matchedKeywords": ["<keyword in both>", up to 10]
-}`;
-
-  const userMsg = hasJD
-    ? `JOB DESCRIPTION:\n${jdText}\n\n${'─'.repeat(40)}\n\nCANDIDATE RESUME:\n${resumeText}`
-    : `CANDIDATE RESUME:\n${resumeText}`;
-
-  const raw = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 1000, temperature: 0.1 });
-  const j = safeJSON(raw);
-  if (!j) return { score: 50, feedback: raw, missingKeywords: [], matchedKeywords: [] };
-
-  const clamp = v => Math.min(100, Math.max(0, Math.round(Number(v)||0)));
-  const bd = j.breakdown || {};
-  const keywords     = clamp(bd.keywords);
-  const experience   = clamp(bd.experience);
-  const formatting   = clamp(bd.formatting);
-  const completeness = clamp(bd.completeness);
-  const score        = clamp(keywords*0.35 + experience*0.30 + formatting*0.20 + completeness*0.15);
-
-  const parts = [];
-  if (j.feedback) parts.push(j.feedback);
-  parts.push(`\nBreakdown:`);
-  parts.push(`  Keywords           ${keywords}/100  (35% weight)`);
-  parts.push(`  Experience         ${experience}/100  (30% weight)`);
-  parts.push(`  Format & Structure ${formatting}/100  (20% weight)`);
-  parts.push(`  Completeness       ${completeness}/100  (15% weight)`);
-  if (j.wins?.length)            parts.push(`\nWhat's working:\n${j.wins.map(w=>`  \u2713 ${w}`).join('\n')}`);
-  if (j.issues?.length)          parts.push(`\nWhat to fix:\n${j.issues.map(i=>`  \u2717 ${i}`).join('\n')}`);
-  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k=>`  \u2192 ${k}`).join('\n')}`);
-  if (j.matchedKeywords?.length) parts.push(`\nMatched keywords:\n${j.matchedKeywords.map(k=>`  \u2713 ${k}`).join('\n')}`);
-
-  return { score, feedback: parts.join('\n'), missingKeywords: j.missingKeywords||[], matchedKeywords: j.matchedKeywords||[] };
+  "breakdown": {
+    "keywords": <0-100>,
+    "experience": <0-100>,
+    "formatting": <0-100>,
+    "completeness": <0-100>
+  },
+  "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
+  "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
+  "issues": ["<specific weakness — name the section and what to fix>", "<another>", "<another>", "<another>"],
+  "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
 }
 
+Scoring rubric:
+- 90-100: strong match, ready to submit
+- 70-89: solid, needs minor tweaks
+- 50-69: relevant but needs significant work
+- below 50: major gaps
+
+Rules:
+- score is the weighted overall (not just the average)
+- wins/issues should reference specific resume content, not generic advice
+- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, completeness)
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+
+  const raw = await runAI(env, sys,
+    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
+    { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
+  const j = safeJSON(raw);
+  if (!j) return { score: 50, feedback: raw };
+
+  // Build readable feedback string from structured output
+  const parts = [];
+  if (j.feedback) parts.push(j.feedback);
+  if (j.breakdown) {
+    parts.push(`\nBreakdown:`);
+    parts.push(`  Keywords: ${j.breakdown.keywords}/100`);
+    parts.push(`  Experience match: ${j.breakdown.experience}/100`);
+    parts.push(`  Formatting: ${j.breakdown.formatting}/100`);
+    parts.push(`  Completeness: ${j.breakdown.completeness}/100`);
+  }
+  if (j.wins?.length) parts.push(`\nWhat's working:\n${j.wins.map(w => `  ✓ ${w}`).join("\n")}`);
+  if (j.issues?.length) parts.push(`\nWhat to fix:\n${j.issues.map(i => `  ✗ ${i}`).join("\n")}`);
+  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k => `  → ${k}`).join("\n")}`);
+  return { score: j.score ?? 50, feedback: parts.join("\n") };
+}
 
 // ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
@@ -985,7 +680,7 @@ Rules:
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
-    `Candidate Resume:\n${resumeToText(resume)}`,
+    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
     { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw };
@@ -1104,68 +799,6 @@ OUTPUT FORMAT:
   return { resume: j };
 }
 
-
-// ============ Cover Letter ============
-async function aiCoverLetter(env, { jobDescription, resume }) {
-  const resumeText = resumeToText(resume);
-  const jdText = (jobDescription || '').slice(0, 3000);
-  const p = resume?.personal || {};
-
-  const sys = `You are an expert career coach writing a personalized cover letter.
-Write a professional, compelling cover letter for the candidate applying to this role.
-
-RULES:
-- 3-4 paragraphs, under 350 words total
-- Opening: express genuine interest in the specific role/company
-- Body: highlight 2-3 most relevant achievements from their resume that match the JD
-- Closing: confident call to action
-- Tone: professional but human — not robotic or generic
-- Never start with "I am writing to apply for..."
-- Use their actual name, actual job titles, and actual achievements — not placeholders
-- OUTPUT ONLY THE COVER LETTER TEXT. No subject line, no address block, no explanation.`;
-
-  const userMsg = `CANDIDATE NAME: ${p.fullName || 'The Candidate'}
-CANDIDATE EMAIL: ${p.email || ''}
-
-JOB DESCRIPTION:
-${jdText}
-
-CANDIDATE RESUME:
-${resumeText}`;
-
-  const text = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 600, temperature: 0.4 });
-  return { text };
-}
-
-
-// ============ Interview Answer Feedback ============
-async function aiInterviewFeedback(env, { question, answer }) {
-  const sys = `You are a senior interview coach giving honest, specific feedback on a candidate's answer.
-
-Score the answer 0-100 and provide actionable feedback.
-
-Scoring:
-- 85-100: Excellent — specific, structured (STAR), quantified results
-- 65-84: Good — relevant but missing structure or specifics
-- 45-64: Adequate — too vague, lacks examples, or off-topic
-- below 45: Needs significant work
-
-OUTPUT JSON:
-{
-  "score": <integer 0-100>,
-  "feedback": "<3-4 sentences: what was strong, what was weak, one specific improvement with an example of how to reframe it>"
-}
-OUTPUT ONLY JSON.`;
-
-  const raw = await runAI(env, sys,
-    `INTERVIEW QUESTION: ${question}\n\nCANDIDATE ANSWER: ${answer}`,
-    { max_tokens: 300, temperature: 0.3 });
-
-  const j = safeJSON(raw);
-  if (!j) return { score: 50, feedback: raw };
-  return { score: Math.min(100, Math.max(0, Math.round(j.score||50))), feedback: j.feedback||'' };
-}
-
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
   const sys = `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
@@ -1219,7 +852,7 @@ Rules:
 - No preamble. Start directly with "[Behavioral]".`;
 
   return { text: await runAI(env, sys,
-    `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${resumeToText(resume)}`,
+    `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
     { max_tokens: 1400, temperature: 0.55 }) };
 }
 

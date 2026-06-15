@@ -44,40 +44,33 @@
 <script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
 <script>
-const API = window.HIREFLOW_CONFIG.API_URL;
-const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
 
 function showAILoading(msg) {
-  let el = document.getElementById('ai-loading-overlay');
-  if (el) { el.querySelector('#ai-load-msg').textContent = msg; return; }
-  el = document.createElement('div');
-  el.id = 'ai-loading-overlay';
-  el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
-  el.innerHTML = `
-    <style>
-      @keyframes _aiSpin { to { transform:rotate(360deg) } }
-      @keyframes _aiPulse { 0%,100%{opacity:.55} 50%{opacity:1} }
-    </style>
-    <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
-      <svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:100%;height:100%;animation:_aiSpin 1s linear infinite;">
-        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>
-        <circle cx="30" cy="30" r="26" fill="none" stroke="#6366f1" stroke-width="4"
-          stroke-linecap="round" stroke-dasharray="40 123" stroke-dashoffset="0"/>
-      </svg>
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
-      </svg>
-    </div>
-    <div id="ai-load-msg" style="font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:_aiPulse 1.8s ease-in-out infinite;text-align:center;max-width:260px;line-height:1.5;"></div>`;
-  el.querySelector('#ai-load-msg').textContent = msg;
+  var el = document.getElementById('_aio');
+  if (el) { el.querySelector('p').textContent = msg; return; }
+  el = document.createElement('div'); el.id = '_aio';
+  el.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.82);backdrop-filter:blur(6px);';
+  el.innerHTML = '<style>@keyframes _sp{to{transform:rotate(360deg)}}@keyframes _pu{0%,100%{opacity:.45}50%{opacity:1}}</style>'
+    + '<div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">'
+    + '<svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:60px;height:60px;animation:_sp .9s linear infinite">'
+    + '<circle cx="30" cy="30" r="25" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>'
+    + '<circle cx="30" cy="30" r="25" fill="none" stroke="#6366f1" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 117"/>'
+    + '</svg>'
+    + '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:relative;">'
+    + '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>'
+    + '</svg></div>'
+    + '<p style="margin:0;font-size:14px;font-weight:500;color:#e6e9f5;text-align:center;max-width:260px;line-height:1.5;animation:_pu 1.8s ease-in-out infinite;"></p>';
+  el.querySelector('p').textContent = msg;
   document.body.appendChild(el);
 }
 function hideAILoading() {
-  const el = document.getElementById('ai-loading-overlay');
+  var el = document.getElementById('_aio');
   if (el) el.remove();
 }
 
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
@@ -98,16 +91,132 @@ async function generate() {
     if (r.status === 402) { showUpgradeModal('interview'); return; }
     if (!r.ok) throw new Error('AI failed');
     const data = await r.json();
-    document.getElementById('results').innerHTML = `
-      <div class="section-card">
-        <h3 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">${ICON('mic')} Practice Questions</h3>
-        <div style="white-space:pre-wrap; line-height:1.7;">${esc(data.text || '')}</div>
-      </div>`;
+    // Parse questions from the text block
+    const raw = (data.text || '').trim();
+    const qLines = raw.split(/\n/).filter(function(l) { return l.trim().length > 5; });
+    // Group into questions (lines that look like questions or numbered items)
+    const questions = [];
+    qLines.forEach(function(l) {
+      const clean = l.replace(/^[\d]+[\.):]\s*/, '').trim();
+      if (clean.length > 10) questions.push(clean);
+    });
+    _startPracticeMode(questions.length ? questions : [raw]);
   } catch(e) {
     hideAILoading();
-    document.getElementById('results').innerHTML = `<div class="section-card" style="color:var(--danger);">Error: ${e.message}</div>`;
+    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Error: ' + e.message + '</div>';
   }
 }
+
+// ── Practice Mode ──
+var _practiceQs = [];
+var _practiceIdx = 0;
+var _practiceTimer = null;
+var _practiceStart = null;
+
+function _startPracticeMode(questions) {
+  _practiceQs = questions;
+  _practiceIdx = 0;
+  _renderPracticeQuestion();
+}
+
+function _renderPracticeQuestion() {
+  var q = _practiceQs[_practiceIdx];
+  var total = _practiceQs.length;
+  var res = document.getElementById('results');
+  res.innerHTML = '<div class="section-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    + '<div style="font-size:12px;color:var(--muted);">Question ' + (_practiceIdx+1) + ' of ' + total + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;">'
+    + '<div id="_ptimer" style="font-size:20px;font-weight:700;color:var(--accent);min-width:48px;text-align:right;">0:00</div>'
+    + '<button class="btn btn-ghost btn-xs" id="_ptimer-toggle">Start Timer</button>'
+    + '</div></div>'
+    // Progress bar
+    + '<div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:20px;">'
+    + '<div style="width:' + Math.round((_practiceIdx/total)*100) + '%;height:3px;background:var(--accent);border-radius:2px;transition:width .3s;"></div>'
+    + '</div>'
+    + '<h3 style="font-size:16px;font-weight:600;line-height:1.5;margin-bottom:20px;">' + esc(q) + '</h3>'
+    + '<div class="form-field"><label style="font-size:12px;">Your Answer</label>'
+    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here... aim for the STAR method: Situation, Task, Action, Result" style="width:100%;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
+    + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
+    + '<button class="btn btn-primary btn-sm" id="_psubmit">Get AI Feedback</button>'
+    + (_practiceIdx > 0 ? '<button class="btn btn-ghost btn-sm" id="_pprev">← Previous</button>' : '')
+    + (_practiceIdx < total-1 ? '<button class="btn btn-secondary btn-sm" id="_pnext">Next →</button>' : '')
+    + '<button class="btn btn-ghost btn-sm" id="_pall">View All Questions</button>'
+    + '</div>'
+    + '<div id="_pfeedback" style="margin-top:16px;"></div>'
+    + '</div>';
+
+  // Timer
+  var timerEl = document.getElementById('_ptimer');
+  var timerBtn = document.getElementById('_ptimer-toggle');
+  var running = false;
+  clearInterval(_practiceTimer);
+  _practiceStart = null;
+  timerBtn.addEventListener('click', function() {
+    if (!running) {
+      _practiceStart = Date.now();
+      running = true; timerBtn.textContent = 'Stop';
+      _practiceTimer = setInterval(function() {
+        var elapsed = Math.floor((Date.now() - _practiceStart) / 1000);
+        var m = Math.floor(elapsed/60); var sec = elapsed%60;
+        timerEl.textContent = m + ':' + (sec<10?'0':'') + sec;
+        // Color red after 2 min
+        timerEl.style.color = elapsed > 120 ? 'var(--danger)' : 'var(--accent)';
+      }, 500);
+    } else {
+      clearInterval(_practiceTimer); running = false; timerBtn.textContent = 'Reset';
+    }
+  });
+
+  // AI Feedback
+  document.getElementById('_psubmit').addEventListener('click', async function() {
+    var answer = document.getElementById('_panswer').value.trim();
+    if (!answer) { toast('Type your answer first', {type:'warn'}); return; }
+    var fb = document.getElementById('_pfeedback');
+    fb.innerHTML = '<div style="color:var(--muted);font-size:13px;animation:_pu 1.5s ease-in-out infinite;">Getting AI feedback...</div>';
+    try {
+      var r = await fetch(API + '/ai/interview-feedback', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body: JSON.stringify({ question: q, answer: answer })
+      });
+      if (!r.ok) throw new Error('AI failed');
+      var data = await r.json();
+      var score = data.score || 0;
+      var col = score >= 75 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
+      fb.innerHTML = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;margin-top:8px;">'
+        + '<div style="background:rgba(99,102,241,.1);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
+        + '<span style="font-size:20px;font-weight:800;color:' + col + ';">' + score + '/100</span>'
+        + '<span style="font-size:13px;font-weight:600;color:var(--text);">AI Feedback</span>'
+        + '</div>'
+        + '<div style="padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);">' + esc(data.feedback||'') + '</div>'
+        + '</div>';
+    } catch(e) {
+      fb.innerHTML = '<div style="color:var(--danger);font-size:13px;">Could not get feedback: ' + e.message + '</div>';
+    }
+  });
+
+  // Navigation
+  var prevBtn = document.getElementById('_pprev');
+  var nextBtn = document.getElementById('_pnext');
+  var allBtn  = document.getElementById('_pall');
+  if (prevBtn) prevBtn.addEventListener('click', function() { clearInterval(_practiceTimer); _practiceIdx--; _renderPracticeQuestion(); });
+  if (nextBtn) nextBtn.addEventListener('click', function() { clearInterval(_practiceTimer); _practiceIdx++; _renderPracticeQuestion(); });
+  if (allBtn) allBtn.addEventListener('click', function() {
+    clearInterval(_practiceTimer);
+    var res2 = document.getElementById('results');
+    res2.innerHTML = '<div class="section-card"><h3 style="margin-bottom:16px;">All Questions</h3>'
+      + _practiceQs.map(function(q2, i) {
+          return '<div style="padding:12px;background:var(--bg-2);border-radius:8px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();">'
+            + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Q' + (i+1) + '</div>'
+            + '<div style="font-size:13px;line-height:1.5;">' + esc(q2) + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  });
+}
+
+
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
 
 (async () => {

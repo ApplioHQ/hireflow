@@ -55,7 +55,7 @@ function customizeStyleAttr(customize, marginsKey) {
   const space = SPACE_MULT[c.spacing] ?? 1.0;
   const margin = MARGIN_MULT[marginsKey] ?? 1.0;
   const parts = [`--app-space:${space}`, `--app-margin:${margin}`];
-  if (font) parts.push(`font-family:${font}`);
+  if (font) parts.push(`--app-font:${font}`, `font-family:${font}`);
   return parts.join(';');
 }
 
@@ -136,7 +136,7 @@ function tModern(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-modern { font-family: var(--app-font, Inter, -apple-system, sans-serif); color: #1f2937; height: 100%; }
+      .t-modern { font-family: var(--app-font); color: #1f2937; height: 100%; }
       .t-modern .header { background: linear-gradient(135deg, ${c}, ${c}cc); color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
       .t-modern .name { font-size: 200%; font-weight: 700; letter-spacing: -.02em; margin-bottom: 2%; }
       .t-modern .contact { font-size: 80%; opacity: .92; display:flex; flex-wrap:wrap; gap: 2.5%; }
@@ -176,7 +176,7 @@ function tClassic(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-classic { font-family: var(--app-font, Georgia, "Times New Roman", serif); color: #1a1a1a; padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; }
+      .t-classic { font-family: var(--app-font); color: #1a1a1a; padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; }
       .t-classic .name { font-size: 240%; font-weight: 700; text-align: center; letter-spacing: .02em; margin-bottom: 2%; }
       .t-classic .contact { text-align: center; font-size: 85%; padding-bottom: 3%; border-bottom: 2px solid #1a1a1a; margin-bottom: 4%; }
       .t-classic h2 { font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; text-align: center; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid #1a1a1a; padding-bottom: 1%; }
@@ -204,7 +204,7 @@ function tCreative(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-creative { font-family: var(--app-font, Inter, sans-serif); color: #1f2937; height: 100%; display: grid; grid-template-columns: 35% 65%; }
+      .t-creative { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 35% 65%; }
       .t-creative .sidebar { background: ${c}; color: #fff; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
       .t-creative .name { font-size: 180%; font-weight: 700; line-height: 1.1; margin-bottom: 5%; }
       .t-creative .sidebar h3 { font-size: 90%; text-transform: uppercase; letter-spacing: .12em; margin: calc(6% * var(--app-space, 1)) 0 2%; opacity: .9; }
@@ -243,7 +243,7 @@ function tMinimal(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-minimal { font-family: var(--app-font, "Helvetica Neue", Helvetica, Arial, sans-serif); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; font-weight: 300; }
+      .t-minimal { font-family: var(--app-font); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; font-weight: 300; }
       .t-minimal .name { font-size: 220%; font-weight: 200; letter-spacing: .01em; margin-bottom: 1.5%; }
       .t-minimal .contact { font-size: 80%; color: #888; display:flex; gap: 4%; flex-wrap: wrap; margin-bottom: 5%; padding-bottom: 4%; border-bottom: 1px solid #e5e5e5; }
       .t-minimal h2 { font-size: 80%; font-weight: 500; text-transform: uppercase; letter-spacing: .25em; color: #888; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
@@ -270,7 +270,7 @@ function tProfessional(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-professional { font-family: var(--app-font, Inter, sans-serif); color: #1f2937; height: 100%; display: grid; grid-template-columns: 32% 68%; }
+      .t-professional { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 32% 68%; }
       .t-professional .sidebar { background: ${c}; color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
       .t-professional .name { font-size: 160%; font-weight: 700; line-height: 1.15; margin-bottom: 4%; }
       .t-professional .sidebar h3 { font-size: 85%; text-transform: uppercase; letter-spacing: .12em; margin: calc(5% * var(--app-space, 1)) 0 2%; padding-bottom: 1%; border-bottom: 1px solid rgba(255,255,255,.3); }
@@ -311,7 +311,7 @@ function tTech(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-tech { font-family: var(--app-font, "JetBrains Mono", "SF Mono", Menlo, monospace); color: #e5e7eb; background: #0f172a; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); height: 100%; }
+      .t-tech { font-family: var(--app-font); color: #e5e7eb; background: #0f172a; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); height: 100%; }
       .t-tech .prompt { color: ${c}; font-size: 85%; margin-bottom: 1%; }
       .t-tech .header { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom: 3%; border-bottom: 1px solid #334155; margin-bottom: 4%; }
       .t-tech .name { font-size: 200%; font-weight: 700; color: #fff; letter-spacing: -.01em; }
@@ -350,7 +350,7 @@ function tExecutive(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-executive { font-family: var(--app-font, "Cormorant Garamond", Georgia, serif); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; border: 4px double ${c}; }
+      .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; border: 4px double ${c}; }
       .t-executive .name { font-size: 240%; font-weight: 600; color: ${c}; text-align: center; letter-spacing: .02em; margin-bottom: 1%; }
       .t-executive .subtitle { text-align: center; font-size: 80%; letter-spacing: .25em; text-transform: uppercase; color: #6b5a4a; margin-bottom: 4%; padding-bottom: 4%; border-bottom: 1px solid ${c}66; }
       .t-executive .contact { text-align: center; font-size: 82%; margin-bottom: 4%; font-style: italic; }
@@ -379,7 +379,7 @@ function tCompact(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-compact { font-family: var(--app-font, "Helvetica Neue", Helvetica, Arial, sans-serif); color: #1a1a1a; padding: calc(4% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); height: 100%; font-size: 95%; line-height: 1.25; }
+      .t-compact { font-family: var(--app-font); color: #1a1a1a; padding: calc(4% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); height: 100%; font-size: 95%; line-height: 1.25; }
       .t-compact .name { font-size: 180%; font-weight: 800; letter-spacing: -.01em; margin-bottom: 1%; color: ${c}; }
       .t-compact .contact { font-size: 78%; color: #555; margin-bottom: 3%; padding-bottom: 2%; border-bottom: 1.5px solid ${c}; }
       .t-compact h2 { font-size: 90%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: ${c}; margin: calc(2.5% * var(--app-space, 1)) 0 calc(1.2% * var(--app-space, 1)); }
@@ -407,7 +407,7 @@ function tElegant(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-elegant { font-family: var(--app-font, Georgia, serif); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; }
+      .t-elegant { font-family: var(--app-font); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; }
       .t-elegant .subtitle { text-align: center; font-size: 75%; letter-spacing: .35em; text-transform: uppercase; color: #888; margin-bottom: 2%; }
       .t-elegant .name { font-size: 260%; font-weight: 400; color: ${c}; text-align: center; letter-spacing: .01em; line-height: 1; margin-bottom: 2%; }
       .t-elegant .name-dash { text-align: center; margin: 1% 0 4%; }

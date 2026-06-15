@@ -120,3 +120,74 @@
     });
   };
 })();
+
+// ============ AI Loading overlay ============
+// aiLoading(message)  — shows a full-screen spinner with a message
+// aiLoadingDone()     — removes it
+// Both are safe to call multiple times; only one overlay exists at a time.
+
+window.aiLoading = function (message) {
+  // Remove any existing overlay first (safety)
+  const existing = document.getElementById('ai-loading-overlay');
+  if (existing) existing.remove();
+
+  const el = document.createElement('div');
+  el.id = 'ai-loading-overlay';
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
+  el.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:9999',
+    'display:flex', 'flex-direction:column',
+    'align-items:center', 'justify-content:center', 'gap:18px',
+    'background:rgba(7,9,26,.72)',
+    'backdrop-filter:blur(6px)',
+    '-webkit-backdrop-filter:blur(6px)',
+    'animation:aiOverlayIn .18s ease both',
+  ].join(';');
+
+  el.innerHTML = `
+    <style>
+      @keyframes aiOverlayIn { from { opacity:0 } to { opacity:1 } }
+      @keyframes aiSpinRing  { to { transform: rotate(360deg) } }
+      @keyframes aiPulseText { 0%,100% { opacity:.6 } 50% { opacity:1 } }
+    </style>
+    <div style="
+      width:56px; height:56px; position:relative;
+      display:flex; align-items:center; justify-content:center;
+    ">
+      <!-- Outer spinning ring -->
+      <svg viewBox="0 0 56 56" style="
+        position:absolute; inset:0; width:100%; height:100%;
+        animation: aiSpinRing 1.1s linear infinite;
+      ">
+        <circle cx="28" cy="28" r="24"
+          fill="none" stroke="rgba(99,102,241,.25)" stroke-width="4"/>
+        <circle cx="28" cy="28" r="24"
+          fill="none" stroke="#6366f1" stroke-width="4"
+          stroke-linecap="round"
+          stroke-dasharray="36 113"
+          stroke-dashoffset="0"/>
+      </svg>
+      <!-- Sparkle icon in centre -->
+      <svg viewBox="0 0 24 24" width="22" height="22"
+        fill="none" stroke="#a5b4fc" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+      </svg>
+    </div>
+    <div style="
+      font-size:14px; font-weight:500; color:#e6e9f5; letter-spacing:.01em;
+      animation: aiPulseText 1.8s ease-in-out infinite;
+      max-width:260px; text-align:center; line-height:1.5;
+    " id="ai-loading-msg"></div>`;
+
+  el.querySelector('#ai-loading-msg').textContent = message || 'AI is thinking…';
+  document.body.appendChild(el);
+};
+
+window.aiLoadingDone = function () {
+  const el = document.getElementById('ai-loading-overlay');
+  if (!el) return;
+  el.style.animation = 'aiOverlayIn .15s ease reverse both';
+  setTimeout(() => el.remove(), 150);
+};

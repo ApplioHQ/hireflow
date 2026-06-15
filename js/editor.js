@@ -103,6 +103,12 @@ function hydrate() {
 
 // ---- Sidebar (with plan gating) ----
 const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
+const AI_RESULTS = { tailor: null, ats: null, analysis: null };
+function clearAIResult(sec) {
+  AI_RESULTS[sec] = null;
+  if (sec === 'tailor') resume.tailor.tailoredSummary = '';
+  renderMain();
+}
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.section;
@@ -127,10 +133,19 @@ const SECTIONS = {
   dashboard: renderDashboard, customize: renderCustomize
 };
 
+function _swc(v) {
+  var el = document.getElementById('swc');
+  if (!el) return;
+  var c = v.trim() ? v.trim().split(/\s+/).length : 0;
+  el.textContent = c + ' word' + (c !== 1 ? 's' : '');
+  el.style.color = c === 0 ? 'var(--muted)' : c < 20 ? 'var(--danger)' : c <= 60 ? 'var(--success)' : 'var(--warning)';
+}
 function renderMain() {
   document.getElementById('main').innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
   bindAutoSave();
   renderPreview();
+  var _st = document.getElementById('sum-ta');
+  if (_st) _swc(_st.value);
 }
 
 // ============ Section: Templates ============
@@ -179,8 +194,14 @@ function renderPersonal() {
       </div>
       <div class="form-field"><label>Personal Website</label><input data-bind="personal.website" value="${esc(p.website)}"></div>
       <div class="form-field">
-        <label>Professional Summary</label>
-        <textarea data-bind="personal.summary" rows="4" placeholder="A short summary highlighting your strengths…">${esc(p.summary)}</textarea>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+          <label style="margin-bottom:0;">Professional Summary</label>
+          <span id="swc" style="font-size:11px;color:var(--muted);transition:color .2s;"></span>
+        </div>
+        <textarea data-bind="personal.summary" rows="4" id="sum-ta"
+          placeholder="A short summary highlighting your strengths…"
+          oninput="_swc(this.value)">${esc(p.summary)}</textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Aim for 40–60 words.</div>
       </div>
       ${navRow('template','experience')}
     </div>`;
@@ -282,8 +303,15 @@ function itemCard(key, idx, fields, longField, longValue) {
       </div>
       ${longField ? `
         <div class="form-field">
-          <label>${longField === 'description' ? 'Description / Bullets' : longField}</label>
-          <textarea data-bind="${key}.${idx}.${longField}" rows="4" placeholder="• Use bullets to describe achievements…">${esc(longValue||'')}</textarea>
+          <label style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span>${longField === 'description' ? 'Description / Bullets' : longField}</span>
+            ${longField === 'description' ? `<span style="font-size:11px;color:var(--muted);">Strength meter</span>` : ''}
+          </label>
+          <textarea data-bind="${key}.${idx}.${longField}" rows="4"
+            placeholder="• Use bullets to describe achievements…"
+            oninput="${longField === 'description' ? `_updateBulletMeter(this,'_bm_${key}_${idx}')` : ''}"
+            id="ta_${key}_${idx}_${longField}">${esc(longValue||'')}</textarea>
+          ${longField === 'description' ? `<div id="_bm_${key}_${idx}">${_renderBulletMeter(_scoreBullet(longValue||''))}</div>` : ''}
         </div>` : ''}
     </div>`;
 }
@@ -301,10 +329,7 @@ function renderTailor() {
         <label>Job Description</label>
         <textarea data-bind="tailor.jobDescription" rows="8" placeholder="Paste the job description here…">${esc(resume.tailor.jobDescription)}</textarea>
       </div>
-      ${resume.tailor.tailoredSummary ? `
-        <div class="notice" style="background:rgba(99,102,241,.1); border-color:rgba(99,102,241,.3); color:#c4b5fd;">
-          <strong>Tailored summary:</strong><br>${esc(resume.tailor.tailoredSummary)}
-        </div>` : ''}
+      <div id="tailor-result" style="margin-top:8px;">${AI_RESULTS.tailor ? _renderTailorCard(AI_RESULTS.tailor) : ''}</div>
       ${navRow('publications','ats')}
     </div>`;
 }
@@ -319,7 +344,7 @@ function renderATS() {
         <textarea id="ats-jd" rows="5" placeholder="Paste job description…"></textarea>
       </div>
       <button class="btn btn-primary btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
-      <div id="ats-result" style="margin-top:16px;"></div>
+      <div id="ats-result" style="margin-top:16px;">${AI_RESULTS.ats ? _renderATSCard(AI_RESULTS.ats) : ''}</div>
       ${navRow('tailor','analysis')}
     </div>`;
 }
@@ -332,7 +357,7 @@ function renderAnalysis() {
         <button class="ai-btn" onclick="aiAnalyze()">${ICON('sparkle','ico ico-sm')} Run Analysis</button>
       </div>
       <p style="color:var(--muted); font-size:13px;">Get AI-powered insights on your resume's strengths and areas to improve.</p>
-      <div id="analysis-result" style="margin-top:16px;"></div>
+      <div id="analysis-result" style="margin-top:16px;">${AI_RESULTS.analysis ? _renderAnalysisCard(AI_RESULTS.analysis) : ''}</div>
       ${navRow('ats','dashboard')}
     </div>`;
 }
@@ -440,19 +465,29 @@ function nextSection(s) {
 function addItem(key, b) { resume[key].push(b); save(); renderMain(); }
 function removeItem(key, idx) { resume[key].splice(idx,1); save(); renderMain(); }
 
+let _pvTimer = null;
 function bindAutoSave() {
-  document.querySelectorAll('[data-bind]').forEach(el => {
-    el.addEventListener('input', () => {
+  document.querySelectorAll('[data-bind]').forEach(function(el) {
+    el.addEventListener('input', function() {
       const path = el.dataset.bind.split('.');
       let obj = resume;
-      for (let i=0;i<path.length-1;i++) obj = obj[path[i]];
-      obj[path[path.length-1]] = el.value;
-      save(); renderPreview();
+      for (let i = 0; i < path.length - 1; i++) obj = obj[path[i]];
+      obj[path[path.length - 1]] = el.value;
+      save();
+      clearTimeout(_pvTimer);
+      _pvTimer = setTimeout(renderPreview, 280);
     });
   });
 }
 
-function save() { localStorage.setItem('hf_resume', JSON.stringify(resume)); }
+let _dirty = false;
+function save() {
+  localStorage.setItem('hf_resume', JSON.stringify(resume));
+  _dirty = true;
+}
+window.addEventListener('beforeunload', function(e) {
+  if (_dirty) { e.preventDefault(); e.returnValue = ''; }
+});
 
 async function saveResume() {
   save();
@@ -466,8 +501,8 @@ async function saveResume() {
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
       body: JSON.stringify({ resume })
     });
-    toast('Saved to cloud');
-  } catch (e) { toast('Saved locally', true); }
+    toast('Saved to cloud ✓', { type: 'success' });
+  } catch (e) { toast('Saved locally (offline)', { type: 'warn' }); }
 }
 
 function toast(msg, warn) {
@@ -485,6 +520,251 @@ function signOut() {
   location.href = 'index.html';
 }
 
+
+// ============ AI loading overlay ============
+function _setAIBtns(off) {
+  document.querySelectorAll('.ai-btn, #btn-import-go').forEach(function(b) {
+    b.disabled = off; b.style.opacity = off ? '0.5' : ''; b.style.pointerEvents = off ? 'none' : '';
+  });
+}
+function showAILoading(msg) {
+  var el = document.getElementById('_aio');
+  if (el) { el.querySelector('p').textContent = msg; return; }
+  el = document.createElement('div'); el.id = '_aio';
+  el.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  el.innerHTML = '<style>@keyframes _sp{to{transform:rotate(360deg)}}@keyframes _pu{0%,100%{opacity:.45}50%{opacity:1}}</style>'
+    + '<div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">'
+    + '<svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:60px;height:60px;animation:_sp .9s linear infinite">'
+    + '<circle cx="30" cy="30" r="25" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>'
+    + '<circle cx="30" cy="30" r="25" fill="none" stroke="#6366f1" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 117"/>'
+    + '</svg>'
+    + '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:relative;">'
+    + '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>'
+    + '</svg></div>'
+    + '<p style="margin:0;font-size:14px;font-weight:500;color:#e6e9f5;text-align:center;max-width:260px;line-height:1.5;animation:_pu 1.8s ease-in-out infinite;"></p>';
+  el.querySelector('p').textContent = msg;
+  document.body.appendChild(el);
+  _setAIBtns(true);
+}
+function hideAILoading() {
+  var el = document.getElementById('_aio');
+  if (el) el.remove();
+  _setAIBtns(false);
+}
+
+// Close-button helper — uses data attribute to avoid inline-onclick quote issues
+function _closeBtn(sec) {
+  return '<button class="_ai-close" data-sec="' + sec + '" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:0 4px;" title="Dismiss">\u00d7</button>';
+}
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest && e.target.closest('._ai-close');
+  if (btn) clearAIResult(btn.dataset.sec);
+});
+
+// ============ AI result card renderers ============
+function _renderTailorCard(data) {
+  var r = data.r || {};
+  var html = '<div style="border:1px solid rgba(99,102,241,.35);border-radius:12px;overflow:hidden;margin-top:4px;">';
+  html += '<div style="background:rgba(99,102,241,.12);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-weight:600;font-size:13px;color:#c4b5fd;">' + ICON('sparkle','ico ico-sm') + ' AI Tailor Results</span>';
+  html += _closeBtn('tailor') + '</div>';
+  if (r.summary) {
+    html += '<div style="padding:14px 16px;border-bottom:1px solid rgba(99,102,241,.15);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">Suggested Summary</div>';
+    html += '<p style="font-size:13px;line-height:1.6;color:var(--text);margin:0;">' + esc(r.summary) + '</p>';
+    html += '<button class="btn btn-secondary btn-xs" style="margin-top:8px;" id="_tcopy">Copy Summary</button></div>';
+  }
+  if (r.matchedKeywords && r.matchedKeywords.length) {
+    html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(99,102,241,.1);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Matched Keywords</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    r.matchedKeywords.forEach(function(k) { html += '<span style="background:rgba(16,185,129,.15);color:#6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;">\u2713 ' + esc(k) + '</span>'; });
+    html += '</div></div>';
+  }
+  if (r.missingKeywords && r.missingKeywords.length) {
+    html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(99,102,241,.1);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Missing Keywords</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    r.missingKeywords.forEach(function(k) { html += '<span style="background:rgba(239,68,68,.12);color:#fca5a5;padding:3px 10px;border-radius:20px;font-size:12px;">\u00d7 ' + esc(k) + '</span>'; });
+    html += '</div></div>';
+  }
+  if (r.bulletSuggestions && r.bulletSuggestions.length) {
+    html += '<div style="padding:12px 16px;border-bottom:1px solid rgba(99,102,241,.1);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Suggested Bullets</div>';
+    r.bulletSuggestions.forEach(function(b) {
+      html += '<div style="display:flex;gap:8px;padding:5px 0;font-size:13px;line-height:1.5;border-bottom:1px solid rgba(255,255,255,.04);">';
+      html += '<span style="color:#6366f1;flex-shrink:0;">\u2192</span><span>' + esc(b) + '</span></div>';
+    });
+    html += '</div>';
+  }
+  var sugg = [];
+  if (r.summary) sugg.push({ label: 'Update professional summary', apply: function() { resume.personal.summary = r.summary; } });
+  if (r.missingKeywords && r.missingKeywords.length) sugg.push({
+    label: 'Add missing keywords to Skills: ' + r.missingKeywords.slice(0,5).join(', '),
+    apply: function() {
+      if (!resume.skills.categories.length) resume.skills.categories.push({ name: 'All', items: [] });
+      r.missingKeywords.forEach(function(kw) {
+        if (!resume.skills.categories[0].items.map(function(x){return x.toLowerCase();}).includes(kw.toLowerCase()))
+          resume.skills.categories[0].items.push(kw);
+      });
+    }
+  });
+  (r.bulletSuggestions || []).forEach(function(b) {
+    sugg.push({ label: 'Add bullet to most recent job: "' + b.slice(0,70) + (b.length>70?'...':'') + '"',
+      apply: function() {
+        if (!resume.experience.length) return;
+        resume.experience[0].description = (resume.experience[0].description||'') + '\n\u2022 ' + b.replace(/^[\u2022\-\*]\s*/,'');
+      }
+    });
+  });
+  if (sugg.length) {
+    html += '<div style="padding:14px 16px;background:rgba(99,102,241,.06);" id="_tapply">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Apply to Resume</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">';
+    sugg.forEach(function(sg, i) {
+      html += '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;line-height:1.5;">';
+      html += '<input type="checkbox" data-ti="' + i + '" checked style="margin-top:3px;accent-color:#6366f1;flex-shrink:0;"> <span>' + esc(sg.label) + '</span></label>';
+    });
+    html += '</div><button class="btn btn-primary btn-sm" id="_tapplybtn">Apply selected</button></div>';
+    setTimeout(function() {
+      var btn = document.getElementById('_tapplybtn');
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        var count = 0;
+        document.querySelectorAll('#_tapply input[type=checkbox]').forEach(function(cb) {
+          if (cb.checked) { sugg[+cb.dataset.ti].apply(); count++; }
+        });
+        save(); renderPreview();
+        toast('Applied ' + count + ' suggestion' + (count!==1?'s':''), { type: 'success' });
+      });
+    }, 50);
+  }
+  html += '</div>';
+  return html;
+}
+
+function _renderATSCard(data) {
+  var score = data.score || 0;
+  var feedback = data.feedback || '';
+  var missing = data.missingKeywords || [];
+  var matched = data.matchedKeywords || [];
+  var col = score>=70?'#6ee7b7':score>=50?'#fcd34d':'#fca5a5';
+  var bg  = score>=70?'rgba(16,185,129,.1)':score>=50?'rgba(245,158,11,.1)':'rgba(239,68,68,.1)';
+  var bdr = score>=70?'rgba(16,185,129,.3)':score>=50?'rgba(245,158,11,.3)':'rgba(239,68,68,.3)';
+  var lines = feedback.split('\n');
+  var summary=[], breakdown=[], wins=[], fixes=[];
+  var mode='summary';
+  lines.forEach(function(l) {
+    var t = l.trim(); if (!t) return;
+    if (t.startsWith('Breakdown:'))         { mode='bd'; return; }
+    if (t.startsWith("What\u2019s working:") || t.startsWith("What\'s working:") || t.startsWith("What's working:")) { mode='wins'; return; }
+    if (t.startsWith('What to fix:'))       { mode='fix'; return; }
+    if (t.startsWith('Missing keywords:') || t.startsWith('Matched keywords:')) { mode='skip'; return; }
+    if (mode==='summary') summary.push(t);
+    else if (mode==='bd') breakdown.push(t);
+    else if (mode==='wins') wins.push(t.replace(/^[\u2713\u2022\-\*]\s*/,''));
+    else if (mode==='fix')  fixes.push(t.replace(/^[\u2717\u2022\-\*]\s*/,''));
+  });
+  var html = '<div style="border:1px solid ' + bdr + ';border-radius:12px;overflow:hidden;margin-top:4px;">';
+  html += '<div style="background:' + bg + ';padding:16px 18px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<div style="display:flex;align-items:center;gap:14px;">';
+  html += '<div style="text-align:center;"><div style="font-size:36px;font-weight:800;color:' + col + ';line-height:1;">' + score + '</div>';
+  html += '<div style="font-size:11px;color:var(--muted);">/ 100</div></div>';
+  html += '<div><div style="font-weight:700;font-size:14px;color:' + col + ';margin-bottom:3px;">ATS Score</div>';
+  var snip = summary.join(' ').slice(0,130);
+  html += '<div style="font-size:12px;color:var(--muted);line-height:1.4;">' + esc(snip) + '</div></div></div>';
+  html += _closeBtn('ats') + '</div>';
+  if (breakdown.length) {
+    html += '<div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+    breakdown.forEach(function(l) {
+      var m = l.match(/^(.+?)\s+(\d+)\/100/);
+      if (!m) return;
+      var lbl = m[1].replace(/\s*\(\d+%[^)]*\)/,'').trim();
+      var val = Math.min(100,Math.max(0,+m[2]));
+      var bc  = val>=70?'#6ee7b7':val>=50?'#fcd34d':'#fca5a5';
+      html += '<div style="background:var(--bg-2);border-radius:8px;padding:10px 12px;">';
+      html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + esc(lbl) + '</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px;">';
+      html += '<div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:3px;"><div style="width:' + val + '%;height:5px;background:' + bc + ';border-radius:3px;"></div></div>';
+      html += '<span style="font-size:13px;font-weight:700;color:' + bc + ';min-width:26px;text-align:right;">' + val + '</span></div></div>';
+    });
+    html += '</div>';
+  }
+  if (wins.length) {
+    html += '<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">What\u2019s Working</div>';
+    wins.forEach(function(w) { html += '<div style="display:flex;gap:8px;padding:4px 0;font-size:13px;line-height:1.5;"><span style="color:#6ee7b7;flex-shrink:0;">\u2713</span><span>' + esc(w) + '</span></div>'; });
+    html += '</div>';
+  }
+  if (fixes.length) {
+    html += '<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">What to Fix</div>';
+    fixes.forEach(function(f) { html += '<div style="display:flex;gap:8px;padding:4px 0;font-size:13px;line-height:1.5;"><span style="color:#fca5a5;flex-shrink:0;">\u2717</span><span>' + esc(f) + '</span></div>'; });
+    html += '</div>';
+  }
+  if (missing.length || matched.length) {
+    html += '<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);">';
+    if (missing.length) {
+      html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Missing Keywords</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">';
+      missing.forEach(function(k) { html += '<span style="background:rgba(239,68,68,.12);color:#fca5a5;padding:3px 10px;border-radius:20px;font-size:12px;">\u00d7 ' + esc(k) + '</span>'; });
+      html += '</div>';
+    }
+    if (matched.length) {
+      html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Matched Keywords</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      matched.forEach(function(k) { html += '<span style="background:rgba(16,185,129,.12);color:#6ee7b7;padding:3px 10px;border-radius:20px;font-size:12px;">\u2713 ' + esc(k) + '</span>'; });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  if (missing.length) {
+    html += '<div style="padding:14px 18px;background:rgba(99,102,241,.06);" id="_aapply">';
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Apply to Resume</div>';
+    var prev = missing.slice(0,5).map(function(k){return esc(k);}).join(', ') + (missing.length>5?' + '+(missing.length-5)+' more':'');
+    html += '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;line-height:1.5;margin-bottom:12px;">';
+    html += '<input type="checkbox" id="_aapplycb" checked style="margin-top:3px;accent-color:#6366f1;flex-shrink:0;"> <span>Add missing keywords to Skills: ' + prev + '</span></label>';
+    html += '<button class="btn btn-primary btn-sm" id="_aapplybtn">Apply selected</button></div>';
+    setTimeout(function() {
+      var btn = document.getElementById('_aapplybtn');
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        var cb = document.getElementById('_aapplycb');
+        if (cb && cb.checked) {
+          if (!resume.skills.categories.length) resume.skills.categories.push({name:'All',items:[]});
+          missing.forEach(function(k) {
+            if (!resume.skills.categories[0].items.map(function(x){return x.toLowerCase();}).includes(k.toLowerCase()))
+              resume.skills.categories[0].items.push(k);
+          });
+          save(); renderPreview();
+          toast('Keywords added to Skills', { type: 'success' });
+        }
+      });
+    }, 50);
+  }
+  html += '</div>';
+  return html;
+}
+
+function _renderAnalysisCard(data) {
+  var html = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:12px;overflow:hidden;">';
+  html += '<div style="background:rgba(99,102,241,.1);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-weight:600;font-size:13px;color:#c4b5fd;">' + ICON('beaker','ico ico-sm') + ' AI Analysis</span>';
+  html += _closeBtn('analysis') + '</div>';
+  html += '<div style="padding:16px;white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--text);">' + esc(data.text||'') + '</div>';
+  html += '</div>';
+  return html;
+}
+
+// Clipboard helper
+function _copyText(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    toast('Copied to clipboard', { type: 'success' });
+  }).catch(function() {
+    toast('Copy failed', { type: 'error' });
+  });
+}
+
 // ============ AI calls ============
 async function ai(endpoint, body) {
   if (isFree()) { showUpgradeModal('ai'); throw new Error('Premium required'); }
@@ -496,250 +776,135 @@ async function ai(endpoint, body) {
   if (r.status === 402) { showUpgradeModal('ai'); throw new Error('Premium required'); }
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));
-    throw new Error(data.error || `Request failed (${r.status})`);
+    throw new Error(data.error || 'Request failed (' + r.status + ')');
   }
   return r.json();
 }
 
-// ---- Loading overlay ----
-function showAILoading(msg) {
-  let el = document.getElementById('ai-loading-overlay');
-  if (el) { el.querySelector('#ai-load-msg').textContent = msg; return; }
-  el = document.createElement('div');
-  el.id = 'ai-loading-overlay';
-  el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:rgba(7,9,26,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
-  el.innerHTML = `
-    <style>
-      @keyframes _aiSpin { to { transform:rotate(360deg) } }
-      @keyframes _aiPulse { 0%,100%{opacity:.55} 50%{opacity:1} }
-    </style>
-    <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
-      <svg viewBox="0 0 60 60" style="position:absolute;inset:0;width:100%;height:100%;animation:_aiSpin 1s linear infinite;">
-        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(99,102,241,.2)" stroke-width="4"/>
-        <circle cx="30" cy="30" r="26" fill="none" stroke="#6366f1" stroke-width="4"
-          stroke-linecap="round" stroke-dasharray="40 123" stroke-dashoffset="0"/>
-      </svg>
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
-      </svg>
-    </div>
-    <div id="ai-load-msg" style="font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:_aiPulse 1.8s ease-in-out infinite;text-align:center;max-width:260px;line-height:1.5;"></div>`;
-  el.querySelector('#ai-load-msg').textContent = msg;
-  document.body.appendChild(el);
-}
-
-function hideAILoading() {
-  const el = document.getElementById('ai-loading-overlay');
-  if (el) el.remove();
-}
-
-// ---- Apply-suggestions panel ----
-let _pendingSuggestions = null;
-
-function renderApplyPanel(containerId, suggestions) {
-  _pendingSuggestions = suggestions;
-  const container = document.getElementById(containerId);
-  if (!container || !suggestions || !suggestions.length) return;
-  // Remove any previous panel
-  container.querySelector('#apply-panel')?.remove();
-  const div = document.createElement('div');
-  div.id = 'apply-panel';
-  div.className = 'section-card';
-  div.style.cssText = 'background:var(--bg-2);margin-top:12px;border:1px solid rgba(99,102,241,.35);';
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <span class="ico ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>
-      <strong style="font-size:13px;">Apply suggestions to your resume</strong>
-    </div>
-    <div id="apply-checks" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      ${suggestions.map((s, i) => `
-        <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;line-height:1.5;">
-          <input type="checkbox" data-idx="${i}" checked style="margin-top:3px;accent-color:#6366f1;flex-shrink:0;">
-          <span>${esc(s.label)}</span>
-        </label>`).join('')}
-    </div>
-    <button class="btn btn-primary btn-sm" id="apply-btn">
-      <span class="ico ico-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-      <span>Apply selected to resume</span>
-    </button>`;
-  container.appendChild(div);
-  div.querySelector('#apply-btn').addEventListener('click', () => applyCheckedSuggestions(containerId));
-}
-
-function applyCheckedSuggestions(containerId) {
-  if (!_pendingSuggestions) return;
-  const checks = document.querySelectorAll('#apply-checks input[type=checkbox]');
-  let applied = 0;
-  checks.forEach(cb => {
-    if (!cb.checked) return;
-    const s = _pendingSuggestions[parseInt(cb.dataset.idx)];
-    if (!s) return;
-    s.apply();
-    applied++;
-  });
-  save();
-  _pendingSuggestions = null;
-  document.getElementById('apply-panel')?.remove();
-  if (applied > 0) {
-    toast('Applied ' + applied + ' suggestion' + (applied !== 1 ? 's' : '') + ' to your resume', { type: 'success' });
-    renderPreview();
-  }
-}
-
-// ============ AI: Improve ============
 async function aiImprove(target) {
   try {
-    showAILoading(target === 'summary' ? 'Rewriting your summary...' : 'Improving your bullets...');
-    const text = target === 'summary' ? resume.personal.summary : JSON.stringify(resume[target] || {});
+    showAILoading(target==='summary' ? 'Rewriting your summary...' : 'Improving your bullets...');
+    const text = target==='summary' ? resume.personal.summary : JSON.stringify(resume[target]||{});
     const r = await ai('improve', { target, text });
     hideAILoading();
-    if (target === 'summary') {
+    if (target==='summary') {
       resume.personal.summary = r.text;
       save(); renderMain();
-      toast('Summary improved', { type: 'success' });
+      toast('Summary improved \u2713', { type: 'success' });
     } else {
       await notify({ title: 'AI suggestion', body: r.text, copyable: true });
     }
-  } catch(e) {
-    hideAILoading();
-    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
-  }
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
-// ============ AI: Suggest Skills ============
 async function aiSuggestSkills() {
   try {
     showAILoading('Suggesting skills from your experience...');
     const r = await ai('skills', { experience: resume.experience });
     hideAILoading();
-    const items = (r.skills || '').split(',').map(s => s.trim()).filter(Boolean);
-    if (!items.length) { toast('No skills suggested', { type: 'warn' }); return; }
-    const existing = new Set(resume.skills.categories.flatMap(c => c.items).map(s => s.toLowerCase()));
-    const newItems = items.filter(s => !existing.has(s.toLowerCase()));
-    if (!newItems.length) { toast('All suggested skills already added', { type: 'info' }); return; }
-    const suggestions = newItems.map(skill => ({
-      label: 'Add skill: ' + skill,
-      apply() {
-        const cats = resume.skills.categories;
-        if (!cats.length) cats.push({ name: 'All', items: [] });
-        if (!cats[0].items.map(s => s.toLowerCase()).includes(skill.toLowerCase())) cats[0].items.push(skill);
-      }
-    }));
-    renderMain();
-    renderApplyPanel('main', suggestions);
-  } catch(e) {
-    hideAILoading();
-    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
-  }
+    const all = (r.skills||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+    if (!all.length) { toast('No skills suggested', { type: 'warn' }); return; }
+    const have = new Set(resume.skills.categories.flatMap(function(c){return c.items||[];}).map(function(s){return s.toLowerCase();}));
+    const fresh = all.filter(function(s){return !have.has(s.toLowerCase());});
+    if (!fresh.length) { toast('All suggested skills already added', { type: 'info' }); return; }
+    const wrap = document.getElementById('main'); if (!wrap) return;
+    var old = document.getElementById('_skpanel'); if (old) old.remove();
+    const panel = document.createElement('div');
+    panel.id = '_skpanel'; panel.className = 'section-card';
+    panel.style.cssText = 'margin-top:12px;border:1px solid rgba(99,102,241,.4);background:var(--bg-2);';
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;font-weight:600;font-size:13px;';
+    hdr.textContent = 'AI Suggested Skills (' + fresh.length + ' new)';
+    panel.appendChild(hdr);
+    const listEl = document.createElement('div');
+    listEl.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:14px;';
+    fresh.forEach(function(sk, i) {
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex;gap:10px;align-items:center;cursor:pointer;font-size:13px;';
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.checked=true; cb.dataset.i=i;
+      cb.style.cssText = 'accent-color:#6366f1;flex-shrink:0;';
+      const sp = document.createElement('span'); sp.textContent = sk;
+      lbl.appendChild(cb); lbl.appendChild(sp); listEl.appendChild(lbl);
+    });
+    panel.appendChild(listEl);
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;';
+    const applyBtn = document.createElement('button'); applyBtn.className='btn btn-primary btn-sm'; applyBtn.textContent='Apply selected';
+    applyBtn.addEventListener('click', function() {
+      var sel=[];
+      panel.querySelectorAll('input[type=checkbox]').forEach(function(c){if(c.checked)sel.push(fresh[+c.dataset.i]);});
+      if (!sel.length) { toast('No skills selected', {type:'warn'}); return; }
+      if (!resume.skills.categories.length) resume.skills.categories.push({name:'All',items:[]});
+      sel.forEach(function(sk){
+        if (!resume.skills.categories[0].items.map(function(x){return x.toLowerCase();}).includes(sk.toLowerCase()))
+          resume.skills.categories[0].items.push(sk);
+      });
+      save(); renderMain();
+      toast('Added ' + sel.length + ' skill' + (sel.length!==1?'s':'') + ' \u2713', {type:'success'});
+    });
+    const dismissBtn = document.createElement('button'); dismissBtn.className='btn btn-ghost btn-sm'; dismissBtn.textContent='Dismiss';
+    dismissBtn.addEventListener('click', function(){panel.remove();});
+    row.appendChild(applyBtn); row.appendChild(dismissBtn); panel.appendChild(row);
+    wrap.appendChild(panel);
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
-// ============ AI: Tailor ============
 async function aiTailor() {
   try {
     showAILoading('Tailoring your resume to the job...');
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
     hideAILoading();
-    resume.tailor.tailoredSummary = r.text;
+    resume.tailor.tailoredSummary = r.text || '';
+    AI_RESULTS.tailor = { r: r };
     save(); renderMain();
-    const suggestions = [];
-    if (r.summary) {
-      suggestions.push({
-        label: 'Update professional summary: "' + r.summary.slice(0, 90) + (r.summary.length > 90 ? '...' : '') + '"',
-        apply() { resume.personal.summary = r.summary; }
-      });
-    }
-    if (r.missingKeywords && r.missingKeywords.length) {
-      suggestions.push({
-        label: 'Add missing keywords to Skills: ' + r.missingKeywords.slice(0, 5).join(', '),
-        apply() {
-          const cats = resume.skills.categories;
-          if (!cats.length) cats.push({ name: 'All', items: [] });
-          r.missingKeywords.forEach(kw => {
-            if (!cats[0].items.map(s => s.toLowerCase()).includes(kw.toLowerCase())) cats[0].items.push(kw);
-          });
-        }
-      });
-    }
-    if (r.bulletSuggestions && r.bulletSuggestions.length) {
-      r.bulletSuggestions.forEach(bullet => {
-        suggestions.push({
-          label: 'Add to most recent job: "' + bullet.slice(0, 100) + (bullet.length > 100 ? '...' : '') + '"',
-          apply() {
-            if (!resume.experience.length) return;
-            const exp = resume.experience[0];
-            exp.description = (exp.description ? exp.description + '\n' : '') + '* ' + bullet.replace(/^[*\-]\s*/, '');
-          }
-        });
-      });
-    }
-    if (suggestions.length) renderApplyPanel('main', suggestions);
-    toast('Resume tailored', { type: 'success' });
-  } catch(e) {
-    hideAILoading();
-    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
-  }
+    toast('Resume tailored \u2713', { type: 'success' });
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
-// ============ AI: ATS ============
 async function aiATS() {
   const jdEl = document.getElementById('ats-jd');
   const jd = jdEl ? jdEl.value : '';
   try {
-    showAILoading('Scoring your resume against the job...');
+    showAILoading('Running ATS check...');
     const r = await ai('ats', { jobDescription: jd, resume });
     hideAILoading();
-    const scoreColor = r.score >= 70 ? 'var(--success)' : r.score >= 50 ? 'var(--warning)' : 'var(--danger)';
-    document.getElementById('ats-result').innerHTML =
-      '<div class="section-card" style="background:var(--bg-2);">' +
-        '<h4>ATS Score: <span style="color:' + scoreColor + ';">' + r.score + '/100</span></h4>' +
-        '<p style="white-space:pre-wrap;margin-top:8px;">' + esc(r.feedback || '') + '</p>' +
-      '</div>';
-    if (r.missingKeywords && r.missingKeywords.length) {
-      renderApplyPanel('ats-result', [{
-        label: 'Add missing keywords to Skills: ' + r.missingKeywords.slice(0, 6).join(', '),
-        apply() {
-          const cats = resume.skills.categories;
-          if (!cats.length) cats.push({ name: 'All', items: [] });
-          r.missingKeywords.forEach(kw => {
-            if (!cats[0].items.map(s => s.toLowerCase()).includes(kw.toLowerCase())) cats[0].items.push(kw);
-          });
-        }
-      }]);
-    }
-  } catch(e) {
-    hideAILoading();
-    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
-  }
+    AI_RESULTS.ats = { score: r.score, feedback: r.feedback, missingKeywords: r.missingKeywords||[], matchedKeywords: r.matchedKeywords||[] };
+    var el = document.getElementById('ats-result');
+    if (el) el.innerHTML = _renderATSCard(AI_RESULTS.ats);
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
 
-// ============ AI: Analyze ============
 async function aiAnalyze() {
   try {
     showAILoading('Analyzing your resume...');
     const r = await ai('analyze', { resume });
     hideAILoading();
-    document.getElementById('analysis-result').innerHTML =
-      '<div class="section-card" style="background:var(--bg-2);">' +
-        '<p style="white-space:pre-wrap;">' + esc(r.text || '') + '</p>' +
-      '</div>';
-    const suggestions = [];
-    if (r.missingSections && r.missingSections.length) {
-      r.missingSections.forEach(sec => {
-        const key = sec.toLowerCase();
-        if (resume.customize && resume.customize.sections && key in resume.customize.sections && !resume.customize.sections[key]) {
-          suggestions.push({
-            label: 'Enable "' + sec + '" section on your resume',
-            apply() { resume.customize.sections[key] = true; }
-          });
-        }
-      });
-    }
-    if (suggestions.length) renderApplyPanel('analysis-result', suggestions);
-  } catch(e) {
-    hideAILoading();
-    if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' });
-  }
+    AI_RESULTS.analysis = { text: r.text||'' };
+    var el = document.getElementById('analysis-result');
+    if (el) el.innerHTML = _renderAnalysisCard(AI_RESULTS.analysis);
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
 }
+
+async function importResume() {
+  const text = document.getElementById('import-text').value;
+  if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
+  try {
+    showAILoading('Parsing your resume with AI...');
+    const r = await ai('parse', { text });
+    hideAILoading();
+    if (r.resume) {
+      resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
+      resume.customize = Object.assign(structuredClone(DEFAULT_RESUME.customize), r.resume.customize || {});
+      resume.customize.sections = Object.assign(structuredClone(DEFAULT_RESUME.customize.sections || {}), (r.resume.customize || {}).sections || {});
+      resume.tailor = Object.assign(structuredClone(DEFAULT_RESUME.tailor), r.resume.tailor || {});
+      resume.versions = [];
+      save(); closeModal('import'); renderMain();
+      toast('Resume imported \u2713', { type: 'success' });
+    } else {
+      toast('Could not parse resume - try cleaning up the text', { type: 'error', duration: 4500 });
+    }
+  } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+}
+
 
 
 function openModal(id) {
@@ -777,17 +942,324 @@ async function importResume() {
   const text = document.getElementById('import-text').value;
   if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
   try {
-    showAILoading('Parsing your resume with AI...');
+    toast('AI is parsing your resume…', { type: 'info', duration: 2200 });
     const r = await ai('parse', { text });
-    hideAILoading();
     if (r.resume) {
       resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
+      resume.customize = Object.assign(structuredClone(DEFAULT_RESUME.customize), r.resume.customize || {});
+      resume.customize.sections = Object.assign(structuredClone(DEFAULT_RESUME.customize.sections || {}), (r.resume.customize || {}).sections || {});
+      resume.tailor = Object.assign(structuredClone(DEFAULT_RESUME.tailor), r.resume.tailor || {});
+      resume.versions = [];
       save(); closeModal('import'); renderMain();
-      toast('Resume imported', { type: 'success' });
+      toast('Resume imported \u2713', { type: 'success' });
     } else {
       toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Duplicate Resume
+// ══════════════════════════════════════════════════════════════════
+function duplicateResume() {
+  const copy = JSON.parse(JSON.stringify(resume));
+  copy.personal.fullName = copy.personal.fullName ? copy.personal.fullName + ' (Copy)' : 'Copy';
+  copy.versions = [];
+  localStorage.setItem('hf_resume_backup', localStorage.getItem('hf_resume'));
+  localStorage.setItem('hf_resume', JSON.stringify(copy));
+  resume = copy;
+  renderMain();
+  toast('Resume duplicated \u2713 — you\u2019re now editing the copy', { type: 'success', duration: 3500 });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Recruiter Preview Mode (full-screen clean view)
+// ══════════════════════════════════════════════════════════════════
+function openRecruiterPreview() {
+  var el = document.getElementById('_recruiter-preview');
+  if (el) { el.remove(); return; }
+  el = document.createElement('div');
+  el.id = '_recruiter-preview';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#374151;display:flex;flex-direction:column;';
+  el.innerHTML = '<div style="background:#1f2937;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">'
+    + '<div style="display:flex;align-items:center;gap:12px;">'
+    + '<span style="font-size:13px;font-weight:600;color:#e5e7eb;">Recruiter Preview</span>'
+    + '<span style="font-size:12px;color:#9ca3af;">This is exactly what gets exported</span>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;align-items:center;">'
+    + '<span style="font-size:12px;color:#9ca3af;">Zoom:</span>'
+    + '<button onclick="_rpZoom(-0.1)" style="background:#374151;border:none;color:#e5e7eb;cursor:pointer;padding:4px 10px;border-radius:4px;font-size:13px;">\u2212</button>'
+    + '<span id="_rpZoomLbl" style="font-size:12px;color:#e5e7eb;min-width:40px;text-align:center;">100%</span>'
+    + '<button onclick="_rpZoom(0.1)" style="background:#374151;border:none;color:#e5e7eb;cursor:pointer;padding:4px 10px;border-radius:4px;font-size:13px;">+</button>'
+    + '<button id="_rp-close" style="background:#6366f1;border:none;color:#fff;cursor:pointer;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;margin-left:8px;">Close</button>'
+    + '</div></div>'
+    + '<div style="flex:1;overflow:auto;display:flex;justify-content:center;padding:32px 20px;">'
+    + '<div id="_rp-inner" style="transform-origin:top center;transition:transform .2s;">'
+    + '<div id="_rp-doc" style="width:850px;background:#fff;color:#111;box-shadow:0 20px 60px rgba(0,0,0,.5);border-radius:4px;overflow:hidden;font-size:14px;line-height:1.45;"></div>'
+    + '</div></div>';
+  document.body.appendChild(el);
+  document.getElementById('_rp-doc').innerHTML = renderTemplate(resume.template, resume, false, resume.customize.accent, 'Normal');
+  el._zoom = 1.0;
+  document.getElementById('_rp-close').addEventListener('click', function() { el.remove(); });
+}
+function _rpZoom(delta) {
+  var el = document.getElementById('_recruiter-preview');
+  var inner = document.getElementById('_rp-inner');
+  var lbl = document.getElementById('_rpZoomLbl');
+  if (!el || !inner) return;
+  el._zoom = Math.max(0.4, Math.min(1.5, (el._zoom || 1.0) + delta));
+  inner.style.transform = 'scale(' + el._zoom + ')';
+  lbl.textContent = Math.round(el._zoom * 100) + '%';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Bullet Strength Meter (live heuristic)
+// ══════════════════════════════════════════════════════════════════
+function _updateBulletMeter(textarea, meterId) {
+  var score = _scoreBullet(textarea.value);
+  var el = document.getElementById(meterId);
+  if (el) el.innerHTML = _renderBulletMeter(score);
+}
+
+function _scoreBullet(text) {
+  if (!text || !text.trim()) return null;
+  const lines = text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length > 5;});
+  if (!lines.length) return null;
+  var total = 0, count = 0;
+  const WEAK = /^(responsible for|worked on|helped|assisted|supported|participated|involved in|duties included)/i;
+  const METRIC = /\d+[%x\+]|\$[\d,]+|\d+\s*(people|users|customers|clients|members|reports|projects|sites|apps|team)/i;
+  const ACTION = /^(led|built|created|designed|developed|managed|launched|delivered|increased|reduced|improved|drove|achieved|generated|negotiated|secured|established|scaled|automated|implemented|deployed|optimized|coordinated|streamlined|transformed|grew|mentored|coached|founded|executed)/i;
+  lines.forEach(function(line) {
+    var clean = line.replace(/^[\u2022\-\*]\s*/, '');
+    var score = 50;
+    if (WEAK.test(clean)) score -= 25;
+    if (METRIC.test(clean)) score += 30;
+    if (ACTION.test(clean)) score += 20;
+    if (clean.length > 120) score -= 10;
+    if (clean.length < 30) score -= 15;
+    total += Math.min(100, Math.max(0, score));
+    count++;
+  });
+  return count ? Math.round(total / count) : null;
+}
+
+function _renderBulletMeter(score) {
+  if (score === null) return '';
+  var col = score >= 75 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
+  var label = score >= 75 ? 'Strong' : score >= 50 ? 'Could be better' : 'Needs work';
+  var tip = score >= 75
+    ? 'Good use of action verbs and metrics'
+    : score >= 50
+    ? 'Add numbers, percentages, or outcomes to strengthen'
+    : 'Start bullets with action verbs and include measurable results';
+  return '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:6px;">'
+    + '<div style="flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;">'
+    + '<div style="width:' + score + '%;height:4px;background:' + col + ';border-radius:2px;transition:width .3s;"></div>'
+    + '</div>'
+    + '<span style="font-size:11px;font-weight:600;color:' + col + ';min-width:70px;">' + label + '</span>'
+    + '<span style="font-size:11px;color:var(--muted);" title="' + tip + '">?</span>'
+    + '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Compare Versions (side-by-side diff in version modal)
+// ══════════════════════════════════════════════════════════════════
+var _compareIdx = null;
+
+function renderVersions() {
+  const list = (resume.versions || []);
+  if (!list.length) {
+    document.getElementById('version-list').innerHTML = '<p style="color:var(--muted);">No versions yet.</p>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(v, i) {
+    var comparing = _compareIdx === i;
+    html += '<div style="display:flex;justify-content:space-between;padding:10px;background:var(--bg-2);border-radius:8px;align-items:center;border:1px solid ' + (comparing ? 'rgba(99,102,241,.5)' : 'var(--border)') + ';">';
+    html += '<div><strong style="font-size:13px;">' + v.label + '</strong>';
+    html += '<div style="color:var(--muted);font-size:12px;margin-top:2px;">' + new Date(v.ts).toLocaleString() + '</div></div>';
+    html += '<div style="display:flex;gap:6px;">';
+    html += '<button class="btn btn-ghost btn-xs" id="_vcompbtn' + i + '">Compare</button>';
+    html += '<button class="btn btn-secondary btn-xs" id="_vrestbtn' + i + '">Restore</button>';
+    html += '</div></div>';
+  });
+  if (_compareIdx !== null && list[_compareIdx]) {
+    html += '<div style="margin-top:16px;border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;">';
+    html += '<div style="background:rgba(99,102,241,.1);padding:10px 14px;font-size:12px;font-weight:600;color:#c4b5fd;">Comparing: ' + list[_compareIdx].label + ' vs Current</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">';
+    var snap = list[_compareIdx].data || {};
+    var fields = [
+      ['Name', (snap.personal||{}).fullName, resume.personal.fullName],
+      ['Summary', (snap.personal||{}).summary, resume.personal.summary],
+      ['Experience roles', ((snap.experience||[]).length).toString(), resume.experience.length.toString()],
+      ['Skills', ((snap.skills||{categories:[]}).categories.flatMap(function(c){return c.items||[];})).slice(0,5).join(', '), resume.skills.categories.flatMap(function(c){return c.items||[];}).slice(0,5).join(', ')],
+    ];
+    html += '<div style="padding:12px 14px;border-right:1px solid rgba(99,102,241,.2);"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Snapshot</div>';
+    fields.forEach(function(f) {
+      html += '<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">' + f[0] + '</div>';
+      html += '<div style="font-size:13px;color:var(--text);word-break:break-word;">' + (f[1]||'\u2014') + '</div></div>';
+    });
+    html += '</div>';
+    html += '<div style="padding:12px 14px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Current</div>';
+    fields.forEach(function(f) {
+      var changed = f[1] !== f[2];
+      html += '<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">' + f[0] + '</div>';
+      html += '<div style="font-size:13px;color:' + (changed?'#6ee7b7':'var(--text)') + ';word-break:break-word;">' + (f[2]||'\u2014') + '</div></div>';
+    });
+    html += '</div></div></div>';
+  }
+  document.getElementById('version-list').innerHTML = html;
+  list.forEach(function(v, i) {
+    var compBtn = document.getElementById('_vcompbtn' + i);
+    var restBtn = document.getElementById('_vrestbtn' + i);
+    if (compBtn) compBtn.addEventListener('click', function() {
+      _compareIdx = _compareIdx === i ? null : i;
+      renderVersions();
+    });
+    if (restBtn) restBtn.addEventListener('click', function() { _restoreVersion(i); });
+  });
+}
+
+async function _restoreVersion(i) {
+  const ok = await confirmDialog({
+    title: 'Restore this version?',
+    body: 'Your current changes will be replaced with the snapshot from ' + new Date(resume.versions[i].ts).toLocaleString() + '.',
+    confirmText: 'Restore', cancelText: 'Keep current', danger: true
+  });
+  if (!ok) return;
+  resume = JSON.parse(JSON.stringify(resume.versions[i].data));
+  save(); closeModal('version'); renderMain();
+  toast('Version restored', { type: 'success' });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Industry template recommendations
+// ══════════════════════════════════════════════════════════════════
+const INDUSTRY_TEMPLATES = {
+  'software': { templates: ['tech','minimal','modern'], reason: 'Clean, technical layouts score best with engineering recruiters.' },
+  'engineer': { templates: ['tech','minimal','modern'], reason: 'Clean, technical layouts score best with engineering recruiters.' },
+  'developer': { templates: ['tech','minimal','modern'], reason: 'Clean, technical layouts score best with engineering recruiters.' },
+  'design': { templates: ['creative','elegant','modern'], reason: 'Creative roles benefit from distinctive visual presentation.' },
+  'product': { templates: ['modern','professional','classic'], reason: 'Product managers do best with structured, achievement-focused layouts.' },
+  'marketing': { templates: ['creative','modern','elegant'], reason: 'Marketing roles reward personality-forward designs.' },
+  'finance': { templates: ['classic','professional','executive'], reason: 'Finance and banking expect conservative, formal layouts.' },
+  'executive': { templates: ['executive','classic','professional'], reason: 'Senior roles call for authoritative, understated layouts.' },
+  'sales': { templates: ['modern','professional','compact'], reason: 'Sales roles benefit from concise, results-oriented layouts.' },
+  'healthcare': { templates: ['professional','classic','minimal'], reason: 'Healthcare requires clean, professional, easy-to-scan formats.' },
+  'data': { templates: ['tech','minimal','modern'], reason: 'Data roles suit structured, information-dense layouts.' },
+  'teacher': { templates: ['classic','professional','elegant'], reason: 'Education roles suit traditional, readable formats.' },
+};
+
+function _getTemplateRec() {
+  const role = (resume.personal.fullName || '') + ' ' + (resume.experience.map(function(e){return e.title||'';}).join(' ')).toLowerCase();
+  for (var key in INDUSTRY_TEMPLATES) {
+    if (role.includes(key)) return INDUSTRY_TEMPLATES[key];
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Cover Letter Generator
+// ══════════════════════════════════════════════════════════════════
+var _coverLetterData = null;
+
+async function generateCoverLetter() {
+  if (isFree()) { showUpgradeModal('ai'); return; }
+  const jd = resume.tailor.jobDescription;
+  if (!jd || jd.trim().length < 20) {
+    toast('Add a job description in Tailor to Job first', { type: 'warn', duration: 3500 });
+    nextSection('tailor');
+    return;
+  }
+  try {
+    showAILoading('Writing your cover letter...');
+    const r = await ai('coverletter', { jobDescription: jd, resume });
+    hideAILoading();
+    _coverLetterData = r.text || '';
+    _openCoverLetterModal();
   } catch(e) { hideAILoading(); if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+}
+
+function _openCoverLetterModal() {
+  var old = document.getElementById('_cl-modal');
+  if (old) old.remove();
+  var bd = document.createElement('div');
+  bd.id = '_cl-modal';
+  bd.className = 'modal-backdrop open';
+  bd.innerHTML = '<div class="modal" style="max-width:680px;">'
+    + '<button class="modal-close" id="_cl-modal-close">\u00d7</button>'
+    + '<h3 style="margin-bottom:4px;">' + ICON('doc') + ' <span style="margin-left:6px;">Cover Letter</span></h3>'
+    + '<p style="color:var(--muted);font-size:12px;margin-bottom:14px;">AI-generated based on your resume and the job description. Edit before using.</p>'
+    + '<textarea id="_cl-text" rows="16" style="width:100%;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.7;resize:vertical;"></textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:12px;">'
+    + '<button class="btn btn-primary" id="_cl-copy">Copy to Clipboard</button>'
+    + '<button class="btn btn-secondary" id="_cl-regen">' + ICON('sparkle','ico ico-sm') + ' Regenerate</button>'
+    + '<button class="btn btn-ghost" id="_cl-modal-close">Close</button>'
+    + '</div></div>';
+  document.body.appendChild(bd);
+  document.getElementById('_cl-text').value = _coverLetterData || '';
+  document.getElementById('_cl-copy').addEventListener('click', function() {
+    _copyText(document.getElementById('_cl-text').value);
+  });
+  document.getElementById('_cl-regen').addEventListener('click', function() {
+    document.getElementById('_cl-modal').remove();
+    generateCoverLetter();
+  });
+  var clClose = document.getElementById('_cl-modal-close');
+  if (clClose) clClose.addEventListener('click', function() { bd.remove(); });
+  bd.addEventListener('click', function(e) { if (e.target === bd) bd.remove(); });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FEATURE: Onboarding Wizard (first-time users)
+// ══════════════════════════════════════════════════════════════════
+function _shouldShowOnboarding() {
+  if (localStorage.getItem('hf_onboarded')) return false;
+  const r = resume;
+  const isEmpty = !r.personal.fullName && !r.experience.length && !r.education.length;
+  return isEmpty;
+}
+
+function _openOnboarding() {
+  if (!_shouldShowOnboarding()) return;
+  var bd = document.createElement('div');
+  bd.id = '_onboard-modal';
+  bd.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(7,9,26,.92);display:flex;align-items:center;justify-content:center;padding:20px;';
+  bd.innerHTML = '<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:16px;max-width:520px;width:100%;padding:32px;">'
+    + '<div style="text-align:center;margin-bottom:28px;">'
+    + '<div style="width:56px;height:56px;background:var(--gradient);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">'
+    + '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+    + '</div>'
+    + '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">Welcome to Applio</h2>'
+    + '<p style="color:var(--muted);font-size:14px;line-height:1.6;">Let\u2019s build your resume. How would you like to start?</p>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<button class="btn btn-primary" style="padding:14px;font-size:14px;justify-content:flex-start;" id="_ob-import">'
+    + ICON('upload') + '<div style="margin-left:12px;text-align:left;"><div style="font-weight:600;">Import existing resume</div><div style="font-size:12px;opacity:.7;margin-top:2px;">Paste text and AI fills everything in seconds</div></div></button>'
+    + '<button class="btn btn-secondary" style="padding:14px;font-size:14px;justify-content:flex-start;" id="_ob-scratch">'
+    + ICON('doc') + '<div style="margin-left:12px;text-align:left;"><div style="font-weight:600;">Start from scratch</div><div style="font-size:12px;opacity:.7;margin-top:2px;">Fill in your details section by section</div></div></button>'
+    + '<button class="btn btn-secondary" style="padding:14px;font-size:14px;justify-content:flex-start;" id="_ob-template">'
+    + ICON('settings') + '<div style="margin-left:12px;text-align:left;"><div style="font-weight:600;">Pick a template first</div><div style="font-size:12px;opacity:.7;margin-top:2px;">Choose your style, then add your content</div></div></button>'
+    + '</div>'
+    + '<p style="text-align:center;margin-top:20px;font-size:12px;color:var(--muted);"><a href="#" id="_ob-skip" style="color:var(--muted);">Skip — I know what I\u2019m doing</a></p>'
+    + '</div>';
+  document.body.appendChild(bd);
+  document.getElementById('_ob-import').addEventListener('click', function() {
+    bd.remove(); localStorage.setItem('hf_onboarded', '1');
+    openModal('import');
+  });
+  document.getElementById('_ob-scratch').addEventListener('click', function() {
+    bd.remove(); localStorage.setItem('hf_onboarded', '1');
+    nextSection('personal');
+  });
+  document.getElementById('_ob-template').addEventListener('click', function() {
+    bd.remove(); localStorage.setItem('hf_onboarded', '1');
+    nextSection('template');
+  });
+  document.getElementById('_ob-skip').addEventListener('click', function(e) {
+    e.preventDefault(); bd.remove(); localStorage.setItem('hf_onboarded', '1');
+  });
 }
 
 // ============ Boot ============
@@ -795,4 +1267,13 @@ async function importResume() {
   await loadCurrentUser();
   hydrate();
   renderMain();
+  // Show onboarding wizard for new users
+  setTimeout(_openOnboarding, 600);
+  // Keyboard shortcut: Escape closes recruiter preview
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var rp = document.getElementById('_recruiter-preview');
+      if (rp) rp.remove();
+    }
+  });
 })();

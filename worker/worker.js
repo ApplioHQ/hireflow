@@ -48,6 +48,7 @@ export default {
       if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
+      if (path === "/admin/analytics")         return json(await adminAnalytics(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -257,6 +258,64 @@ async function getStatus(req, env) {
 }
 
 // ============ Admin endpoints ============
+
+// ============ Admin Analytics ============
+async function adminAnalytics(req, env) {
+  await requireAdmin(req, env);
+  // Paginate through all users and compute stats
+  const users = [];
+  let cursor = undefined;
+  while (true) {
+    const page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
+    for (const key of page.keys) {
+      const raw = await env.HIREFLOW_KV.get(key.name);
+      if (!raw) continue;
+      users.push(JSON.parse(raw));
+    }
+    if (page.list_complete) break;
+    cursor = page.cursor;
+  }
+
+  const now = Date.now();
+  const DAY = 86400000;
+  const signupsByDay = {};
+  let free = 0, premium = 0, lifetime = 0, totalDownloads = 0;
+
+  users.forEach(u => {
+    const plan = u.plan || 'free';
+    if (plan === 'premium') premium++;
+    else if (plan === 'lifetime') lifetime++;
+    else free++;
+    totalDownloads += u.downloadsUsed || 0;
+    if (u.createdAt) {
+      const d = new Date(u.createdAt).toISOString().slice(0, 10);
+      signupsByDay[d] = (signupsByDay[d] || 0) + 1;
+    }
+  });
+
+  // Last 30 days signups
+  const last30 = {};
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now - i * DAY).toISOString().slice(0, 10);
+    last30[d] = signupsByDay[d] || 0;
+  }
+
+  // Last 7 days
+  const last7Signups = Object.entries(last30).slice(-7).reduce((a, [,v]) => a + v, 0);
+  const last30Signups = Object.values(last30).reduce((a, v) => a + v, 0);
+
+  return {
+    total: users.length,
+    plans: { free, premium, lifetime },
+    conversionRate: users.length ? ((premium + lifetime) / users.length * 100).toFixed(1) : '0.0',
+    totalDownloads,
+    last7Signups,
+    last30Signups,
+    signupsByDay: last30,
+  };
+}
+
+
 async function requireAdmin(req, env, requireSuper = false) {
   const payload = await authenticate(req, env);
   if (requireSuper && payload.role !== "super") throw err(403, "Super admin only");
@@ -266,9 +325,11 @@ async function requireAdmin(req, env, requireSuper = false) {
 
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
-  const list = await env.HIREFLOW_KV.list({ prefix: "user:" });
   const users = [];
-  for (const key of list.keys) {
+  let _cursor = undefined;
+  while (true) {
+    const _page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor: _cursor, limit: 1000 });
+    for (const key of _page.keys) {
     const raw = await env.HIREFLOW_KV.get(key.name);
     if (!raw) continue;
     const u = JSON.parse(raw);
@@ -281,6 +342,9 @@ async function adminListUsers(req, env) {
       hasStripeCustomer: !!u.stripeCustomerId,
       updatedAt: u.updatedAt || u.createdAt || null,
     });
+  }
+    if (_page.list_complete) break;
+    _cursor = _page.cursor;
   }
   // Newest first
   users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -628,7 +692,9 @@ async function aiDispatch(env, action, body) {
     case "ats":       return aiATS(env, body);
     case "analyze":   return aiAnalyze(env, body);
     case "parse":     return aiParse(env, body);
-    case "interview": return aiInterview(env, body);
+    case "interview":    return aiInterview(env, body);
+    case "coverletter":         return aiCoverLetter(env, body);
+    case "interview-feedback":  return aiInterviewFeedback(env, body);
     default: throw err(404, "Unknown AI action");
   }
 }
@@ -654,6 +720,41 @@ async function runAI(env, system, user, opts = {}) {
     }
   }
   throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);
+}
+
+
+function resumeToText(resume) {
+  const r = resume || {};
+  const p = r.personal || {};
+  const lines = [];
+  if (p.fullName)  lines.push(p.fullName);
+  if (p.email || p.phone || p.location)
+    lines.push([p.email, p.phone, p.location].filter(Boolean).join(' | '));
+  if (p.summary)   lines.push('\nSUMMARY\n' + p.summary);
+  if (r.experience?.length) {
+    lines.push('\nEXPERIENCE');
+    r.experience.forEach(e => {
+      lines.push(`${e.title||''} at ${e.company||''} (${e.start||''} – ${e.end||''})`);
+      if (e.description) lines.push(e.description);
+    });
+  }
+  if (r.education?.length) {
+    lines.push('\nEDUCATION');
+    r.education.forEach(e => lines.push(`${e.degree||''} ${e.field||''} – ${e.school||''} (${e.end||''})`));
+  }
+  if (r.skills?.categories?.length) {
+    lines.push('\nSKILLS');
+    r.skills.categories.forEach(c => lines.push(c.items?.join(', ')||''));
+  }
+  if (r.certifications?.length) {
+    lines.push('\nCERTIFICATIONS');
+    r.certifications.forEach(c => lines.push(`${c.name||''} – ${c.issuer||''} (${c.date||c.year||''})`));
+  }
+  if (r.projects?.length) {
+    lines.push('\nPROJECTS');
+    r.projects.forEach(p => lines.push(`${p.name||''}: ${p.description||''} [${p.tech||''}]`));
+  }
+  return lines.join('\n').slice(0, 5000);
 }
 
 // ============ Improve writing ============
@@ -751,7 +852,7 @@ Rules:
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
   const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
+    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${resumeToText(resume)}`,
     { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
@@ -762,62 +863,93 @@ Rules:
   if (j.missingKeywords?.length) lines.push(`\nMissing keywords (add these if true):\n${j.missingKeywords.map(k => `  ✗ ${k}`).join("\n")}`);
   if (j.emphasize?.length) lines.push(`\nWhat to emphasize:\n${j.emphasize.map(e => `  • ${e}`).join("\n")}`);
   if (j.bulletSuggestions?.length) lines.push(`\nSuggested bullet rewrites:\n${j.bulletSuggestions.map(b => `  → ${b}`).join("\n")}`);
-  return { text: lines.join("\n"), summary: j.summary };
+  return {
+    text: lines.join("\n"),
+    summary: j.summary || null,
+    matchedKeywords: j.matchedKeywords || [],
+    missingKeywords: j.missingKeywords || [],
+    bulletSuggestions: j.bulletSuggestions || [],
+    emphasize: j.emphasize || [],
+  };
 }
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const sys = `You are an ATS (Applicant Tracking System) and resume scoring expert.
+  const resumeText = resumeToText(resume);
+  const jdText     = (jobDescription || '').trim().slice(0, 3000);
+  const hasJD      = jdText.length > 10;
 
-Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
+  const sys = `You are a strict, calibrated ATS scoring engine. Use formula-driven accuracy.
 
+${hasJD ? 'TASK: Score the resume against the provided job description.' : 'TASK: No JD provided — score against universal best-practice standards.'}
+
+SCORING FORMULA (follow exactly):
+
+STEP 1 — KEYWORD SCORE (weight 35%):
+${hasJD
+  ? `Extract every hard skill, tool, technology, certification, and role-specific term from the JD.
+Count how many appear in the resume (exact or clear synonym).
+keyword_score = round((matched / total_jd_keywords) * 100).`
+  : `Score presence of action verbs, quantified results, and industry terminology. Penalise vague language.`}
+
+STEP 2 — EXPERIENCE SCORE (weight 30%):
+- Does seniority/years/domain match the role?
+- Each bullet with a metric (%, $, number) earns full credit.
+- Deduct 8 pts per vague bullet ("responsible for", "worked on"), max 40 pts.
+- Deduct 5 pts per gap > 6 months.
+
+STEP 3 — FORMAT SCORE (weight 20%):
++15 Summary exists | +15 All roles have dates | +15 Bullets used
++15 Contact info complete | +10 Consistent formatting | +10 Reasonable length.
+
+STEP 4 — COMPLETENESS SCORE (weight 15%):
++25 each: Summary, Experience, Education, Skills. +5 each: Certifications, Projects (max +10).
+
+FINAL SCORE = round(keywords*0.35 + experience*0.30 + formatting*0.20 + completeness*0.15)
+
+CRITICAL: All values 0-100. No negatives. "score" MUST equal formula. wins/issues reference actual content.
+OUTPUT ONLY JSON:
 {
   "score": <integer 0-100>,
-  "breakdown": {
-    "keywords": <0-100>,
-    "experience": <0-100>,
-    "formatting": <0-100>,
-    "completeness": <0-100>
-  },
-  "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
-  "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
-  "issues": ["<specific weakness — name the section and what to fix>", "<another>", "<another>", "<another>"],
-  "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
-}
+  "breakdown": { "keywords": <0-100>, "experience": <0-100>, "formatting": <0-100>, "completeness": <0-100> },
+  "feedback": "<2-3 sentence summary of match quality and top fix>",
+  "wins": ["<actual resume content strength>", "<another>", "<another>"],
+  "issues": ["<specific fix with section name>", "<another>", "<another>", "<another>"],
+  "missingKeywords": [${hasJD ? '"<exact JD keyword not in resume>", up to 10' : '"<keyword that would strengthen resume>", up to 6'}],
+  "matchedKeywords": ["<keyword in both>", up to 10]
+}`;
 
-Scoring rubric:
-- 90-100: strong match, ready to submit
-- 70-89: solid, needs minor tweaks
-- 50-69: relevant but needs significant work
-- below 50: major gaps
+  const userMsg = hasJD
+    ? `JOB DESCRIPTION:\n${jdText}\n\n${'─'.repeat(40)}\n\nCANDIDATE RESUME:\n${resumeText}`
+    : `CANDIDATE RESUME:\n${resumeText}`;
 
-Rules:
-- score is the weighted overall (not just the average)
-- wins/issues should reference specific resume content, not generic advice
-- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, completeness)
-- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
-
-  const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
+  const raw = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 1000, temperature: 0.1 });
   const j = safeJSON(raw);
-  if (!j) return { score: 50, feedback: raw };
+  if (!j) return { score: 50, feedback: raw, missingKeywords: [], matchedKeywords: [] };
 
-  // Build readable feedback string from structured output
+  const clamp = v => Math.min(100, Math.max(0, Math.round(Number(v)||0)));
+  const bd = j.breakdown || {};
+  const keywords     = clamp(bd.keywords);
+  const experience   = clamp(bd.experience);
+  const formatting   = clamp(bd.formatting);
+  const completeness = clamp(bd.completeness);
+  const score        = clamp(keywords*0.35 + experience*0.30 + formatting*0.20 + completeness*0.15);
+
   const parts = [];
   if (j.feedback) parts.push(j.feedback);
-  if (j.breakdown) {
-    parts.push(`\nBreakdown:`);
-    parts.push(`  Keywords: ${j.breakdown.keywords}/100`);
-    parts.push(`  Experience match: ${j.breakdown.experience}/100`);
-    parts.push(`  Formatting: ${j.breakdown.formatting}/100`);
-    parts.push(`  Completeness: ${j.breakdown.completeness}/100`);
-  }
-  if (j.wins?.length) parts.push(`\nWhat's working:\n${j.wins.map(w => `  ✓ ${w}`).join("\n")}`);
-  if (j.issues?.length) parts.push(`\nWhat to fix:\n${j.issues.map(i => `  ✗ ${i}`).join("\n")}`);
-  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k => `  → ${k}`).join("\n")}`);
-  return { score: j.score ?? 50, feedback: parts.join("\n") };
+  parts.push(`\nBreakdown:`);
+  parts.push(`  Keywords           ${keywords}/100  (35% weight)`);
+  parts.push(`  Experience         ${experience}/100  (30% weight)`);
+  parts.push(`  Format & Structure ${formatting}/100  (20% weight)`);
+  parts.push(`  Completeness       ${completeness}/100  (15% weight)`);
+  if (j.wins?.length)            parts.push(`\nWhat's working:\n${j.wins.map(w=>`  \u2713 ${w}`).join('\n')}`);
+  if (j.issues?.length)          parts.push(`\nWhat to fix:\n${j.issues.map(i=>`  \u2717 ${i}`).join('\n')}`);
+  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k=>`  \u2192 ${k}`).join('\n')}`);
+  if (j.matchedKeywords?.length) parts.push(`\nMatched keywords:\n${j.matchedKeywords.map(k=>`  \u2713 ${k}`).join('\n')}`);
+
+  return { score, feedback: parts.join('\n'), missingKeywords: j.missingKeywords||[], matchedKeywords: j.matchedKeywords||[] };
 }
+
 
 // ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
@@ -852,7 +984,7 @@ Rules:
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
-    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
+    `Candidate Resume:\n${resumeToText(resume)}`,
     { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw };
@@ -971,6 +1103,68 @@ OUTPUT FORMAT:
   return { resume: j };
 }
 
+
+// ============ Cover Letter ============
+async function aiCoverLetter(env, { jobDescription, resume }) {
+  const resumeText = resumeToText(resume);
+  const jdText = (jobDescription || '').slice(0, 3000);
+  const p = resume?.personal || {};
+
+  const sys = `You are an expert career coach writing a personalized cover letter.
+Write a professional, compelling cover letter for the candidate applying to this role.
+
+RULES:
+- 3-4 paragraphs, under 350 words total
+- Opening: express genuine interest in the specific role/company
+- Body: highlight 2-3 most relevant achievements from their resume that match the JD
+- Closing: confident call to action
+- Tone: professional but human — not robotic or generic
+- Never start with "I am writing to apply for..."
+- Use their actual name, actual job titles, and actual achievements — not placeholders
+- OUTPUT ONLY THE COVER LETTER TEXT. No subject line, no address block, no explanation.`;
+
+  const userMsg = `CANDIDATE NAME: ${p.fullName || 'The Candidate'}
+CANDIDATE EMAIL: ${p.email || ''}
+
+JOB DESCRIPTION:
+${jdText}
+
+CANDIDATE RESUME:
+${resumeText}`;
+
+  const text = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 600, temperature: 0.4 });
+  return { text };
+}
+
+
+// ============ Interview Answer Feedback ============
+async function aiInterviewFeedback(env, { question, answer }) {
+  const sys = `You are a senior interview coach giving honest, specific feedback on a candidate's answer.
+
+Score the answer 0-100 and provide actionable feedback.
+
+Scoring:
+- 85-100: Excellent — specific, structured (STAR), quantified results
+- 65-84: Good — relevant but missing structure or specifics
+- 45-64: Adequate — too vague, lacks examples, or off-topic
+- below 45: Needs significant work
+
+OUTPUT JSON:
+{
+  "score": <integer 0-100>,
+  "feedback": "<3-4 sentences: what was strong, what was weak, one specific improvement with an example of how to reframe it>"
+}
+OUTPUT ONLY JSON.`;
+
+  const raw = await runAI(env, sys,
+    `INTERVIEW QUESTION: ${question}\n\nCANDIDATE ANSWER: ${answer}`,
+    { max_tokens: 300, temperature: 0.3 });
+
+  const j = safeJSON(raw);
+  if (!j) return { score: 50, feedback: raw };
+  return { score: Math.min(100, Math.max(0, Math.round(j.score||50))), feedback: j.feedback||'' };
+}
+
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
   const sys = `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
@@ -1024,7 +1218,7 @@ Rules:
 - No preamble. Start directly with "[Behavioral]".`;
 
   return { text: await runAI(env, sys,
-    `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
+    `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${resumeToText(resume)}`,
     { max_tokens: 1400, temperature: 0.55 }) };
 }
 

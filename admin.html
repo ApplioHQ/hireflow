@@ -130,11 +130,6 @@
         </div>
       </div>
 
-
-      <div class="ctrl-card" id="analytics-card" style="display:none;">
-        <h3>Site Analytics</h3>
-        <div id="analytics-body" style="font-size:13px; line-height:1.8; color:var(--muted);">Loading...</div>
-      </div>
       <div class="ctrl-card">
         <h3>ADMIN tier access</h3>
         <p>Toggle whether the literal "ADMIN" user can log in or use their existing session. You (super admin) are never affected.</p>
@@ -142,6 +137,14 @@
           <button class="btn btn-success btn-sm" onclick="setAdminAccessFromPanel(true)">Enable</button>
           <button class="btn btn-danger btn-sm" onclick="setAdminAccessFromPanel(false)">Disable</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Analytics panel (ADMIN + SUPERADMIN) -->
+    <div id="analytics-panel">
+      <div class="ctrl-card" id="analytics-card" style="display:none;">
+        <h3>Site Analytics</h3>
+        <div id="analytics-body" style="font-size:13px; line-height:1.8; color:var(--muted);">Loading...</div>
       </div>
     </div>
   </div>
@@ -333,7 +336,8 @@ function signOut() {
 }
 
 async function showAnalytics() {
-  if (ROLE !== 'super') return toast('Super admin only', { type: 'warn' });
+  // Analytics is available to both ADMIN and SUPERADMIN.
+  if (ROLE !== 'admin' && ROLE !== 'super') return toast('Admin only', { type: 'warn' });
   const card = document.getElementById('analytics-card');
   if (!card) return;
   if (card.style.display === '') { card.style.display = 'none'; return; }

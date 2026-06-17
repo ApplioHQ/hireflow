@@ -8,15 +8,7 @@
 <link rel="stylesheet" href="css/styles.css">
 <style>
   .export-grid { display:grid; grid-template-columns: 1fr 320px; gap:24px; padding:24px; max-width:1240px; margin:0 auto; }
-  .resume-page {
-    background:#fff; color:#111;
-    width: 100%; max-width: 850px;
-    min-height: 1100px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.35);
-    overflow: hidden; border-radius: 4px;
-    font-size: 14px; line-height: 1.45;
-    margin: 0 auto;
-  }
+  /* resume-page replaced by export-preview-container in styles.css */
   @media print {
     body, .app-body-scroll { background: #fff !important; }
     .app-topbar, .export-side { display:none !important; }
@@ -39,7 +31,7 @@
 </header>
 
 <div class="export-grid">
-  <div id="resume-preview" class="resume-page"></div>
+  <div id="resume-preview" class="export-preview-container"></div>
 
   <aside class="export-side">
     <div class="section-card">
@@ -47,9 +39,9 @@
       <div class="form-field">
         <label>File Format</label>
         <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:6px;">
-          <button class="btn btn-secondary btn-sm" onclick="tryExport('pdf')">PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="tryExport('pdf')">PDF</button>
           <button class="btn btn-secondary btn-sm" onclick="tryExport('html')">HTML</button>
-          <button class="btn btn-secondary btn-sm" onclick="tryExport('txt')">TXT</button>
+          <button class="btn btn-ghost btn-sm" onclick="tryExport('txt')">TXT</button>
         </div>
       </div>
       <div class="form-field">
@@ -112,8 +104,9 @@ async function tryExport(fmt) {
 function updatePageSize() {
   const v = document.getElementById('page-size').value;
   const el = document.getElementById('resume-preview');
-  if (v === 'a4') { el.style.maxWidth = '794px'; el.style.minHeight = '1123px'; }
-  else { el.style.maxWidth = '850px'; el.style.minHeight = '1100px'; }
+  // Adjust aspect ratio for A4 vs Letter — let CSS aspect-ratio handle height
+  if (v === 'a4') { el.style.maxWidth = '794px'; el.style.aspectRatio = '1 / 1.414'; }
+  else { el.style.maxWidth = '850px'; el.style.aspectRatio = '8.5 / 11'; }
 }
 
 function exportHTML() {

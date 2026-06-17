@@ -18,6 +18,18 @@
   --gradient-soft: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
 }
 
+/* ===== Light mode ===== */
+body.light-mode {
+  --bg-0: #f0f2f8;
+  --bg-1: #ffffff;
+  --bg-2: #e8eaf2;
+  --bg-3: #d8dce8;
+  --border: #c8cde0;
+  --text: #1a1f3c;
+  --muted: #5a6080;
+  --gradient-soft: linear-gradient(135deg, #e0e4f8 0%, #c8d0f0 100%);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -373,3 +385,25 @@ input, textarea, select { font-family: inherit; }
   display: flex; justify-content: flex-end; gap: 8px;
 }
 .app-dialog-actions .btn { min-width: 80px; }
+
+/* ===== Export page ===== */
+.export-preview-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 32px rgba(0,0,0,.35);
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+  max-width: 850px;
+  color: #111;
+}
+
+/* ===== Light mode toggle ===== */
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 8px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--muted); font-size: 13px; cursor: pointer;
+  transition: all .15s;
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }

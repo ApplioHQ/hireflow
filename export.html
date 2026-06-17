@@ -26,6 +26,7 @@
   <div class="topbar-right">
     <span id="download-pill"></span>
     <span id="plan-pill"></span>
+    <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">☀️ Light</button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
@@ -124,6 +125,21 @@ function download(blob, name) {
   URL.revokeObjectURL(url);
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+function toggleTheme() {
+  const light = document.body.classList.toggle('light-mode');
+  localStorage.setItem('hf_theme', light ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = light ? '🌙 Dark' : '☀️ Light';
+}
+
+// Restore saved theme preference
+if (localStorage.getItem('hf_theme') === 'light') {
+  document.body.classList.add('light-mode');
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '🌙 Dark';
+  });
+}
 
 function updatePills() {
   const planPill = document.getElementById('plan-pill');

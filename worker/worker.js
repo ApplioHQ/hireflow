@@ -11,11 +11,8 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
-// Smaller, faster: free-form writing tasks
-const FAST_MODEL = "@cf/meta/llama-3.2-3b-instruct";
-// Larger, better at structured output + reasoning: parse, analyze, tailor, ats
-const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
-
+const FAST_MODEL = "@cf/moonshotai/kimi-k2.6";
+const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
 

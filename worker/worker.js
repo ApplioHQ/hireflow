@@ -11,8 +11,11 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
+// Heaviest processing & coding cost (1T Parameters, 262k context window)
 const FAST_MODEL = "@cf/moonshotai/kimi-k2.6";
+// Heaviest reasoning cost (DeepSeek-R1 32B Distill, massive neuron burner)
 const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
+
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
 
@@ -642,7 +645,18 @@ async function runAI(env, system, user, opts = {}) {
         max_tokens: opts.max_tokens || 800,
         temperature: opts.temperature ?? 0.3,
       });
-      const out = (res.response || "").trim();
+      // Different models return different shapes — normalize to a string.
+      let out = res?.response;
+      if (typeof out !== "string") {
+        out =
+          (typeof res?.response?.response === "string" && res.response.response) ||
+          (typeof res?.response?.content === "string" && res.response.content) ||
+          (typeof res?.choices?.[0]?.message?.content === "string" && res.choices[0].message.content) ||
+          (typeof res?.result?.response === "string" && res.result.response) ||
+          "";
+      }
+      // DeepSeek-R1 and other reasoning models emit <think>…</think> blocks — strip them.
+      out = String(out || "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
       if (out) return out;
       lastErr = new Error(`${model} returned empty response`);
     } catch (e) {

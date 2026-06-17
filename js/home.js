@@ -47,15 +47,15 @@ function setPriceMode(mode) {
 // ----- Testimonial carousel -----
 const TESTIMONIALS = [
   { quote: '"I was skeptical about AI resumes, but the ATS score went from 42 to 96. Got my dream job within a month."',
-    name: 'Marcus T.', role: 'Product Manager at Stripe', pill: 'ATS: 42 → 96', avatar: '👨‍💼' },
+    name: 'Marcus T.', role: 'Product Manager at Stripe', pill: 'ATS: 42 → 96', color: '#6366f1' },
   { quote: '"Applio rewrote my bullets with actual numbers I forgot to mention. Recruiter called within a week."',
-    name: 'Priya S.', role: 'Senior Designer at Figma', pill: 'ATS: 58 → 92', avatar: '👩‍🎨' },
+    name: 'Priya S.', role: 'Senior Designer at Figma', pill: 'ATS: 58 → 92', color: '#ec4899' },
   { quote: '"The interview prep generated questions that came up almost verbatim. I felt prepared, not panicked."',
-    name: 'James K.', role: 'Software Engineer at Airbnb', pill: 'Offers: 3 in 6 weeks', avatar: '👨‍💻' },
+    name: 'James K.', role: 'Software Engineer at Airbnb', pill: 'Offers: 3 in 6 weeks', color: '#10b981' },
   { quote: '"Switched from a $400 resume writer to Applio. Better output, faster, and a fraction of the price."',
-    name: 'Aisha R.', role: 'Marketing Lead at Notion', pill: 'ATS: 64 → 98', avatar: '👩‍💼' },
+    name: 'Aisha R.', role: 'Marketing Lead at Notion', pill: 'ATS: 64 → 98', color: '#f59e0b' },
   { quote: '"As a new grad, I had no idea what ATS even meant. Applio scored my resume and told me exactly what to fix."',
-    name: 'Dev P.', role: 'New Grad → Data Analyst', pill: 'ATS: 31 → 89', avatar: '🧑‍🎓' },
+    name: 'Dev P.', role: 'New Grad → Data Analyst', pill: 'ATS: 31 → 89', color: '#3b82f6' },
 ];
 let tIdx = 0;
 function renderTestimonial() {
@@ -64,7 +64,17 @@ function renderTestimonial() {
   document.getElementById('t-name').textContent = t.name;
   document.getElementById('t-role').textContent = t.role;
   document.getElementById('t-pill').textContent = t.pill;
-  document.getElementById('t-avatar').textContent = t.avatar;
+  // Initials avatar
+  const initials = t.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+  const av = document.getElementById('t-avatar');
+  av.textContent = initials;
+  av.style.background = t.color;
+  av.style.color = '#fff';
+  av.style.fontWeight = '700';
+  av.style.display = 'flex';
+  av.style.alignItems = 'center';
+  av.style.justifyContent = 'center';
+  av.style.borderRadius = '50%';
   const dots = document.getElementById('t-dots');
   dots.innerHTML = TESTIMONIALS.map((_, i) =>
     `<span class="${i === tIdx ? 'active' : ''}" onclick="goTestimonial(${i})"></span>`
@@ -152,3 +162,27 @@ const countObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 document.querySelectorAll('.stat-num[data-count]').forEach(el => countObserver.observe(el));
+
+// ----- Live activity ticker -----
+const TICKER_MSGS = [
+  'Sarah from Austin just built her resume in 28 seconds 🎉',
+  'Alex got an interview at Google after using Applio 🚀',
+  'Priya\'s ATS score jumped from 54 → 91 just now ✨',
+  'James landed 3 offers in 6 weeks using AI tailoring 🏆',
+  '127 resumes built in the last hour ⚡',
+  'Maria just downloaded her polished PDF in 1 click 📄',
+  'David\'s resume is now optimized for Product Manager roles 🎯',
+  'Aisha went from 0 callbacks to 4 interviews this week 🙌',
+];
+let tickerIdx = 0;
+const tickerEl = document.getElementById('ticker-msg');
+if (tickerEl) {
+  setInterval(() => {
+    tickerIdx = (tickerIdx + 1) % TICKER_MSGS.length;
+    tickerEl.style.opacity = '0';
+    setTimeout(() => {
+      tickerEl.textContent = TICKER_MSGS[tickerIdx];
+      tickerEl.style.opacity = '1';
+    }, 300);
+  }, 5000);
+}

@@ -779,22 +779,41 @@ function bindAutoSave() {
   });
 }
 
-function save() { localStorage.setItem('hf_resume', JSON.stringify(resume)); }
+let _saveStatusTimer = null;
+function _setSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+  clearTimeout(_saveStatusTimer);
+  if (color) _saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+function save() {
+  localStorage.setItem('hf_resume', JSON.stringify(resume));
+  _setSaveStatus('● Unsaved changes', 'var(--warning)');
+}
 
 async function saveResume() {
-  save();
   resume.versions = resume.versions || [];
-  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(resume)) });
+  // Snapshot excludes versions array to prevent recursive nesting
+  const { versions: _v, ...snap } = resume;
+  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(snap)) });
   resume.versions = resume.versions.slice(0, 10);
   save();
+  let cloudOk = false;
   try {
-    await fetch(API + '/resume', {
+    const r = await fetch(API + '/resume', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
       body: JSON.stringify({ resume })
     });
-    toast('Saved to cloud');
-  } catch (e) { toast('Saved locally', true); }
+    cloudOk = r.ok;
+  } catch (_) {}
+  _setSaveStatus('✓ Saved', 'var(--success)');
+  // Open version history so users can see saved versions and restore any of them
+  openModal('version');
+  toast(cloudOk ? 'Saved to cloud ✓' : 'Saved locally ✓', { type: 'success' });
 }
 
 function signOut() {
@@ -896,16 +915,41 @@ function openModal(id) {
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
+function _relTime(ts) {
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+  if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 function renderVersions() {
-  const list = (resume.versions || []).map((v,i)=> `
-    <div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg-2); border-radius:8px; align-items:center;">
-      <div>
-        <strong>${v.label}</strong>
-        <div style="color:var(--muted); font-size:12px;">${new Date(v.ts).toLocaleString()}</div>
+  const versions = resume.versions || [];
+  if (!versions.length) {
+    document.getElementById('version-list').innerHTML =
+      `<div style="text-align:center;padding:32px 16px;color:var(--muted);">
+        <div style="font-size:32px;margin-bottom:8px;">📋</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">No versions yet</div>
+        <div style="font-size:12px;">Click <strong>Save</strong> to create your first snapshot.</div>
+       </div>`;
+    return;
+  }
+  const list = versions.map((v, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);${i===0?'border-color:var(--accent);':''}" >
+      <div style="min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:13px;font-weight:600;">${esc(v.label)}</span>
+          ${i === 0 ? '<span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px;font-weight:600;">LATEST</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+          ${new Date(v.ts).toLocaleString()} &nbsp;·&nbsp; ${_relTime(v.ts)}
+        </div>
       </div>
-      <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})">Restore</button>
+      <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
+        ${i === 0 ? 'Current' : 'Restore'}
+      </button>
     </div>`).join('');
-  document.getElementById('version-list').innerHTML = list || '<p style="color:var(--muted);">No versions yet.</p>';
+  document.getElementById('version-list').innerHTML = list;
 }
 async function restoreVersion(i) {
   const ok = await confirmDialog({

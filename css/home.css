@@ -354,3 +354,52 @@
   .home-nav { padding: 14px 20px; }
   .section-light, .final-cta { padding: 64px 20px; }
 }
+
+/* ===== Hero: used-by company pills ===== */
+.hero-used-by { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.used-by-label { font-size: 12px; color: var(--muted, rgba(255,255,255,.45)); white-space: nowrap; }
+.company-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.company-pills span {
+  font-size: 11px; font-weight: 600; padding: 3px 10px;
+  border: 1px solid rgba(255,255,255,.15); border-radius: 20px;
+  color: rgba(255,255,255,.6); letter-spacing: .3px;
+  background: rgba(255,255,255,.04);
+}
+
+/* ===== Live activity ticker ===== */
+.activity-ticker {
+  background: rgba(99,102,241,.08); border-bottom: 1px solid rgba(99,102,241,.15);
+  padding: 9px 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,.75);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.ticker-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+  flex-shrink: 0; animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+#ticker-msg { transition: opacity .3s; }
+
+/* ===== Testimonial: verified badge ===== */
+.t-verified {
+  margin-left: auto; font-size: 11px; font-weight: 600;
+  color: #22c55e; background: rgba(34,197,94,.1);
+  border: 1px solid rgba(34,197,94,.25); border-radius: 20px;
+  padding: 3px 10px; white-space: nowrap;
+}
+.t-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  font-size: 15px; flex-shrink: 0;
+}
+
+/* ===== Pricing: trust badges row ===== */
+.trust-badges {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
+  margin-top: 28px;
+}
+.trust-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: #5a6080;
+  padding: 6px 14px; border: 1px solid #d0d4e8; border-radius: 20px;
+  background: #f4f5fb;
+}
+.trust-badge svg { flex-shrink: 0; opacity: .6; }

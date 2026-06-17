@@ -263,6 +263,23 @@ if (tickerEl) {
 // ANIMATIONS & INTERACTIONS
 // =========================================================
 
+// ── Hero: cursor-tracking spotlight glow ──
+(function () {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  hero.addEventListener('mousemove', function (e) {
+    const r = hero.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+    const y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+    hero.style.setProperty('--mx', x + '%');
+    hero.style.setProperty('--my', y + '%');
+  });
+  hero.addEventListener('mouseleave', function () {
+    hero.style.setProperty('--mx', '50%');
+    hero.style.setProperty('--my', '40%');
+  });
+})();
+
 // ── Hero canvas particle network ──
 (function () {
   const hero = document.querySelector('.hero');

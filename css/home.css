@@ -757,6 +757,95 @@
 /* ── Problem card: 3D tilt (same as feat-cards) ── */
 .problem-card { cursor: default; }
 
+/* ── FAQ: remove duplicate ▾ arrow (faq-icon span handles it now) ── */
+.faq summary::after { content: none !important; display: none !important; }
+
+/* ── Hero revamp: aurora glow blob behind resume ── */
+.hero-visual-glow {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-38%, -50%);
+  width: 520px; height: 520px;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(99,102,241,.38) 0%, transparent 55%),
+    radial-gradient(circle at 72% 62%, rgba(139,92,246,.28) 0%, transparent 50%),
+    radial-gradient(circle at 55% 20%, rgba(59,130,246,.18) 0%, transparent 45%);
+  filter: blur(48px); border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  animation: glow-drift 7s ease-in-out infinite;
+}
+@keyframes glow-drift {
+  0%,100% { transform: translate(-38%,-50%) scale(1); opacity: .85; }
+  33%      { transform: translate(-36%,-52%) scale(1.06); opacity: 1; }
+  66%      { transform: translate(-41%,-47%) scale(.96); opacity: .9; }
+}
+
+/* ── Hero: cursor-tracking spotlight ── */
+.hero { --mx: 50%; --my: 40%; }
+.hero-bg::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(139,92,246,.13) 0%, transparent 38%);
+  pointer-events: none;
+  transition: background .08s linear;
+}
+
+/* ── Mock resume: premium shadow, shimmer, hover overlay ── */
+.mock-resume {
+  box-shadow: 0 40px 100px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.08), 0 0 60px rgba(99,102,241,.12) !important;
+}
+.mock-header { position: relative; overflow: hidden; }
+.mock-header::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: skewX(-20deg);
+  animation: resume-shimmer 5s ease-in-out infinite 1.5s;
+}
+@keyframes resume-shimmer { 0% { left: -100%; } 35%,100% { left: 160%; } }
+
+/* Mock resume: hover ATS-pass overlay */
+.mock-resume { overflow: hidden; }
+.mock-resume-stamp {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  background: rgba(79,70,229,.88); backdrop-filter: blur(4px);
+  color: #fff; border-radius: 12px; z-index: 10;
+  opacity: 0; transition: opacity .28s ease; pointer-events: none;
+}
+.mock-resume:hover .mock-resume-stamp { opacity: 1; }
+.mock-resume-stamp-icon { font-size: 44px; line-height: 1; }
+.mock-resume-stamp-text { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+.mock-resume-stamp-sub  { font-size: 12px; opacity: .8; }
+
+/* ── Hero badge: animated glow pulse ── */
+.hero-badge { animation: badge-glow 3.5s ease-in-out infinite; }
+@keyframes badge-glow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+  50%      { box-shadow: 0 0 22px rgba(99,102,241,.3); }
+}
+
+/* ── ATS ring: green glow on fill ── */
+#ats-ring-fill { filter: drop-shadow(0 0 7px rgba(34,197,94,.7)); }
+
+/* ── Floating cards: entrance + colored accent ── */
+.float-ats {
+  box-shadow: 0 20px 50px rgba(0,0,0,.45), 0 0 0 1px rgba(34,197,94,.15), 0 0 30px rgba(34,197,94,.1) !important;
+  animation: float-enter-r .65s cubic-bezier(.2,0,.2,1) .3s both, float 4s ease-in-out 1s infinite;
+}
+.float-keywords {
+  box-shadow: 0 20px 50px rgba(0,0,0,.45), 0 0 0 1px rgba(99,102,241,.15) !important;
+  animation: float-enter-l .65s cubic-bezier(.2,0,.2,1) .5s both, float 4s ease-in-out 1s infinite reverse;
+}
+@keyframes float-enter-r { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+@keyframes float-enter-l { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
+
+/* ── Hero CTA: glowing button ── */
+.hero-ctas .btn-primary {
+  box-shadow: 0 8px 28px rgba(99,102,241,.55);
+}
+.hero-ctas .btn-primary:hover {
+  box-shadow: 0 14px 40px rgba(99,102,241,.7);
+  transform: translateY(-2px);
+}
+
 /* ── Nav mobile overlay (click-outside to close) ── */
 .nav-mobile-overlay {
   display: none; position: fixed; inset: 0; z-index: 38;

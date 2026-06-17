@@ -153,7 +153,13 @@ const SECTIONS = {
 };
 
 function renderMain() {
-  document.getElementById('main').innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
+  const mainEl = document.getElementById('main');
+  mainEl.innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
+  // Trigger section fade-in
+  const card = mainEl.firstElementChild;
+  if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
+  // Close mobile drawers when navigating
+  _closeMobileDrawers();
   bindAutoSave();
   renderPreview();
   // Bind tag input if on skills section
@@ -1083,6 +1089,29 @@ function _bindDragReorder() {
       save(); renderMain();
     });
   });
+}
+
+// ============ Mobile drawer helpers ============
+function _toggleSidebar() {
+  const sb = document.getElementById('app-sidebar');
+  const ov = document.getElementById('mob-overlay');
+  const rp = document.querySelector('.right-panel');
+  const isOpen = sb.classList.toggle('mob-open');
+  if (isOpen) { rp && rp.classList.remove('mob-open'); }
+  ov.classList.toggle('open', isOpen);
+}
+function _togglePreview() {
+  const rp = document.querySelector('.right-panel');
+  const ov = document.getElementById('mob-overlay');
+  const sb = document.getElementById('app-sidebar');
+  const isOpen = rp.classList.toggle('mob-open');
+  if (isOpen) { sb && sb.classList.remove('mob-open'); }
+  ov.classList.toggle('open', isOpen);
+}
+function _closeMobileDrawers() {
+  document.getElementById('app-sidebar')?.classList.remove('mob-open');
+  document.querySelector('.right-panel')?.classList.remove('mob-open');
+  document.getElementById('mob-overlay')?.classList.remove('open');
 }
 
 // ============ Boot ============

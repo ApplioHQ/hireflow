@@ -1,25 +1,64 @@
 // ============ Applio home page interactivity ============
 
-// ----- Rotating hero word -----
+// ----- Typewriter hero word -----
 const ROTATOR_WORDS = ['Interviews', 'Offers', 'Callbacks', 'Opportunities'];
-let rotIdx = 0;
 const rotEl = document.getElementById('hero-rotator');
-function rotateWord() {
+(function typewriter() {
   if (!rotEl) return;
-  rotIdx = (rotIdx + 1) % ROTATOR_WORDS.length;
-  rotEl.style.opacity = '0';
-  rotEl.style.transform = 'translateY(-12px)';
-  setTimeout(() => {
-    rotEl.textContent = ROTATOR_WORDS[rotIdx];
-    rotEl.style.transition = 'opacity .35s, transform .35s';
-    rotEl.style.opacity = '1';
-    rotEl.style.transform = 'translateY(0)';
-  }, 300);
-}
-if (rotEl) {
-  rotEl.style.transition = 'opacity .35s, transform .35s';
-  setInterval(rotateWord, 2400);
-}
+  let wordIdx = 0, charIdx = ROTATOR_WORDS[0].length, erasing = false;
+  rotEl.textContent = ROTATOR_WORDS[0];
+  function tick() {
+    const word = ROTATOR_WORDS[wordIdx];
+    if (!erasing) {
+      // Hold then start erasing
+      erasing = true;
+      setTimeout(tick, 1800);
+      return;
+    }
+    // Erasing
+    charIdx--;
+    rotEl.textContent = word.slice(0, charIdx);
+    if (charIdx <= 0) {
+      erasing = false;
+      wordIdx = (wordIdx + 1) % ROTATOR_WORDS.length;
+      charIdx = 0;
+      setTimeout(tick, 250);
+      return;
+    }
+    setTimeout(tick, 38);
+    return;
+    // (typing branch — reached when charIdx < word.length)
+  }
+  // Also need typing branch — restructure:
+  rotEl.textContent = '';
+  charIdx = 0; erasing = false; wordIdx = 0;
+  function step() {
+    const word = ROTATOR_WORDS[wordIdx];
+    if (!erasing) {
+      // Typing
+      charIdx++;
+      rotEl.textContent = word.slice(0, charIdx);
+      if (charIdx >= word.length) {
+        erasing = true;
+        setTimeout(step, 1800);
+      } else {
+        setTimeout(step, 65);
+      }
+    } else {
+      // Erasing
+      charIdx--;
+      rotEl.textContent = word.slice(0, charIdx);
+      if (charIdx <= 0) {
+        erasing = false;
+        wordIdx = (wordIdx + 1) % ROTATOR_WORDS.length;
+        setTimeout(step, 260);
+      } else {
+        setTimeout(step, 38);
+      }
+    }
+  }
+  setTimeout(step, 600);
+})();
 
 // ----- Pricing toggle (Monthly / Lifetime) -----
 function setPriceMode(mode) {
@@ -208,3 +247,120 @@ if (tickerEl) {
     }, 300);
   }, 5000);
 }
+
+// =========================================================
+// ANIMATIONS & INTERACTIONS
+// =========================================================
+
+// ── Hero canvas particle network ──
+(function () {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const canvas = document.createElement('canvas');
+  canvas.id = 'hero-particles';
+  hero.prepend(canvas);
+  const ctx = canvas.getContext('2d');
+  let W, H, dots;
+  function resize() { W = canvas.width = hero.offsetWidth; H = canvas.height = hero.offsetHeight; }
+  function mkDot() {
+    return { x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.4 + .4,
+             vx: (Math.random() - .5) * .28, vy: (Math.random() - .5) * .28,
+             a: Math.random() * .55 + .15 };
+  }
+  function init() { resize(); dots = Array.from({ length: 55 }, mkDot); }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < dots.length; i++) {
+      const d = dots[i];
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0) d.x = W; if (d.x > W) d.x = 0;
+      if (d.y < 0) d.y = H; if (d.y > H) d.y = 0;
+      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(139,92,246,${d.a})`; ctx.fill();
+      for (let j = i + 1; j < dots.length; j++) {
+        const b = dots[j];
+        const dist = Math.hypot(d.x - b.x, d.y - b.y);
+        if (dist < 110) {
+          ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(99,102,241,${.14 * (1 - dist / 110)})`;
+          ctx.lineWidth = .6; ctx.stroke();
+        }
+      }
+    }
+    setTimeout(draw, 30);
+  }
+  init(); draw();
+  window.addEventListener('resize', init, { passive: true });
+})();
+
+// ── Logo wall: duplicate chips for seamless marquee ──
+(function () {
+  const wall = document.querySelector('.logo-wall');
+  if (!wall) return;
+  const chips = Array.from(wall.querySelectorAll('.logo-chip'));
+  const track1 = document.createElement('div'); track1.className = 'logo-track';
+  const track2 = document.createElement('div'); track2.className = 'logo-track'; track2.setAttribute('aria-hidden', 'true');
+  chips.forEach(c => { track1.appendChild(c); track2.appendChild(c.cloneNode(true)); });
+  wall.innerHTML = ''; wall.appendChild(track1); wall.appendChild(track2);
+})();
+
+// ── Parallax: hero floating cards + mock resume on scroll ──
+(function () {
+  const ats  = document.querySelector('.float-ats');
+  const kw   = document.querySelector('.float-keywords');
+  const mock = document.querySelector('.mock-resume');
+  if (!ats && !kw) return;
+  window.addEventListener('scroll', function () {
+    const y = window.scrollY;
+    if (ats)  ats.style.transform  = `translateY(${-y * .055}px)`;
+    if (kw)   kw.style.transform   = `translateY(${y * .038}px)`;
+    if (mock) mock.style.transform = `rotate(2deg) translateY(${-y * .025}px)`;
+  }, { passive: true });
+})();
+
+// ── Feature card 3D tilt on mousemove ──
+document.querySelectorAll('.feat-card').forEach(function (card) {
+  card.addEventListener('mousemove', function (e) {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - .5;
+    const y = (e.clientY - r.top)  / r.height - .5;
+    card.style.transform = `perspective(700px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateY(-3px)`;
+    card.style.transition = 'transform .05s ease';
+  });
+  card.addEventListener('mouseleave', function () {
+    card.style.transform = '';
+    card.style.transition = 'all .25s ease';
+  });
+});
+
+// ── Problem stat: animated fill bar injected + triggered on scroll ──
+(function () {
+  const stat = document.querySelector('.problem-stat');
+  if (!stat) return;
+  const bar  = document.createElement('div'); bar.className = 'problem-bar';
+  const fill = document.createElement('div'); fill.className = 'problem-bar-fill';
+  bar.appendChild(fill); stat.after(bar);
+  new IntersectionObserver(function (entries, obs) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { fill.classList.add('animated'); obs.unobserve(e.target); }
+    });
+  }, { threshold: .5 }).observe(stat);
+})();
+
+// ── Stagger fade-in delay for feature cards ──
+document.querySelectorAll('.feature-grid .feat-card').forEach(function (card, i) {
+  card.style.transitionDelay = (i * 0.07) + 's';
+  card.addEventListener('mouseleave', function () {
+    // Reset delay so hover transitions feel instant
+    card.style.transitionDelay = '0s';
+  });
+});
+// Re-add stagger after first fade completes so it's only for the scroll-in
+const featObs = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) {
+    if (e.isIntersecting) { e.target.classList.add('fade-in-up'); featObs.unobserve(e.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.feature-grid .feat-card').forEach(function (c) {
+  c.classList.add('fade-ready'); featObs.observe(c);
+});

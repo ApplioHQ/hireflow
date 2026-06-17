@@ -626,3 +626,107 @@
   .final-avatars { display: none; }
   .final-social-proof { flex-wrap: wrap; }
 }
+
+/* =========================================================
+   ANIMATIONS, INTERACTIONS & COLOR FIXES
+   ========================================================= */
+
+/* ── CRITICAL: section-alt has light bg but inherits dark-mode text ── */
+.section-alt { color: #1e293b; }
+.section-alt .section-title { color: #111827; }
+.section-alt .section-sub   { color: #6b7280; }
+.section-alt .kicker        { color: #6b7280; background: #e2e8f0; }
+.section-alt .step h3       { color: #111827; }
+.section-alt .step p        { color: #6b7280; }
+.section-alt .step-mock.terminal { background: #1e293b; }
+.section-alt .step-num      { color: #6366f1; }
+.section-alt .ba-arrow-wrap { color: #6366f1; }
+
+/* ── Nav link animated underline ── */
+.home-nav-links a { position: relative; }
+.home-nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 1.5px; background: rgba(255,255,255,.7);
+  transition: width .25s ease; border-radius: 1px;
+}
+.home-nav-links a:hover::after,
+.home-nav-links a.nav-active::after { width: 100%; }
+
+/* ── CTA primary button: sweep shine on hover ── */
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  transform: skewX(-18deg); transition: left .55s ease; pointer-events: none;
+}
+.btn-primary:hover::after { left: 150%; }
+
+/* ── Feature icon glow + scale on hover ── */
+.feat-icon { transition: box-shadow .2s, transform .2s; }
+.feat-card:hover .feat-icon    { transform: scale(1.1); }
+.feat-card:hover .feat-orange  { box-shadow: 0 6px 20px rgba(249,115,22,.5); }
+.feat-card:hover .feat-green   { box-shadow: 0 6px 20px rgba(16,185,129,.5); }
+.feat-card:hover .feat-purple  { box-shadow: 0 6px 20px rgba(139,92,246,.5); }
+.feat-card:hover .feat-blue    { box-shadow: 0 6px 20px rgba(59,130,246,.5); }
+.feat-card:hover .feat-pink    { box-shadow: 0 6px 20px rgba(236,72,153,.5); }
+.feat-card:hover .feat-cyan    { box-shadow: 0 6px 20px rgba(6,182,212,.5); }
+.feat-card:hover .feat-violet  { box-shadow: 0 6px 20px rgba(99,102,241,.5); }
+.feat-card:hover .feat-emerald { box-shadow: 0 6px 20px rgba(20,184,166,.5); }
+
+/* ── Pricing featured card: animated pulse border ── */
+@keyframes pulse-border {
+  0%,100% { box-shadow: 0 20px 50px rgba(99,102,241,.2), 0 0 0 2px #4f46e5; }
+  50%      { box-shadow: 0 28px 60px rgba(139,92,246,.35), 0 0 0 2.5px #8b5cf6; }
+}
+.price-card.featured { animation: pulse-border 3s ease-in-out infinite; }
+
+/* ── Testimonial: large decorative quote mark ── */
+.tcard { position: relative; overflow: hidden; }
+.tcard::before {
+  content: '\201C'; position: absolute; top: -4px; right: 16px;
+  font-size: 90px; font-family: Georgia, serif; line-height: 1;
+  color: rgba(99,102,241,.07); pointer-events: none; user-select: none;
+}
+
+/* ── Logo marquee ── */
+.logo-wall { overflow: hidden; flex-wrap: nowrap; position: relative; }
+.logo-wall::before, .logo-wall::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 1; pointer-events: none;
+}
+.logo-wall::before { left: 0;  background: linear-gradient(90deg, #f7f8fc, transparent); }
+.logo-wall::after  { right: 0; background: linear-gradient(-90deg, #f7f8fc, transparent); }
+.logo-track {
+  display: flex; gap: 12px; flex-shrink: 0;
+  animation: marquee 28s linear infinite;
+}
+.logo-track:hover { animation-play-state: paused; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── Hero particles canvas ── */
+#hero-particles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hero-inner, .scroll-chevron, .hero-bg { z-index: 1; }
+.hero-bg { z-index: 0; }
+.hero-inner { z-index: 2; }
+.scroll-chevron { z-index: 2; }
+
+/* ── Problem stat: animated fill bar ── */
+.problem-bar { height: 5px; background: #fecaca; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.problem-bar-fill {
+  height: 100%; width: 0; border-radius: 3px;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  transition: width 1.4s cubic-bezier(.2,0,.2,1);
+}
+.problem-bar-fill.animated { width: 70%; }
+
+/* ── Step connector: fade in when step scrolls into view ── */
+.step-line { opacity: 0; transition: opacity .7s ease .4s; }
+.step.fade-in-up .step-line { opacity: 1; }
+
+/* ── Hero typewriter cursor on rotator ── */
+.rotator {
+  border-right: 3px solid rgba(167,139,250,.85);
+  padding-right: 5px;
+  animation: caret-blink 1.1s steps(1) infinite;
+}
+@keyframes caret-blink { 0%,100% { border-color: rgba(167,139,250,.85); } 50% { border-color: transparent; } }

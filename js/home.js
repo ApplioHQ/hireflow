@@ -103,3 +103,52 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
 });
+
+// ----- Nav: solidify background on scroll -----
+const homeNav = document.querySelector('.home-nav');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY > 60;
+  homeNav && homeNav.classList.toggle('home-nav-solid', scrolled);
+  const btt = document.getElementById('back-to-top');
+  if (btt) btt.classList.toggle('visible', window.scrollY > 500);
+}, { passive: true });
+
+// ----- Scroll-triggered fade-in animations -----
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('fade-in-up');
+      fadeObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll(
+  '.problem-card, .feat-card, .step, .trust-card, .price-card, .faq details, .sol-item'
+).forEach(el => {
+  el.classList.add('fade-ready');
+  fadeObserver.observe(el);
+});
+
+// ----- Animated stat counters -----
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = parseInt(el.dataset.count, 10);
+    const suffix = el.dataset.suffix || '';
+    let start = 0;
+    const duration = 1200;
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(eased * target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    countObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-num[data-count]').forEach(el => countObserver.observe(el));

@@ -820,9 +820,9 @@ async function ai(endpoint, body) {
 }
 
 async function aiImprove(target) {
+  aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
   try {
     const text = target==='summary' ? resume.personal.summary : JSON.stringify(resume[target]||{});
-    toast('AI is rewriting…', { type: 'info', duration: 1800 });
     const r = await ai('improve', { target, text });
     if (target==='summary') {
       resume.personal.summary = r.text;
@@ -832,11 +832,12 @@ async function aiImprove(target) {
       await notify({ title: 'AI suggestion', body: r.text, copyable: true });
     }
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 async function aiSuggestSkills() {
+  aiLoading('Generating skills from your experience…');
   try {
-    toast('Generating skills…', { type: 'info', duration: 1800 });
     const r = await ai('skills', { experience: resume.experience });
     const items = (r.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
     if (items.length) {
@@ -847,23 +848,25 @@ async function aiSuggestSkills() {
       toast('No skills suggested', { type: 'warn' });
     }
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 async function aiTailor() {
+  aiLoading('Tailoring your resume to the job description…');
   try {
-    toast('Tailoring resume…', { type: 'info', duration: 1800 });
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
     resume.tailor.tailoredSummary = r.text;
     if (r.summary) resume.personal.summary = r.summary;
     save(); renderMain();
     toast('Resume tailored', { type: 'success' });
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 async function aiATS() {
   const jd = document.getElementById('ats-jd').value;
+  aiLoading('Scoring your resume against the job description…');
   try {
-    toast('Running ATS check…', { type: 'info', duration: 1800 });
     const r = await ai('ats', { jobDescription: jd, resume });
     document.getElementById('ats-result').innerHTML = `
       <div class="section-card" style="background:var(--bg-2);">
@@ -871,17 +874,19 @@ async function aiATS() {
         <p style="white-space:pre-wrap; margin-top:8px;">${esc(r.feedback||'')}</p>
       </div>`;
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 async function aiAnalyze() {
+  aiLoading('Analyzing your resume with AI…');
   try {
-    toast('Analyzing resume…', { type: 'info', duration: 1800 });
     const r = await ai('analyze', { resume });
     document.getElementById('analysis-result').innerHTML = `
       <div class="section-card" style="background:var(--bg-2);">
         <p style="white-space:pre-wrap;">${esc(r.text||'')}</p>
       </div>`;
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 function openModal(id) {
@@ -918,17 +923,19 @@ async function restoreVersion(i) {
 async function importResume() {
   const text = document.getElementById('import-text').value;
   if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
+  closeModal('import');
+  aiLoading('Parsing your resume with AI…');
   try {
-    toast('AI is parsing your resume…', { type: 'info', duration: 2200 });
     const r = await ai('parse', { text });
     if (r.resume) {
       resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
-      save(); closeModal('import'); renderMain();
+      save(); renderMain();
       toast('Resume imported', { type: 'success' });
     } else {
       toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
 }
 
 

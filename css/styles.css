@@ -19,7 +19,7 @@
 }
 
 /* ===== Light mode ===== */
-body.light-mode {
+html.light-mode {
   --bg-0: #f0f2f8;
   --bg-1: #ffffff;
   --bg-2: #e8eaf2;
@@ -502,3 +502,12 @@ input, textarea, select { font-family: inherit; }
   transition: all .15s;
 }
 .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+/* Compact icon-only theme button for the editor topbar */
+.theme-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.theme-icon-btn:hover { color: var(--text); border-color: var(--accent); }

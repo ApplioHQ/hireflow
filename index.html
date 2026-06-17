@@ -7,7 +7,6 @@
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/home.css">
-<script src="js/theme.js"></script>
 </head>
 <body class="home-body">
 
@@ -20,7 +19,6 @@
     <a href="#how">How It Works</a>
     <a href="#faq">FAQ</a>
   </div>
-  <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
   <a href="login.html?mode=signup" class="btn btn-primary btn-sm">Try It Free</a>
 </nav>
 
@@ -40,6 +38,7 @@
         <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Get Started Free →</a>
         <a href="#how" class="btn btn-outline btn-lg">See How It Works</a>
       </div>
+      <p class="hero-trust-line">✓ No credit card &nbsp;·&nbsp; ✓ Free forever plan &nbsp;·&nbsp; ✓ 10k+ resumes built</p>
     </div>
 
     <div class="hero-right">
@@ -274,9 +273,9 @@
     </div>
 
     <div class="stats-row">
-      <div class="stat"><div class="stat-num">30s</div><div class="stat-label">Average build time</div></div>
-      <div class="stat"><div class="stat-num">95%</div><div class="stat-label">ATS pass rate</div></div>
-      <div class="stat"><div class="stat-num">10k+</div><div class="stat-label">Resumes created</div></div>
+      <div class="stat"><div class="stat-num" data-count="30" data-suffix="s">30s</div><div class="stat-label">Average build time</div></div>
+      <div class="stat"><div class="stat-num" data-count="95" data-suffix="%">95%</div><div class="stat-label">ATS pass rate</div></div>
+      <div class="stat"><div class="stat-num" data-count="10" data-suffix="k+">10k+</div><div class="stat-label">Resumes created</div></div>
     </div>
   </div>
 </section>
@@ -407,6 +406,8 @@
     <div class="footer-bot">© 2026 Applio · All rights reserved</div>
   </div>
 </footer>
+
+<button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
 
 <script src="js/config.js"></script>
 <script src="js/plan.js"></script>

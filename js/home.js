@@ -75,15 +75,20 @@ function setPriceMode(mode) {
     if (period) period.textContent = ' once';
     if (sub)    sub.textContent    = 'Pay once. Use forever.';
     if (cta)    cta.textContent    = 'Buy Lifetime';
-    if (savings) savings.textContent = '🎉 Save $79.89 vs. 12 months of monthly';
+    if (savings) { savings.textContent = '🎉 Save $79.89 vs. 12 months of monthly'; savings.style.display = 'block'; }
+    const pp = document.getElementById('price-social-proof');
+    if (pp) pp.textContent = 'Most popular choice — pay once, own it forever.';
   } else {
     if (name)   name.textContent   = 'Premium';
     if (price)  price.textContent  = '$9.99';
     if (period) period.textContent = '/month';
     if (sub)    sub.textContent    = 'Best for serious job seekers';
     if (cta)    cta.textContent    = 'Go Premium';
-    if (savings) savings.textContent = '';
+    if (savings) { savings.textContent = ''; savings.style.display = 'none'; }
+    const pp = document.getElementById('price-social-proof');
+    if (pp) pp.textContent = 'Most users choose Lifetime — pay once, use forever.';
   }
+  if (window._positionPricePill) window._positionPricePill();
 }
 
 // ----- Hamburger menu toggle -----
@@ -172,7 +177,10 @@ const countObserver = new IntersectionObserver((entries) => {
     countObserver.unobserve(el);
   });
 }, { threshold: 0.5 });
-document.querySelectorAll('.stat-num[data-count]').forEach(el => countObserver.observe(el));
+document.querySelectorAll('.stat-num[data-count]').forEach(el => {
+  el.textContent = '0';
+  countObserver.observe(el);
+});
 
 // ----- ATS ring animation -----
 const atsSection = document.querySelector('.float-ats');
@@ -240,11 +248,14 @@ const tickerEl = document.getElementById('ticker-msg');
 if (tickerEl) {
   setInterval(() => {
     tickerIdx = (tickerIdx + 1) % TICKER_MSGS.length;
-    tickerEl.style.opacity = '0';
+    tickerEl.classList.add('ticker-exit');
     setTimeout(() => {
       tickerEl.textContent = TICKER_MSGS[tickerIdx];
-      tickerEl.style.opacity = '1';
-    }, 300);
+      tickerEl.classList.remove('ticker-exit');
+      tickerEl.classList.add('ticker-enter');
+      void tickerEl.offsetWidth;
+      tickerEl.classList.remove('ticker-enter');
+    }, 230);
   }, 5000);
 }
 
@@ -364,3 +375,82 @@ const featObs = new IntersectionObserver(function (entries) {
 document.querySelectorAll('.feature-grid .feat-card').forEach(function (c) {
   c.classList.add('fade-ready'); featObs.observe(c);
 });
+
+// ── Pricing: sliding pill toggle ──
+(function () {
+  const toggle = document.querySelector('.price-toggle');
+  if (!toggle) return;
+  const pill = document.createElement('div');
+  pill.id = 'price-toggle-pill';
+  toggle.prepend(pill);
+  function positionPill() {
+    const active = toggle.querySelector('.pt-btn.active');
+    if (!active) return;
+    pill.style.left = active.offsetLeft + 'px';
+    pill.style.width = active.offsetWidth + 'px';
+  }
+  window._positionPricePill = positionPill;
+  positionPill();
+  window.addEventListener('resize', positionPill, { passive: true });
+})();
+
+// ── Problem card: 3D tilt on mousemove ──
+document.querySelectorAll('.problem-card').forEach(function (card) {
+  card.addEventListener('mousemove', function (e) {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - .5;
+    const y = (e.clientY - r.top)  / r.height - .5;
+    card.style.transform = `perspective(600px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateY(-3px)`;
+    card.style.transition = 'transform .05s ease';
+  });
+  card.addEventListener('mouseleave', function () {
+    card.style.transform = '';
+    card.style.transition = 'all .25s ease';
+  });
+});
+
+// ── Before/After: reveal "After" column + ATS score count on scroll ──
+(function () {
+  const baCard = document.querySelector('.ba-card');
+  if (!baCard) return;
+  const goodPill = baCard.querySelector('.ba-score-pill.ba-score-good');
+  new IntersectionObserver(function (entries, obs) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      baCard.classList.add('ba-revealed');
+      if (goodPill) {
+        let start = null;
+        const from = 34, to = 94, dur = 900;
+        function animScore(ts) {
+          if (!start) start = ts;
+          const p = Math.min((ts - start) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          goodPill.textContent = 'ATS ' + Math.floor(from + eased * (to - from)) + ' / 100';
+          if (p < 1) requestAnimationFrame(animScore);
+          else goodPill.textContent = 'ATS 94 / 100';
+        }
+        setTimeout(function () { requestAnimationFrame(animScore); }, 300);
+      }
+      obs.unobserve(entry.target);
+    });
+  }, { threshold: 0.4 }).observe(baCard);
+})();
+
+// ── Nav: close mobile menu on outside click ──
+(function () {
+  const hamburger = document.getElementById('nav-hamburger');
+  const navLinks  = document.querySelector('.home-nav-links');
+  if (!hamburger || !navLinks) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'nav-mobile-overlay';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function () {
+    hamburger.classList.remove('open');
+    navLinks.classList.remove('nav-open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    overlay.classList.remove('active');
+  });
+  hamburger.addEventListener('click', function () {
+    overlay.classList.toggle('active', hamburger.classList.contains('open'));
+  });
+})();

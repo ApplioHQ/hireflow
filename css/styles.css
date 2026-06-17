@@ -386,6 +386,101 @@ input, textarea, select { font-family: inherit; }
 }
 .app-dialog-actions .btn { min-width: 80px; }
 
+/* ===== Sidebar indicators ===== */
+.s-check {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-left: auto; color: var(--success); width: 14px; height: 14px; flex-shrink: 0;
+}
+.s-check svg { width: 100%; height: 100%; }
+.s-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); margin-left: auto; flex-shrink: 0;
+}
+.sidebar-item.has-content .s-dot { background: var(--accent); }
+
+/* ===== Pro badge ===== */
+.pro-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  vertical-align: middle;
+}
+
+/* ===== Account modal rows ===== */
+.acct-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.acct-row:last-child { border-bottom: none; }
+.acct-label { color: var(--muted); font-size: 13px; font-weight: 500; }
+.acct-value { font-size: 14px; font-weight: 500; }
+
+/* ===== Template card footer & thumb ===== */
+.template-thumb { width: 100%; aspect-ratio: 8.5 / 11; overflow: hidden; border-radius: 4px; }
+.template-thumb svg { width: 100%; height: 100%; display: block; }
+.template-card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 4px 2px;
+}
+.t-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.t-badge { font-size: 11px; color: #a5b4fc; font-weight: 600; }
+
+/* ===== Drag-to-reorder items ===== */
+.drag-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.drag-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  border-radius: 10px; transition: opacity .15s;
+}
+.drag-item.dragging { opacity: .4; }
+.drag-item.drag-over { outline: 2px dashed var(--accent); outline-offset: 2px; border-radius: 10px; }
+.drag-handle {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; flex-shrink: 0; margin-top: 18px; cursor: grab;
+  color: var(--border); opacity: .6;
+}
+.drag-handle:hover { color: var(--muted); opacity: 1; }
+.drag-handle svg { width: 16px; height: 16px; }
+
+/* ===== Item cards (experience, education, etc.) ===== */
+.item-card {
+  flex: 1; background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+.item-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 12px; gap: 8px;
+}
+.item-card-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.item-card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.item-card-remove {
+  flex-shrink: 0; color: var(--muted); padding: 4px;
+  border-radius: 6px; transition: all .15s;
+}
+.item-card-remove:hover { color: var(--danger); background: rgba(239,68,68,.1); }
+
+/* ===== Skills tag input ===== */
+.tag-input-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  padding: 8px 10px; background: var(--bg-2);
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: text; min-height: 44px;
+  transition: border-color .15s;
+}
+.tag-input-wrap:focus-within { border-color: var(--accent); }
+.tag-input-wrap input {
+  border: none; background: transparent; color: var(--text);
+  font-size: 14px; outline: none; flex: 1; min-width: 140px; padding: 2px 0;
+}
+.tag-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; background: var(--bg-3); border: 1px solid var(--border);
+  border-radius: 6px; font-size: 13px; color: var(--text);
+}
+.tag-pill button {
+  color: var(--muted); font-size: 15px; line-height: 1;
+  padding: 0; transition: color .1s;
+}
+.tag-pill button:hover { color: var(--danger); }
+.tag-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
 /* ===== Export page ===== */
 .export-preview-container {
   background: #fff;

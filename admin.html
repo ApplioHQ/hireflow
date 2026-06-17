@@ -6,6 +6,7 @@
 <title>Admin Console — Applio</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
 <style>
   .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
   .admin-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -59,6 +60,7 @@
   </nav>
   <div class="topbar-right">
     <span id="role-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>

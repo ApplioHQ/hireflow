@@ -158,6 +158,8 @@ function renderMain() {
   renderPreview();
   // Bind tag input if on skills section
   if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
+  // Wire drag-to-reorder
+  setTimeout(_bindDragReorder, 0);
   // Update sidebar completion indicators
   document.querySelectorAll('.sidebar-item').forEach(function(el) {
     var sec = el.dataset.section;
@@ -793,15 +795,6 @@ async function saveResume() {
     });
     toast('Saved to cloud');
   } catch (e) { toast('Saved locally', true); }
-}
-
-function toast(msg, warn) {
-  const m = document.createElement('div');
-  m.className = 'toast';
-  if (warn) m.style.background = 'var(--warning)';
-  m.innerHTML = `${ICON('check')} ${msg}`;
-  document.body.appendChild(m);
-  setTimeout(()=>m.remove(), 1800);
 }
 
 function signOut() {

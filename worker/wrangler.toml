@@ -1,6 +1,7 @@
 name = "hireflow-api"
 main = "worker.js"
 compatibility_date = "2024-12-01"
+account_id = "7609a7963e8ffba9d1f54aee38cf14bf"
 
 [ai]
 binding = "AI"

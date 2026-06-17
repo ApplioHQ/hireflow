@@ -486,12 +486,77 @@ input, textarea, select { font-family: inherit; }
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 32px rgba(0,0,0,.35);
-  overflow: hidden;
+  /* Fixed letterbox: content scrolls inside, container stays letter-shaped */
   width: 100%;
-  aspect-ratio: 8.5 / 11;
   max-width: 850px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
   color: #111;
 }
+
+/* ===== AI sections: Tailor / ATS / Analysis ===== */
+.ai-card { padding: 0 !important; overflow: hidden; }
+.ai-card-header {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 20px 22px; border-bottom: 1px solid var(--border);
+}
+.ai-card-body { padding: 20px 22px; }
+.ai-card-title { font-size: 16px; font-weight: 700; margin: 0 0 3px; }
+.ai-card-sub { font-size: 12px; color: var(--muted); margin: 0; }
+
+/* Icon circle per variant */
+.ai-card-icon {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+/* Indigo — Tailor */
+.ai-card-indigo .ai-card-header { background: linear-gradient(135deg, rgba(99,102,241,.08) 0%, transparent 100%); }
+.ai-icon-indigo { background: rgba(99,102,241,.15); color: #818cf8; }
+.ai-card-indigo { border-top: 3px solid #6366f1 !important; }
+/* Emerald — ATS */
+.ai-card-emerald .ai-card-header { background: linear-gradient(135deg, rgba(16,185,129,.08) 0%, transparent 100%); }
+.ai-icon-emerald { background: rgba(16,185,129,.15); color: #34d399; }
+.ai-card-emerald { border-top: 3px solid #10b981 !important; }
+/* Violet — Analysis */
+.ai-card-violet .ai-card-header { background: linear-gradient(135deg, rgba(139,92,246,.08) 0%, transparent 100%); }
+.ai-icon-violet { background: rgba(139,92,246,.15); color: #a78bfa; }
+.ai-card-violet { border-top: 3px solid #8b5cf6 !important; }
+
+/* Accent-colored CTA buttons */
+.btn-emerald {
+  background: #059669; color: #fff; border: none;
+  padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s; width: 100%;
+}
+.btn-emerald:hover { background: #047857; }
+.btn-violet {
+  background: rgba(139,92,246,.15); color: #a78bfa;
+  border: 1px solid rgba(139,92,246,.3);
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  transition: background .15s;
+}
+.btn-violet:hover { background: rgba(139,92,246,.25); }
+
+/* AI result boxes */
+.ai-result-box {
+  border-radius: 10px; overflow: hidden; margin: 0 22px 16px;
+}
+.ai-result-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .6px;
+  padding: 8px 14px; text-transform: uppercase;
+}
+.ai-result-indigo { border: 1px solid rgba(99,102,241,.3); }
+.ai-result-indigo .ai-result-label { background: rgba(99,102,241,.12); color: #818cf8; }
+.ai-result-indigo > div:last-child { padding: 12px 14px; }
+
+/* Bullet strength meter */
+.bm-track {
+  height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; margin-top: 5px;
+}
+html.light-mode .bm-track { background: rgba(0,0,0,.08); }
+.bm-fill { height: 3px; border-radius: 2px; transition: width .3s, background .3s; }
 
 /* ===== Light mode toggle ===== */
 .theme-toggle {

@@ -594,73 +594,138 @@ function itemCard(key, idx, fields, longField, longValue) {
           </label>
           <textarea data-bind="${key}.${idx}.${longField}" rows="4"
             placeholder="• Use bullets to describe achievements…"
-            oninput="_liveBM(this,this.dataset.bmid)"
+            data-bmid="bm_${key}_${idx}"
+            oninput="_liveBM(this,'bm_${key}_${idx}')"
             >${esc(longValue||'')}</textarea>
-          ${longField === 'description' ? '<div id="bmbar_' + key + '_' + idx + '" style="margin-top:4px;"></div>' : ''}
+          ${longField === 'description' ? '<div id="bmbar_' + key + '_' + idx + '" class="bm-bar-wrap"></div>' : ''}
         </div>` : ''}
       </div>
     </div>`;
 }
 
-// Live bullet meter update
+// Score a description/bullets block 0–100
+function _scoreBullet(text) {
+  if (!text || !text.trim()) return 0;
+  var lines = text.split('\n').map(function(l){ return l.replace(/^[•\-\*]\s*/,'').trim(); }).filter(Boolean);
+  if (!lines.length) return 0;
+  var score = 0;
+  var ACTION_VERBS = /^(led|built|created|designed|developed|launched|improved|increased|reduced|managed|delivered|implemented|drove|grew|optimized|architected|deployed|scaled|mentored|negotiated|spearheaded|revamped|authored|engineered|coordinated|established|exceeded|automated|migrated|collaborated|achieved|generated|saved|cut|boosted|accelerated|transformed|streamlined|restructured|recruited|trained|oversaw|pioneered|directed|facilitated)/i;
+  var hasVerb = lines.some(function(l){ return ACTION_VERBS.test(l); });
+  var hasMetric = /\d+\s*(%|x|k\b|\$|million|billion|users|customers|hours|days|weeks|months|years|points|ms\b|seconds)|\$\s*[\d,]+|\d[\d,]{2,}/i.test(text);
+  var totalChars = lines.reduce(function(a,l){ return a+l.length; }, 0);
+  var avgLen = totalChars / lines.length;
+  if (hasVerb) score += 30;
+  if (hasMetric) score += 35;
+  if (avgLen >= 40) score += 20; else if (avgLen >= 20) score += 10;
+  if (lines.length >= 2) score += 10;
+  if (lines.length >= 3) score += 5;
+  return Math.min(100, score);
+}
+
+// Live bullet meter update — called oninput on each description textarea
 function _liveBM(ta, meterId) {
-  var score = _scoreBullet ? _scoreBullet(ta.value) : null;
-  if (score === null) return;
+  var score = _scoreBullet(ta.value);
   var lbl = document.getElementById(meterId);
-  var col = score>=75?'#6ee7b7':score>=50?'#fcd34d':'#fca5a5';
-  var txt = score>=75?'Strong':score>=50?'Decent':'Needs work';
-  if (lbl) { lbl.textContent = txt; lbl.style.color = col; }
-  var bar = document.getElementById(meterId.replace('bm_','bmbar_'));
-  if (bar) bar.innerHTML = '<div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;"><div style="width:'+score+'%;height:3px;background:'+col+';border-radius:2px;transition:width .25s;"></div></div>';
+  var col = score >= 75 ? '#6ee7b7' : score >= 45 ? '#fcd34d' : '#fca5a5';
+  var txt = score >= 75 ? '✦ Strong' : score >= 45 ? '◆ Decent' : '▲ Needs work';
+  if (lbl) { lbl.textContent = score > 0 ? txt : ''; lbl.style.color = col; }
+  var barWrap = document.getElementById(meterId.replace('bm_', 'bmbar_'));
+  if (barWrap) {
+    barWrap.innerHTML = score > 0
+      ? '<div class="bm-track"><div class="bm-fill" style="width:'+score+'%;background:'+col+';"></div></div>'
+      : '';
+  }
 }
 
 
 // ============ Tailor / ATS / Analysis / Dashboard / Customize ============
+function _jdWordCount(text) {
+  var n = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  return n ? n + ' words' : '';
+}
+
+function _jdWordCount(text) {
+  var n = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  return n ? n + ' words' : '';
+}
+
 function renderTailor() {
+  const wc = _jdWordCount(resume.tailor.jobDescription);
   return `
-    <div class="section-card">
-      <div class="section-head">
-        <h3>${ICON('target')} Tailor to Job</h3>
-        <button class="ai-btn" onclick="aiTailor()">${ICON('sparkle','ico ico-sm')} Generate Tailored Resume</button>
+    <div class="section-card ai-card ai-card-indigo">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-indigo">${ICON('target')}</div>
+        <div>
+          <h3 class="ai-card-title">Tailor to Job</h3>
+          <p class="ai-card-sub">AI rewrites your summary &amp; bullets to match the role.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="aiTailor()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Generate</button>
       </div>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Paste a job description and our AI will tailor your summary &amp; highlight the right experience.</p>
-      <div class="form-field">
-        <label>Job Description</label>
-        <textarea data-bind="tailor.jobDescription" rows="8" placeholder="Paste the job description here…">${esc(resume.tailor.jobDescription)}</textarea>
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label style="display:flex;justify-content:space-between;">
+            <span>Job Description</span>
+            <span id="tailor-wc" style="font-size:11px;color:var(--muted);">${wc}</span>
+          </label>
+          <textarea data-bind="tailor.jobDescription" rows="12"
+            placeholder="Paste the full job description here — the more detail, the better the tailoring…"
+            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
+            style="font-size:13px;line-height:1.6;"
+          >${esc(resume.tailor.jobDescription)}</textarea>
+        </div>
+        ${resume.tailor.tailoredSummary ? `
+          <div class="ai-result-box ai-result-indigo">
+            <div class="ai-result-label">✦ Tailored Summary</div>
+            <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;padding:12px 14px;">${esc(resume.tailor.tailoredSummary)}</div>
+          </div>` : ''}
+        ${navRow('publications','ats')}
       </div>
-      ${resume.tailor.tailoredSummary ? `
-        <div class="notice" style="background:rgba(99,102,241,.1); border-color:rgba(99,102,241,.3); color:#c4b5fd;">
-          <strong>Tailored summary:</strong><br>${esc(resume.tailor.tailoredSummary)}
-        </div>` : ''}
-      ${navRow('publications','ats')}
     </div>`;
 }
 
 function renderATS() {
   return `
-    <div class="section-card">
-      <div class="section-head"><h3>${ICON('check')} ATS Compatibility Check</h3></div>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Paste a job posting and we'll score your resume's ATS match.</p>
-      <div class="form-field">
-        <label>Job Description</label>
-        <textarea id="ats-jd" rows="5" placeholder="Paste job description…"></textarea>
+    <div class="section-card ai-card ai-card-emerald">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-emerald">${ICON('check')}</div>
+        <div>
+          <h3 class="ai-card-title">ATS Compatibility Check</h3>
+          <p class="ai-card-sub">Score your resume against a job posting's ATS filters.</p>
+        </div>
       </div>
-      <button class="btn btn-primary btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
-      <div id="ats-result" style="margin-top:16px;"></div>
-      ${navRow('tailor','analysis')}
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label style="display:flex;justify-content:space-between;">
+            <span>Job Description</span>
+            <span id="ats-wc" style="font-size:11px;color:var(--muted);"></span>
+          </label>
+          <textarea id="ats-jd" rows="12"
+            placeholder="Paste the job description — we'll keyword-match it against your resume…"
+            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"
+            style="font-size:13px;line-height:1.6;"></textarea>
+        </div>
+        <button class="btn btn-emerald btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
+        <div id="ats-result" style="margin-top:16px;"></div>
+        ${navRow('tailor','analysis')}
+      </div>
     </div>`;
 }
 
 function renderAnalysis() {
   return `
-    <div class="section-card">
-      <div class="section-head">
-        <h3>${ICON('beaker')} AI Resume Analysis</h3>
-        <button class="ai-btn" onclick="aiAnalyze()">${ICON('sparkle','ico ico-sm')} Run Analysis</button>
+    <div class="section-card ai-card ai-card-violet">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-violet">${ICON('beaker')}</div>
+        <div>
+          <h3 class="ai-card-title">AI Resume Analysis</h3>
+          <p class="ai-card-sub">Detailed strengths, weaknesses, and actionable improvements.</p>
+        </div>
+        <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Analyze</button>
       </div>
-      <p style="color:var(--muted); font-size:13px;">Get AI-powered insights on your resume's strengths and areas to improve.</p>
-      <div id="analysis-result" style="margin-top:16px;"></div>
-      ${navRow('ats','dashboard')}
+      <div class="ai-card-body">
+        <div id="analysis-result"></div>
+        ${navRow('ats','dashboard')}
+      </div>
     </div>`;
 }
 

@@ -69,7 +69,9 @@ function setPriceMode(mode) {
   const sub    = document.getElementById('paid-sub');
   const cta    = document.getElementById('paid-cta');
   const savings = document.getElementById('price-savings');
+  const badge  = document.getElementById('price-badge');
   if (mode === 'lifetime') {
+    if (badge)  badge.textContent  = 'BEST VALUE';
     if (name)   name.textContent   = 'Lifetime';
     if (price)  price.textContent  = '$39.99';
     if (period) period.textContent = ' once';
@@ -79,6 +81,7 @@ function setPriceMode(mode) {
     const pp = document.getElementById('price-social-proof');
     if (pp) pp.textContent = 'Most popular choice — pay once, own it forever.';
   } else {
+    if (badge)  badge.textContent  = 'MOST POPULAR';
     if (name)   name.textContent   = 'Premium';
     if (price)  price.textContent  = '$9.99';
     if (period) period.textContent = '/month';

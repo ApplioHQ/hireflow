@@ -828,6 +828,156 @@ function navRow(prev, next) {
 function renderPreview() {
   document.getElementById('preview').innerHTML = renderTemplate(resume.template, resume, true, resume.customize.accent);
   _bindPreviewClicks();
+  _checkPageFit();
+  if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
+}
+
+// ============ Fix 3: page overflow indicator ============
+const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
+let _measureFrame = null;
+
+function _checkPageFit() {
+  const preview = document.getElementById('preview');
+  if (!preview) return;
+  // Measure the resume's true full-scale height in an isolated, offscreen iframe.
+  if (!_measureFrame) {
+    _measureFrame = document.createElement('iframe');
+    _measureFrame.setAttribute('aria-hidden', 'true');
+    _measureFrame.style.cssText = 'position:absolute; left:-9999px; top:0; width:816px; height:10px; border:0; visibility:hidden;';
+    document.body.appendChild(_measureFrame);
+  }
+  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
+  const doc = writeResumeFrame(_measureFrame, html, 816);
+  const apply = () => {
+    const trueH = doc.body.scrollHeight || doc.documentElement.scrollHeight;
+    const ratio = trueH / PAGE_PX;
+    _renderFitIndicator(ratio);
+    _drawPageBreak(ratio, trueH);
+  };
+  apply();
+  setTimeout(apply, 50); // re-measure once layout settles
+}
+
+function _renderFitIndicator(ratio) {
+  const preview = document.getElementById('preview');
+  let ind = document.getElementById('page-fit-indicator');
+  if (!ind) {
+    ind = document.createElement('div');
+    ind.id = 'page-fit-indicator';
+    preview.parentNode.insertBefore(ind, preview.nextSibling);
+  }
+  const pct = Math.round(ratio * 100);
+  let bg, border, color, text;
+  if (ratio < 0.6) {
+    bg = '#fef9c3'; border = '#eab308'; color = '#854d0e';
+    text = '⚠ Too much empty space — your resume only fills ' + pct + '% of the page. Add more detail.';
+  } else if (ratio > 1.05) {
+    bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
+    text = '⚠ Content overflows onto a second page (' + pct + '% of one page). Trim to fit.';
+  } else {
+    bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
+    text = '✓ Great fit — fills one page nicely (' + pct + '%).';
+  }
+  ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
+  ind.textContent = text;
+}
+
+function _drawPageBreak(ratio, trueH) {
+  const preview = document.getElementById('preview');
+  if (getComputedStyle(preview).position === 'static') preview.style.position = 'relative';
+  let line = document.getElementById('page-break-line');
+  // Only meaningful when content actually spills past one page.
+  if (ratio <= 1.0) { if (line) line.style.display = 'none'; return; }
+  if (!line) {
+    line = document.createElement('div');
+    line.id = 'page-break-line';
+    preview.appendChild(line);
+  }
+  // Map the 1056px full-scale page boundary into the scaled-down preview.
+  const contentH = preview.scrollHeight;
+  const breakY = Math.round((PAGE_PX / trueH) * contentH);
+  line.style.cssText = 'position:absolute; left:0; right:0; top:' + breakY + 'px; height:0; border-top:2px dashed #ef4444; pointer-events:none; z-index:5;';
+}
+
+// ============ Fix 2: full-screen preview lightbox ============
+let _fullOverlay = null;
+let _fullZoom = 1;
+
+function openFullPreview() {
+  if (!_fullOverlay) _buildFullOverlay();
+  _fullOverlay.style.display = 'flex';
+  requestAnimationFrame(() => { _fullOverlay.style.opacity = '1'; });
+  document.addEventListener('keydown', _fullKeyHandler);
+  _renderFullPreview();
+}
+
+function closeFullPreview() {
+  if (!_fullOverlay) return;
+  _fullOverlay.style.opacity = '0';
+  setTimeout(() => { _fullOverlay.style.display = 'none'; }, 200);
+  document.removeEventListener('keydown', _fullKeyHandler);
+}
+
+function _fullKeyHandler(e) { if (e.key === 'Escape') closeFullPreview(); }
+
+function setFullZoom(delta) {
+  _fullZoom = Math.min(1.5, Math.max(0.4, +(_fullZoom + delta).toFixed(2)));
+  _applyFullZoom();
+}
+function _applyFullZoom() {
+  const f = document.getElementById('full-frame');
+  if (f) { f.style.transform = 'scale(' + _fullZoom + ')'; }
+  const lbl = document.getElementById('full-zoom-label');
+  if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
+}
+
+function _renderFullPreview() {
+  const f = document.getElementById('full-frame');
+  if (!f) return;
+  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
+  const doc = writeResumeFrame(f, html, 816);
+  const fit = () => { f.style.height = (doc.documentElement.scrollHeight) + 'px'; };
+  fit();
+  setTimeout(fit, 60);
+  _applyFullZoom();
+}
+
+function _buildFullOverlay() {
+  _fullOverlay = document.createElement('div');
+  _fullOverlay.id = 'full-preview-overlay';
+  _fullOverlay.style.cssText = 'position:fixed; inset:0; z-index:1000; display:none; flex-direction:column; background:rgba(8,10,25,.88); backdrop-filter:blur(4px); opacity:0; transition:opacity .2s ease;';
+
+  const btn = 'background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:8px 14px; font-size:14px; cursor:pointer; line-height:1;';
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; flex-shrink:0;';
+  bar.innerHTML =
+    '<button id="fz-out" style="' + btn + '">−</button>' +
+    '<span id="full-zoom-label" style="color:#fff; font-size:13px; min-width:46px; text-align:center;">100%</span>' +
+    '<button id="fz-in" style="' + btn + '">+</button>' +
+    '<a href="export.html" style="' + btn + ' text-decoration:none;">Export →</a>' +
+    '<button id="fz-close" style="' + btn + '">✕ Close</button>';
+
+  const scroll = document.createElement('div');
+  scroll.id = 'full-scroll';
+  scroll.style.cssText = 'flex:1; overflow:auto; display:flex; justify-content:center; align-items:flex-start; padding:20px 20px 80px;';
+
+  const frame = document.createElement('iframe');
+  frame.id = 'full-frame';
+  frame.title = 'Full resume preview';
+  frame.style.cssText = 'width:816px; flex:none; border:0; background:#fff; border-radius:4px; box-shadow:0 12px 60px rgba(0,0,0,.55); transform-origin:top center;';
+  scroll.appendChild(frame);
+
+  _fullOverlay.appendChild(bar);
+  _fullOverlay.appendChild(scroll);
+  document.body.appendChild(_fullOverlay);
+
+  bar.querySelector('#fz-out').onclick = () => setFullZoom(-0.1);
+  bar.querySelector('#fz-in').onclick = () => setFullZoom(0.1);
+  bar.querySelector('#fz-close').onclick = closeFullPreview;
+  // Close on backdrop click (overlay or scroll area, not the frame/toolbar).
+  _fullOverlay.addEventListener('click', (e) => {
+    if (e.target === _fullOverlay || e.target === scroll) closeFullPreview();
+  });
 }
 
 function _bindPreviewClicks() {

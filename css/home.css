@@ -440,8 +440,8 @@
 
 /* ===== Live activity ticker ===== */
 .activity-ticker {
-  background: #eef2ff; border-bottom: 1px solid #e0e7ff;
-  padding: 10px 20px; text-align: center; font-size: 13px; font-weight: 500; color: #475569;
+  background: transparent;
+  padding: 4px 20px 18px; text-align: center; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.72);
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .ticker-dot {

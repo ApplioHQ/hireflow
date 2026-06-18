@@ -446,3 +446,30 @@ function renderTemplate(templateId, resume, mini, accent, marginsKey) {
   const data = withFallback(resume, mini, marginsKey);
   return fn(data, accent);
 }
+
+// ============ Isolated iframe rendering ============
+// Templates emit <style> blocks with class rules that can bleed into a host
+// page. Rendering them inside an iframe document keeps them fully isolated.
+// One US-Letter page is 816×1056px at 96dpi; A4 is 794px wide.
+function resumeDocHTML(bodyHTML, pageWidth) {
+  const w = pageWidth || 816;
+  const pageSize = w > 800 ? 'letter' : 'A4';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  html, body { margin:0; padding:0; background:#fff; color:#111;
+    font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif; }
+  body { width:${w}px; }
+  * { box-sizing:border-box; }
+  @page { size:${pageSize}; margin:0; }
+</style></head><body>${bodyHTML}</body></html>`;
+}
+
+// Write resume body HTML into an iframe in fully isolated fashion.
+// Returns the iframe's document.
+function writeResumeFrame(frame, bodyHTML, pageWidth) {
+  const doc = frame.contentDocument || frame.contentWindow.document;
+  doc.open();
+  doc.write(resumeDocHTML(bodyHTML, pageWidth));
+  doc.close();
+  return doc;
+}

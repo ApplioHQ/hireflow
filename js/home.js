@@ -134,11 +134,19 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 // ----- Nav: solidify background on scroll -----
 const homeNav = document.querySelector('.home-nav');
+const scrollProgress = document.getElementById('scroll-progress');
 window.addEventListener('scroll', () => {
   const scrolled = window.scrollY > 60;
   homeNav && homeNav.classList.toggle('home-nav-solid', scrolled);
   const btt = document.getElementById('back-to-top');
   if (btt) btt.classList.toggle('visible', window.scrollY > 500);
+  // Scroll progress bar
+  if (scrollProgress) {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    scrollProgress.style.width = pct + '%';
+  }
 }, { passive: true });
 
 // ----- Scroll-triggered fade-in animations -----
@@ -174,6 +182,7 @@ const countObserver = new IntersectionObserver((entries) => {
       if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+    el.classList.add('counted');
     countObserver.unobserve(el);
   });
 }, { threshold: 0.5 });
@@ -470,4 +479,37 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
   hamburger.addEventListener('click', function () {
     overlay.classList.toggle('active', hamburger.classList.contains('open'));
   });
+})();
+
+// ── Magnetic hero CTA buttons ──
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('.hero-ctas .btn').forEach(function (btn) {
+    btn.addEventListener('mousemove', function (e) {
+      const r = btn.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      btn.style.transform = `translate(${x * 0.18}px, ${y * 0.3}px)`;
+    });
+    btn.addEventListener('mouseleave', function () {
+      btn.style.transform = '';
+    });
+  });
+})();
+
+// ── Section title: gradient shine sweep when scrolled into view ──
+(function () {
+  const titleObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      // Skip light-on-dark titles (final CTA) — they use .light and look fine as-is
+      if (e.target.classList.contains('light')) { titleObs.unobserve(e.target); return; }
+      e.target.classList.add('shine-in');
+      e.target.addEventListener('animationend', function () {
+        e.target.classList.remove('shine-in');
+      }, { once: true });
+      titleObs.unobserve(e.target);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('.section-title').forEach(function (t) { titleObs.observe(t); });
 })();

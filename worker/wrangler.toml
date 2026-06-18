@@ -1,14 +1,13 @@
 name = "hireflow-api"
 main = "worker.js"
 compatibility_date = "2024-12-01"
-account_id = "7609a7963e8ffba9d1f54aee38cf14bf"
 
 [ai]
 binding = "AI"
 
 [[kv_namespaces]]
 binding = "HIREFLOW_KV"
-id = "84f236c3086b4ca7809be72b6969ea62"
+id = "fc33acc438fc484f860e880cb93de810"
 
 # Secrets — set with `npx wrangler secret put NAME`:
 #   JWT_SECRET             (random hex string)
@@ -21,3 +20,6 @@ SITE_URL = "https://appliohq.com"
 PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
 LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
 FREE_DOWNLOAD_LIMIT = "10"
+# AI Gateway id — created under Cloudflare dashboard > AI > AI Gateway.
+# Routes all Workers AI calls through the gateway for caching, analytics, and rate limiting.
+AI_GATEWAY_ID = "default"

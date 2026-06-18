@@ -122,6 +122,73 @@ async function tryExport(fmt) {
   if (fmt === 'pdf') printFrame();
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
+  // Non-blocking feedback prompt shortly after the download completes.
+  setTimeout(showExportFeedbackPrompt, 1500);
+}
+
+// ============ Post-export feedback prompt (Feature 1) ============
+let _fbPrompt = null, _fbTimer = null;
+function showExportFeedbackPrompt() {
+  if (_fbPrompt) return; // only one at a time
+  const el = document.createElement('div');
+  _fbPrompt = el;
+  el.style.cssText = [
+    'position:fixed','right:20px','bottom:20px','z-index:9998',
+    'width:300px','max-width:calc(100vw - 40px)',
+    'background:var(--bg-1)','color:var(--text)',
+    'border:1px solid var(--border)','border-radius:12px',
+    'box-shadow:0 10px 30px rgba(0,0,0,.45)','padding:16px','font-size:13px',
+    'opacity:0','transform:translateY(16px)',
+    'transition:opacity .25s ease, transform .25s ease'
+  ].join(';');
+
+  function armAutoDismiss() { clearTimeout(_fbTimer); _fbTimer = setTimeout(dismiss, 15000); }
+  function dismiss() {
+    clearTimeout(_fbTimer);
+    el.style.opacity = '0'; el.style.transform = 'translateY(16px)';
+    setTimeout(() => { el.remove(); if (_fbPrompt === el) _fbPrompt = null; }, 250);
+  }
+  const closeBtn = '<button data-fb-close="1" aria-label="Dismiss" title="Dismiss" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;">×</button>';
+
+  function renderAsk() {
+    el.innerHTML = '<div style="position:relative;">' + closeBtn +
+      '<div style="font-weight:600;margin-bottom:12px;padding-right:18px;">How was your experience?</div>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button data-fb="up" style="flex:1;cursor:pointer;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:20px;line-height:1;">👍</button>' +
+        '<button data-fb="down" style="flex:1;cursor:pointer;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:20px;line-height:1;">👎</button>' +
+      '</div></div>';
+    el.querySelector('[data-fb-close]').onclick = dismiss;
+    el.querySelector('[data-fb="up"]').onclick = () => {
+      sendFeedback({ rating: 'up', message: '', context: 'export', page: 'export' });
+      thanks();
+    };
+    el.querySelector('[data-fb="down"]').onclick = renderDown;
+  }
+  function renderDown() {
+    armAutoDismiss();
+    el.innerHTML = '<div style="position:relative;">' + closeBtn +
+      '<div style="font-weight:600;margin-bottom:10px;padding-right:18px;">What went wrong?</div>' +
+      '<textarea id="fb-down-msg" rows="3" placeholder="Tell us what could be better…" ' +
+        'style="width:100%;box-sizing:border-box;padding:8px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;"></textarea>' +
+      '<button id="fb-down-submit" class="btn btn-primary btn-sm btn-block" style="margin-top:8px;">Submit</button></div>';
+    el.querySelector('[data-fb-close]').onclick = dismiss;
+    const ta = el.querySelector('#fb-down-msg');
+    if (ta) { ta.focus(); ta.oninput = armAutoDismiss; }
+    el.querySelector('#fb-down-submit').onclick = () => {
+      sendFeedback({ rating: 'down', message: ta ? ta.value.trim() : '', context: 'export', page: 'export' });
+      thanks();
+    };
+  }
+  function thanks() {
+    clearTimeout(_fbTimer);
+    el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">Thanks! 🙌</div>';
+    setTimeout(dismiss, 2000);
+  }
+
+  renderAsk();
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+  armAutoDismiss();
 }
 
 function updatePageSize() {

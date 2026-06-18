@@ -209,6 +209,7 @@ async function openBillingPortal() {
   }
   buttons.push(`<button class="btn btn-secondary" onclick="syncWithStripe()">Sync with Stripe</button>`);
   if (plan === 'free') buttons.push(`<button class="btn btn-primary" onclick="location.href='pricing.html'">Upgrade</button>`);
+  buttons.push(`<button class="btn btn-ghost" onclick="_showAccountFeedback()">Send Feedback</button>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); signOutFromMenu()">Sign out</button>`);
 
   bd.innerHTML = `
@@ -227,6 +228,60 @@ function signOutFromMenu() {
   localStorage.removeItem('hf_token');
   localStorage.removeItem('hf_email');
   location.href = 'index.html';
+}
+
+// ============ Feedback ============
+// Fire-and-forget feedback POST. Never throws / never alarms the user.
+async function sendFeedback(payload) {
+  const token = localStorage.getItem('hf_token');
+  try {
+    const r = await fetch(API_BASE + '/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return true;
+  } catch (e) {
+    console.warn('feedback submission failed', e);
+    return false;
+  }
+}
+
+// Feature 2: swap the account-menu modal content in place for a feedback form.
+let _acctMenuHTML = null;
+function _showAccountFeedback() {
+  const dialog = document.querySelector('#account-menu-bd .app-dialog');
+  if (!dialog) return;
+  _acctMenuHTML = dialog.innerHTML;
+  dialog.innerHTML = `
+    <button class="modal-close" onclick="closeAccountModal()" style="position:absolute;top:14px;right:14px;color:var(--muted);font-size:18px;">×</button>
+    <h3 class="app-dialog-title" style="margin-bottom:14px;">Send Feedback</h3>
+    <textarea id="acct-fb-msg" rows="5" placeholder="Tell us what's working well or what could be better…"
+      style="width:100%; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; font-family:inherit; resize:vertical; box-sizing:border-box;"></textarea>
+    <div id="acct-fb-state" style="font-size:13px; color:var(--muted); min-height:18px; margin:10px 0 0; text-align:center;"></div>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="_backToAccountMenu()">Back</button>
+      <button class="btn btn-primary" style="flex:1;" id="acct-fb-submit" onclick="_submitAccountFeedback()">Submit</button>
+    </div>`;
+  const ta = dialog.querySelector('#acct-fb-msg');
+  if (ta) ta.focus();
+}
+function _backToAccountMenu() {
+  const dialog = document.querySelector('#account-menu-bd .app-dialog');
+  if (dialog && _acctMenuHTML != null) dialog.innerHTML = _acctMenuHTML;
+}
+async function _submitAccountFeedback() {
+  const dialog = document.querySelector('#account-menu-bd .app-dialog');
+  if (!dialog) return;
+  const ta = dialog.querySelector('#acct-fb-msg');
+  const state = dialog.querySelector('#acct-fb-state');
+  const btn = dialog.querySelector('#acct-fb-submit');
+  const msg = ta ? ta.value.trim() : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  await sendFeedback({ rating: null, message: msg, context: 'account_menu', page: location.pathname });
+  if (state) { state.textContent = 'Thanks for the feedback!'; state.style.color = 'var(--success)'; }
+  setTimeout(closeAccountModal, 1500);
 }
 
 // Toggle the ADMIN tier on/off (super-admin only). Used from the admin console.

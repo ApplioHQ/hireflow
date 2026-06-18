@@ -40,6 +40,7 @@ export default {
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
+      if (path === "/feedback" && req.method === "POST") return json(await submitFeedback(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
@@ -211,6 +212,27 @@ async function incrementDownload(req, env) {
   user.downloadsUsed = used + 1;
   await putUser(env, user);
   return { ok: true, downloadsUsed: user.downloadsUsed, allowed: true };
+}
+
+// ============ Feedback ============
+async function submitFeedback(req, env) {
+  const payload = await authenticate(req, env);
+  const user = await getUser(env, payload.email);
+  if (!user) throw err(404, "User not found");
+  const body = await req.json();
+  const rating = body.rating === "up" || body.rating === "down" ? body.rating : null;
+  const message = String(body.message || "").slice(0, 2000);
+  const context = String(body.context || "");
+  const page = String(body.page || "");
+  const timestamp = Date.now();
+  const record = {
+    rating, message, context, page,
+    email: user.email,
+    plan: user.plan || "free",
+    timestamp,
+  };
+  await env.HIREFLOW_KV.put(`feedback:${timestamp}:${user.email.toLowerCase()}`, JSON.stringify(record));
+  return { ok: true };
 }
 
 // ============ Stripe ============

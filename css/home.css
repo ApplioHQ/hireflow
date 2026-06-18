@@ -61,7 +61,8 @@
 .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 
 /* ===== Hero mockup ===== */
-.hero-right { position: relative; height: 600px; }
+/* reset leaked styles from styles.css .hero-right (class-name collision) */
+.hero-right { position: relative; height: 600px; background: transparent; padding: 0; display: block; }
 .mock-resume {
   position: absolute; top: 0; right: 0; width: 95%; max-width: 540px;
   height: 580px;
@@ -76,6 +77,45 @@
 .mock-summary strong { color: #4f46e5; font-weight: 700; }
 .mock-edu-sub { font-size: 11px; color: #6b7280; }
 .mock-job--edu { margin-bottom: 8px; }
+
+/* Stacked second page peeking behind the resume (depth) */
+.mock-resume-stack {
+  position: absolute; top: 18px; right: -18px; width: 95%; max-width: 540px; height: 560px;
+  background: #fff; border-radius: 12px; opacity: .5;
+  transform: rotate(5deg);
+  box-shadow: 0 24px 60px rgba(0,0,0,.4);
+  z-index: 0;
+}
+
+/* Monogram avatar in header (left of name, like a resume photo) */
+.mock-header { position: relative; display: flex; align-items: center; gap: 14px; }
+.mock-avatar {
+  flex-shrink: 0;
+  width: 50px; height: 50px; border-radius: 50%;
+  background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .5px;
+}
+
+/* Bottom fade so the clipped skills row reads as intentional */
+.mock-resume::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+  background: linear-gradient(180deg, transparent, #fff 85%);
+  pointer-events: none; z-index: 4;
+}
+
+/* Keyword chips light up green in a cascade, timed to the scan beam (4.5s) */
+.float-kw-list span { animation: kw-detect 4.5s ease-in-out infinite; }
+.float-kw-list span:nth-child(1) { animation-delay: 0s; }
+.float-kw-list span:nth-child(2) { animation-delay: .15s; }
+.float-kw-list span:nth-child(3) { animation-delay: .3s; }
+.float-kw-list span:nth-child(4) { animation-delay: .45s; }
+.float-kw-list span:nth-child(5) { animation-delay: .6s; }
+@keyframes kw-detect {
+  0%, 60%, 100% { background: #eef2ff; color: #4f46e5; }
+  72%           { background: #dcfce7; color: #16a34a; transform: scale(1.08); }
+  84%           { background: #dcfce7; color: #16a34a; transform: scale(1); }
+}
 
 /* AI scan beam sweeping the resume */
 .mock-scan {
@@ -844,7 +884,11 @@
 
 /* ── Mock resume: premium shadow, shimmer, hover overlay ── */
 .mock-resume {
-  box-shadow: 0 40px 100px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.08), 0 0 60px rgba(99,102,241,.12) !important;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.18),
+    0 24px 70px rgba(13,18,55,.55),
+    0 0 0 1px rgba(255,255,255,.1),
+    0 0 80px rgba(99,102,241,.18) !important;
 }
 .mock-header { position: relative; overflow: hidden; }
 .mock-header::after {
@@ -934,7 +978,7 @@
 
 /* ── Reduced motion: respect user preference ── */
 @media (prefers-reduced-motion: reduce) {
-  .mock-scan, .hero-visual-glow, .logo-marquee, .float-ats, .float-keywords,
+  .mock-scan, .hero-visual-glow, .logo-marquee, .float-ats, .float-keywords, .float-kw-list span,
   .hero-badge, .dot-pulse, .scroll-chevron, .price-card.featured,
   .ticker-dot, .mock-header::after { animation: none !important; }
   #hero-particles { display: none; }

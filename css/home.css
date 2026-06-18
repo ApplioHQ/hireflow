@@ -670,8 +670,8 @@
 .section-alt .kicker        { color: #6b7280; background: #e2e8f0; }
 .section-alt .step h3       { color: #111827; }
 .section-alt .step p        { color: #6b7280; }
-.section-alt .step-mock.terminal { background: #1e293b; color: #cbd5e1; }
-.section-alt .step-mock.terminal .term-line { color: #cbd5e1; }
+.section-alt .step-mock.terminal { background: #fff; color: #475569; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15,23,42,.06); }
+.section-alt .step-mock.terminal .term-line { color: #475569; }
 .section-alt .step-num      { color: #6366f1; }
 .section-alt .ba-arrow-wrap { color: #6366f1; }
 

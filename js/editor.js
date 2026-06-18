@@ -827,6 +827,35 @@ function navRow(prev, next) {
 // ============ Preview (uses template renderer) ============
 function renderPreview() {
   document.getElementById('preview').innerHTML = renderTemplate(resume.template, resume, true, resume.customize.accent);
+  _bindPreviewClicks();
+}
+
+function _bindPreviewClicks() {
+  const preview = document.getElementById('preview');
+  if (!preview) return;
+  const SECTION_MAP = {
+    'experience': 'experience', 'education': 'education', 'skills': 'skills',
+    'projects': 'projects', 'certifications': 'certifications', 'awards': 'awards',
+    'leadership': 'leadership', 'volunteer': 'volunteer', 'publications': 'publications',
+    'summary': 'personal', 'profile': 'personal', 'objective': 'personal',
+    'workexperience': 'experience', 'professionalexperience': 'experience',
+  };
+  // Make section headings clickable
+  preview.querySelectorAll('h2').forEach(h2 => {
+    const key = h2.textContent.toLowerCase().replace(/[^a-z]/g, '');
+    const section = SECTION_MAP[key] || Object.keys(SECTION_MAP).reduce((found, k) => found || (key.includes(k) ? SECTION_MAP[k] : null), null);
+    if (!section) return;
+    h2.classList.add('preview-jump');
+    h2.title = 'Click to edit ' + section;
+    h2.addEventListener('click', () => nextSection(section));
+  });
+  // Make header/name area jump to personal
+  const header = preview.querySelector('[class*="header"], [class*="name"]');
+  if (header) {
+    header.classList.add('preview-jump');
+    header.title = 'Click to edit Personal Info';
+    header.addEventListener('click', () => nextSection('personal'));
+  }
 }
 
 // ============ Helpers ============
@@ -958,13 +987,69 @@ async function aiATS() {
   aiLoading('Scoring your resume against the job description…');
   try {
     const r = await ai('ats', { jobDescription: jd, resume });
-    document.getElementById('ats-result').innerHTML = `
-      <div class="section-card" style="background:var(--bg-2);">
-        <h4>ATS Score: <span style="color:${r.score>=70?'var(--success)':r.score>=50?'var(--warning)':'var(--danger)'};">${r.score}/100</span></h4>
-        <p style="white-space:pre-wrap; margin-top:8px;">${esc(r.feedback||'')}</p>
-      </div>`;
+    _renderATSResult(r);
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
   finally { aiLoadingDone(); }
+}
+
+function _renderATSResult(r) {
+  const score = r.score || 0;
+  const color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  const label = score >= 70 ? 'Strong Match ✓' : score >= 50 ? 'Decent Match' : 'Needs Work';
+  const circ  = 2 * Math.PI * 50; // 314.16
+  const matched = Array.isArray(r.matched) ? r.matched : [];
+  const missing = Array.isArray(r.missing) ? r.missing : [];
+
+  document.getElementById('ats-result').innerHTML = `
+    <div class="ats-result-card">
+      <div class="ats-ring-wrap">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle id="ats-res-ring" cx="60" cy="60" r="50" fill="none" stroke="${color}" stroke-width="10"
+            stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"
+            stroke-linecap="round" transform="rotate(-90 60 60)"
+            style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,0,.2,1);filter:drop-shadow(0 0 6px ${color}88);"/>
+        </svg>
+        <div class="ats-ring-center">
+          <div class="ats-ring-num" id="ats-res-num">0</div>
+          <div class="ats-ring-sub">/100</div>
+        </div>
+      </div>
+      <div class="ats-verdict" style="color:${color};">${label}</div>
+      ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ Matched</div><div class="ats-kw-list" id="ats-kw-matched"></div></div>` : ''}
+      ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
+      <div class="ats-feedback-text">${esc(r.feedback || '')}</div>
+    </div>`;
+
+  // Animate ring + counter
+  requestAnimationFrame(() => {
+    const ring = document.getElementById('ats-res-ring');
+    const numEl = document.getElementById('ats-res-num');
+    if (ring) ring.style.strokeDashoffset = (circ * (1 - score / 100)).toFixed(1);
+    if (numEl) {
+      const start = performance.now();
+      (function tick(ts) {
+        const p = Math.min((ts - start) / 1400, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        numEl.textContent = Math.floor(eased * score);
+        if (p < 1) requestAnimationFrame(tick); else numEl.textContent = score;
+      })(performance.now());
+    }
+  });
+
+  // Staggered keyword pills
+  function addPills(id, items, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    items.forEach((kw, i) => setTimeout(() => {
+      const pill = document.createElement('span');
+      pill.className = 'ats-kw-pill ats-kw-' + cls;
+      pill.textContent = kw;
+      el.appendChild(pill);
+    }, 600 + i * 80));
+  }
+  addPills('ats-kw-matched', matched, 'matched');
+  addPills('ats-kw-missing', missing, 'missing');
 }
 
 async function aiAnalyze() {
@@ -1113,6 +1198,41 @@ function _closeMobileDrawers() {
   document.querySelector('.right-panel')?.classList.remove('mob-open');
   document.getElementById('mob-overlay')?.classList.remove('open');
 }
+
+// ── Template hover zoom ──
+(function () {
+  const popup = document.createElement('div');
+  popup.id = 'template-zoom-popup';
+  popup.innerHTML = '<div class="tzp-inner"><div class="tzp-thumb" id="tzp-thumb"></div><div class="tzp-name" id="tzp-name"></div><div class="tzp-hint">Click to select</div></div>';
+  document.body.appendChild(popup);
+
+  let hideTimer, showTimer;
+  document.addEventListener('mouseover', function (e) {
+    const card = e.target.closest('.template-card');
+    if (!card) return;
+    clearTimeout(hideTimer);
+    showTimer = setTimeout(() => {
+      const tid = card.querySelector('[onclick]')?.getAttribute('onclick')?.match(/selectTemplate\('([^']+)'\)/)?.[1];
+      if (!tid) return;
+      const thumb = TEMPLATE_THUMBS[tid];
+      const name  = TEMPLATE_DEFS.find(t => t.id === tid)?.name || tid;
+      document.getElementById('tzp-thumb').innerHTML = thumb || '';
+      document.getElementById('tzp-name').textContent = name;
+      const r = card.getBoundingClientRect();
+      popup.style.top  = (r.top + window.scrollY - 8) + 'px';
+      popup.style.left = (r.right + window.scrollX + 12) + 'px';
+      popup.classList.add('active');
+    }, 300);
+  });
+  document.addEventListener('mouseout', function (e) {
+    const card = e.target.closest('.template-card');
+    if (!card) return;
+    clearTimeout(showTimer);
+    hideTimer = setTimeout(() => popup.classList.remove('active'), 120);
+  });
+  popup.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+  popup.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => popup.classList.remove('active'), 120); });
+})();
 
 // ============ Boot ============
 (async () => {

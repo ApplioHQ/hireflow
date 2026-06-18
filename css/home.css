@@ -440,8 +440,8 @@
 
 /* ===== Live activity ticker ===== */
 .activity-ticker {
-  background: rgba(99,102,241,.08); border-bottom: 1px solid rgba(99,102,241,.15);
-  padding: 9px 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,.75);
+  background: #eef2ff; border-bottom: 1px solid #e0e7ff;
+  padding: 10px 20px; text-align: center; font-size: 13px; font-weight: 500; color: #475569;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .ticker-dot {
@@ -949,6 +949,29 @@
   display: none; position: fixed; inset: 0; z-index: 38;
 }
 .nav-mobile-overlay.active { display: block; }
+
+/* ── Anchor scroll offset so sticky nav doesn't cover section titles (#3) ── */
+section[id] { scroll-margin-top: 80px; }
+
+/* ── Sticky mini-CTA: appears after scrolling past the hero (#6) ── */
+#sticky-cta {
+  position: fixed; left: 50%; bottom: 24px; z-index: 98;
+  transform: translate(-50%, 24px); opacity: 0; pointer-events: none;
+  padding: 13px 26px; font-size: 14px; white-space: nowrap;
+  box-shadow: 0 10px 30px rgba(99,102,241,.5);
+  transition: opacity .3s ease, transform .3s ease;
+}
+#sticky-cta.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+@media (max-width: 600px) {
+  #sticky-cta { left: 16px; right: 16px; transform: translateY(24px); text-align: center; }
+  #sticky-cta.visible { transform: translateY(0); }
+  .back-to-top { bottom: 84px; }
+}
+
+/* ── Contrast bumps for small light-bg text (#16) ── */
+.logo-wall-sub { color: #64748b; }
+.section-hint { color: #6b7280; }
+.tcard-role, .price-period, .price-sub { color: #64748b; }
 
 /* ── Scroll progress bar (top of page) ── */
 #scroll-progress {

@@ -140,6 +140,13 @@ window.addEventListener('scroll', () => {
   homeNav && homeNav.classList.toggle('home-nav-solid', scrolled);
   const btt = document.getElementById('back-to-top');
   if (btt) btt.classList.toggle('visible', window.scrollY > 500);
+  // Sticky mini-CTA: show after the hero, hide near the footer/final CTA
+  const sticky = document.getElementById('sticky-cta');
+  if (sticky) {
+    const heroH = (document.querySelector('.hero') || {}).offsetHeight || 600;
+    const nearEnd = window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 700;
+    sticky.classList.toggle('visible', window.scrollY > heroH && !nearEnd);
+  }
   // Scroll progress bar
   if (scrollProgress) {
     const h = document.documentElement;
@@ -305,6 +312,7 @@ if (tickerEl) {
              a: Math.random() * .55 + .15 };
   }
   function init() { resize(); dots = Array.from({ length: 55 }, mkDot); }
+  let running = false, visible = true, timer = null;
   function draw() {
     ctx.clearRect(0, 0, W, H);
     for (let i = 0; i < dots.length; i++) {
@@ -324,10 +332,17 @@ if (tickerEl) {
         }
       }
     }
-    setTimeout(draw, 30);
+    timer = setTimeout(draw, 30);
   }
-  init(); draw();
+  function start() { if (running) return; running = true; draw(); }
+  function stop()  { running = false; clearTimeout(timer); }
+  function sync()  { (visible && !document.hidden) ? start() : stop(); }
+  init();
+  // Only animate while the hero is on-screen and the tab is visible (saves CPU)
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; sync(); }).observe(hero);
+  document.addEventListener('visibilitychange', sync);
   window.addEventListener('resize', init, { passive: true });
+  start();
 })();
 
 // ── Logo wall: duplicate chips for seamless marquee ──

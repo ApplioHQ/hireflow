@@ -335,10 +335,15 @@ if (tickerEl) {
   const wall = document.querySelector('.logo-wall');
   if (!wall) return;
   const chips = Array.from(wall.querySelectorAll('.logo-chip'));
+  // One moving wrapper containing two identical tracks; animating the
+  // wrapper by exactly -50% loops seamlessly with no chip overlap/cut.
+  const marquee = document.createElement('div'); marquee.className = 'logo-marquee';
   const track1 = document.createElement('div'); track1.className = 'logo-track';
   const track2 = document.createElement('div'); track2.className = 'logo-track'; track2.setAttribute('aria-hidden', 'true');
-  chips.forEach(c => { track1.appendChild(c); track2.appendChild(c.cloneNode(true)); });
-  wall.innerHTML = ''; wall.appendChild(track1); wall.appendChild(track2);
+  chips.forEach(c => track1.appendChild(c));
+  chips.forEach(c => track2.appendChild(c.cloneNode(true)));
+  marquee.appendChild(track1); marquee.appendChild(track2);
+  wall.innerHTML = ''; wall.appendChild(marquee);
 })();
 
 // ── Parallax: hero floating cards + mock resume on scroll ──

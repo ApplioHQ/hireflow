@@ -577,15 +577,35 @@
 }
 
 /* ===== Logo wall ===== */
-.logo-wall-title { text-align: center; font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: .4px; text-transform: uppercase; margin-bottom: 20px; }
+.logo-wall-title { text-align: center; font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 26px; }
 .logo-wall { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
 .logo-chip {
-  font-size: 13px; font-weight: 700; letter-spacing: .5px;
-  color: #94a3b8; padding: 8px 20px; border: 1.5px solid #cbd5e1;
-  border-radius: 8px; background: #fff; transition: color .15s, border-color .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 52px; min-width: 120px; padding: 0 22px;
+  border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;
+  white-space: nowrap; box-shadow: 0 1px 3px rgba(15,23,42,.05);
+  filter: grayscale(100%); opacity: .62;
+  transition: filter .3s ease, opacity .3s ease, border-color .25s, box-shadow .25s, transform .25s;
 }
-.logo-chip:hover { color: #475569; border-color: #94a3b8; }
-.logo-wall-sub { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 16px; }
+.logo-chip:hover {
+  filter: grayscale(0%); opacity: 1;
+  border-color: #cbd5e1; transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15,23,42,.12);
+}
+/* Wordmarks */
+.wm { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; letter-spacing: -.3px; line-height: 1; }
+.wm-google { font-size: 21px; letter-spacing: -.5px; gap: 0; }
+.wm-google b { font-weight: 600; }
+.wm-amazon { position: relative; color: #232F3E; font-size: 20px; padding-bottom: 7px; text-transform: lowercase; }
+.amazon-smile { position: absolute; left: 6px; bottom: -1px; }
+.wm-meta { color: #0081FB; font-weight: 800; font-size: 21px; letter-spacing: -.5px; }
+.wm-ms { color: #5e5e5e; font-weight: 600; font-size: 18px; }
+.wm-netflix { color: #E50914; font-weight: 800; letter-spacing: 1px; font-size: 17px; }
+.wm-stripe { color: #635BFF; font-weight: 800; font-size: 22px; letter-spacing: -.6px; }
+.wm-airbnb { color: #FF5A5F; font-weight: 700; font-size: 19px; }
+.wm-spotify { color: #1DB954; font-weight: 800; font-size: 19px; }
+.wm-salesforce { color: #00A1E0; font-weight: 700; font-size: 18px; }
+.logo-wall-sub { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 26px; font-weight: 500; }
 
 /* ===== Pricing: savings + social proof ===== */
 .price-social-proof { text-align: center; font-size: 12px; color: #64748b; margin: -4px 0 20px; }
@@ -722,18 +742,19 @@
   color: rgba(99,102,241,.07); pointer-events: none; user-select: none;
 }
 
-/* ── Logo marquee ── */
-.logo-wall { overflow: hidden; flex-wrap: nowrap; position: relative; }
+/* ── Logo marquee (seamless: one wrapper, two identical tracks, -50% loop) ── */
+.logo-wall { display: block; overflow: hidden; position: relative; padding: 6px 0; }
 .logo-wall::before, .logo-wall::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 1; pointer-events: none;
+  content: ''; position: absolute; top: 0; bottom: 0; width: 120px; z-index: 2; pointer-events: none;
 }
-.logo-wall::before { left: 0;  background: linear-gradient(90deg, #f7f8fc, transparent); }
-.logo-wall::after  { right: 0; background: linear-gradient(-90deg, #f7f8fc, transparent); }
-.logo-track {
-  display: flex; gap: 12px; flex-shrink: 0;
-  animation: marquee 28s linear infinite;
+.logo-wall::before { left: 0;  background: linear-gradient(90deg, #f7f8fc 10%, transparent); }
+.logo-wall::after  { right: 0; background: linear-gradient(-90deg, #f7f8fc 10%, transparent); }
+.logo-marquee {
+  display: flex; width: max-content;
+  animation: marquee 34s linear infinite;
 }
-.logo-track:hover { animation-play-state: paused; }
+.logo-marquee:hover { animation-play-state: paused; }
+.logo-track { display: flex; gap: 14px; padding-right: 14px; flex-shrink: 0; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* ── Hero particles canvas ── */
@@ -913,7 +934,7 @@
 
 /* ── Reduced motion: respect user preference ── */
 @media (prefers-reduced-motion: reduce) {
-  .mock-scan, .hero-visual-glow, .logo-track, .float-ats, .float-keywords,
+  .mock-scan, .hero-visual-glow, .logo-marquee, .float-ats, .float-keywords,
   .hero-badge, .dot-pulse, .scroll-chevron, .price-card.featured,
   .ticker-dot, .mock-header::after { animation: none !important; }
   #hero-particles { display: none; }

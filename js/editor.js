@@ -655,9 +655,9 @@ function _jdWordCount(text) {
   return n ? n + ' words' : '';
 }
 
-// Parse the tailor notes blob into laid-out sections: matched/missing keyword
-// pills and emphasis/bullet cards (instead of one long pre-wrapped list).
-function _renderTailorResult(text) {
+// Parse the tailor notes blob into structured blocks (shared by the renderer
+// and the "Apply These Changes" action).
+function _parseTailorBlocks(text) {
   const lines = String(text || '').split('\n');
   const blocks = [];
   let cur = null;
@@ -681,6 +681,12 @@ function _renderTailorResult(text) {
     if (cur) cur.items.push(t);
     else blocks.push({ kind: 'intro', items: [t], title: null });
   });
+  return blocks;
+}
+
+// Lay out the parsed blocks: matched/missing keyword pills + emphasis/bullet cards.
+function _renderTailorResult(text) {
+  const blocks = _parseTailorBlocks(text);
   if (!blocks.length) {
     return `<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);">${esc(text)}</div>`;
   }

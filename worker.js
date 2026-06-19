@@ -17,7 +17,7 @@ const FAST_MODEL = "@cf/moonshotai/kimi-k2.6";
 const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "interview-feedback", "skills", "improve"]);
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).
@@ -498,6 +498,7 @@ async function ai(req, env, action) {
     case "analyze":   result = await aiAnalyze(env, body); break;
     case "parse":     result = await aiParse(env, body); break;
     case "interview": result = await aiInterview(env, body); break;
+    case "interview-feedback": result = await aiInterviewFeedback(env, body); break;
     default: throw err(404, "Unknown AI action");
   }
 
@@ -924,6 +925,27 @@ Rules:
   return { text: await runAI(env, sys,
     `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
     { max_tokens: 1100, temperature: 0.5 }) };
+}
+
+// ============ Interview answer feedback ============
+async function aiInterviewFeedback(env, { question, answer }) {
+  if (!answer || answer.trim().length < 10) {
+    return { score: 0, feedback: "Write a fuller answer (a few sentences) and try again." };
+  }
+  const sys = `${GROUND_RULE}
+
+You are an interview coach scoring a practice answer. Output STRICT JSON:
+{
+  "score": <integer 0-100>,
+  "feedback": "<2-4 short sentences: what worked, what to improve, and one concrete tweak. Reference the STAR method (Situation, Task, Action, Result) where relevant.>"
+}
+Score on structure, specificity, and impact. Address the reader as "you". OUTPUT ONLY THE JSON.`;
+  const raw = await runAI(env, sys,
+    `Question:\n${String(question || '').slice(0, 600)}\n\nMy answer:\n${String(answer).slice(0, 1500)}`,
+    { max_tokens: 320, temperature: 0.3 });
+  const j = safeJSON(raw);
+  if (!j) return { score: 60, feedback: raw };
+  return { score: j.score ?? 60, feedback: j.feedback || "" };
 }
 
 function safeJSON(s) {

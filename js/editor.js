@@ -655,6 +655,51 @@ function _jdWordCount(text) {
   return n ? n + ' words' : '';
 }
 
+// Parse the tailor notes blob into laid-out sections: matched/missing keyword
+// pills and emphasis/bullet cards (instead of one long pre-wrapped list).
+function _renderTailorResult(text) {
+  const lines = String(text || '').split('\n');
+  const blocks = [];
+  let cur = null;
+  const isHead = l => /^(matched keywords|missing keywords|what to emphasize|suggested bullet rewrites)/i.test(l);
+  lines.forEach(raw => {
+    const line = raw.trim();
+    if (!line) return;
+    if (isHead(line)) {
+      let kind = 'card', title = line.replace(/:.*$/, '').trim(), hint = '';
+      if (/^matched/i.test(line)) { kind = 'good'; title = 'Matched keywords'; }
+      else if (/^missing/i.test(line)) { kind = 'bad'; title = 'Missing keywords'; hint = 'Add these only if you genuinely have them.'; }
+      else if (/^what to emphasize/i.test(line)) title = 'What to emphasize';
+      else if (/^suggested/i.test(line)) title = 'Suggested bullet rewrites';
+      cur = { kind, title, hint, items: [] };
+      blocks.push(cur);
+      return;
+    }
+    const m = line.match(/^[✓✗×x→•\-*]\s*(.*)$/);
+    const t = (m ? m[1] : line).trim();
+    if (!t) return;
+    if (cur) cur.items.push(t);
+    else blocks.push({ kind: 'intro', items: [t], title: null });
+  });
+  if (!blocks.length) {
+    return `<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);">${esc(text)}</div>`;
+  }
+  const pill = (k, cls) => `<span class="ats-kw-pill ats-kw-${cls}">${esc(k)}</span>`;
+  const card = (t, ico) => `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(t)}</span></li>`;
+  return '<div class="tailor-result">' + blocks.map(b => {
+    if (b.kind === 'intro') return `<p class="ai-para">${b.items.map(esc).join('<br>')}</p>`;
+    let inner, badge = '';
+    if (b.kind === 'good') { inner = `<div class="tailor-pills">${b.items.map(i => pill(i,'matched')).join('')}</div>`; badge = `<span class="tailor-count">${b.items.length}</span>`; }
+    else if (b.kind === 'bad') { inner = `<div class="tailor-pills">${b.items.map(i => pill(i,'missing')).join('')}</div>`; badge = `<span class="tailor-count">${b.items.length}</span>`; }
+    else inner = `<ul class="ai-rec-list">${b.items.map(i => card(i, /^Suggested/.test(b.title) ? 'arrowRight' : 'check')).join('')}</ul>`;
+    return `<div class="tailor-block tailor-${b.kind}">
+        <div class="tailor-block-head">${esc(b.title)}${badge}</div>
+        ${b.hint ? `<p class="tailor-hint">${esc(b.hint)}</p>` : ''}
+        ${inner}
+      </div>`;
+  }).join('') + '</div>';
+}
+
 function renderTailor() {
   const wc = _jdWordCount(resume.tailor.jobDescription);
   return `
@@ -681,8 +726,8 @@ function renderTailor() {
         </div>
         ${resume.tailor.tailoredSummary ? `
           <div class="ai-result-box ai-result-indigo">
-            <div class="ai-result-label">✦ Tailored Summary</div>
-            <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;padding:12px 14px;">${esc(resume.tailor.tailoredSummary)}</div>
+            <div class="ai-result-label">✦ Tailoring Results</div>
+            <div style="padding:14px;">${_renderTailorResult(resume.tailor.tailoredSummary)}</div>
           </div>` : ''}
         ${navRow('publications','ats')}
       </div>

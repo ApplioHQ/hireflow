@@ -1,0 +1,25 @@
+name = "hireflow-api"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "HIREFLOW_KV"
+id = "fc33acc438fc484f860e880cb93de810"
+
+# Secrets — set with `npx wrangler secret put NAME`:
+#   JWT_SECRET             (random hex string)
+#   STRIPE_SECRET_KEY      (sk_live_... from Stripe)
+#   STRIPE_WEBHOOK_SECRET  (whsec_... — set after creating webhook in Stripe Dashboard)
+
+[vars]
+ALLOWED_ORIGIN = "https://appliohq.com,https://www.appliohq.com,https://codehost-commit.github.io"
+SITE_URL = "https://appliohq.com"
+PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
+LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
+FREE_DOWNLOAD_LIMIT = "10"
+# AI Gateway id — created under Cloudflare dashboard > AI > AI Gateway.
+# Routes all Workers AI calls through the gateway for caching, analytics, and rate limiting.
+AI_GATEWAY_ID = "default"

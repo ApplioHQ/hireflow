@@ -1,0 +1,1484 @@
+// ============ HireFlow Editor ============
+const API = window.HIREFLOW_CONFIG.API_URL;
+
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+
+// ---- Default state ----
+const DEFAULT_RESUME = {
+  template: 'modern',
+  customize: {
+    accent: '#4f46e5', font: 'Inter', spacing: 'medium',
+    sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true }
+  },
+  personal: { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' },
+  experience: [], education: [], skills: { categories: [] }, projects: [],
+  certifications: [], awards: [], leadership: [], volunteer: [], publications: [],
+  tailor: { jobDescription:'', tailoredSummary:'' },
+  versions: []
+};
+
+let resume = JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME);
+let currentSection = 'template';
+
+// ---- Section label/icon map ----
+const SECTION_INFO = {
+  template:      { label: 'Templates',      icon: 'doc' },
+  personal:      { label: 'Personal Info',  icon: 'user' },
+  experience:    { label: 'Experience',     icon: 'briefcase' },
+  education:     { label: 'Education',      icon: 'grad' },
+  skills:        { label: 'Skills',         icon: 'bolt' },
+  projects:      { label: 'Projects',       icon: 'tool' },
+  certifications:{ label: 'Certifications', icon: 'badge' },
+  awards:        { label: 'Awards',         icon: 'trophy' },
+  leadership:    { label: 'Leadership',     icon: 'team' },
+  volunteer:     { label: 'Volunteer',      icon: 'heart' },
+  publications:  { label: 'Publications',   icon: 'book' },
+  tailor:        { label: 'Tailor to Job',  icon: 'target' },
+  ats:           { label: 'ATS Check',      icon: 'check' },
+  analysis:      { label: 'AI Analysis',    icon: 'beaker' },
+  dashboard:     { label: 'Dashboard',      icon: 'chart' },
+  customize:     { label: 'Customize',      icon: 'settings' }
+};
+
+// ---- Hydrate icons in static markup ----
+
+function _sectionComplete(sec) {
+  switch(sec) {
+    case 'personal':      return !!(resume.personal.fullName && resume.personal.email);
+    case 'experience':    return resume.experience.length > 0;
+    case 'education':     return resume.education.length > 0;
+    case 'skills':        return resume.skills.categories.flatMap(c=>c.items).length > 0;
+    case 'projects':      return resume.projects.length > 0;
+    case 'certifications':return resume.certifications.length > 0;
+    case 'awards':        return resume.awards.length > 0;
+    case 'leadership':    return resume.leadership.length > 0;
+    case 'volunteer':     return resume.volunteer.length > 0;
+    case 'publications':  return resume.publications.length > 0;
+    default:              return false;
+  }
+}
+
+function hydrate() {
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    const s = el.dataset.section;
+    const info = SECTION_INFO[s];
+    if (!info) return;
+    const isPro = PRO_SECTIONS.has(s);
+    const showLock = isPro && isFree();
+    const done = _sectionComplete(s);
+    const indicator = showLock
+      ? `<span class="ico ico-sm" style="margin-left:auto;opacity:.7;">${ICONS.lock}</span>`
+      : done
+        ? `<span class="s-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg></span>`
+        : `<span class="s-dot"></span>`;
+    if (done) el.classList.add('has-content');
+    else el.classList.remove('has-content');
+    el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>${indicator}`;
+  });
+  document.getElementById('btn-import').innerHTML = `${ICON('upload')} <span>Import</span>`;
+  document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span>`;
+  document.getElementById('btn-export').innerHTML = `${ICON('arrowRight')} <span>Preview &amp; Export</span>`;
+  document.getElementById('copilot-label').innerHTML = `${ICON('sparkle')} <span>Smart writing copilot</span>`;
+  document.getElementById('rp-export').innerHTML = `${ICON('download')} <span>Export PDF</span>`;
+  document.getElementById('rp-history').innerHTML = `${ICON('clock')} <span>Version History</span>`;
+  document.getElementById('modal-import-title').innerHTML = `${ICON('upload','ico ico-lg')} <span style="margin-left:8px;">Import Your Resume</span>`;
+  document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span style="margin-left:8px;">Version History</span>`;
+  document.getElementById('btn-import-go').innerHTML = `${ICON('sparkle')} <span>Import with AI</span>`;
+
+  // Plan pill + download counter
+  const planPill = document.getElementById('plan-pill');
+  const dlPill = document.getElementById('download-pill');
+  const ipTab = document.getElementById('ip-tab');
+  const obadge = document.getElementById('optimize-badge');
+
+  if (isPaid()) {
+    planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+    if (dlPill) dlPill.style.display = 'none';
+    if (obadge) obadge.innerHTML = '';
+  } else {
+    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    const left = downloadsLeft();
+    if (dlPill) {
+      dlPill.style.display = '';
+      dlPill.innerHTML = `<span class="pill ${left<=2?'warn':''}" title="Free plan downloads">${ICON('download','ico ico-sm')} ${CURRENT_USER?.downloadsUsed || 0} / ${CURRENT_USER?.downloadLimit || 10}</span>`;
+    }
+    if (obadge) obadge.innerHTML = ` <span class="ico ico-sm" style="opacity:.5; vertical-align:middle;">${ICONS.lock}</span>`;
+  }
+
+  // Interview Prep tab — always visible, but show lock for free
+  if (ipTab && isFree()) {
+    ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
+    ipTab.onclick = (e) => { e.preventDefault(); showUpgradeModal('interview'); };
+  } else if (ipTab) {
+    ipTab.innerHTML = 'Interview Prep';
+    ipTab.onclick = null;
+  }
+
+  // Welcome banner
+  const params = new URLSearchParams(location.search);
+  const welcome = params.get('welcome');
+  if (welcome) {
+    const b = document.getElementById('welcome-banner');
+    b.style.display = '';
+    b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to ${welcome === 'lifetime' ? 'Lifetime' : 'Premium'}! All features are now unlocked.</span>`;
+    setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor.html'); }, 6000);
+  }
+}
+
+// ---- Sidebar (with plan gating) ----
+const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const sec = item.dataset.section;
+    if (PRO_SECTIONS.has(sec) && isFree()) {
+      showUpgradeModal('optimize');
+      return;
+    }
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    currentSection = sec;
+    renderMain();
+  });
+});
+
+// ---- Renderers ----
+const SECTIONS = {
+  template: renderTemplateSection, personal: renderPersonal, experience: renderExperience,
+  education: renderEducation, skills: renderSkills, projects: renderProjects,
+  certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
+  volunteer: renderVolunteer, publications: renderPublications,
+  tailor: renderTailor, ats: renderATS, analysis: renderAnalysis,
+  dashboard: renderDashboard, customize: renderCustomize
+};
+
+function renderMain() {
+  const mainEl = document.getElementById('main');
+  mainEl.innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
+  // Trigger section fade-in
+  const card = mainEl.firstElementChild;
+  if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
+  // Close mobile drawers when navigating
+  _closeMobileDrawers();
+  bindAutoSave();
+  renderPreview();
+  // Bind tag input if on skills section
+  if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
+  // Wire drag-to-reorder
+  setTimeout(_bindDragReorder, 0);
+  // Update sidebar completion indicators
+  document.querySelectorAll('.sidebar-item').forEach(function(el) {
+    var sec = el.dataset.section;
+    var done = _sectionComplete(sec);
+    el.classList.toggle('has-content', done);
+    var dot = el.querySelector('.s-dot');
+    if (dot) { dot.style.background = done ? 'var(--accent)' : 'var(--border)'; }
+  });
+}
+
+// ============ Section: Templates ============
+function renderTemplateSection() {
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('doc')} Templates</h3>
+        <span class="pill">${TEMPLATE_DEFS.length} templates</span>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">Choose a style. You can change colors and fonts in Customize.</p>
+      <div class="template-grid">
+        ${TEMPLATE_DEFS.map(t => `
+          <div class="template-card ${resume.template===t.id?'selected':''}" onclick="selectTemplate('${t.id}')">
+            <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}</div>
+            <div class="template-card-foot">
+              <span class="t-name">${t.name}</span>
+              ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="action-row">
+        <span></span>
+        <button class="btn btn-primary" onclick="nextSection('personal')">Continue ${ICON('arrowRight')}</button>
+      </div>
+    </div>`;
+}
+function selectTemplate(id) { resume.template = id; save(); renderMain(); }
+
+
+// ── Illustrated template thumbnails ──
+const TEMPLATE_THUMBS = {
+  modern: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="85" height="28" fill="#4f46e5"/>
+    <rect x="8" y="7" width="40" height="5" rx="2" fill="rgba(255,255,255,.9)"/>
+    <rect x="8" y="15" width="28" height="3" rx="1" fill="rgba(255,255,255,.5)"/>
+    <rect x="8" y="35" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="41" width="65" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="45" width="55" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="49" width="60" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="58" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="64" width="50" height="1.5" rx=".5" fill="#d1d5db"/>
+    <rect x="8" y="68" width="65" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="72" width="60" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="76" width="55" height="1.5" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="85" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="91" width="18" height="4" rx="2" fill="#e0e7ff"/>
+    <rect x="28" y="91" width="22" height="4" rx="2" fill="#e0e7ff"/>
+    <rect x="52" y="91" width="16" height="4" rx="2" fill="#e0e7ff"/>
+  </svg>`,
+  classic: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="8" width="69" height="6" rx="1" fill="#1f2937"/>
+    <rect x="20" y="18" width="45" height="2" rx="1" fill="#6b7280"/>
+    <rect x="25" y="23" width="35" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="31" width="69" height=".5" fill="#d1d5db"/>
+    <rect x="8" y="36" width="18" height="2" rx="1" fill="#374151"/>
+    <rect x="8" y="41" width="65" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="45" width="60" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="49" width="55" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="56" width="69" height=".5" fill="#d1d5db"/>
+    <rect x="8" y="61" width="18" height="2" rx="1" fill="#374151"/>
+    <rect x="8" y="67" width="65" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="71" width="58" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="78" width="69" height=".5" fill="#d1d5db"/>
+    <rect x="8" y="83" width="18" height="2" rx="1" fill="#374151"/>
+    <rect x="8" y="89" width="15" height="3" rx="1" fill="#f3f4f6"/>
+    <rect x="25" y="89" width="15" height="3" rx="1" fill="#f3f4f6"/>
+    <rect x="42" y="89" width="18" height="3" rx="1" fill="#f3f4f6"/>
+  </svg>`,
+  creative: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="28" height="110" fill="#0f172a"/>
+    <rect x="6" y="10" width="16" height="16" rx="8" fill="#8b5cf6"/>
+    <rect x="6" y="30" width="16" height="2" rx="1" fill="rgba(255,255,255,.8)"/>
+    <rect x="6" y="35" width="12" height="1.5" rx=".5" fill="rgba(255,255,255,.4)"/>
+    <rect x="6" y="50" width="10" height="1.5" rx=".5" fill="#8b5cf6"/>
+    <rect x="6" y="55" width="16" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
+    <rect x="6" y="58" width="14" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
+    <rect x="6" y="61" width="16" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
+    <rect x="6" y="72" width="10" height="1.5" rx=".5" fill="#8b5cf6"/>
+    <rect x="6" y="77" width="12" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
+    <rect x="6" y="82" width="16" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
+    <rect x="6" y="87" width="14" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
+    <rect x="35" y="10" width="40" height="4" rx="1" fill="#1f2937"/>
+    <rect x="35" y="18" width="30" height="2" rx="1" fill="#6b7280"/>
+    <rect x="35" y="30" width="16" height="2" rx="1" fill="#8b5cf6"/>
+    <rect x="35" y="36" width="42" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="35" y="40" width="38" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="35" y="50" width="16" height="2" rx="1" fill="#8b5cf6"/>
+    <rect x="35" y="56" width="42" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="35" y="60" width="36" height="1.5" rx=".5" fill="#9ca3af"/>
+  </svg>`,
+  minimal: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="10" y="10" width="45" height="5" rx="1" fill="#111827"/>
+    <rect x="10" y="19" width="60" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="10" y="23" width="50" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="10" y="33" width="65" height=".5" fill="#f3f4f6"/>
+    <rect x="10" y="38" width="20" height="2" rx=".5" fill="#6b7280"/>
+    <rect x="10" y="44" width="65" height="1" rx=".5" fill="#e5e7eb"/>
+    <rect x="10" y="47" width="60" height="1" rx=".5" fill="#e5e7eb"/>
+    <rect x="10" y="50" width="55" height="1" rx=".5" fill="#e5e7eb"/>
+    <rect x="10" y="58" width="20" height="2" rx=".5" fill="#6b7280"/>
+    <rect x="10" y="64" width="65" height="1" rx=".5" fill="#e5e7eb"/>
+    <rect x="10" y="67" width="55" height="1" rx=".5" fill="#e5e7eb"/>
+    <rect x="10" y="75" width="20" height="2" rx=".5" fill="#6b7280"/>
+    <rect x="10" y="81" width="14" height="3" rx="1.5" fill="#f9fafb" stroke="#e5e7eb" stroke-width=".5"/>
+    <rect x="26" y="81" width="18" height="3" rx="1.5" fill="#f9fafb" stroke="#e5e7eb" stroke-width=".5"/>
+    <rect x="46" y="81" width="14" height="3" rx="1.5" fill="#f9fafb" stroke="#e5e7eb" stroke-width=".5"/>
+  </svg>`,
+  professional: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#f8fafc"/>
+    <rect x="0" y="0" width="85" height="22" fill="#1e293b"/>
+    <rect x="8" y="5" width="35" height="4" rx="1" fill="#fff"/>
+    <rect x="8" y="13" width="50" height="2" rx="1" fill="rgba(255,255,255,.5)"/>
+    <rect x="0" y="22" width="85" height="3" fill="#3b82f6"/>
+    <rect x="8" y="32" width="18" height="2" rx="1" fill="#1e293b"/>
+    <rect x="8" y="38" width="65" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="8" y="42" width="58" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="8" y="46" width="62" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="8" y="55" width="18" height="2" rx="1" fill="#1e293b"/>
+    <rect x="8" y="61" width="50" height="1.5" rx=".5" fill="#cbd5e1"/>
+    <rect x="8" y="65" width="65" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="8" y="69" width="60" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="8" y="78" width="18" height="2" rx="1" fill="#1e293b"/>
+    <rect x="8" y="84" width="16" height="3.5" rx="1.5" fill="#dbeafe"/>
+    <rect x="26" y="84" width="20" height="3.5" rx="1.5" fill="#dbeafe"/>
+    <rect x="48" y="84" width="16" height="3.5" rx="1.5" fill="#dbeafe"/>
+  </svg>`,
+  tech: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#0f172a"/>
+    <rect x="8" y="8" width="40" height="5" rx="1" fill="#f1f5f9"/>
+    <rect x="8" y="17" width="55" height="1.5" rx=".5" fill="#475569"/>
+    <rect x="8" y="27" width="30" height=".5" fill="#22d3ee"/>
+    <rect x="8" y="31" width="18" height="2" rx=".5" fill="#22d3ee"/>
+    <rect x="8" y="37" width="65" height="1.5" rx=".5" fill="#334155"/>
+    <rect x="8" y="41" width="60" height="1.5" rx=".5" fill="#334155"/>
+    <rect x="8" y="45" width="55" height="1.5" rx=".5" fill="#334155"/>
+    <rect x="8" y="53" width="18" height="2" rx=".5" fill="#22d3ee"/>
+    <rect x="8" y="59" width="65" height="1.5" rx=".5" fill="#334155"/>
+    <rect x="8" y="63" width="58" height="1.5" rx=".5" fill="#334155"/>
+    <rect x="8" y="71" width="18" height="2" rx=".5" fill="#22d3ee"/>
+    <rect x="8" y="77" width="14" height="3" rx="1" fill="rgba(34,211,238,.15)" stroke="rgba(34,211,238,.4)" stroke-width=".5"/>
+    <rect x="24" y="77" width="18" height="3" rx="1" fill="rgba(34,211,238,.15)" stroke="rgba(34,211,238,.4)" stroke-width=".5"/>
+    <rect x="44" y="77" width="22" height="3" rx="1" fill="rgba(34,211,238,.15)" stroke="rgba(34,211,238,.4)" stroke-width=".5"/>
+  </svg>`,
+  executive: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="8" width="69" height=".5" fill="#1f2937"/>
+    <rect x="8" y="12" width="50" height="6" rx="1" fill="#1f2937"/>
+    <rect x="8" y="22" width="40" height="2" rx="1" fill="#6b7280"/>
+    <rect x="8" y="27" width="69" height=".5" fill="#1f2937"/>
+    <rect x="8" y="33" width="16" height="2" rx="1" fill="#1f2937"/>
+    <rect x="8" y="39" width="69" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="43" width="65" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="47" width="60" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="55" width="16" height="2" rx="1" fill="#1f2937"/>
+    <rect x="8" y="61" width="55" height="1.5" rx=".5" fill="#d1d5db"/>
+    <rect x="8" y="65" width="69" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="69" width="65" height="1.5" rx=".5" fill="#9ca3af"/>
+    <rect x="8" y="77" width="16" height="2" rx="1" fill="#1f2937"/>
+    <rect x="8" y="83" width="69" height=".5" fill="#e5e7eb"/>
+    <rect x="8" y="89" width="12" height="3" rx="1" fill="#f3f4f6"/>
+    <rect x="22" y="89" width="16" height="3" rx="1" fill="#f3f4f6"/>
+    <rect x="40" y="89" width="20" height="3" rx="1" fill="#f3f4f6"/>
+  </svg>`,
+  compact: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="85" height="18" fill="#7c3aed"/>
+    <rect x="8" y="5" width="30" height="3.5" rx="1" fill="#fff"/>
+    <rect x="8" y="11" width="45" height="1.5" rx=".5" fill="rgba(255,255,255,.6)"/>
+    <rect x="8" y="23" width="14" height="1.8" rx=".5" fill="#7c3aed"/>
+    <rect x="8" y="27" width="69" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="30" width="65" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="33" width="60" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="38" width="14" height="1.8" rx=".5" fill="#7c3aed"/>
+    <rect x="8" y="42" width="50" height="1.2" rx=".5" fill="#d1d5db"/>
+    <rect x="8" y="45" width="69" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="48" width="62" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="53" width="14" height="1.8" rx=".5" fill="#7c3aed"/>
+    <rect x="8" y="57" width="69" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="60" width="55" height="1.2" rx=".5" fill="#e5e7eb"/>
+    <rect x="8" y="68" width="14" height="1.8" rx=".5" fill="#7c3aed"/>
+    <rect x="8" y="72" width="12" height="2.5" rx="1" fill="#ede9fe"/>
+    <rect x="22" y="72" width="16" height="2.5" rx="1" fill="#ede9fe"/>
+    <rect x="40" y="72" width="14" height="2.5" rx="1" fill="#ede9fe"/>
+  </svg>`,
+  elegant: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fffbf7"/>
+    <rect x="0" y="0" width="85" height="32" fill="#292524"/>
+    <rect x="22" y="7" width="41" height="5" rx="1" fill="#fff"/>
+    <rect x="27" y="16" width="31" height="2" rx="1" fill="rgba(255,255,255,.5)"/>
+    <rect x="30" y="21" width="25" height="1.5" rx=".5" fill="rgba(255,255,255,.3)"/>
+    <rect x="8" y="38" width="16" height="2" rx=".5" fill="#78716c"/>
+    <rect x="8" y="43" width="69" height="1.5" rx=".5" fill="#a8a29e"/>
+    <rect x="8" y="47" width="62" height="1.5" rx=".5" fill="#a8a29e"/>
+    <rect x="8" y="56" width="16" height="2" rx=".5" fill="#78716c"/>
+    <rect x="8" y="62" width="52" height="1.5" rx=".5" fill="#c7c3bf"/>
+    <rect x="8" y="66" width="69" height="1.5" rx=".5" fill="#a8a29e"/>
+    <rect x="8" y="70" width="65" height="1.5" rx=".5" fill="#a8a29e"/>
+    <rect x="8" y="79" width="16" height="2" rx=".5" fill="#78716c"/>
+    <rect x="8" y="85" width="13" height="3" rx="1.5" fill="#e7e5e4"/>
+    <rect x="23" y="85" width="17" height="3" rx="1.5" fill="#e7e5e4"/>
+    <rect x="42" y="85" width="15" height="3" rx="1.5" fill="#e7e5e4"/>
+  </svg>`,
+};
+
+// ============ Personal ============
+function renderPersonal() {
+  const p = resume.personal;
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('user')} Personal Info</h3>
+        <button class="ai-btn" onclick="aiImprove('summary')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
+      </div>
+      <div class="form-field"><label>Full Name</label><input data-bind="personal.fullName" value="${esc(p.fullName)}"></div>
+      <div class="form-field"><label>Email</label><input data-bind="personal.email" value="${esc(p.email)}" type="email"></div>
+      <div class="grid-2">
+        <div class="form-field"><label>Phone</label><input data-bind="personal.phone" value="${esc(p.phone)}"></div>
+        <div class="form-field"><label>Location</label><input data-bind="personal.location" value="${esc(p.location)}"></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-field"><label>LinkedIn URL</label><input data-bind="personal.linkedin" value="${esc(p.linkedin)}"></div>
+        <div class="form-field"><label>GitHub URL</label><input data-bind="personal.github" value="${esc(p.github)}"></div>
+      </div>
+      <div class="form-field"><label>Personal Website</label><input data-bind="personal.website" value="${esc(p.website)}"></div>
+      <div class="form-field">
+        <label>Professional Summary</label>
+        <textarea data-bind="personal.summary" rows="4" placeholder="A short summary highlighting your strengths…">${esc(p.summary)}</textarea>
+      </div>
+      ${navRow('template','experience')}
+    </div>`;
+}
+
+// ============ Experience / list-style sections ============
+function renderExperience() {
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('briefcase')} Experience</h3>
+        <button class="ai-btn" onclick="aiImprove('experience')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
+      </div>
+      ${resume.experience.length === 0 ? `<div class="empty-state">No work experience added yet — add your first role to get started.</div>`
+        : `<div class="drag-list">${resume.experience.map((e,i) => itemCard('experience', i, [
+            ['Job Title','title',e.title], ['Company','company',e.company],
+            ['Start Date','start',e.start], ['End Date / Present','end',e.end],
+            ['Location','location',e.location]
+          ], 'description', e.description)).join('')}</div>`}
+      <button class="add-btn" onclick="addItem('experience',{title:'',company:'',start:'',end:'',location:'',description:''})">${ICON('plus','ico ico-sm')} Add Experience</button>
+      ${navRow('personal','education')}
+    </div>`;
+}
+
+function renderEducation() {
+  return `
+    <div class="section-card">
+      <div class="section-head"><h3>${ICON('grad')} Education</h3></div>
+      ${resume.education.length === 0 ? `<div class="empty-state">No education added yet.</div>`
+        : `<div class="drag-list">${resume.education.map((e,i) => itemCard('education', i, [
+            ['School','school',e.school], ['Degree','degree',e.degree],
+            ['Field of Study','field',e.field], ['GPA','gpa',e.gpa],
+            ['Start','start',e.start], ['End','end',e.end]
+          ], 'notes', e.notes)).join('')}</div>`}
+      <button class="add-btn" onclick="addItem('education',{school:'',degree:'',field:'',gpa:'',start:'',end:'',notes:''})">${ICON('plus','ico ico-sm')} Add Education</button>
+      ${navRow('experience','skills')}
+    </div>`;
+}
+
+function renderSkills() {
+  const items = resume.skills.categories.flatMap(c=>c.items);
+  const pillsHtml = items.map(function(sk, i) {
+    return '<span class="tag-pill">' + esc(sk)
+      + '<button type="button" data-skill-rm="' + i + '" title="Remove">&times;</button></span>';
+  }).join('');
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('bolt')} Skills</h3>
+        <button class="ai-btn" onclick="aiSuggestSkills()">${ICON('sparkle','ico ico-sm')} Suggest from Experience</button>
+      </div>
+      <div class="tag-input-wrap" id="tag-input-wrap" onclick="_focusSkillInput()">
+        ${pillsHtml}
+        <input id="skill-inp" placeholder="${items.length ? 'Add another skill...' : 'Type a skill and press Enter or comma...'}" autocomplete="off">
+      </div>
+      <div class="tag-hint">Press <strong>Enter</strong> or <strong>,</strong> after each skill. Click &times; to remove.</div>
+      ${navRow('education','projects')}
+    </div>`;
+}
+
+function _focusSkillInput() { var el = document.getElementById('skill-inp'); if (el) el.focus(); }
+
+function _bindTagInput() {
+  var inp = document.getElementById('skill-inp');
+  var wrap = document.getElementById('tag-input-wrap');
+  if (!inp) return;
+
+  function addSkill(val) {
+    var sk = val.trim().replace(/,+$/, '').trim();
+    if (!sk) return;
+    var items = resume.skills.categories.flatMap(function(c){return c.items;});
+    if (items.map(function(x){return x.toLowerCase();}).includes(sk.toLowerCase())) return;
+    if (!resume.skills.categories.length) resume.skills.categories.push({name:'All',items:[]});
+    resume.skills.categories[0].items.push(sk);
+    save();
+    // Re-render just the wrap content without full renderMain for snappy UX
+    _refreshTagPills();
+  }
+
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(inp.value);
+      inp.value = '';
+    } else if (e.key === 'Backspace' && inp.value === '') {
+      // Remove last skill
+      var cats = resume.skills.categories;
+      if (cats.length && cats[0].items.length) {
+        cats[0].items.pop();
+        save(); _refreshTagPills();
+      }
+    }
+  });
+  inp.addEventListener('blur', function() {
+    if (inp.value.trim()) { addSkill(inp.value); inp.value = ''; }
+  });
+
+  // Remove pill buttons
+  if (wrap) wrap.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-skill-rm]');
+    if (!btn) return;
+    var idx = +btn.dataset.skillRm;
+    var cats = resume.skills.categories;
+    if (cats.length) cats[0].items.splice(idx, 1);
+    save(); _refreshTagPills();
+  });
+}
+
+function _refreshTagPills() {
+  var wrap = document.getElementById('tag-input-wrap');
+  var inp  = document.getElementById('skill-inp');
+  if (!wrap || !inp) return;
+  var items = resume.skills.categories.flatMap(function(c){return c.items;});
+  // Remove existing pills (not the input)
+  Array.from(wrap.querySelectorAll('.tag-pill')).forEach(function(p){p.remove();});
+  var frag = document.createDocumentFragment();
+  items.forEach(function(sk, i) {
+    var span = document.createElement('span'); span.className = 'tag-pill';
+    span.innerHTML = esc(sk) + '<button type="button" data-skill-rm="' + i + '" title="Remove">&times;</button>';
+    frag.appendChild(span);
+  });
+  wrap.insertBefore(frag, inp);
+  inp.placeholder = items.length ? 'Add another skill...' : 'Type a skill and press Enter or comma...';
+  // Update sidebar dot
+  document.querySelectorAll('.sidebar-item').forEach(function(el) {
+    if (el.dataset.section === 'skills') el.classList.toggle('has-content', items.length > 0);
+  });
+}
+
+function saveSkills() {} // no-op, kept for safety
+
+
+function renderProjects()      { return sectionList('projects','tool','Projects', resume.projects, [['Name','name'],['Role','role'],['Tech','tech'],['Link','link']], 'description', 'skills','certifications'); }
+function renderCertifications(){ return sectionList('certifications','badge','Certifications', resume.certifications, [['Name','name'],['Issuer','issuer'],['Date','date'],['Credential URL','url']], null, 'projects','awards'); }
+function renderAwards()        { return sectionList('awards','trophy','Awards', resume.awards, [['Name','name'],['Issuer','issuer'],['Date','date']], 'description','certifications','leadership'); }
+function renderLeadership()    { return sectionList('leadership','team','Leadership', resume.leadership, [['Role','role'],['Organization','org'],['Start','start'],['End','end']], 'description','awards','volunteer'); }
+function renderVolunteer()     { return sectionList('volunteer','heart','Volunteer', resume.volunteer, [['Role','role'],['Organization','org'],['Start','start'],['End','end']], 'description','leadership','publications'); }
+function renderPublications()  { return sectionList('publications','book','Publications', resume.publications, [['Title','title'],['Venue','venue'],['Date','date'],['URL','url']], 'abstract','volunteer','tailor'); }
+
+function sectionList(key, icon, title, list, fields, longField, prev, next) {
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON(icon)} ${title}</h3>
+        ${longField ? `<button class="ai-btn" onclick="aiImprove('${key}')">${ICON('sparkle','ico ico-sm')} AI Improve</button>`:''}
+      </div>
+      ${list.length===0 ? `<div class="empty-state">No ${key} added yet.</div>` :
+        `<div class="drag-list">${list.map((it,i)=> itemCard(key, i, fields.map(f=>[f[0],f[1],it[f[1]]]), longField, longField?it[longField]:null)).join('')}</div>`}
+      <button class="add-btn" onclick='addItem("${key}",${JSON.stringify(blank(fields,longField))})'>${ICON('plus','ico ico-sm')} Add ${title}</button>
+      ${navRow(prev,next)}
+    </div>`;
+}
+
+function blank(fields, longField) { const o = {}; fields.forEach(f => o[f[1]] = ''); if (longField) o[longField] = ''; return o; }
+
+function itemCard(key, idx, fields, longField, longValue) {
+  // Smart field grouping: first field full-width, rest in grid
+  const firstField = fields[0];
+  const restFields = fields.slice(1);
+  const halfLen = Math.ceil(restFields.length / 2);
+  return `
+    <div class="drag-item" draggable="true" data-drag-key="${key}" data-drag-idx="${idx}">
+      <span class="drag-handle" title="Drag to reorder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/>
+        </svg>
+      </span>
+      <div class="item-card">
+        <div class="item-card-header">
+          <div>
+            <div class="item-card-title">${esc(firstField[2] || 'New entry')}</div>
+            ${fields[1] && fields[1][2] ? `<div class="item-card-sub">${esc(fields[1][2])}</div>` : ''}
+          </div>
+          <button class="item-card-remove" onclick="removeItem('${key}',${idx})" title="Remove">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+        <div class="form-field"><label>${firstField[0]}</label><input data-bind="${key}.${idx}.${firstField[1]}" value="${esc(firstField[2]||'')}"></div>
+        ${restFields.length ? `
+        <div class="grid-2">
+          ${restFields.map(f => `
+            <div class="form-field"><label>${f[0]}</label><input data-bind="${key}.${idx}.${f[1]}" value="${esc(f[2]||'')}"></div>
+          `).join('')}
+        </div>` : ''}
+        ${longField ? `
+        <div class="form-field">
+          <label style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span>${longField === 'description' ? 'Description / Bullets' : longField}</span>
+            ${longField === 'description' ? '<span id="bm_' + key + '_' + idx + '" style="font-size:11px;"></span>' : ''}
+          </label>
+          <textarea data-bind="${key}.${idx}.${longField}" rows="4"
+            placeholder="• Use bullets to describe achievements…"
+            data-bmid="bm_${key}_${idx}"
+            oninput="_liveBM(this,'bm_${key}_${idx}')"
+            >${esc(longValue||'')}</textarea>
+          ${longField === 'description' ? '<div id="bmbar_' + key + '_' + idx + '" class="bm-bar-wrap"></div>' : ''}
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+// Score a description/bullets block 0–100
+function _scoreBullet(text) {
+  if (!text || !text.trim()) return 0;
+  var lines = text.split('\n').map(function(l){ return l.replace(/^[•\-\*]\s*/,'').trim(); }).filter(Boolean);
+  if (!lines.length) return 0;
+  var score = 0;
+  var ACTION_VERBS = /^(led|built|created|designed|developed|launched|improved|increased|reduced|managed|delivered|implemented|drove|grew|optimized|architected|deployed|scaled|mentored|negotiated|spearheaded|revamped|authored|engineered|coordinated|established|exceeded|automated|migrated|collaborated|achieved|generated|saved|cut|boosted|accelerated|transformed|streamlined|restructured|recruited|trained|oversaw|pioneered|directed|facilitated)/i;
+  var hasVerb = lines.some(function(l){ return ACTION_VERBS.test(l); });
+  var hasMetric = /\d+\s*(%|x|k\b|\$|million|billion|users|customers|hours|days|weeks|months|years|points|ms\b|seconds)|\$\s*[\d,]+|\d[\d,]{2,}/i.test(text);
+  var totalChars = lines.reduce(function(a,l){ return a+l.length; }, 0);
+  var avgLen = totalChars / lines.length;
+  if (hasVerb) score += 30;
+  if (hasMetric) score += 35;
+  if (avgLen >= 40) score += 20; else if (avgLen >= 20) score += 10;
+  if (lines.length >= 2) score += 10;
+  if (lines.length >= 3) score += 5;
+  return Math.min(100, score);
+}
+
+// Live bullet meter update — called oninput on each description textarea
+function _liveBM(ta, meterId) {
+  var score = _scoreBullet(ta.value);
+  var lbl = document.getElementById(meterId);
+  var col = score >= 75 ? '#6ee7b7' : score >= 45 ? '#fcd34d' : '#fca5a5';
+  var txt = score >= 75 ? '✦ Strong' : score >= 45 ? '◆ Decent' : '▲ Needs work';
+  if (lbl) { lbl.textContent = score > 0 ? txt : ''; lbl.style.color = col; }
+  var barWrap = document.getElementById(meterId.replace('bm_', 'bmbar_'));
+  if (barWrap) {
+    barWrap.innerHTML = score > 0
+      ? '<div class="bm-track"><div class="bm-fill" style="width:'+score+'%;background:'+col+';"></div></div>'
+      : '';
+  }
+}
+
+
+// ============ Tailor / ATS / Analysis / Dashboard / Customize ============
+function _jdWordCount(text) {
+  var n = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  return n ? n + ' words' : '';
+}
+
+function _jdWordCount(text) {
+  var n = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  return n ? n + ' words' : '';
+}
+
+function renderTailor() {
+  const wc = _jdWordCount(resume.tailor.jobDescription);
+  return `
+    <div class="section-card ai-card ai-card-indigo">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-indigo">${ICON('target')}</div>
+        <div>
+          <h3 class="ai-card-title">Tailor to Job</h3>
+          <p class="ai-card-sub">AI rewrites your summary &amp; bullets to match the role.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="aiTailor()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Generate</button>
+      </div>
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label style="display:flex;justify-content:space-between;">
+            <span>Job Description</span>
+            <span id="tailor-wc" style="font-size:11px;color:var(--muted);">${wc}</span>
+          </label>
+          <textarea data-bind="tailor.jobDescription" rows="12"
+            placeholder="Paste the full job description here — the more detail, the better the tailoring…"
+            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
+            style="font-size:13px;line-height:1.6;"
+          >${esc(resume.tailor.jobDescription)}</textarea>
+        </div>
+        ${resume.tailor.tailoredSummary ? `
+          <div class="ai-result-box ai-result-indigo">
+            <div class="ai-result-label">✦ Tailored Summary</div>
+            <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;padding:12px 14px;">${esc(resume.tailor.tailoredSummary)}</div>
+          </div>` : ''}
+        ${navRow('publications','ats')}
+      </div>
+    </div>`;
+}
+
+function renderATS() {
+  return `
+    <div class="section-card ai-card ai-card-emerald">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-emerald">${ICON('check')}</div>
+        <div>
+          <h3 class="ai-card-title">ATS Compatibility Check</h3>
+          <p class="ai-card-sub">Score your resume against a job posting's ATS filters.</p>
+        </div>
+      </div>
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label style="display:flex;justify-content:space-between;">
+            <span>Job Description</span>
+            <span id="ats-wc" style="font-size:11px;color:var(--muted);"></span>
+          </label>
+          <textarea id="ats-jd" rows="12"
+            placeholder="Paste the job description — we'll keyword-match it against your resume…"
+            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"
+            style="font-size:13px;line-height:1.6;"></textarea>
+        </div>
+        <button class="btn btn-emerald btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
+        <div id="ats-result" style="margin-top:16px;"></div>
+        ${navRow('tailor','analysis')}
+      </div>
+    </div>`;
+}
+
+function renderAnalysis() {
+  return `
+    <div class="section-card ai-card ai-card-violet">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-violet">${ICON('beaker')}</div>
+        <div>
+          <h3 class="ai-card-title">AI Resume Analysis</h3>
+          <p class="ai-card-sub">Detailed strengths, weaknesses, and actionable improvements.</p>
+        </div>
+        <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Analyze</button>
+      </div>
+      <div class="ai-card-body">
+        <div id="analysis-result"></div>
+        ${navRow('ats','dashboard')}
+      </div>
+    </div>`;
+}
+
+function renderDashboard() {
+  const filled = countFilled();
+  const pct = Math.round(filled.score * 100);
+  return `
+    <div class="section-card">
+      <div class="section-head"><h3>${ICON('chart')} Dashboard</h3></div>
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div style="background:var(--bg-2); padding:18px; border-radius:10px; border:1px solid var(--border);">
+          <div style="font-size:12px; color:var(--muted);">Your Progress</div>
+          <div style="font-size:36px; font-weight:700; margin-top:4px;">${pct}%</div>
+        </div>
+        <div style="background:var(--bg-2); padding:18px; border-radius:10px; border:1px solid var(--border);">
+          <div style="font-size:12px; color:var(--muted);">Sections Completed</div>
+          <div style="font-size:36px; font-weight:700; margin-top:4px;">${filled.done} / ${filled.total}</div>
+        </div>
+      </div>
+      <div class="toggle-row" style="border:none;">
+        <div><strong>Resume Completeness</strong><div style="color:var(--muted); font-size:12px;">Fill all required sections for the best results.</div></div>
+        <div class="pill ${pct>=80?'success':pct>=50?'warn':'error'}">${pct>=80?'Strong':pct>=50?'In progress':'Just started'}</div>
+      </div>
+      <div style="margin-top:16px;">
+        <strong>Selected Template:</strong> ${esc(resume.template)}
+      </div>
+      <div class="action-row">
+        <button class="btn btn-secondary" onclick="nextSection('analysis')">${ICON('arrowLeft')} Back</button>
+        <a href="export.html" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
+      </div>
+    </div>`;
+}
+
+function countFilled() {
+  let done = 0;
+  if (resume.personal.fullName && resume.personal.email) done++;
+  if (resume.experience.length) done++;
+  if (resume.education.length) done++;
+  if (resume.skills.categories.length) done++;
+  if (resume.projects.length) done++;
+  return { done, total: 5, score: done/5 };
+}
+
+const SWATCHES = ['#4f46e5','#7c3aed','#ec4899','#0f766e','#f59e0b','#10b981','#0ea5e9','#3b82f6','#1f2937','#7c2d12'];
+const FONTS = ['Inter','Helvetica','Georgia','Times'];
+
+function renderCustomize() {
+  const c = resume.customize;
+  return `
+    <div class="section-card">
+      <div class="section-head"><h3>${ICON('settings')} Customize Template</h3></div>
+      <div style="margin-bottom:18px;">
+        <label style="font-size:13px; color:var(--muted);">Accent Color</label>
+        <div class="swatch-grid" style="margin-top:8px;">
+          ${SWATCHES.map(s=>`<div class="swatch ${c.accent===s?'selected':''}" style="background:${s};" onclick="setCustom('accent','${s}')"></div>`).join('')}
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Font</label>
+        <select data-bind="customize.font">${FONTS.map(f=>`<option ${c.font===f?'selected':''}>${f}</option>`).join('')}</select>
+      </div>
+      <div class="form-field">
+        <label>Spacing</label>
+        <select data-bind="customize.spacing">
+          <option value="compact" ${c.spacing==='compact'?'selected':''}>Compact</option>
+          <option value="medium" ${c.spacing==='medium'?'selected':''}>Medium</option>
+          <option value="relaxed" ${c.spacing==='relaxed'?'selected':''}>Relaxed</option>
+        </select>
+      </div>
+      <div style="margin-top:18px;">
+        <strong>Resume Sections</strong>
+        <div style="margin-top:10px;">
+          ${Object.keys(c.sections).map(k=>`
+            <div class="toggle-row">
+              <span style="text-transform:capitalize;">${k}</span>
+              <div class="toggle ${c.sections[k]?'on':''}" onclick="toggleSection('${k}')"></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+function setCustom(k,v) { resume.customize[k]=v; save(); renderMain(); }
+function toggleSection(k){ resume.customize.sections[k]=!resume.customize.sections[k]; save(); renderMain(); }
+
+// ============ Nav row helper ============
+function navRow(prev, next) {
+  return `<div class="action-row">
+    ${prev ? `<button class="btn btn-secondary" onclick="nextSection('${prev}')">${ICON('arrowLeft')} Back</button>` : '<span></span>'}
+    ${next ? `<button class="btn btn-primary" onclick="nextSection('${next}')">Continue ${ICON('arrowRight')}</button>` : ''}
+  </div>`;
+}
+
+// ============ Preview (uses template renderer) ============
+function renderPreview() {
+  document.getElementById('preview').innerHTML = renderTemplate(resume.template, resume, true, resume.customize.accent);
+  _bindPreviewClicks();
+  _checkPageFit();
+  if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
+}
+
+// ============ Fix 3: page overflow indicator ============
+const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
+let _measureFrame = null;
+
+function _checkPageFit() {
+  const preview = document.getElementById('preview');
+  if (!preview) return;
+  // Measure the resume's true full-scale height in an isolated, offscreen iframe.
+  if (!_measureFrame) {
+    _measureFrame = document.createElement('iframe');
+    _measureFrame.setAttribute('aria-hidden', 'true');
+    _measureFrame.style.cssText = 'position:absolute; left:-9999px; top:0; width:816px; height:10px; border:0; visibility:hidden;';
+    document.body.appendChild(_measureFrame);
+  }
+  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
+  const doc = writeResumeFrame(_measureFrame, html, 816);
+  const apply = () => {
+    const trueH = doc.body.scrollHeight || doc.documentElement.scrollHeight;
+    const ratio = trueH / PAGE_PX;
+    _renderFitIndicator(ratio);
+    _drawPageBreak(ratio, trueH);
+  };
+  apply();
+  setTimeout(apply, 50); // re-measure once layout settles
+}
+
+function _renderFitIndicator(ratio) {
+  const preview = document.getElementById('preview');
+  let ind = document.getElementById('page-fit-indicator');
+  if (!ind) {
+    ind = document.createElement('div');
+    ind.id = 'page-fit-indicator';
+    preview.parentNode.insertBefore(ind, preview.nextSibling);
+  }
+  const pct = Math.round(ratio * 100);
+  let bg, border, color, text;
+  if (ratio < 0.6) {
+    bg = '#fef9c3'; border = '#eab308'; color = '#854d0e';
+    text = '⚠ Too much empty space — your resume only fills ' + pct + '% of the page. Add more detail.';
+  } else if (ratio > 1.05) {
+    bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
+    text = '⚠ Content overflows onto a second page (' + pct + '% of one page). Trim to fit.';
+  } else {
+    bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
+    text = '✓ Great fit — fills one page nicely (' + pct + '%).';
+  }
+  ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
+  ind.textContent = text;
+}
+
+function _drawPageBreak(ratio, trueH) {
+  const preview = document.getElementById('preview');
+  if (getComputedStyle(preview).position === 'static') preview.style.position = 'relative';
+  let line = document.getElementById('page-break-line');
+  // Only meaningful when content actually spills past one page.
+  if (ratio <= 1.0) { if (line) line.style.display = 'none'; return; }
+  if (!line) {
+    line = document.createElement('div');
+    line.id = 'page-break-line';
+    preview.appendChild(line);
+  }
+  // Map the 1056px full-scale page boundary into the scaled-down preview.
+  const contentH = preview.scrollHeight;
+  const breakY = Math.round((PAGE_PX / trueH) * contentH);
+  line.style.cssText = 'position:absolute; left:0; right:0; top:' + breakY + 'px; height:0; border-top:2px dashed #ef4444; pointer-events:none; z-index:5;';
+}
+
+// ============ Fix 2: full-screen preview lightbox ============
+let _fullOverlay = null;
+let _fullZoom = 1;
+
+function openFullPreview() {
+  if (!_fullOverlay) _buildFullOverlay();
+  _fullOverlay.style.display = 'flex';
+  requestAnimationFrame(() => { _fullOverlay.style.opacity = '1'; });
+  document.addEventListener('keydown', _fullKeyHandler);
+  _renderFullPreview();
+}
+
+function closeFullPreview() {
+  if (!_fullOverlay) return;
+  _fullOverlay.style.opacity = '0';
+  setTimeout(() => { _fullOverlay.style.display = 'none'; }, 200);
+  document.removeEventListener('keydown', _fullKeyHandler);
+}
+
+function _fullKeyHandler(e) { if (e.key === 'Escape') closeFullPreview(); }
+
+function setFullZoom(delta) {
+  _fullZoom = Math.min(1.5, Math.max(0.4, +(_fullZoom + delta).toFixed(2)));
+  _applyFullZoom();
+}
+function _applyFullZoom() {
+  const f = document.getElementById('full-frame');
+  if (f) { f.style.transform = 'scale(' + _fullZoom + ')'; }
+  const lbl = document.getElementById('full-zoom-label');
+  if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
+}
+
+function _renderFullPreview() {
+  const f = document.getElementById('full-frame');
+  if (!f) return;
+  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
+  const doc = writeResumeFrame(f, html, 816);
+  const fit = () => { f.style.height = (doc.documentElement.scrollHeight) + 'px'; };
+  fit();
+  setTimeout(fit, 60);
+  _applyFullZoom();
+}
+
+function _buildFullOverlay() {
+  _fullOverlay = document.createElement('div');
+  _fullOverlay.id = 'full-preview-overlay';
+  _fullOverlay.style.cssText = 'position:fixed; inset:0; z-index:1000; display:none; flex-direction:column; background:rgba(8,10,25,.88); backdrop-filter:blur(4px); opacity:0; transition:opacity .2s ease;';
+
+  const btn = 'background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:8px 14px; font-size:14px; cursor:pointer; line-height:1;';
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; flex-shrink:0;';
+  bar.innerHTML =
+    '<button id="fz-out" style="' + btn + '">−</button>' +
+    '<span id="full-zoom-label" style="color:#fff; font-size:13px; min-width:46px; text-align:center;">100%</span>' +
+    '<button id="fz-in" style="' + btn + '">+</button>' +
+    '<a href="export.html" style="' + btn + ' text-decoration:none;">Export →</a>' +
+    '<button id="fz-close" style="' + btn + '">✕ Close</button>';
+
+  const scroll = document.createElement('div');
+  scroll.id = 'full-scroll';
+  scroll.style.cssText = 'flex:1; overflow:auto; display:flex; justify-content:center; align-items:flex-start; padding:20px 20px 80px;';
+
+  const frame = document.createElement('iframe');
+  frame.id = 'full-frame';
+  frame.title = 'Full resume preview';
+  frame.style.cssText = 'width:816px; flex:none; border:0; background:#fff; border-radius:4px; box-shadow:0 12px 60px rgba(0,0,0,.55); transform-origin:top center;';
+  scroll.appendChild(frame);
+
+  _fullOverlay.appendChild(bar);
+  _fullOverlay.appendChild(scroll);
+  document.body.appendChild(_fullOverlay);
+
+  bar.querySelector('#fz-out').onclick = () => setFullZoom(-0.1);
+  bar.querySelector('#fz-in').onclick = () => setFullZoom(0.1);
+  bar.querySelector('#fz-close').onclick = closeFullPreview;
+  // Close on backdrop click (overlay or scroll area, not the frame/toolbar).
+  _fullOverlay.addEventListener('click', (e) => {
+    if (e.target === _fullOverlay || e.target === scroll) closeFullPreview();
+  });
+}
+
+function _bindPreviewClicks() {
+  const preview = document.getElementById('preview');
+  if (!preview) return;
+  const SECTION_MAP = {
+    'experience': 'experience', 'education': 'education', 'skills': 'skills',
+    'projects': 'projects', 'certifications': 'certifications', 'awards': 'awards',
+    'leadership': 'leadership', 'volunteer': 'volunteer', 'publications': 'publications',
+    'summary': 'personal', 'profile': 'personal', 'objective': 'personal',
+    'workexperience': 'experience', 'professionalexperience': 'experience',
+  };
+  // Make section headings clickable
+  preview.querySelectorAll('h2').forEach(h2 => {
+    const key = h2.textContent.toLowerCase().replace(/[^a-z]/g, '');
+    const section = SECTION_MAP[key] || Object.keys(SECTION_MAP).reduce((found, k) => found || (key.includes(k) ? SECTION_MAP[k] : null), null);
+    if (!section) return;
+    h2.classList.add('preview-jump');
+    h2.title = 'Click to edit ' + section;
+    h2.addEventListener('click', () => nextSection(section));
+  });
+  // Make header/name area jump to personal
+  const header = preview.querySelector('[class*="header"], [class*="name"]');
+  if (header) {
+    header.classList.add('preview-jump');
+    header.title = 'Click to edit Personal Info';
+    header.addEventListener('click', () => nextSection('personal'));
+  }
+}
+
+// ============ Helpers ============
+function nextSection(s) {
+  currentSection = s;
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.toggle('active', i.dataset.section === s));
+  renderMain();
+}
+function addItem(key, b) { resume[key].push(b); save(); renderMain(); }
+function removeItem(key, idx) { resume[key].splice(idx,1); save(); renderMain(); }
+
+function bindAutoSave() {
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    el.addEventListener('input', () => {
+      const path = el.dataset.bind.split('.');
+      let obj = resume;
+      for (let i=0;i<path.length-1;i++) obj = obj[path[i]];
+      obj[path[path.length-1]] = el.value;
+      save(); renderPreview();
+    });
+  });
+}
+
+let _saveStatusTimer = null;
+function _setSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+  clearTimeout(_saveStatusTimer);
+  if (color) _saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+function save() {
+  localStorage.setItem('hf_resume', JSON.stringify(resume));
+  _setSaveStatus('● Unsaved changes', 'var(--warning)');
+}
+
+async function saveResume() {
+  resume.versions = resume.versions || [];
+  // Snapshot excludes versions array to prevent recursive nesting
+  const { versions: _v, ...snap } = resume;
+  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(snap)) });
+  resume.versions = resume.versions.slice(0, 10);
+  save();
+  let cloudOk = false;
+  try {
+    const r = await fetch(API + '/resume', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify({ resume })
+    });
+    cloudOk = r.ok;
+  } catch (_) {}
+  _setSaveStatus('✓ Saved', 'var(--success)');
+  // Open version history so users can see saved versions and restore any of them
+  openModal('version');
+  toast(cloudOk ? 'Saved to cloud ✓' : 'Saved locally ✓', { type: 'success' });
+}
+
+function signOut() {
+  localStorage.removeItem('hf_token');
+  localStorage.removeItem('hf_email');
+  location.href = 'index.html';
+}
+
+// ============ AI calls ============
+async function ai(endpoint, body) {
+  if (isFree()) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  const r = await fetch(API + '/ai/' + endpoint, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify(body)
+  });
+  if (r.status === 402) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.error || `Request failed (${r.status})`);
+  }
+  return r.json();
+}
+
+// ============ AI output: pretty formatting + apply ============
+// Render freeform AI text into clean recommendation cards: bullet lines become
+// a checklist, ALL-CAPS / colon-terminated lines become subheadings, the rest
+// become readable paragraphs.
+function _renderAiBody(text) {
+  const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return '<p class="ai-para" style="color:var(--muted);">No suggestions returned.</p>';
+  const bulletRe = /^([•\-\*–]|\d+[.)])\s+(.*)$/;
+  let html = '', inList = false;
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+  lines.forEach(line => {
+    const m = line.match(bulletRe);
+    if (m) {
+      if (!inList) { html += '<ul class="ai-rec-list">'; inList = true; }
+      html += `<li class="ai-rec"><span class="ai-rec-ico">${ICON('check','ico ico-sm')}</span><span>${esc(m[2])}</span></li>`;
+    } else if (/^[A-Z][A-Za-z0-9 &/()-]{2,42}:?$/.test(line) && line.length <= 44) {
+      closeList();
+      html += `<h4 class="ai-subhead">${esc(line.replace(/:$/, ''))}</h4>`;
+    } else {
+      closeList();
+      html += `<p class="ai-para">${esc(line)}</p>`;
+    }
+  });
+  closeList();
+  return html;
+}
+
+function _titleCase(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperCase()); }
+
+// Polished AI suggestion modal with an optional Apply button.
+let _aiSuggestState = null;
+function showAiSuggestion({ title, text, apply, hint }) {
+  closeAiSuggest();
+  const bd = document.createElement('div');
+  bd.id = 'ai-suggest-bd';
+  bd.className = 'app-dialog-bd';
+  document.body.appendChild(bd);
+  requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
+  _aiSuggestState = { text, apply };
+  bd.innerHTML = `
+    <div class="app-dialog ai-suggest">
+      <div class="ai-suggest-head">
+        <span class="ai-suggest-spark">${ICON('sparkle')}</span>
+        <h3>${esc(title || 'AI Suggestion')}</h3>
+        <button class="modal-close" onclick="closeAiSuggest()" aria-label="Close">×</button>
+      </div>
+      <div class="ai-suggest-body ai-body">${_renderAiBody(text)}</div>
+      ${hint ? `<p class="ai-suggest-hint">${esc(hint)}</p>` : ''}
+      <div class="ai-suggest-actions">
+        ${apply ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Apply Changes</span></button>` : ''}
+        <button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>
+        <button class="btn btn-ghost" onclick="closeAiSuggest()">${apply ? 'Keep Original' : 'Close'}</button>
+      </div>
+    </div>`;
+  bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });
+  document.addEventListener('keydown', _aiSuggestKey);
+}
+function _aiSuggestKey(e) { if (e.key === 'Escape') closeAiSuggest(); }
+function closeAiSuggest() {
+  const bd = document.getElementById('ai-suggest-bd');
+  if (!bd) return;
+  document.removeEventListener('keydown', _aiSuggestKey);
+  bd.classList.remove('app-dialog-bd-in');
+  setTimeout(() => bd.remove(), 180);
+}
+function _copyAiSuggestion() {
+  if (!_aiSuggestState) return;
+  navigator.clipboard.writeText(_aiSuggestState.text)
+    .then(() => toast('Copied to clipboard', { type: 'success' }))
+    .catch(() => toast('Copy failed', { type: 'error' }));
+}
+function _applyAiSuggestion() {
+  if (!_aiSuggestState || !_aiSuggestState.apply) return;
+  _aiSuggestState.apply(_aiSuggestState.text);
+  closeAiSuggest();
+  save(); renderMain();
+  toast('Changes applied ✓', { type: 'success' });
+}
+
+async function aiImprove(target) {
+  aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
+  try {
+    const text = target === 'summary' ? resume.personal.summary : JSON.stringify(resume[target] || {});
+    const r = await ai('improve', { target, text });
+    const suggestion = r.text || '';
+    let apply = null, hint = null;
+    if (target === 'summary') {
+      apply = (t) => { resume.personal.summary = t; };
+    } else if (Array.isArray(resume[target]) && resume[target].length) {
+      const item = resume[target][0];
+      const field = ('description' in item) ? 'description'
+                  : ('abstract' in item) ? 'abstract'
+                  : Object.keys(item).find(k => typeof item[k] === 'string');
+      if (field) {
+        if (resume[target].length === 1) {
+          apply = (t) => { resume[target][0][field] = t; };
+        } else {
+          apply = (t) => { resume[target][0][field] = t; };
+          hint = 'Apply replaces the top entry’s bullets. For other entries, copy the lines you want.';
+        }
+      }
+    }
+    showAiSuggestion({ title: 'AI Suggestion · ' + _titleCase(target), text: suggestion, apply, hint });
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+async function aiSuggestSkills() {
+  aiLoading('Generating skills from your experience…');
+  try {
+    const r = await ai('skills', { experience: resume.experience });
+    const items = (r.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if (items.length) {
+      resume.skills.categories = [{ name:'All', items: Array.from(new Set([...(resume.skills.categories.flatMap(c=>c.items)||[]),...items]))}];
+      save(); renderMain();
+      toast(`Added ${items.length} skills`, { type: 'success' });
+    } else {
+      toast('No skills suggested', { type: 'warn' });
+    }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+async function aiTailor() {
+  aiLoading('Tailoring your resume to the job description…');
+  try {
+    const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
+    resume.tailor.tailoredSummary = r.text;
+    if (r.summary) resume.personal.summary = r.summary;
+    save(); renderMain();
+    toast('Resume tailored', { type: 'success' });
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+async function aiATS() {
+  const jd = document.getElementById('ats-jd').value;
+  aiLoading('Scoring your resume against the job description…');
+  try {
+    const r = await ai('ats', { jobDescription: jd, resume });
+    _renderATSResult(r);
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+function _renderATSResult(r) {
+  const score = r.score || 0;
+  const color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  const label = score >= 70 ? 'Strong Match ✓' : score >= 50 ? 'Decent Match' : 'Needs Work';
+  const circ  = 2 * Math.PI * 50; // 314.16
+  const matched = Array.isArray(r.matched) ? r.matched : [];
+  const missing = Array.isArray(r.missing) ? r.missing : [];
+
+  document.getElementById('ats-result').innerHTML = `
+    <div class="ats-result-card">
+      <div class="ats-ring-wrap">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle id="ats-res-ring" cx="60" cy="60" r="50" fill="none" stroke="${color}" stroke-width="10"
+            stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"
+            stroke-linecap="round" transform="rotate(-90 60 60)"
+            style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,0,.2,1);filter:drop-shadow(0 0 6px ${color}88);"/>
+        </svg>
+        <div class="ats-ring-center">
+          <div class="ats-ring-num" id="ats-res-num">0</div>
+          <div class="ats-ring-sub">/100</div>
+        </div>
+      </div>
+      <div class="ats-verdict" style="color:${color};">${label}</div>
+      ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ Matched</div><div class="ats-kw-list" id="ats-kw-matched"></div></div>` : ''}
+      ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
+      <div class="ats-feedback-text ai-body">${_renderAiBody(r.feedback || '')}</div>
+    </div>`;
+
+  // Animate ring + counter
+  requestAnimationFrame(() => {
+    const ring = document.getElementById('ats-res-ring');
+    const numEl = document.getElementById('ats-res-num');
+    if (ring) ring.style.strokeDashoffset = (circ * (1 - score / 100)).toFixed(1);
+    if (numEl) {
+      const start = performance.now();
+      (function tick(ts) {
+        const p = Math.min((ts - start) / 1400, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        numEl.textContent = Math.floor(eased * score);
+        if (p < 1) requestAnimationFrame(tick); else numEl.textContent = score;
+      })(performance.now());
+    }
+  });
+
+  // Staggered keyword pills
+  function addPills(id, items, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    items.forEach((kw, i) => setTimeout(() => {
+      const pill = document.createElement('span');
+      pill.className = 'ats-kw-pill ats-kw-' + cls;
+      pill.textContent = kw;
+      el.appendChild(pill);
+    }, 600 + i * 80));
+  }
+  addPills('ats-kw-matched', matched, 'matched');
+  addPills('ats-kw-missing', missing, 'missing');
+}
+
+async function aiAnalyze() {
+  aiLoading('Analyzing your resume with AI…');
+  try {
+    const r = await ai('analyze', { resume });
+    document.getElementById('analysis-result').innerHTML = `
+      <div class="ai-result-panel">
+        <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Resume Analysis</h4></div>
+        <div class="ai-body">${_renderAiBody(r.text || '')}</div>
+      </div>`;
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+function openModal(id) {
+  if (id === 'import' && isFree()) { showUpgradeModal('ai'); return; }
+  document.getElementById('modal-'+id).classList.add('open');
+  if(id==='version') renderVersions();
+}
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+
+function _relTime(ts) {
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+  if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function renderVersions() {
+  const versions = resume.versions || [];
+  if (!versions.length) {
+    document.getElementById('version-list').innerHTML =
+      `<div style="text-align:center;padding:32px 16px;color:var(--muted);">
+        <div style="font-size:32px;margin-bottom:8px;">📋</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">No versions yet</div>
+        <div style="font-size:12px;">Click <strong>Save</strong> to create your first snapshot.</div>
+       </div>`;
+    return;
+  }
+  const list = versions.map((v, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);${i===0?'border-color:var(--accent);':''}" >
+      <div style="min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:13px;font-weight:600;">${esc(v.label)}</span>
+          ${i === 0 ? '<span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:4px;font-weight:600;">LATEST</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+          ${new Date(v.ts).toLocaleString()} &nbsp;·&nbsp; ${_relTime(v.ts)}
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
+        ${i === 0 ? 'Current' : 'Restore'}
+      </button>
+    </div>`).join('');
+  document.getElementById('version-list').innerHTML = list;
+}
+async function restoreVersion(i) {
+  const ok = await confirmDialog({
+    title: 'Restore this version?',
+    body: 'Your current changes will be replaced with the snapshot from ' + new Date(resume.versions[i].ts).toLocaleString() + '.',
+    confirmText: 'Restore',
+    cancelText: 'Keep current',
+    danger: true
+  });
+  if (!ok) return;
+  resume = resume.versions[i].data; save(); closeModal('version'); renderMain();
+  toast('Version restored', { type: 'success' });
+}
+
+async function importResume() {
+  const text = document.getElementById('import-text').value;
+  if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
+  closeModal('import');
+  aiLoading('Parsing your resume with AI…');
+  try {
+    const r = await ai('parse', { text });
+    if (r.resume) {
+      resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
+      save(); renderMain();
+      toast('Resume imported', { type: 'success' });
+    } else {
+      toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
+    }
+  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+
+
+// ── Drag-to-reorder wiring ──
+function _bindDragReorder() {
+  var items = document.querySelectorAll('.drag-item');
+  var dragSrc = null;
+  items.forEach(function(item) {
+    item.addEventListener('dragstart', function(e) {
+      dragSrc = item;
+      setTimeout(function(){ item.classList.add('dragging'); }, 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', function() {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.drag-item').forEach(function(i){ i.classList.remove('drag-over'); });
+      dragSrc = null;
+    });
+    item.addEventListener('dragover', function(e) {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      if (item !== dragSrc) {
+        document.querySelectorAll('.drag-item').forEach(function(i){ i.classList.remove('drag-over'); });
+        item.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('drop', function(e) {
+      e.preventDefault();
+      if (!dragSrc || dragSrc === item) return;
+      var key = dragSrc.dataset.dragKey;
+      var fromIdx = +dragSrc.dataset.dragIdx;
+      var toIdx   = +item.dataset.dragIdx;
+      if (key !== item.dataset.dragKey) return;
+      var arr = resume[key];
+      var moved = arr.splice(fromIdx, 1)[0];
+      arr.splice(toIdx, 0, moved);
+      save(); renderMain();
+    });
+  });
+}
+
+// ============ Mobile drawer helpers ============
+function _toggleSidebar() {
+  const sb = document.getElementById('app-sidebar');
+  const ov = document.getElementById('mob-overlay');
+  const rp = document.querySelector('.right-panel');
+  const isOpen = sb.classList.toggle('mob-open');
+  if (isOpen) { rp && rp.classList.remove('mob-open'); }
+  ov.classList.toggle('open', isOpen);
+}
+function _togglePreview() {
+  const rp = document.querySelector('.right-panel');
+  const ov = document.getElementById('mob-overlay');
+  const sb = document.getElementById('app-sidebar');
+  const isOpen = rp.classList.toggle('mob-open');
+  if (isOpen) { sb && sb.classList.remove('mob-open'); }
+  ov.classList.toggle('open', isOpen);
+}
+function _closeMobileDrawers() {
+  document.getElementById('app-sidebar')?.classList.remove('mob-open');
+  document.querySelector('.right-panel')?.classList.remove('mob-open');
+  document.getElementById('mob-overlay')?.classList.remove('open');
+}
+
+// ── Template hover zoom ──
+(function () {
+  const popup = document.createElement('div');
+  popup.id = 'template-zoom-popup';
+  popup.innerHTML = '<div class="tzp-inner"><div class="tzp-thumb" id="tzp-thumb"></div><div class="tzp-name" id="tzp-name"></div><div class="tzp-hint">Click to select</div></div>';
+  document.body.appendChild(popup);
+
+  let hideTimer, showTimer;
+  document.addEventListener('mouseover', function (e) {
+    const card = e.target.closest('.template-card');
+    if (!card) return;
+    clearTimeout(hideTimer);
+    showTimer = setTimeout(() => {
+      const tid = card.querySelector('[onclick]')?.getAttribute('onclick')?.match(/selectTemplate\('([^']+)'\)/)?.[1];
+      if (!tid) return;
+      const thumb = TEMPLATE_THUMBS[tid];
+      const name  = TEMPLATE_DEFS.find(t => t.id === tid)?.name || tid;
+      document.getElementById('tzp-thumb').innerHTML = thumb || '';
+      document.getElementById('tzp-name').textContent = name;
+      const r = card.getBoundingClientRect();
+      popup.style.top  = (r.top + window.scrollY - 8) + 'px';
+      popup.style.left = (r.right + window.scrollX + 12) + 'px';
+      popup.classList.add('active');
+    }, 300);
+  });
+  document.addEventListener('mouseout', function (e) {
+    const card = e.target.closest('.template-card');
+    if (!card) return;
+    clearTimeout(showTimer);
+    hideTimer = setTimeout(() => popup.classList.remove('active'), 120);
+  });
+  popup.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+  popup.addEventListener('mouseleave', () => { hideTimer = setTimeout(() => popup.classList.remove('active'), 120); });
+})();
+
+// ============ Boot ============
+(async () => {
+  await loadCurrentUser();
+  hydrate();
+  renderMain();
+})();

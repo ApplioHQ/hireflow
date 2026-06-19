@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to Premium — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .success-wrap { max-width: 480px; margin: 80px auto; text-align: center; padding: 0 24px; }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--gradient); margin: 0 auto 24px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .success-icon svg { width: 36px; height: 36px; }
+  .success-wrap h1 { font-size: 32px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 12px; }
+  .success-wrap p { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
+  .success-wrap .btn { padding: 12px 24px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="index.html" class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+  </div>
+</header>
+
+<main class="success-wrap">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h1 id="title">Welcome to Premium</h1>
+  <p id="msg">Your payment is being processed. AI features and unlimited downloads will unlock in just a moment.</p>
+  <a href="editor.html" class="btn btn-primary">Open Editor →</a>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const plan = params.get('plan');
+if (plan === 'lifetime') {
+  document.getElementById('title').textContent = 'Welcome to Lifetime!';
+  document.getElementById('msg').textContent = "Thanks for going Lifetime. All features are now yours, forever — no renewals, no limits.";
+}
+
+(async () => {
+  const titleEl = document.getElementById('title');
+  const msgEl   = document.getElementById('msg');
+  const iconEl  = document.querySelector('.success-icon');
+
+  if (iconEl) iconEl.style.animation = 'pulse 1.2s ease-in-out infinite';
+
+  let confirmed = false;
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 1800));
+    await loadCurrentUser();
+    if (CURRENT_USER && CURRENT_USER.isPaid) { confirmed = true; break; }
+  }
+
+  if (iconEl) iconEl.style.animation = '';
+
+  if (confirmed) {
+    const planName = CURRENT_USER.plan === 'lifetime' ? 'Lifetime' : 'Premium';
+    titleEl.textContent = planName + " is active ✓";
+    msgEl.innerHTML = "Your <strong>" + planName + "</strong> plan is confirmed and all features are now unlocked. Head to the editor to get started.";
+    if (iconEl) {
+      iconEl.style.background = 'var(--success)';
+      iconEl.style.boxShadow = '0 0 0 6px rgba(16,185,129,.2)';
+    }
+  } else {
+    msgEl.innerHTML = "Your payment is being processed. If features don’t appear unlocked within a minute, click <strong>Sync Account</strong> in the editor’s account menu.";
+  }
+})();
+</script>
+<style>
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,.4); }
+    50%       { transform: scale(1.06); box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+  }
+</style>
+</body>
+</html>

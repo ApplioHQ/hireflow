@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor — Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-body">
+
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab active" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
+    <a class="topbar-tab" href="interview.html" id="ip-tab">Interview Prep</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="download-pill" style="display:none;"></span>
+    <span id="plan-pill"></span>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('import')" id="btn-import"></button>
+    <button class="btn btn-secondary btn-sm" onclick="saveResume()" id="btn-save"></button>
+    <a class="btn btn-primary btn-sm" href="export.html" id="btn-export"></a>
+    <button class="btn btn-ghost btn-sm" onclick="openFeedbackModal({context:'editor'})" title="Send feedback">💬 Feedback</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<div id="welcome-banner" style="display:none; background:var(--gradient); padding:10px 18px; text-align:center; color:#fff; font-size:13px;"></div>
+
+<div class="app-shell-inner">
+
+  <aside class="sidebar">
+    <div class="banner-gradient">
+      <span style="display:flex;align-items:center;gap:6px;" id="copilot-label"></span>
+      <span class="kbd">AI</span>
+    </div>
+    <div class="sidebar-section">Build</div>
+    <div class="sidebar-item active" data-section="template" data-icon="doc"></div>
+    <div class="sidebar-item" data-section="personal" data-icon="user"></div>
+    <div class="sidebar-item" data-section="experience" data-icon="briefcase"></div>
+    <div class="sidebar-item" data-section="education" data-icon="grad"></div>
+    <div class="sidebar-item" data-section="skills" data-icon="bolt"></div>
+    <div class="sidebar-item" data-section="projects" data-icon="tool"></div>
+    <div class="sidebar-item" data-section="certifications" data-icon="badge"></div>
+    <div class="sidebar-item" data-section="awards" data-icon="trophy"></div>
+    <div class="sidebar-item" data-section="leadership" data-icon="team"></div>
+    <div class="sidebar-item" data-section="volunteer" data-icon="heart"></div>
+    <div class="sidebar-item" data-section="publications" data-icon="book"></div>
+
+    <div class="sidebar-section">Optimize <span class="pro-badge" id="optimize-badge"></span></div>
+    <div class="sidebar-item pro-item" data-section="tailor" data-icon="target"></div>
+    <div class="sidebar-item pro-item" data-section="ats" data-icon="check"></div>
+    <div class="sidebar-item pro-item" data-section="analysis" data-icon="beaker"></div>
+    <div class="sidebar-item" data-section="dashboard" data-icon="chart"></div>
+
+    <div class="sidebar-section">Customize</div>
+    <div class="sidebar-item" data-section="customize" data-icon="settings"></div>
+  </aside>
+
+  <main class="main-area" id="main"></main>
+
+  <aside class="right-panel">
+    <div class="preview-panel">
+      <h4>Live Preview</h4>
+      <button class="btn btn-secondary btn-block btn-sm" style="margin-bottom:10px;" onclick="openFullPreview()">⛶ Full Preview</button>
+      <div class="preview-controls">
+        <button class="preview-btn">100%</button>
+        <button class="preview-btn">−</button>
+        <button class="preview-btn">+</button>
+      </div>
+      <div class="preview-mini" id="preview"></div>
+      <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px;">
+        <button class="btn btn-secondary btn-block btn-sm" onclick="location.href='export.html'" id="rp-export"></button>
+        <button class="btn btn-ghost btn-block btn-sm" onclick="openModal('version')" id="rp-history"></button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Import modal -->
+<div class="modal-backdrop" id="modal-import">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('import')">×</button>
+    <h3 id="modal-import-title">Import Your Resume</h3>
+    <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Paste resume text — AI will parse it and fill your sections. <strong>Premium feature.</strong></p>
+    <textarea id="import-text" rows="6" placeholder="Paste your resume text here…" style="width:100%; padding:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text);"></textarea>
+    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="importResume()" id="btn-import-go"></button>
+  </div>
+</div>
+
+<!-- Version modal -->
+<div class="modal-backdrop" id="modal-version">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('version')">×</button>
+    <h3 id="modal-version-title">Version History</h3>
+    <div id="version-list" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/editor.js"></script>
+
+<!-- Mobile nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-btn" id="mob-menu-btn">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Sections
+  </button>
+  <button class="mobile-nav-btn" id="mob-preview-btn">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Preview
+  </button>
+  <button class="mobile-nav-btn" onclick="saveResume()">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    Save
+  </button>
+  <a class="mobile-nav-btn" href="export.html">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export
+  </a>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<script>
+// Mobile sidebar toggle
+document.getElementById('mob-menu-btn').addEventListener('click', function() {
+  var sb = document.querySelector('.sidebar');
+  var ov = document.getElementById('sidebar-overlay');
+  var open = sb.classList.toggle('mobile-open');
+  ov.classList.toggle('show', open);
+  this.classList.toggle('active', open);
+});
+document.getElementById('sidebar-overlay').addEventListener('click', function() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  this.classList.remove('show');
+  document.getElementById('mob-menu-btn').classList.remove('active');
+});
+// Close sidebar on section click (mobile)
+document.querySelector('.sidebar').addEventListener('click', function(e) {
+  if (e.target.closest('.sidebar-item') && window.innerWidth <= 768) {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+    document.getElementById('mob-menu-btn').classList.remove('active');
+  }
+});
+// Mobile preview toggle
+document.getElementById('mob-preview-btn').addEventListener('click', function() {
+  var rp = document.querySelector('.right-panel');
+  var showing = rp.style.display === 'block';
+  rp.style.display = showing ? '' : 'block';
+  rp.style.position = showing ? '' : 'fixed';
+  rp.style.inset = showing ? '' : '56px 0 52px 0';
+  rp.style.zIndex = showing ? '' : '150';
+  rp.style.overflowY = showing ? '' : 'auto';
+  this.classList.toggle('active', !showing);
+});
+</script>
+
+</body>
+</html>

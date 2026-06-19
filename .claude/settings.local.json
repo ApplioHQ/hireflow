@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s http://localhost:3000/css/home.css)",
+      "Bash(curl -sI http://localhost:3000/css/home.css)",
+      "Bash(node --check worker.js)",
+      "Bash(node --check js/plan.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('export.html','utf8'\\);const m=h.match\\(/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(node --check /tmp/exp.js)",
+      "Bash(rm -f /tmp/exp.js)",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('js/icons.js','utf8'\\); ['sparkle','check','copy'].forEach\\(k=>console.log\\(k, new RegExp\\('\\\\\\\\\\\\\\\\b'+k+'\\\\\\\\\\\\\\\\s*:'\\).test\\(s\\)\\)\\);\")",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('js/icons.js','utf8'\\); const m=[...s.matchAll\\(/^\\\\s*\\([a-zA-Z0-9_]+\\)\\\\s*:/gm\\)].map\\(x=>x[1]\\); console.log\\(m.join\\(', '\\)\\)\")"
+    ]
+  }
+}

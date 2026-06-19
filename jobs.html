@@ -31,9 +31,12 @@
     <button class="btn btn-primary" onclick="toggleForm()" id="add-btn"></button>
   </div>
 
+  <!-- Status stat tiles -->
+  <div id="jt-stats" class="jt-stats"></div>
+
   <div id="add-form" style="display:none; margin-bottom:20px;">
     <div class="section-card">
-      <h3 style="margin-bottom:14px;">Add New Job</h3>
+      <h3 style="margin-bottom:14px;" id="form-title">Add New Job</h3>
       <div class="grid-2">
         <div class="form-field"><label>Job Title</label><input id="j-title"></div>
         <div class="form-field"><label>Company</label><input id="j-company"></div>
@@ -49,9 +52,14 @@
       <div class="form-field"><label>Notes / Link</label><input id="j-notes"></div>
       <div style="display:flex; gap:10px;">
         <button class="btn btn-secondary" onclick="toggleForm()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveJob()">Save Job</button>
+        <button class="btn btn-primary" onclick="saveJob()" id="form-save-btn">Save Job</button>
       </div>
     </div>
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <input id="jt-search" placeholder="Search by title, company, or notes…" oninput="render()"
+      style="width:100%; box-sizing:border-box; padding:10px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:14px;">
   </div>
 
   <div id="filters" style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">

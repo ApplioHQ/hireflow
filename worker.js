@@ -501,7 +501,7 @@ async function runAI(env, system, user, opts = {}) {
     try {
       const res = await env.AI.run(model, {
         messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        max_tokens: opts.max_tokens || 800,
+        max_tokens: opts.max_tokens || 600,
         temperature: opts.temperature ?? 0.3,
       });
       // Different models return different shapes — normalize to a string.
@@ -843,7 +843,9 @@ OUTPUT FORMAT:
 
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
-  const sys = `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
+  const sys = `${GROUND_RULE}
+
+You are a senior interview coach. The candidate is preparing for an interview for a specific role. Tips may reference only experience actually in their resume.
 
 Generate 10 high-quality practice interview questions, mixing:
 - 3 behavioral (STAR-friendly: "Tell me about a time you…")
@@ -895,7 +897,7 @@ Rules:
 
   return { text: await runAI(env, sys,
     `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
-    { max_tokens: 1400, temperature: 0.55 }) };
+    { max_tokens: 1100, temperature: 0.5 }) };
 }
 
 function safeJSON(s) {

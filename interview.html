@@ -128,25 +128,30 @@ function _renderPracticeQuestion() {
   var q = _practiceQs[_practiceIdx];
   var total = _practiceQs.length;
   var res = document.getElementById('results');
+  var catColors = { Behavioral:'#6366f1', 'Role-Specific':'#06b6d4', Technical:'#06b6d4', Situational:'#f59e0b', Closing:'#22c55e', General:'#8b5cf6' };
+  var catColor = catColors[q.category] || '#8b5cf6';
   res.innerHTML = '<div class="section-card">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
-    + '<div style="font-size:12px;color:var(--muted);">Question ' + (_practiceIdx+1) + ' of ' + total + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;">'
+    + '<div style="display:flex;align-items:center;gap:10px;">'
+    + '<span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:' + catColor + ';background:' + catColor + '22;border:1px solid ' + catColor + '44;border-radius:20px;padding:3px 10px;">' + esc(q.category || 'Question') + '</span>'
+    + '<span style="font-size:12px;color:var(--muted);">Question ' + (_practiceIdx+1) + ' of ' + total + '</span>'
+    + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px;">'
-    + '<div id="_ptimer" style="font-size:20px;font-weight:700;color:var(--accent);min-width:48px;text-align:right;">0:00</div>'
+    + '<div id="_ptimer" style="font-size:18px;font-weight:700;color:var(--accent);min-width:46px;text-align:right;font-variant-numeric:tabular-nums;">0:00</div>'
     + '<button class="btn btn-ghost btn-xs" id="_ptimer-toggle">Start Timer</button>'
     + '</div></div>'
-    // Progress bar
-    + '<div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:20px;">'
-    + '<div style="width:' + Math.round((_practiceIdx/total)*100) + '%;height:3px;background:var(--accent);border-radius:2px;transition:width .3s;"></div>'
+    + '<div style="height:4px;background:var(--bg-2);border-radius:2px;margin-bottom:18px;overflow:hidden;">'
+    + '<div style="width:' + Math.round(((_practiceIdx+1)/total)*100) + '%;height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:width .35s;"></div>'
     + '</div>'
-    + '<h3 style="font-size:16px;font-weight:600;line-height:1.5;margin-bottom:20px;">' + esc(q) + '</h3>'
-    + '<div class="form-field"><label style="font-size:12px;">Your Answer</label>'
-    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here... aim for the STAR method: Situation, Task, Action, Result" style="width:100%;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
+    + '<h3 style="font-size:17px;font-weight:600;line-height:1.5;margin-bottom:14px;">' + esc(q.question) + '</h3>'
+    + (q.tip ? '<details class="ip-tip"><summary>💡 Coaching tip</summary><p>' + esc(q.tip) + '</p></details>' : '')
+    + '<div class="form-field"><label style="font-size:12px;">Your Answer <span style="color:var(--muted);font-weight:400;">— aim for STAR: Situation · Task · Action · Result</span></label>'
+    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
-    + '<button class="btn btn-primary btn-sm" id="_psubmit">Get AI Feedback</button>'
+    + '<button class="btn btn-primary btn-sm" id="_psubmit">' + ICON('sparkle','ico ico-sm') + ' Get AI Feedback</button>'
     + (_practiceIdx > 0 ? '<button class="btn btn-ghost btn-sm" id="_pprev">← Previous</button>' : '')
     + (_practiceIdx < total-1 ? '<button class="btn btn-secondary btn-sm" id="_pnext">Next →</button>' : '')
-    + '<button class="btn btn-ghost btn-sm" id="_pall">View All Questions</button>'
+    + '<button class="btn btn-ghost btn-sm" id="_pall" style="margin-left:auto;">View All</button>'
     + '</div>'
     + '<div id="_pfeedback" style="margin-top:16px;"></div>'
     + '</div>';
@@ -183,10 +188,12 @@ function _renderPracticeQuestion() {
       var r = await fetch(API + '/ai/interview-feedback', {
         method: 'POST',
         headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-        body: JSON.stringify({ question: q, answer: answer })
+        body: JSON.stringify({ question: q.question, answer: answer })
       });
+      if (r.status === 402) { fb.innerHTML = ''; showUpgradeModal('ai'); return; }
       if (!r.ok) throw new Error('AI failed');
       var data = await r.json();
+      if (data._trial) _noteTrial(data._trial);
       var score = data.score || 0;
       var col = score >= 75 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
       fb.innerHTML = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;margin-top:8px;">'
@@ -210,11 +217,12 @@ function _renderPracticeQuestion() {
   if (allBtn) allBtn.addEventListener('click', function() {
     clearInterval(_practiceTimer);
     var res2 = document.getElementById('results');
-    res2.innerHTML = '<div class="section-card"><h3 style="margin-bottom:16px;">All Questions</h3>'
+    res2.innerHTML = '<div class="section-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>All Questions</h3>'
+      + '<button class="btn btn-ghost btn-xs" onclick="_renderPracticeQuestion()">← Back to practice</button></div>'
       + _practiceQs.map(function(q2, i) {
-          return '<div style="padding:12px;background:var(--bg-2);border-radius:8px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();">'
-            + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Q' + (i+1) + '</div>'
-            + '<div style="font-size:13px;line-height:1.5;">' + esc(q2) + '</div>'
+          return '<div style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();">'
+            + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Q' + (i+1) + ' · ' + esc(q2.category || 'General') + '</div>'
+            + '<div style="font-size:13px;line-height:1.5;">' + esc(q2.question) + '</div>'
             + '</div>';
         }).join('')
       + '</div>';

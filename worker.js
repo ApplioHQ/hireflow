@@ -25,7 +25,7 @@ const GROUND_RULE = `STRICT GROUNDING — read first:
 - Use ONLY facts the candidate actually provided. Never invent jobs, employers, projects, tools, certifications, degrees, metrics, or achievements they did not state (e.g. don't add "Created a GitHub project" if it's not in their input).
 - Never fabricate or estimate numbers (%, $, headcount, scale, dates). If the input has no metric, keep it qualitative.
 - If something isn't in the input, omit it — do not guess.
-- Address the candidate directly as "you" / "your". NEVER use their name or third person — write "Your resume highlights…", never "Jane's resume highlights…" or "The candidate's resume…".
+- NEVER use the candidate's name. For any feedback/commentary ABOUT the resume, address the reader directly as "you"/"your" ("Your resume highlights…"), never third person ("Jane's resume…", "The candidate's resume…"). When writing resume CONTENT itself (a summary or bullet points), use standard resume voice — no name, no "I", no "you".
 - Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.`;
 
 export default {

@@ -19,6 +19,14 @@ const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
 
+// Shared grounding rule prepended to every generative prompt. Keeps the model
+// honest (no fabricated facts) and terse (lower output token cost).
+const GROUND_RULE = `STRICT GROUNDING — read first:
+- Use ONLY facts the candidate actually provided. Never invent jobs, employers, projects, tools, certifications, degrees, metrics, or achievements they did not state (e.g. don't add "Created a GitHub project" if it's not in their input).
+- Never fabricate or estimate numbers (%, $, headcount, scale, dates). If the input has no metric, keep it qualitative.
+- If something isn't in the input, omit it — do not guess.
+- Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.`;
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);

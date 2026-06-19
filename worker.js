@@ -586,7 +586,9 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
 
 // ============ Tailor to job ============
 async function aiTailor(env, { jobDescription, resume }) {
-  const sys = `You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.
+  const sys = `${GROUND_RULE}
+
+You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.
 
 Analyze the job description and the candidate's resume, then output STRICT JSON in exactly this shape:
 
@@ -610,13 +612,13 @@ Rules:
 - matchedKeywords: 6-10 entries the JD asks for that the resume already shows
 - missingKeywords: 3-6 important JD keywords the resume is missing
 - emphasize: 3 short coaching notes, each one sentence
-- bulletSuggestions: 3 specific bullet rewrites grounded in the candidate's actual experience
-- Never invent experience or credentials they don't have
+- bulletSuggestions: 3 rewrites built ONLY from experience already in the resume — reworded for the JD, never new claims
+- missingKeywords are gaps to flag, NOT permission to invent that experience
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
   const raw = await runAI(env, sys,
     `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+    { model: SMART_MODEL, max_tokens: 700, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
 
@@ -631,9 +633,11 @@ Rules:
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const sys = `You are an ATS (Applicant Tracking System) and resume scoring expert.
+  const sys = `${GROUND_RULE}
 
-Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
+You are an ATS (Applicant Tracking System) and resume scoring expert.
+
+Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific; cite only what's actually in the resume. Output STRICT JSON:
 
 {
   "score": <integer 0-100>,
@@ -663,7 +667,7 @@ Rules:
 
   const raw = await runAI(env, sys,
     `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
+    { model: SMART_MODEL, max_tokens: 600, temperature: 0.2 });
   const j = safeJSON(raw);
   if (!j) return { score: 50, feedback: raw };
 

@@ -131,7 +131,9 @@ const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.section;
-    if (PRO_SECTIONS.has(sec) && isFree()) {
+    // tailor/ats/analysis are premium, but free users may still have trials left.
+    const SECTION_FEATURE = { tailor: 'tailor', ats: 'ats', analysis: 'analyze' };
+    if (PRO_SECTIONS.has(sec) && isFree() && !canUseAi(SECTION_FEATURE[sec])) {
       showUpgradeModal('optimize');
       return;
     }
@@ -1125,7 +1127,9 @@ function signOut() {
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
-  if (isFree()) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  // Free users get a few free trials per feature (enforced server-side).
+  // Block early only when trials for this feature are exhausted.
+  if (isFree() && !canUseAi(endpoint)) { showUpgradeModal('ai'); throw new Error('Premium required'); }
   const r = await fetch(API + '/ai/' + endpoint, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -1136,7 +1140,18 @@ async function ai(endpoint, body) {
     const data = await r.json().catch(() => ({}));
     throw new Error(data.error || `Request failed (${r.status})`);
   }
-  return r.json();
+  const data = await r.json();
+  // Sync the consumed free-trial count and let the user know how many remain.
+  if (data && data._trial && CURRENT_USER) {
+    CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
+    CURRENT_USER.aiTrials[data._trial.feature] = data._trial.used;
+    const left = data._trial.remaining;
+    toast(left > 0
+      ? `Free trial used — ${left} left for this feature`
+      : 'Last free trial used — upgrade for unlimited AI', { type: left > 0 ? 'info' : 'warn', duration: 3500 });
+    if (typeof updatePills === 'function') updatePills();
+  }
+  return data;
 }
 
 // ============ AI output: pretty formatting + apply ============
@@ -1402,7 +1417,7 @@ async function aiAnalyze() {
 }
 
 function openModal(id) {
-  if (id === 'import' && isFree()) { showUpgradeModal('ai'); return; }
+  if (id === 'import' && isFree() && !canUseAi('parse')) { showUpgradeModal('ai'); return; }
   document.getElementById('modal-'+id).classList.add('open');
   if(id==='version') renderVersions();
 }

@@ -1344,6 +1344,50 @@ function _renderATSResult(r) {
   addPills('ats-kw-missing', missing, 'missing');
 }
 
+// Tolerantly pull a JSON object out of an AI string (handles ```json fences,
+// preamble, trailing prose). Returns null if nothing parseable.
+function _extractJSON(text) {
+  if (!text) return null;
+  let s = String(text).replace(/```(?:json)?/gi, '').trim();
+  try { return JSON.parse(s); } catch {}
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a !== -1 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch {} }
+  return null;
+}
+
+function _renderAnalysis(r) {
+  // Prefer already-structured fields; else parse JSON out of r.text.
+  const j = (r && (r.strengths || r.weaknesses || r.topFixes)) ? r : _extractJSON(r && r.text);
+  if (!j) {
+    return `<div class="ai-body">${_renderAiBody((r && r.text) || '')}</div>`;
+  }
+  const cards = (arr, ico) => `<ul class="ai-rec-list">${(arr || []).map(t =>
+    `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(t)}</span></li>`).join('')}</ul>`;
+  const score = j.overallScore != null ? j.overallScore : null;
+  const scoreColor = score == null ? 'var(--accent)' : score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  let html = '';
+  if (score != null) {
+    html += `<div class="an-score" style="border-color:${scoreColor}33;">
+      <div class="an-score-num" style="color:${scoreColor};">${score}<span>/100</span></div>
+      <div class="an-score-label">Overall resume score</div>
+    </div>`;
+  }
+  if (j.summary) html += `<p class="ai-para" style="margin-bottom:14px;">${esc(j.summary)}</p>`;
+  if (j.strengths && j.strengths.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Strengths<span class="tailor-count">${j.strengths.length}</span></div>${cards(j.strengths,'check')}</div>`;
+  if (j.weaknesses && j.weaknesses.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Weaknesses<span class="tailor-count">${j.weaknesses.length}</span></div>${cards(j.weaknesses,'arrowRight')}</div>`;
+  if (j.topFixes && j.topFixes.length) {
+    const fixes = j.topFixes.map((f, i) => `<li class="ai-rec an-fix">
+        <span class="an-fix-num">${i + 1}</span>
+        <span><strong>${esc(f.action || '')}</strong>${f.where ? `<span class="an-fix-where">${esc(f.where)}</span>` : ''}${f.impact ? `<span class="an-fix-why">${esc(f.impact)}</span>` : ''}</span>
+      </li>`).join('');
+    html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Top fixes</div><ul class="ai-rec-list">${fixes}</ul></div>`;
+  }
+  if (j.missingSections && j.missingSections.length) {
+    html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Consider adding</div><div class="tailor-pills">${j.missingSections.map(s => `<span class="ats-kw-pill ats-kw-missing">+ ${esc(s)}</span>`).join('')}</div></div>`;
+  }
+  return `<div class="tailor-result">${html}</div>`;
+}
+
 async function aiAnalyze() {
   aiLoading('Analyzing your resume with AI…');
   try {
@@ -1351,7 +1395,7 @@ async function aiAnalyze() {
     document.getElementById('analysis-result').innerHTML = `
       <div class="ai-result-panel">
         <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Resume Analysis</h4></div>
-        <div class="ai-body">${_renderAiBody(r.text || '')}</div>
+        <div style="padding:16px;">${_renderAnalysis(r)}</div>
       </div>`;
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
   finally { aiLoadingDone(); }

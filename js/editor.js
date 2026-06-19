@@ -65,7 +65,9 @@ function hydrate() {
     const info = SECTION_INFO[s];
     if (!info) return;
     const isPro = PRO_SECTIONS.has(s);
-    const showLock = isPro && isFree();
+    // Only show the lock once free trials for that feature are used up.
+    const SECTION_FEATURE = { tailor: 'tailor', ats: 'ats', analysis: 'analyze' };
+    const showLock = isPro && isFree() && !canUseAi(SECTION_FEATURE[s]);
     const done = _sectionComplete(s);
     const indicator = showLock
       ? `<span class="ico ico-sm" style="margin-left:auto;opacity:.7;">${ICONS.lock}</span>`

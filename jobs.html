@@ -7,6 +7,22 @@
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
+<style>
+  .jt-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:20px; }
+  .jt-stat {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:14px 8px; border-radius:12px; cursor:pointer;
+    background:var(--bg-2); border:1px solid var(--border);
+    border-top:3px solid var(--c); transition:transform .12s, box-shadow .12s, border-color .12s;
+  }
+  .jt-stat:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.18); }
+  .jt-stat.active { box-shadow:0 0 0 2px var(--c); }
+  .jt-stat-num { font-size:24px; font-weight:800; color:var(--c); line-height:1; }
+  .jt-stat-label { font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.02em; }
+  .jt-card { transition:transform .12s, box-shadow .12s; }
+  .jt-card:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.16); }
+  @media (max-width:640px){ .jt-stats { grid-template-columns:repeat(3,1fr); } }
+</style>
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -89,47 +105,110 @@ const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
 let jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]');
 let filter = 'all';
+let editingId = null;
+
+const STATUSES = ['Saved','Applied','Interviewing','Offer','Rejected'];
+const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function toggleForm(){ const f=document.getElementById('add-form'); f.style.display = f.style.display==='none'?'':'none'; }
+function _save(){ localStorage.setItem('hf_jobs', JSON.stringify(jobs)); }
+function toggleForm(){
+  const f=document.getElementById('add-form');
+  const opening = f.style.display==='none';
+  f.style.display = opening ? '' : 'none';
+  if (!opening) { editingId = null; document.getElementById('form-title').textContent='Add New Job'; document.getElementById('form-save-btn').textContent='Save Job'; }
+}
 function setFilter(f){ filter=f; render(); }
+
 function saveJob(){
-  const j = {
-    id: Date.now(),
-    title:document.getElementById('j-title').value,
-    company: document.getElementById('j-company').value,
-    location: document.getElementById('j-location').value,
+  const title = document.getElementById('j-title').value.trim();
+  const company = document.getElementById('j-company').value.trim();
+  if (!title || !company) return toast('Title and company are required', { type: 'warn' });
+  const fields = { title, company,
+    location: document.getElementById('j-location').value.trim(),
     status: document.getElementById('j-status').value,
-    notes: document.getElementById('j-notes').value,
-    addedAt: Date.now()
-  };
-  if (!j.title || !j.company) return toast('Title and company are required', { type: 'warn' });
-  jobs.unshift(j);
-  localStorage.setItem('hf_jobs', JSON.stringify(jobs));
+    notes: document.getElementById('j-notes').value.trim() };
+  if (editingId) {
+    const j = jobs.find(x=>x.id===editingId); if (j) Object.assign(j, fields);
+    toast('Job updated', { type:'success' });
+  } else {
+    jobs.unshift(Object.assign({ id: Date.now(), addedAt: Date.now() }, fields));
+    toast('Job added', { type:'success' });
+  }
+  _save();
   ['j-title','j-company','j-location','j-notes'].forEach(id=>document.getElementById(id).value='');
+  editingId = null;
   toggleForm(); render();
 }
-function removeJob(id){ jobs = jobs.filter(j=>j.id!==id); localStorage.setItem('hf_jobs', JSON.stringify(jobs)); render(); }
-function updateStatus(id, s){ const j=jobs.find(x=>x.id===id); if(j){j.status=s; localStorage.setItem('hf_jobs', JSON.stringify(jobs)); render();}}
+
+function editJob(id){
+  const j = jobs.find(x=>x.id===id); if(!j) return;
+  editingId = id;
+  document.getElementById('j-title').value = j.title || '';
+  document.getElementById('j-company').value = j.company || '';
+  document.getElementById('j-location').value = j.location || '';
+  document.getElementById('j-status').value = j.status || 'Saved';
+  document.getElementById('j-notes').value = j.notes || '';
+  document.getElementById('form-title').textContent = 'Edit Job';
+  document.getElementById('form-save-btn').textContent = 'Save Changes';
+  document.getElementById('add-form').style.display = '';
+  document.getElementById('add-form').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+async function removeJob(id){
+  const ok = await confirmDialog({ title:'Remove job?', body:'This removes it from your tracker.', confirmText:'Remove', danger:true });
+  if (!ok) return;
+  jobs = jobs.filter(j=>j.id!==id); _save(); render();
+}
+function updateStatus(id, s){ const j=jobs.find(x=>x.id===id); if(j){ j.status=s; _save(); render(); } }
+
+function _statusBadge(s){
+  const c = STATUS_COLOR[s] || '#64748b';
+  return `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:${c};background:${c}1f;border:1px solid ${c}40;border-radius:20px;padding:3px 10px;">
+    <span style="width:6px;height:6px;border-radius:50%;background:${c};"></span>${esc(s)}</span>`;
+}
+
+function _renderStats(){
+  const counts = {}; STATUSES.forEach(s=>counts[s]=0);
+  jobs.forEach(j=>{ if(counts[j.status]!=null) counts[j.status]++; });
+  document.getElementById('jt-stats').innerHTML = STATUSES.map(s=>{
+    const c = STATUS_COLOR[s]; const active = filter===s;
+    return `<button class="jt-stat${active?' active':''}" onclick="setFilter('${active?'all':s}')" style="--c:${c};">
+      <span class="jt-stat-num">${counts[s]}</span>
+      <span class="jt-stat-label">${s}</span>
+    </button>`;
+  }).join('');
+}
 
 function render(){
-  const list = jobs.filter(j => filter==='all' || j.status===filter);
+  const q = (document.getElementById('jt-search').value || '').toLowerCase();
+  const list = jobs.filter(j => (filter==='all' || j.status===filter) &&
+    (!q || [j.title,j.company,j.notes,j.location].some(v => (v||'').toLowerCase().includes(q))));
   document.getElementById('job-count').textContent = jobs.length + ' job' + (jobs.length===1?'':'s') + ' tracked';
   document.getElementById('empty').style.display = jobs.length===0 ? '' : 'none';
   document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('success', b.dataset.filter===filter));
-  document.getElementById('job-list').innerHTML = list.map(j => `
-    <div class="section-card" style="margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between; gap:16px;">
-        <div>
-          <h4>${esc(j.title)} <span style="color:var(--muted); font-weight:normal;">at</span> ${esc(j.company)}</h4>
-          <div style="color:var(--muted); font-size:12px; margin-top:4px;">${esc(j.location)} · added ${new Date(j.addedAt).toLocaleDateString()}</div>
-          ${j.notes ? `<p style="font-size:13px; margin-top:8px;">${esc(j.notes)}</p>`:''}
+  _renderStats();
+  document.getElementById('job-list').innerHTML = (list.length===0 && jobs.length>0)
+    ? `<div class="section-card" style="text-align:center;color:var(--muted);padding:30px;">No jobs match your search/filter.</div>`
+    : list.map(j => `
+    <div class="section-card jt-card" style="margin-bottom:10px;border-left:3px solid ${STATUS_COLOR[j.status]||'#64748b'};">
+      <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+            <h4 style="margin:0;">${esc(j.title)} <span style="color:var(--muted); font-weight:normal;">at</span> ${esc(j.company)}</h4>
+            ${_statusBadge(j.status)}
+          </div>
+          <div style="color:var(--muted); font-size:12px;">${j.location?esc(j.location)+' · ':''}added ${new Date(j.addedAt).toLocaleDateString()}</div>
+          ${j.notes ? `<p style="font-size:13px; margin-top:8px; word-break:break-word;">${esc(j.notes)}</p>`:''}
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
           <select onchange="updateStatus(${j.id}, this.value)" style="padding:5px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
-            ${['Saved','Applied','Interviewing','Offer','Rejected'].map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
+            ${STATUSES.map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
-          <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-ghost btn-xs" onclick="editJob(${j.id})">${ICON('settings','ico ico-sm')} Edit</button>
+            <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
+          </div>
         </div>
       </div>
     </div>

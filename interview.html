@@ -7,6 +7,13 @@
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
+<style>
+  .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); overflow: hidden; }
+  .ip-tip summary { cursor: pointer; padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: var(--accent); list-style: none; user-select: none; }
+  .ip-tip summary::-webkit-details-marker { display: none; }
+  .ip-tip[open] summary { border-bottom: 1px solid var(--border); }
+  .ip-tip p { margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+</style>
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -239,15 +246,22 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='index.ht
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
   else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-  if (isFree()) {
-    // Show pre-upgrade card instead of letting them waste effort
+  if (isFree() && !canUseAi('interview')) {
+    // No free trials left — show the upgrade card.
     document.querySelector('main .section-card').innerHTML = `
       <div style="text-align:center; padding:30px 20px;">
         <div style="display:flex; justify-content:center; margin-bottom:16px; color:var(--accent);">${ICON('lock','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"')}</div>
-        <h2 style="font-size:22px; margin-bottom:8px;">Interview Prep is Premium</h2>
-        <p style="color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto;">Get AI-generated practice questions tailored to any role and your resume.</p>
+        <h2 style="font-size:22px; margin-bottom:8px;">You've used your free interview trials</h2>
+        <p style="color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto;">Upgrade to Premium for unlimited AI-generated practice questions and answer feedback.</p>
         <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock with Premium</span></a>
       </div>`;
+  } else if (isFree()) {
+    // Free user with trials remaining — show a small banner.
+    const left = trialsLeft('interview');
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:12px;color:var(--muted);text-align:center;margin-top:10px;';
+    note.innerHTML = `✨ <strong style="color:var(--accent);">${left} free ${left===1?'try':'tries'}</strong> left — then it's Premium.`;
+    document.querySelector('main .section-card').appendChild(note);
   }
 })();
 </script>

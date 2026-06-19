@@ -533,27 +533,27 @@ async function aiImprove(env, { target, text }) {
   }
   const isSummary = target === "summary" || target === "personal";
   const sys = isSummary
-    ? `You are an elite resume writer. Rewrite the candidate's professional summary so it:
-- Is 2-3 sentences, ~40-60 words
-- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…")
-- Names 2-3 standout competencies with specifics
-- Ends with a value statement aimed at hiring managers
-- Uses active voice, no buzzwords ("synergy", "dynamic", "passionate")
-- Is in third-person implied (no "I", no "you")
-- Is plain text only — no markdown, no headers, no quotation marks
+    ? `${GROUND_RULE}
+
+You are an elite resume writer. Rewrite the candidate's professional summary using only what they wrote:
+- 2-3 sentences, ~40-60 words
+- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…") — only if that seniority/role is in the input
+- Names 2-3 competencies that appear in the input
+- Active voice, third-person implied (no "I"/"you"), no buzzwords
+- Plain text only — no markdown, headers, or quotes
 
 OUTPUT: Only the rewritten summary. Nothing else.`
-    : `You are an elite resume writer. Rewrite the following ${target} content into achievement-focused bullets. Rules:
-- Each bullet starts with a strong past-tense action verb (Led, Built, Shipped, Reduced, Architected, Drove, Designed, etc. — never repeat a verb)
-- Each bullet shows measurable impact (%, $, time saved, scale, headcount, users)
-- Keep each bullet under ~20 words
-- 3-6 bullets total
-- Use the • character to mark each bullet, one per line
-- If the input lacks numbers, make conservative inferences from context (e.g. "led 5-person team" if they mention managing engineers); never invent specific company-private metrics
-- Plain text only — no markdown bold, no headers
+    : `${GROUND_RULE}
+
+You are an elite resume writer. Rewrite the following ${target} content into achievement-focused bullets:
+- Each bullet starts with a strong past-tense action verb (never repeat a verb)
+- Keep ONLY metrics already in the input; if there are none, stay qualitative — never add fake numbers
+- Each bullet under ~20 words; 3-5 bullets
+- Mark each bullet with "• ", one per line
+- Plain text only
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
-  const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, { max_tokens: 500, temperature: 0.5 });
+  const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, { max_tokens: 350, temperature: 0.4 });
   // Strip common AI preambles
   const cleaned = out
     .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
@@ -564,23 +564,17 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
 
 // ============ Suggest skills ============
 async function aiSkills(env, { experience }) {
-  const sys = `You extract resume-ready skills from work history.
+  const sys = `${GROUND_RULE}
 
-Given the candidate's experience, return a clean comma-separated list of 12-18 skills they likely have, balanced across:
-- Hard/technical skills (e.g. Python, SQL, AWS, Figma, Salesforce)
-- Methodologies (e.g. Agile, A/B Testing, Customer Discovery)
-- Soft skills (e.g. Cross-functional Collaboration, Stakeholder Management)
-
-Rules:
-- Infer skills from job titles AND from the described work
-- Use industry-standard naming (e.g. "Project Management", not "managing projects")
-- No duplicates, no generic words like "Teamwork", "Hard worker", "Detail-oriented"
-- No explanations, no numbering, no preamble
+You extract resume-ready skills from work history. Return a comma-separated list of 10-15 skills the candidate clearly demonstrates, drawn only from their stated titles and described work (hard skills, methodologies, relevant soft skills).
+- Only skills evidenced by the input — do not add tools/technologies they never mention
+- Industry-standard naming (e.g. "Project Management", not "managing projects")
+- No duplicates, no generic filler ("Teamwork", "Hard worker")
 
 OUTPUT: Just the comma-separated list. Nothing else.`;
   const raw = await runAI(env, sys,
     `Experience:\n${JSON.stringify(experience).slice(0, 3000)}`,
-    { max_tokens: 250, temperature: 0.4 });
+    { max_tokens: 180, temperature: 0.3 });
   // Strip preambles and quotation marks
   const cleaned = raw
     .replace(/^[^a-z]*here[^:]*:\s*/i, "")

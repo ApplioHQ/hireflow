@@ -689,7 +689,9 @@ Rules:
 
 // ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
-  const sys = `You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique.
+  const sys = `${GROUND_RULE}
+
+You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique. Critique only what's in the resume; suggest improvements to existing content, never invented accomplishments.
 
 Output STRICT JSON:
 
@@ -721,7 +723,7 @@ Rules:
 
   const raw = await runAI(env, sys,
     `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
-    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+    { model: SMART_MODEL, max_tokens: 650, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw };
 

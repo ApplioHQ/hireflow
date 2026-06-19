@@ -12,7 +12,9 @@
       "Bash(rm -f /tmp/exp.js)",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('js/icons.js','utf8'\\); ['sparkle','check','copy'].forEach\\(k=>console.log\\(k, new RegExp\\('\\\\\\\\\\\\\\\\b'+k+'\\\\\\\\\\\\\\\\s*:'\\).test\\(s\\)\\)\\);\")",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('js/icons.js','utf8'\\); const m=[...s.matchAll\\(/^\\\\s*\\([a-zA-Z0-9_]+\\)\\\\s*:/gm\\)].map\\(x=>x[1]\\); console.log\\(m.join\\(', '\\)\\)\")",
-      "Bash(node --check js/editor.js)"
+      "Bash(node --check js/editor.js)",
+      "Bash(sed -n '/html.light-mode/,/^}/p' css/styles.css)",
+      "Bash(sed -n '/.theme-icon-btn {/,/^}/p;/.theme-toggle {/,/^}/p' css/styles.css)"
     ]
   }
 }

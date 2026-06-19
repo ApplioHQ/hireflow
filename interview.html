@@ -56,13 +56,13 @@ if (!TOKEN) location.href = 'login.html';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
-  if (isFree()) { showUpgradeModal('interview'); return; }
-  const role = document.getElementById('role').value;
-  const jd = document.getElementById('jd').value;
+  if (isFree() && !canUseAi('interview')) { showUpgradeModal('interview'); return; }
+  const role = document.getElementById('role').value.trim();
+  const jd = document.getElementById('jd').value.trim();
   if (!role) return toast('Enter a role first', { type: 'warn' });
   const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
   document.getElementById('results').innerHTML = '';
-  showAILoading('Generating your interview questions...');
+  showAILoading('Generating your interview questions…');
   try {
     const r = await fetch(API + '/ai/interview', {
       method:'POST',
@@ -73,20 +73,43 @@ async function generate() {
     if (r.status === 402) { showUpgradeModal('interview'); return; }
     if (!r.ok) throw new Error('AI failed');
     const data = await r.json();
-    // Parse questions from the text block
-    const raw = (data.text || '').trim();
-    const qLines = raw.split(/\n/).filter(function(l) { return l.trim().length > 5; });
-    // Group into questions (lines that look like questions or numbered items)
-    const questions = [];
-    qLines.forEach(function(l) {
-      const clean = l.replace(/^[\d]+[\.):]\s*/, '').trim();
-      if (clean.length > 10) questions.push(clean);
-    });
-    _startPracticeMode(questions.length ? questions : [raw]);
+    if (data._trial) _noteTrial(data._trial);
+    const questions = _parseQuestions((data.text || '').trim());
+    if (!questions.length) throw new Error('No questions returned — try again.');
+    _startPracticeMode(questions);
   } catch(e) {
     hideAILoading();
-    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Error: ' + e.message + '</div>';
+    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Error: ' + esc(e.message) + '</div>';
   }
+}
+
+// Parse the [Category] / "1. Question" / "Tip: …" output into structured items.
+function _parseQuestions(raw) {
+  const out = [];
+  let category = 'General', cur = null;
+  raw.split('\n').forEach(function(line) {
+    const t = line.trim();
+    if (!t) return;
+    const cat = t.match(/^\[(.+?)\]\s*$/);
+    if (cat) { category = cat[1].trim(); return; }
+    const tip = t.match(/^tip\s*[:\-]\s*(.*)$/i);
+    if (tip) { if (cur) cur.tip = (cur.tip ? cur.tip + ' ' : '') + tip[1].trim(); return; }
+    const q = t.match(/^\d+[.):]\s*(.*)$/);
+    if (q) { cur = { question: q[1].trim(), category: category, tip: '' }; out.push(cur); return; }
+    if (cur && !cur.tip) cur.question += ' ' + t; // wrapped question line
+  });
+  if (out.length) return out;
+  return raw.split('\n').filter(function(l){ return l.trim().length > 10; })
+            .map(function(q){ return { question: q.replace(/^[\d]+[.):]\s*/, '').trim(), category: 'General', tip: '' }; });
+}
+
+function _noteTrial(t) {
+  if (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) {
+    CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
+    CURRENT_USER.aiTrials[t.feature] = t.used;
+  }
+  toast(t.remaining > 0 ? 'Free trial used — ' + t.remaining + ' left' : 'Last free trial used — upgrade for unlimited',
+    { type: t.remaining > 0 ? 'info' : 'warn', duration: 3500 });
 }
 
 // ── Practice Mode ──

@@ -190,6 +190,8 @@ async function me(req, env) {
     downloadLimit: limit,
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
+    aiTrials: user.aiTrials || {},
+    freeAiTrials: parseInt(env.FREE_AI_TRIALS || "2", 10),
   };
 }
 
@@ -474,22 +476,45 @@ async function ai(req, env, action) {
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
 
-  // Free users get NO AI features
+  // Free users get a limited number of free trials per AI feature, then it paywalls.
+  let trial = null;
   if (PRO_AI.has(action) && !isPaidPlan(user)) {
-    throw err(402, "Upgrade to Premium to use AI features");
+    const limit = parseInt(env.FREE_AI_TRIALS || "2", 10);
+    const used = (user.aiTrials && user.aiTrials[action]) || 0;
+    if (used >= limit) {
+      throw err(402, "You've used your free trials for this feature. Upgrade to Premium for unlimited.");
+    }
+    trial = { action, used, limit };
   }
 
   const body = await req.json();
+  let result;
   switch (action) {
-    case "improve":   return aiImprove(env, body);
-    case "skills":    return aiSkills(env, body);
-    case "tailor":    return aiTailor(env, body);
-    case "ats":       return aiATS(env, body);
-    case "analyze":   return aiAnalyze(env, body);
-    case "parse":     return aiParse(env, body);
-    case "interview": return aiInterview(env, body);
+    case "improve":   result = await aiImprove(env, body); break;
+    case "skills":    result = await aiSkills(env, body); break;
+    case "tailor":    result = await aiTailor(env, body); break;
+    case "ats":       result = await aiATS(env, body); break;
+    case "analyze":   result = await aiAnalyze(env, body); break;
+    case "parse":     result = await aiParse(env, body); break;
+    case "interview": result = await aiInterview(env, body); break;
     default: throw err(404, "Unknown AI action");
   }
+
+  // Consume one free trial only after the action succeeded.
+  if (trial) {
+    user.aiTrials = user.aiTrials || {};
+    user.aiTrials[trial.action] = trial.used + 1;
+    await putUser(env, user);
+    if (result && typeof result === "object") {
+      result._trial = {
+        feature: trial.action,
+        used: user.aiTrials[trial.action],
+        limit: trial.limit,
+        remaining: Math.max(0, trial.limit - user.aiTrials[trial.action]),
+      };
+    }
+  }
+  return result;
 }
 
 async function runAI(env, system, user, opts = {}) {

@@ -95,6 +95,14 @@ function redirectIfAdmin() {
 
 function isPaid() { return CURRENT_USER && CURRENT_USER.isPaid; }
 function isFree() { return !isPaid(); }
+
+// ---- Free AI trials (free users get N free uses per premium feature) ----
+const FREE_AI_TRIALS = 2;
+function _trialLimit() { return (CURRENT_USER && CURRENT_USER.freeAiTrials) || FREE_AI_TRIALS; }
+function trialsUsed(feature) { return (CURRENT_USER && CURRENT_USER.aiTrials && CURRENT_USER.aiTrials[feature]) || 0; }
+function trialsLeft(feature) { return isPaid() ? Infinity : Math.max(0, _trialLimit() - trialsUsed(feature)); }
+// Can the user still use this AI feature (paid, or has trials left)?
+function canUseAi(feature) { return isPaid() || trialsLeft(feature) > 0; }
 function planLabel() {
   if (!CURRENT_USER) return 'Free';
   if (CURRENT_USER.plan === 'lifetime') return 'Lifetime';

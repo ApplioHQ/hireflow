@@ -200,67 +200,9 @@ async function me(req, env) {
 // ============ Resume ============
 async function saveResume(req, env) {
   const payload = await authenticate(req, env);
-  const key = `resume:${payload.email.toLowerCase()}`;
   const { resume } = await req.json();
-  // Preserve a previously-generated shareId so a normal save never breaks the public link.
-  if (resume && !resume.shareId) {
-    try {
-      const prev = JSON.parse((await env.HIREFLOW_KV.get(key)) || "null");
-      if (prev && prev.shareId) resume.shareId = prev.shareId;
-    } catch {}
-  }
-  await env.HIREFLOW_KV.put(key, JSON.stringify(resume));
+  await env.HIREFLOW_KV.put(`resume:${payload.email.toLowerCase()}`, JSON.stringify(resume));
   return { ok: true };
-}
-
-// ============ Resume sharing ============
-function genShareId() {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  const bytes = new Uint8Array(10);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, b => chars[b % chars.length]).join("");
-}
-
-async function shareResume(req, env) {
-  const payload = await authenticate(req, env);
-  const key = `resume:${payload.email.toLowerCase()}`;
-  const resume = JSON.parse((await env.HIREFLOW_KV.get(key)) || "null");
-  if (!resume) throw err(404, "No resume to share yet — build one first.");
-  const site = env.SITE_URL || "https://appliohq.com";
-  if (resume.shareId) {
-    // Idempotent: ensure the index exists, then return the existing link.
-    await env.HIREFLOW_KV.put(`share:${resume.shareId}`, payload.email.toLowerCase());
-    return { shareId: resume.shareId, url: `${site}/view.html?id=${resume.shareId}` };
-  }
-  const shareId = genShareId();
-  resume.shareId = shareId;
-  await env.HIREFLOW_KV.put(key, JSON.stringify(resume));
-  await env.HIREFLOW_KV.put(`share:${shareId}`, payload.email.toLowerCase());
-  return { shareId, url: `${site}/view.html?id=${shareId}` };
-}
-
-async function unshareResume(req, env) {
-  const payload = await authenticate(req, env);
-  const key = `resume:${payload.email.toLowerCase()}`;
-  const resume = JSON.parse((await env.HIREFLOW_KV.get(key)) || "null");
-  if (resume && resume.shareId) {
-    await env.HIREFLOW_KV.delete(`share:${resume.shareId}`);
-    delete resume.shareId;
-    await env.HIREFLOW_KV.put(key, JSON.stringify(resume));
-  }
-  return { ok: true };
-}
-
-async function getPublicResume(env, shareId) {
-  const id = String(shareId || "").replace(/[^a-z0-9]/gi, "").slice(0, 32);
-  if (!id) throw err(404, "Not found");
-  const email = await env.HIREFLOW_KV.get(`share:${id}`);
-  if (!email) throw err(404, "This resume is no longer available");
-  const resume = JSON.parse((await env.HIREFLOW_KV.get(`resume:${email}`)) || "null");
-  if (!resume || resume.shareId !== id) throw err(404, "This resume is no longer available");
-  // Return only what renderTemplate needs — never the shareId or any account/billing data.
-  const { shareId: _omit, ...safe } = resume;
-  return { resume: safe };
 }
 async function getResume(req, env) {
   const payload = await authenticate(req, env);

@@ -48,6 +48,9 @@ export default {
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
+      if (path === "/resume/share" && req.method === "POST") return json(await shareResume(req, env), 200, cors);
+      if (path === "/resume/unshare" && req.method === "POST") return json(await unshareResume(req, env), 200, cors);
+      if (path.startsWith("/public/resume/") && req.method === "GET") return json(await getPublicResume(env, path.slice("/public/resume/".length)), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/feedback" && req.method === "POST") return json(await submitFeedback(req, env), 200, cors);
       if (path === "/feedback/list" && req.method === "GET") return json(await listFeedback(req, env), 200, cors);

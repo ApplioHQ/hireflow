@@ -25,7 +25,11 @@
       "Bash(rm -f /tmp/fb.js)",
       "Bash(node --check js/templates.js)",
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('index.html','utf8'\\);const blocks=[...h.matchAll\\(/<script type=\\\\\"application\\\\/ld\\\\+json\\\\\">\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\)];blocks.forEach\\(\\(b,i\\)=>{JSON.parse\\(b[1]\\);console.log\\('JSON-LD block '+\\(i+1\\)+' valid'\\);}\\);\")",
-      "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('sitemap.xml','utf8'\\);if\\(s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\)\\)console.log\\('sitemap OK'\\)\")"
+      "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('sitemap.xml','utf8'\\);if\\(s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\)\\)console.log\\('sitemap OK'\\)\")",
+      "Bash(node --check js/health-badge.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('view.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/v.js',last\\);\")",
+      "Bash(node --check /tmp/v.js)",
+      "Bash(rm -f /tmp/v.js)"
     ]
   }
 }

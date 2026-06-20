@@ -50,6 +50,7 @@ export default {
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/feedback" && req.method === "POST") return json(await submitFeedback(req, env), 200, cors);
+      if (path === "/feedback/list" && req.method === "GET") return json(await listFeedback(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
@@ -245,6 +246,24 @@ async function submitFeedback(req, env) {
   };
   await env.HIREFLOW_KV.put(`feedback:${timestamp}:${user.email.toLowerCase()}`, JSON.stringify(record));
   return { ok: true };
+}
+
+// Admin-only: read all submitted feedback. Gated by the ADMIN_EMAIL env var.
+async function listFeedback(req, env) {
+  const payload = await authenticate(req, env);
+  const adminEmail = (env.ADMIN_EMAIL || "").toLowerCase();
+  if (!adminEmail || (payload.email || "").toLowerCase() !== adminEmail) {
+    throw err(403, "Admin access required");
+  }
+  const list = await env.HIREFLOW_KV.list({ prefix: "feedback:", limit: 1000 });
+  const items = [];
+  for (const k of list.keys) {
+    const raw = await env.HIREFLOW_KV.get(k.name);
+    if (!raw) continue;
+    try { items.push(JSON.parse(raw)); } catch {}
+  }
+  items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  return { feedback: items, count: items.length };
 }
 
 // ============ Stripe ============

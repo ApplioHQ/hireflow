@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+# App pages live behind auth — no value indexing them
+Disallow: /editor.html
+Disallow: /export.html
+Disallow: /jobs.html
+Disallow: /interview.html
+Disallow: /feedback.html
+Disallow: /admin.html
+
+# Allow AI / generative-engine crawlers (GEO)
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-Web
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://applio.ai/sitemap.xml

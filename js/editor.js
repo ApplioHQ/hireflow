@@ -1477,6 +1477,65 @@ function openModal(id) {
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
+// ============ Shareable resume link ============
+function _shareUrl(id) { return location.origin + '/view.html?id=' + id; }
+
+function openShareModal() {
+  document.getElementById('modal-share').classList.add('open');
+  _renderShareBody(resume.shareId || null);
+}
+
+function _renderShareBody(shareId) {
+  const body = document.getElementById('share-body');
+  if (shareId) {
+    const url = _shareUrl(shareId);
+    body.innerHTML = `
+      <label style="font-size:12px; color:var(--muted);">Public link</label>
+      <div style="display:flex; gap:8px; margin:6px 0 14px;">
+        <input id="share-url" readonly value="${esc(url)}" onclick="this.select()"
+          style="flex:1; min-width:0; padding:9px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px;">
+        <button class="btn btn-secondary btn-sm" onclick="copyShareLink()">Copy</button>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <a class="btn btn-ghost btn-sm" href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="disableShare()">Disable sharing</button>
+      </div>`;
+  } else {
+    body.innerHTML = `<button class="btn btn-primary btn-block" onclick="createShareLink()">Create shareable link</button>`;
+  }
+}
+
+async function createShareLink() {
+  try {
+    const r = await fetch(API + '/resume/share', { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    const d = await r.json();
+    resume.shareId = d.shareId;
+    save();
+    _renderShareBody(d.shareId);
+    toast('Sharing enabled', { type: 'success' });
+  } catch (e) { toast('Could not create link: ' + e.message, { type: 'error' }); }
+}
+
+async function disableShare() {
+  try {
+    const r = await fetch(API + '/resume/unshare', { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    delete resume.shareId;
+    save();
+    _renderShareBody(null);
+    toast('Sharing disabled', { type: 'success' });
+  } catch (e) { toast('Could not disable sharing: ' + e.message, { type: 'error' }); }
+}
+
+function copyShareLink() {
+  const el = document.getElementById('share-url');
+  if (!el) return;
+  navigator.clipboard.writeText(el.value)
+    .then(() => toast('Link copied', { type: 'success' }))
+    .catch(() => { el.select(); toast('Press Cmd/Ctrl+C to copy', { type: 'info' }); });
+}
+
 function _relTime(ts) {
   const secs = Math.floor((Date.now() - ts) / 1000);
   if (secs < 60) return 'just now';

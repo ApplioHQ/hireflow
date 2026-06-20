@@ -1505,10 +1505,17 @@ function _renderShareBody(shareId) {
   }
 }
 
+async function _shareErr(r) {
+  let msg = 'Request failed (' + r.status + ')';
+  if (r.status === 404) msg = 'Sharing isn’t available yet — the server needs to be redeployed.';
+  try { const d = await r.json(); if (d && d.error) msg = d.error; } catch {}
+  return new Error(msg);
+}
+
 async function createShareLink() {
   try {
     const r = await fetch(API + '/resume/share', { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN } });
-    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    if (!r.ok) throw await _shareErr(r);
     const d = await r.json();
     resume.shareId = d.shareId;
     save();
@@ -1520,7 +1527,7 @@ async function createShareLink() {
 async function disableShare() {
   try {
     const r = await fetch(API + '/resume/unshare', { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN } });
-    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    if (!r.ok) throw await _shareErr(r);
     delete resume.shareId;
     save();
     _renderShareBody(null);

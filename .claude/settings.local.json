@@ -29,7 +29,8 @@
       "Bash(node --check js/health-badge.js)",
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('view.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/v.js',last\\);\")",
       "Bash(node --check /tmp/v.js)",
-      "Bash(rm -f /tmp/v.js)"
+      "Bash(rm -f /tmp/v.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/resume/share -H \"Authorization: Bearer x\")"
     ]
   }
 }

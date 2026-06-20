@@ -13,6 +13,8 @@ const TEMPLATE_DEFS = [
   { id: 'executive',    name: 'Executive' },
   { id: 'compact',      name: 'Compact' },
   { id: 'elegant',      name: 'Elegant' },
+  { id: 'onyx',         name: 'Onyx' },
+  { id: 'slate',        name: 'Slate' },
 ];
 
 const SAMPLE = {

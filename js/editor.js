@@ -20,6 +20,8 @@ const DEFAULT_RESUME = {
 
 let resume = JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME);
 let currentSection = 'template';
+// Cache of the last AI results (read by the health-score badge — never re-fetched).
+let AI_RESULTS = (function(){ try { return JSON.parse(localStorage.getItem('hf_ai_results') || '{}'); } catch { return {}; } })();
 
 // ---- Section label/icon map ----
 const SECTION_INFO = {
@@ -930,6 +932,7 @@ function renderPreview() {
   _bindPreviewClicks();
   _checkPageFit();
   if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
+  if (window.renderHealthBadge) window.renderHealthBadge();
 }
 
 // ============ Fix 3: page overflow indicator ============
@@ -1342,6 +1345,10 @@ async function aiATS() {
   try {
     const r = await ai('ats', { jobDescription: jd, resume });
     _renderATSResult(r);
+    // Cache for the health-score badge (read locally, never re-fetched).
+    AI_RESULTS.ats = { score: r.score, ts: Date.now() };
+    try { localStorage.setItem('hf_ai_results', JSON.stringify(AI_RESULTS)); } catch {}
+    if (window.renderHealthBadge) window.renderHealthBadge();
   } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
   finally { aiLoadingDone(); }
 }

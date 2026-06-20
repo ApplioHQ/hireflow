@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback — Applio Admin</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .fb-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+  .fb-stat { display:flex; flex-direction:column; align-items:center; gap:2px; padding:14px 8px;
+    border-radius:12px; background:var(--bg-2); border:1px solid var(--border); border-top:3px solid var(--c); }
+  .fb-stat-num { font-size:24px; font-weight:800; color:var(--c); line-height:1; }
+  .fb-stat-label { font-size:11px; color:var(--muted); font-weight:600; }
+  .fb-card { border-left:3px solid var(--c); }
+  .fb-meta { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:11px; color:var(--muted); margin-top:8px; }
+  .fb-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700;
+    border-radius:20px; padding:2px 9px; }
+  @media (max-width:640px){ .fb-stats { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
+    <a class="topbar-tab" href="interview.html">Interview Prep</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main style="padding:32px 20px; max-width:920px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:12px; flex-wrap:wrap;">
+    <div>
+      <h2 style="font-size:22px; display:flex; align-items:center; gap:10px;" id="fb-title"></h2>
+      <p style="color:var(--muted); font-size:13px;" id="fb-count">Loading…</p>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="load()">↻ Refresh</button>
+  </div>
+
+  <div id="fb-stats" class="fb-stats" style="display:none;"></div>
+
+  <div id="fb-filters" style="display:none; gap:8px; margin-bottom:18px; flex-wrap:wrap;">
+    <button class="pill success" data-f="all" onclick="setFilter('all')">All</button>
+    <button class="pill" data-f="up" onclick="setFilter('up')">👍 Positive</button>
+    <button class="pill" data-f="down" onclick="setFilter('down')">👎 Negative</button>
+    <button class="pill" data-f="none" onclick="setFilter('none')">No rating</button>
+  </div>
+
+  <div id="fb-list"></div>
+  <div id="fb-message"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+
+let FEEDBACK = [];
+let filter = 'all';
+
+const RATING = {
+  up:   { label:'👍', color:'#22c55e' },
+  down: { label:'👎', color:'#ef4444' },
+  none: { label:'•',  color:'#64748b' }
+};
+function _rk(f){ return f.rating === 'up' ? 'up' : f.rating === 'down' ? 'down' : 'none'; }
+
+function setFilter(f){ filter = f; render(); }
+
+function _fmtDate(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) + ' · ' +
+         d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+
+function renderStats(){
+  const total = FEEDBACK.length;
+  const up = FEEDBACK.filter(f=>f.rating==='up').length;
+  const down = FEEDBACK.filter(f=>f.rating==='down').length;
+  const withMsg = FEEDBACK.filter(f=>(f.message||'').trim()).length;
+  const tiles = [
+    { num: total, label:'Total', c:'#6366f1' },
+    { num: up, label:'Positive', c:'#22c55e' },
+    { num: down, label:'Negative', c:'#ef4444' },
+    { num: withMsg, label:'With message', c:'#8b5cf6' },
+  ];
+  const el = document.getElementById('fb-stats');
+  el.style.display = '';
+  el.innerHTML = tiles.map(t=>`<div class="fb-stat" style="--c:${t.c};"><span class="fb-stat-num">${t.num}</span><span class="fb-stat-label">${t.label}</span></div>`).join('');
+  document.getElementById('fb-filters').style.display = 'flex';
+}
+
+function render(){
+  document.querySelectorAll('#fb-filters [data-f]').forEach(b=>b.classList.toggle('success', b.dataset.f===filter));
+  const list = FEEDBACK.filter(f => filter==='all' || _rk(f)===filter);
+  document.getElementById('fb-count').textContent = FEEDBACK.length + ' submission' + (FEEDBACK.length===1?'':'s');
+  document.getElementById('fb-list').innerHTML = list.length ? list.map(f=>{
+    const r = RATING[_rk(f)];
+    return `<div class="section-card fb-card" style="--c:${r.color}; margin-bottom:10px;">
+      <div style="display:flex; align-items:flex-start; gap:12px;">
+        <span style="font-size:22px; line-height:1;">${r.label}</span>
+        <div style="flex:1; min-width:0;">
+          ${f.message ? `<p style="font-size:14px; line-height:1.6; word-break:break-word; margin:0;">${esc(f.message)}</p>`
+                      : `<p style="font-size:13px; color:var(--muted); font-style:italic; margin:0;">(no message)</p>`}
+          <div class="fb-meta">
+            ${f.category ? `<span class="fb-chip" style="background:rgba(99,102,241,.15);color:#818cf8;">${esc(f.category)}</span>` : ''}
+            <span>📍 ${esc(f.context || '—')}${f.page ? ' · ' + esc(f.page) : ''}</span>
+            <span>👤 ${esc(f.email || 'unknown')} (${esc(f.plan || 'free')})</span>
+            <span>🕓 ${_fmtDate(f.timestamp)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="section-card" style="text-align:center; color:var(--muted); padding:30px;">No feedback in this view.</div>`;
+}
+
+async function load(){
+  document.getElementById('fb-message').innerHTML = '';
+  document.getElementById('fb-count').textContent = 'Loading…';
+  try {
+    const r = await fetch(API + '/feedback/list', { headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (r.status === 403) {
+      document.getElementById('fb-count').textContent = '';
+      document.getElementById('fb-stats').style.display = 'none';
+      document.getElementById('fb-filters').style.display = 'none';
+      document.getElementById('fb-list').innerHTML = '';
+      document.getElementById('fb-message').innerHTML =
+        `<div class="section-card" style="text-align:center; padding:40px 20px;">
+          <div style="font-size:32px; margin-bottom:10px;">🔒</div>
+          <h3>Admin access required</h3>
+          <p style="color:var(--muted); font-size:13px; margin-top:8px; max-width:440px; margin-left:auto; margin-right:auto;">
+            Set the <code>ADMIN_EMAIL</code> variable on your Cloudflare Worker to your account email, then reload.
+          </p>
+        </div>`;
+      return;
+    }
+    if (!r.ok) throw new Error('Request failed (' + r.status + ')');
+    const data = await r.json();
+    FEEDBACK = Array.isArray(data.feedback) ? data.feedback : [];
+    renderStats();
+    render();
+  } catch(e) {
+    document.getElementById('fb-count').textContent = '';
+    document.getElementById('fb-message').innerHTML =
+      `<div class="section-card" style="color:var(--danger);">Could not load feedback: ${esc(e.message)}</div>`;
+  }
+}
+
+document.getElementById('fb-title').innerHTML = `${ICON('chat','ico ico-lg')} <span>User Feedback</span>`;
+load();
+</script>
+</body>
+</html>

@@ -433,10 +433,97 @@ function tElegant(r, accent) {
     </div>`;
 }
 
+function tOnyx(r, accent) {
+  const c = accent || '#6366f1';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const skills = (r.skills.categories || []).flatMap(cat => cat.items);
+  return `
+    <style>
+      .t-onyx { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 34% 66%; }
+      .t-onyx .rail { background: #1e2433; color: #e5e7eb; padding: calc(6% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); }
+      .t-onyx .name { font-size: 160%; font-weight: 700; line-height: 1.12; color: #fff; margin-bottom: 2%; }
+      .t-onyx .role { font-size: 78%; color: ${c}; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6%; }
+      .t-onyx .rail h3 { font-size: 76%; text-transform: uppercase; letter-spacing: .14em; color: ${c}; margin: calc(6% * var(--app-space,1)) 0 3%; }
+      .t-onyx .rail .item { font-size: 79%; margin-bottom: 1.5%; color: #cbd5e1; word-break: break-word; }
+      .t-onyx .chip { display:inline-block; font-size: 75%; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 1.5% 4%; margin: 0 1.5% 1.5% 0; }
+      .t-onyx .main { padding: calc(6% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); }
+      .t-onyx h2 { color: #111827; font-size: 106%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-bottom: 2px solid ${c}; padding-bottom: 1%; margin: calc(4% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
+      .t-onyx h2:first-child { margin-top: 0; }
+      .t-onyx .t-entry { margin-bottom: calc(3% * var(--app-space,1)); }
+      .t-onyx .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
+      .t-onyx .t-entry-sub { color: #6b7280; font-style: italic; font-size: 82%; }
+      .t-onyx .t-entry-desc { font-size: 86%; margin-top: 1%; }
+      .t-onyx .summary { font-size: 87%; }
+    </style>
+    <div class="t-onyx" style="${st}">
+      <div class="rail">
+        <div class="name">${esc(p.fullName)}</div>
+        ${r.experience[0] && r.experience[0].title ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
+        <h3>Contact</h3>
+        ${p.email?`<div class="item">${esc(p.email)}</div>`:''}
+        ${p.phone?`<div class="item">${esc(p.phone)}</div>`:''}
+        ${p.location?`<div class="item">${esc(p.location)}</div>`:''}
+        ${p.linkedin?`<div class="item">${esc(p.linkedin)}</div>`:''}
+        ${p.github?`<div class="item">${esc(p.github)}</div>`:''}
+        ${p.website?`<div class="item">${esc(p.website)}</div>`:''}
+        ${skills.length?`<h3>Skills</h3>${skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}`:''}
+        ${r.education.length?`<h3>Education</h3>${r.education.map(e=>`<div class="item"><strong style="color:#fff;">${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end?` · ${esc(e.end)}`:''}</div>`).join('')}`:''}
+      </div>
+      <div class="main">
+        ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
+        ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
+        ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
+        ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
+        ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+      </div>
+    </div>`;
+}
+
+function tSlate(r, accent) {
+  const c = accent || '#0ea5e9';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-slate { font-family: var(--app-font); color: #1f2937; height: 100%; }
+      .t-slate .hd { background: #0f172a; color: #fff; padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); display:flex; justify-content:space-between; align-items:flex-end; gap: 4%; }
+      .t-slate .name { font-size: 195%; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
+      .t-slate .role { font-size: 80%; color: ${c}; letter-spacing: .06em; text-transform: uppercase; margin-top: 2.5%; }
+      .t-slate .hd-contact { font-size: 76%; color: #cbd5e1; text-align: right; line-height: 1.7; white-space: nowrap; }
+      .t-slate .body { padding: calc(4% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); }
+      .t-slate h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); padding-left: 2.5%; border-left: 3px solid ${c}; }
+      .t-slate h2:first-child { margin-top: 0; }
+      .t-slate .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); padding-left: 2.5%; }
+      .t-slate .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 93%; }
+      .t-slate .t-entry-sub { color: #6b7280; font-style: italic; font-size: 82%; }
+      .t-slate .t-entry-desc { font-size: 86%; margin-top: 1%; }
+      .t-slate .summary { font-size: 88%; padding-left: 2.5%; }
+      .t-slate .skills { padding-left: 2.5%; font-size: 87%; }
+    </style>
+    <div class="t-slate" style="${st}">
+      <div class="hd">
+        <div>
+          <div class="name">${esc(p.fullName)}</div>
+          ${r.experience[0] && r.experience[0].title ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
+        </div>
+        <div class="hd-contact">${[p.email,p.phone,p.location,p.linkedin].filter(Boolean).map(esc).join('<br>')}</div>
+      </div>
+      <div class="body">
+        ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
+        ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
+        ${skillsLine(r.skills)?`<h2>Skills</h2><div class="skills">${skillsLine(r.skills)}</div>`:''}
+        ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
+        ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
+        ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
+      </div>
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
   professional: tProfessional, tech: tTech, executive: tExecutive,
-  compact: tCompact, elegant: tElegant
+  compact: tCompact, elegant: tElegant, onyx: tOnyx, slate: tSlate
 };
 
 // Public API: render any template

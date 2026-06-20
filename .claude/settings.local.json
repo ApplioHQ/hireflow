@@ -19,7 +19,10 @@
       "Bash(node --check /tmp/j.js)",
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('interview.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/i.js',last\\);\")",
       "Bash(node --check /tmp/i.js)",
-      "Bash(rm -f /tmp/j.js /tmp/i.js)"
+      "Bash(rm -f /tmp/j.js /tmp/i.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('feedback.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/fb.js',last\\);\")",
+      "Bash(node --check /tmp/fb.js)",
+      "Bash(rm -f /tmp/fb.js)"
     ]
   }
 }

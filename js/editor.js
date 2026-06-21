@@ -1004,13 +1004,17 @@ function _renderFitIndicator(ratio) {
   let bg, border, color, text;
   if (ratio < 0.6) {
     bg = '#fef9c3'; border = '#eab308'; color = '#854d0e';
-    text = '⚠ Too much empty space — your resume only fills ' + pct + '% of the page. Add more detail.';
-  } else if (ratio > 1.05) {
-    bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
-    text = '⚠ Content overflows onto a second page (' + pct + '% of one page). Trim to fit.';
-  } else {
+    text = '⚠ Too much empty space — your resume only fills ' + pct + '% of a page. Add more detail.';
+  } else if (ratio <= 1.05) {
     bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
     text = '✓ Great fit — fills one page nicely (' + pct + '%).';
+  } else if (ratio <= 2.1) {
+    // Two-page resumes are fine for experienced candidates — not an error.
+    bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
+    text = '📄 Spans two pages (' + pct + '% of a page). Great for fuller experience — both pages export.';
+  } else {
+    bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
+    text = '⚠ Longer than two pages (' + pct + '%). Trim to keep it within two pages.';
   }
   ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
   ind.textContent = text;
@@ -1019,18 +1023,26 @@ function _renderFitIndicator(ratio) {
 function _drawPageBreak(ratio, trueH) {
   const preview = document.getElementById('preview');
   if (getComputedStyle(preview).position === 'static') preview.style.position = 'relative';
-  let line = document.getElementById('page-break-line');
+  // Clear previous dividers.
+  preview.querySelectorAll('.page-break-line').forEach(l => l.remove());
   // Only meaningful when content actually spills past one page.
-  if (ratio <= 1.0) { if (line) line.style.display = 'none'; return; }
-  if (!line) {
-    line = document.createElement('div');
-    line.id = 'page-break-line';
+  if (ratio <= 1.0) return;
+  const contentH = preview.scrollHeight;
+  // Draw a divider at every full-page boundary that falls within the content
+  // (so a two-page resume shows where page 1 ends and page 2 begins).
+  const pages = Math.min(Math.floor(ratio + 1e-4), 3);
+  for (let k = 1; k <= pages; k++) {
+    const breakY = Math.round((k * PAGE_PX / trueH) * contentH);
+    if (breakY >= contentH - 1) break;
+    const line = document.createElement('div');
+    line.className = 'page-break-line';
+    line.style.cssText = 'position:absolute; left:0; right:0; top:' + breakY + 'px; height:0; border-top:1.5px dashed #94a3b8; pointer-events:none; z-index:5;';
+    const tag = document.createElement('span');
+    tag.textContent = 'Page ' + (k + 1);
+    tag.style.cssText = 'position:absolute; right:3px; top:-8px; font-size:7px; font-weight:600; color:#64748b; background:#fff; padding:0 3px; border-radius:3px;';
+    line.appendChild(tag);
     preview.appendChild(line);
   }
-  // Map the 1056px full-scale page boundary into the scaled-down preview.
-  const contentH = preview.scrollHeight;
-  const breakY = Math.round((PAGE_PX / trueH) * contentH);
-  line.style.cssText = 'position:absolute; left:0; right:0; top:' + breakY + 'px; height:0; border-top:2px dashed #ef4444; pointer-events:none; z-index:5;';
 }
 
 // ============ Fix 2: full-screen preview lightbox ============

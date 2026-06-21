@@ -252,6 +252,17 @@ renderList('lifetime-list', LIFETIME_FEATURES);
   if (plan === 'lifetime') { lb.textContent = 'Your current plan'; lb.disabled = true; lb.style.opacity = .6; lb.onclick = null; }
   else lb.innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Buy Lifetime</span>`;
 })();
+
+// Lifetime spotlight: stagger the children in when it scrolls into view
+// (the vanilla equivalent of the component's framer-motion staggerChildren).
+(function () {
+  const card = document.getElementById('lifetime-card');
+  if (!card) return;
+  card.querySelectorAll('[data-stagger]').forEach((el, i) => el.style.setProperty('--i', i));
+  new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => { if (e.isIntersecting) { card.classList.add('in'); obs.disconnect(); } });
+  }, { threshold: 0.2 }).observe(card);
+})();
 </script>
 </body>
 </html>

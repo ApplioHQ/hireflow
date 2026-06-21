@@ -182,6 +182,7 @@ input, textarea, select { font-family: inherit; }
    hover with a spring-ish easing — the ExpandableTabs interaction applied to the
    topbar utility actions (Import / Save / Feedback). */
 .exp-act {
+  gap: 0;            /* override .btn gap so a collapsed label leaves no dead space */
   overflow: hidden;
   transition: background .2s ease, color .2s ease, padding .4s cubic-bezier(.2,.8,.2,1);
 }

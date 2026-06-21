@@ -101,6 +101,50 @@ function withCors(res, cors) {
 }
 function err(status, message) { const e = new Error(message); e.status = status; return e; }
 
+// ============ Rate limiting ============
+// Fixed-window rate limiter backed by KV (no extra bindings). The counter and its
+// window-reset timestamp are stored together; the whole entry auto-expires via
+// expirationTtl. Every call increments the counter — successes count too — so the
+// limit can't be bypassed by alternating valid/invalid attempts; only the passage
+// of `windowSeconds` resets it. KV is eventually consistent, so this is best-effort
+// throttling (good enough to blunt credential stuffing), not a hard guarantee.
+// Returns true if the request is allowed, false if the limit is exceeded.
+async function checkRateLimit(env, key, maxAttempts, windowSeconds) {
+  const now = Date.now();
+  let entry = null;
+  try { entry = JSON.parse((await env.HIREFLOW_KV.get(key)) || "null"); } catch {}
+  // Start a fresh window if there's no entry or the previous window has elapsed.
+  if (!entry || typeof entry.resetAt !== "number" || now >= entry.resetAt) {
+    entry = { count: 0, resetAt: now + windowSeconds * 1000 };
+  }
+  if (entry.count >= maxAttempts) return false;
+  entry.count += 1;
+  // TTL tracks the remaining window so it doesn't slide forward on each attempt.
+  // KV's minimum expirationTtl is 60s; our windows (300s / 600s) are safely above it.
+  const ttl = Math.max(60, Math.ceil((entry.resetAt - now) / 1000));
+  await env.HIREFLOW_KV.put(key, JSON.stringify(entry), { expirationTtl: ttl });
+  return true;
+}
+
+// ============ Health check ============
+// Cheap probe used by uptime monitors / load balancers. Verifies KV with a tiny
+// write+read and only checks that the AI binding exists (a real inference would be
+// too slow/expensive for a health check). Returns 200 when healthy, 503 if degraded.
+async function healthCheck(env) {
+  const checks = { kv: "ok", ai: "ok" };
+  try {
+    await env.HIREFLOW_KV.put("health:ping", String(Date.now()), { expirationTtl: 60 });
+    const v = await env.HIREFLOW_KV.get("health:ping");
+    if (v == null) checks.kv = "error: read returned null";
+  } catch (e) {
+    checks.kv = "error: " + (e.message || "kv unavailable");
+  }
+  if (!env.AI) checks.ai = "error: AI binding not configured";
+  const ok = checks.kv === "ok" && checks.ai === "ok";
+  if (!ok) log("error", "health_degraded", { checks });
+  return json({ status: ok ? "ok" : "error", timestamp: Date.now(), checks }, ok ? 200 : 503);
+}
+
 // ============ Crypto (PBKDF2 + signed token) ============
 async function hashPassword(password, saltHex) {
   const salt = saltHex ? hexToBuf(saltHex) : crypto.getRandomValues(new Uint8Array(16));
@@ -170,10 +214,16 @@ function isPaidPlan(user) {
 
 // ============ Auth ============
 async function signup(req, env) {
+  // Throttle: 3 signups per IP per 10-minute window (curbs bulk account creation).
+  const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+  if (!await checkRateLimit(env, `ratelimit:signup:${ip}`, 3, 600)) {
+    log("warn", "rate_limited", { route: "signup", ip });
+    throw err(429, "Too many attempts. Try again in a few minutes.");
+  }
   const { email, password } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
   if (password.length < 8) throw err(400, "Password must be at least 8 characters");
-  if (await getUser(env, email)) throw err(409, "Account already exists");
+  if (await getUser(env, email)) { log("warn", "signup_conflict", { email }); throw err(409, "Account already exists"); }
   const { salt, hash } = await hashPassword(password);
   const user = { email, salt, hash, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
   await putUser(env, user);

@@ -231,11 +231,21 @@ async function signup(req, env) {
   return { token, email };
 }
 async function login(req, env) {
+  // Throttle: 5 attempts per IP per 5-minute window. Counts every attempt (success
+  // or failure) so alternating valid/invalid credentials can't bypass the limit.
+  const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+  if (!await checkRateLimit(env, `ratelimit:login:${ip}`, 5, 300)) {
+    log("warn", "rate_limited", { route: "login", ip });
+    throw err(429, "Too many attempts. Try again in a few minutes.");
+  }
   const { email, password } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
   const user = await getUser(env, email);
-  if (!user) throw err(401, "Invalid email or password");
-  if (!await verifyPassword(password, user.salt, user.hash)) throw err(401, "Invalid email or password");
+  if (!user) { log("warn", "login_failed", { email, reason: "no_user" }); throw err(401, "Invalid email or password"); }
+  if (!await verifyPassword(password, user.salt, user.hash)) {
+    log("warn", "login_failed", { email, reason: "bad_password" });
+    throw err(401, "Invalid email or password");
+  }
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
   return { token, email };
 }
@@ -463,10 +473,24 @@ async function handleWebhook(req, env) {
   const sig = req.headers.get("Stripe-Signature");
   const body = await req.text();
   if (!sig) throw err(400, "Missing signature");
-  if (!await verifyStripeSig(body, sig, env.STRIPE_WEBHOOK_SECRET)) throw err(400, "Invalid signature");
+  // Verify signature BEFORE the idempotency check so unverified requests can't
+  // pollute the dedup store with arbitrary event IDs.
+  if (!await verifyStripeSig(body, sig, env.STRIPE_WEBHOOK_SECRET)) {
+    log("warn", "stripe_webhook_invalid_signature", {});
+    throw err(400, "Invalid signature");
+  }
 
   const event = JSON.parse(body);
   const obj = event.data.object;
+
+  // Idempotency: Stripe retries deliver the same event.id. If we've already
+  // processed it, 200 immediately so Stripe stops retrying — don't reapply.
+  const dedupeKey = `stripe_event:${event.id}`;
+  if (await env.HIREFLOW_KV.get(dedupeKey)) {
+    log("info", "stripe_webhook_duplicate", { id: event.id, type: event.type });
+    return json({ received: true });
+  }
+  log("info", "stripe_webhook", { id: event.id, type: event.type });
 
   switch (event.type) {
     case "checkout.session.completed": {
@@ -517,6 +541,12 @@ async function handleWebhook(req, env) {
       break;
     }
   }
+
+  // Mark this event processed so retries (or duplicate deliveries) are skipped.
+  // 30-day TTL: Stripe doesn't retry beyond that window, so the key can expire.
+  await env.HIREFLOW_KV.put(dedupeKey, JSON.stringify({ processedAt: Date.now() }), {
+    expirationTtl: 60 * 60 * 24 * 30,
+  });
   return json({ received: true });
 }
 

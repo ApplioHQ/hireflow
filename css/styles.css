@@ -177,31 +177,25 @@ input, textarea, select { font-family: inherit; }
 .topbar-tab.active, .topbar-tab:hover { background: var(--bg-2); color: var(--text); }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
-/* ===== Expandable tabs (icon collapses to label on active/hover) ===== */
-.exp-tabs {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+/* ===== Expandable action buttons (icon-only, reveal label on hover) ===== */
+/* Each .exp-act button shows just its icon; the trailing label span expands on
+   hover with a spring-ish easing — the ExpandableTabs interaction applied to the
+   topbar utility actions (Import / Save / Feedback). */
+.exp-act {
+  overflow: hidden;
+  transition: background .2s ease, color .2s ease, padding .4s cubic-bezier(.2,.8,.2,1);
 }
-.exp-tabs .topbar-tab {
-  display: inline-flex; align-items: center; gap: 0;
-  padding: 7px 9px; border-radius: 10px; line-height: 1;
-  color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none;
-  /* spring-ish easing to echo the framer-motion original */
-  transition: background .25s ease, color .25s ease, padding .4s cubic-bezier(.2,.8,.2,1);
-}
-.exp-tabs .topbar-tab .exp-ico { display: inline-flex; flex-shrink: 0; }
-.exp-tabs .topbar-tab .exp-ico svg { width: 18px; height: 18px; display: block; }
-.exp-tabs .topbar-tab .exp-label {
+.exp-act .ico { flex-shrink: 0; }
+/* The label is the non-icon span the button renders after its icon. */
+.exp-act > span:not(.ico) {
   display: inline-block; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
+  margin-left: 0;
   transition: max-width .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease, margin-left .4s cubic-bezier(.2,.8,.2,1);
 }
-.exp-tabs .topbar-tab:hover { background: var(--bg-1); color: var(--text); }
-.exp-tabs .topbar-tab.active { background: var(--bg-1); color: var(--accent); padding-left: 12px; padding-right: 12px; }
-.exp-tabs .topbar-tab:hover .exp-label,
-.exp-tabs .topbar-tab.active .exp-label { max-width: 170px; opacity: 1; margin-left: 8px; }
+.exp-act:hover > span:not(.ico),
+.exp-act:focus-visible > span:not(.ico) { max-width: 160px; opacity: 1; margin-left: 6px; }
 @media (prefers-reduced-motion: reduce) {
-  .exp-tabs .topbar-tab, .exp-tabs .topbar-tab .exp-label { transition: none; }
+  .exp-act, .exp-act > span:not(.ico) { transition: none; }
 }
 
 .app-shell-inner { display: grid; grid-template-columns: 220px 1fr 290px; height: calc(100vh - 56px); }

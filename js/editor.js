@@ -1260,6 +1260,11 @@ function _deName(text) {
   }
   // Re-capitalize "you/your" when it starts a sentence or a bullet.
   s = s.replace(/(^|[.!?]\s+|[•✓✗→]\s*)(your|you)\b/g, (_, p, w) => p + w.charAt(0).toUpperCase() + w.slice(1));
+  // Fix the most common subject-verb breaks introduced by name→"you" swaps.
+  s = s.replace(/\byou has\b/gi, m => m[0] === 'Y' ? 'You have' : 'you have')
+       .replace(/\byou is\b/gi, m => m[0] === 'Y' ? 'You are' : 'you are')
+       .replace(/\byou was\b/gi, m => m[0] === 'Y' ? 'You were' : 'you were')
+       .replace(/\byou does\b/gi, m => m[0] === 'Y' ? 'You do' : 'you do');
   return s;
 }
 

@@ -658,7 +658,7 @@ async function runAI(env, system, user, opts = {}) {
       lastErr = new Error(`${model} returned empty response`);
     } catch (e) {
       lastErr = e;
-      console.error(`AI model ${model} failed:`, e.message || e);
+      log("error", "ai_model_failed", { model, error: e.message || String(e) });
     }
   }
   throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);

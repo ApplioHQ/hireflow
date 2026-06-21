@@ -31,7 +31,9 @@
       "Bash(node --check /tmp/v.js)",
       "Bash(rm -f /tmp/v.js)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/resume/share -H \"Authorization: Bearer x\")",
-      "Bash(python3 -c \"import tomllib,sys; d=tomllib.load\\(open\\('wrangler.toml','rb'\\)\\); print\\('TOML valid. envs:', list\\(d.get\\('env',{}\\).keys\\(\\)\\), '| prod kv:', d['kv_namespaces'][0]['binding'], '| staging kv:', d['env']['staging']['kv_namespaces'][0]['binding']\\)\")"
+      "Bash(python3 -c \"import tomllib,sys; d=tomllib.load\\(open\\('wrangler.toml','rb'\\)\\); print\\('TOML valid. envs:', list\\(d.get\\('env',{}\\).keys\\(\\)\\), '| prod kv:', d['kv_namespaces'][0]['binding'], '| staging kv:', d['env']['staging']['kv_namespaces'][0]['binding']\\)\")",
+      "Bash(sed -n '/async function aiATS/,/^}/p' worker.js)",
+      "Bash(sed -n '/function safeJSON/,/^}/p' worker.js)"
     ]
   }
 }

@@ -57,7 +57,14 @@ function customizeStyleAttr(customize, marginsKey) {
   const space = SPACE_MULT[c.spacing] ?? 1.0;
   const margin = MARGIN_MULT[marginsKey] ?? 1.0;
   const parts = [`--app-space:${space}`, `--app-margin:${margin}`];
-  if (font) parts.push(`--app-font:${font}`, `font-family:${font}`);
+  if (font) {
+    // Font stacks contain quoted multi-word names (e.g. "Segoe UI", "Times New Roman").
+    // This string is injected into a double-quoted style="" attribute, so any double
+    // quote would prematurely close the attribute and break the font. Swap to single
+    // quotes (valid CSS) so the font actually registers in the preview and export.
+    const safeFont = font.replace(/"/g, "'");
+    parts.push(`--app-font:${safeFont}`, `font-family:${safeFont}`);
+  }
   return parts.join(';');
 }
 

@@ -829,53 +829,63 @@ Rules:
 async function aiAnalyze(env, { resume }) {
   const sys = `${GROUND_RULE}
 
-You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique. Critique only what's in the resume; suggest improvements to existing content, never invented accomplishments.
+You are a senior career coach giving a sharp, specific resume critique. Judge ONLY what's in the resume; improve existing content, never invent accomplishments.
 
 Output STRICT JSON:
-
 {
-  "overallScore": <0-100>,
-  "summary": "<2-3 sentence overall impression>",
+  "overallScore": <integer 0-100>,
+  "summary": "<exactly 2 sentences: the single biggest strength, then the single most important thing holding this resume back>",
   "strengths": [
-    "<specific strength, referencing a section or bullet from the resume>",
+    "<a concrete strength that names the exact section/role/bullet it comes from>",
     "<another>",
     "<another>"
   ],
   "weaknesses": [
-    "<specific weakness with a section name, e.g. 'Experience bullets at Acme lack metrics'>",
+    "<a specific, fixable weakness that names the section, e.g. 'Acme bullets describe duties, not measurable results'>",
     "<another>",
     "<another>"
   ],
   "topFixes": [
-    {"action": "<one concrete change>", "where": "<which section>", "impact": "<why it matters>"},
-    {"action": "...", "where": "...", "impact": "..."},
-    {"action": "...", "where": "...", "impact": "..."}
+    {
+      "action": "<one concrete change in imperative voice>",
+      "where": "<exact section or role>",
+      "impact": "<short phrase on why it moves the needle>",
+      "priority": "high" | "medium",
+      "example": "<OPTIONAL: if a specific weak line can be fixed, rewrite THAT actual line into a stronger version using ONLY facts already present; omit this field entirely when not applicable>"
+    }
   ],
-  "missingSections": ["<section the resume is missing that would help, e.g. 'Skills', 'Projects'>"]
+  "missingSections": ["<a section that would strengthen this resume, e.g. 'Skills', 'Projects'>"]
 }
 
+Scoring rubric — calibrate honestly:
+- 90-100: recruiter-ready — quantified results, strong structure, no gaps
+- 75-89: solid — minor tightening needed
+- 60-74: workable but generic — duties over impact, few metrics
+- 40-59: weak — vague bullets, missing sections, little quantification
+- below 40: needs a rebuild
+
 Rules:
-- Be specific, not generic. Always cite the actual section/role you're critiquing.
-- topFixes should be the 3 highest-leverage changes, ordered by impact.
+- Give 3 strengths, 3 weaknesses, and 3 topFixes ordered by impact (highest first).
+- Every strength/weakness MUST reference a real part of THIS resume — never generic advice like "add more keywords".
+- Mark only the 1-2 highest-leverage fixes as "high"; the rest "medium".
+- In an "example" rewrite, sharpen wording only — never add fake numbers, tools, or claims.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
     `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
-    { model: SMART_MODEL, max_tokens: 650, temperature: 0.3 });
+    { model: SMART_MODEL, max_tokens: 850, temperature: 0.3 });
   const j = safeJSON(raw);
+  // If parsing fails, hand the raw text to the client (it can still extract/format it).
   if (!j) return { text: raw };
-
-  const parts = [];
-  if (j.overallScore != null) parts.push(`Overall Resume Score: ${j.overallScore}/100\n`);
-  if (j.summary) parts.push(j.summary);
-  if (j.strengths?.length) parts.push(`\nStrengths:\n${j.strengths.map(s => `  ✓ ${s}`).join("\n")}`);
-  if (j.weaknesses?.length) parts.push(`\nWeaknesses:\n${j.weaknesses.map(w => `  ✗ ${w}`).join("\n")}`);
-  if (j.topFixes?.length) {
-    parts.push(`\nTop 3 fixes:`);
-    j.topFixes.forEach((f, i) => parts.push(`  ${i+1}. ${f.action}\n     Where: ${f.where}\n     Why: ${f.impact}`));
-  }
-  if (j.missingSections?.length) parts.push(`\nConsider adding:\n${j.missingSections.map(s => `  + ${s}`).join("\n")}`);
-  return { text: parts.join("\n") };
+  // Return structured fields directly so the client always renders the rich cards.
+  return {
+    overallScore: typeof j.overallScore === "number" ? j.overallScore : null,
+    summary: j.summary || "",
+    strengths: Array.isArray(j.strengths) ? j.strengths : [],
+    weaknesses: Array.isArray(j.weaknesses) ? j.weaknesses : [],
+    topFixes: Array.isArray(j.topFixes) ? j.topFixes : [],
+    missingSections: Array.isArray(j.missingSections) ? j.missingSections : [],
+  };
 }
 
 // ============ Parse (resume import — most important!) ============

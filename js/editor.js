@@ -1445,10 +1445,23 @@ function _renderAnalysis(r) {
   if (j.strengths && j.strengths.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Strengths<span class="tailor-count">${j.strengths.length}</span></div>${cards(j.strengths,'check')}</div>`;
   if (j.weaknesses && j.weaknesses.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Weaknesses<span class="tailor-count">${j.weaknesses.length}</span></div>${cards(j.weaknesses,'arrowRight')}</div>`;
   if (j.topFixes && j.topFixes.length) {
-    const fixes = j.topFixes.map((f, i) => `<li class="ai-rec an-fix">
+    const fixes = j.topFixes.map((f, i) => {
+      const pr = String(f.priority || '').toLowerCase();
+      const prBadge = pr === 'high'
+        ? `<span class="an-fix-pri" style="background:rgba(239,68,68,.16);color:#f87171;">High impact</span>`
+        : pr === 'medium'
+          ? `<span class="an-fix-pri" style="background:rgba(245,158,11,.16);color:#fbbf24;">Medium</span>`
+          : '';
+      return `<li class="ai-rec an-fix">
         <span class="an-fix-num">${i + 1}</span>
-        <span><strong>${esc(f.action || '')}</strong>${f.where ? `<span class="an-fix-where">${esc(f.where)}</span>` : ''}${f.impact ? `<span class="an-fix-why">${esc(f.impact)}</span>` : ''}</span>
-      </li>`).join('');
+        <span style="min-width:0;">
+          <strong>${esc(f.action || '')}</strong>${prBadge}
+          ${f.where ? `<span class="an-fix-where">${esc(f.where)}</span>` : ''}
+          ${f.impact ? `<span class="an-fix-why">${esc(f.impact)}</span>` : ''}
+          ${f.example ? `<span class="an-fix-example">✎ Try: “${esc(f.example)}”</span>` : ''}
+        </span>
+      </li>`;
+    }).join('');
     html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Top fixes</div><ul class="ai-rec-list">${fixes}</ul></div>`;
   }
   if (j.missingSections && j.missingSections.length) {

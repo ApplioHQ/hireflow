@@ -1497,7 +1497,7 @@ function _renderAnalysis(r) {
       <div class="an-score-label">Overall resume score</div>
     </div>`;
   }
-  if (j.summary) html += `<p class="ai-para" style="margin-bottom:14px;">${esc(j.summary)}</p>`;
+  if (j.summary) html += `<p class="ai-para" style="margin-bottom:14px;">${esc(_deName(j.summary))}</p>`;
   if (j.strengths && j.strengths.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Strengths<span class="tailor-count">${j.strengths.length}</span></div>${cards(j.strengths,'check')}</div>`;
   if (j.weaknesses && j.weaknesses.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Weaknesses<span class="tailor-count">${j.weaknesses.length}</span></div>${cards(j.weaknesses,'arrowRight')}</div>`;
   if (j.topFixes && j.topFixes.length) {
@@ -1511,10 +1511,10 @@ function _renderAnalysis(r) {
       return `<li class="ai-rec an-fix">
         <span class="an-fix-num">${i + 1}</span>
         <span style="min-width:0;">
-          <strong>${esc(f.action || '')}</strong>${prBadge}
-          ${f.where ? `<span class="an-fix-where">${esc(f.where)}</span>` : ''}
-          ${f.impact ? `<span class="an-fix-why">${esc(f.impact)}</span>` : ''}
-          ${f.example ? `<span class="an-fix-example">✎ Try: “${esc(f.example)}”</span>` : ''}
+          <strong>${esc(_deName(f.action || ''))}</strong>${prBadge}
+          ${f.where ? `<span class="an-fix-where">${esc(_deName(f.where))}</span>` : ''}
+          ${f.impact ? `<span class="an-fix-why">${esc(_deName(f.impact))}</span>` : ''}
+          ${f.example ? `<span class="an-fix-example">✎ Try: “${esc(_deName(f.example))}”</span>` : ''}
         </span>
       </li>`;
     }).join('');

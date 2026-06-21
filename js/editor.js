@@ -831,9 +831,40 @@ function renderAnalysis() {
         <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Analyze</button>
       </div>
       <div class="ai-card-body">
-        <div id="analysis-result"></div>
+        <div id="analysis-result">${_analysisEmptyState()}</div>
         ${navRow('ats','dashboard')}
       </div>
+    </div>`;
+}
+
+// Appealing pre-analysis state — previews what the AI critique will deliver.
+function _analysisEmptyState() {
+  const tile = (cls, ico, title, sub) =>
+    `<div class="an-pre-tile ${cls}">
+      <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
+      <div><b>${title}</b><span>${sub}</span></div>
+    </div>`;
+  return `
+    <div class="an-pre">
+      <div class="an-pre-ring">
+        <svg viewBox="0 0 120 120" width="92" height="92">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="9"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#anGrad)" stroke-width="9"
+            stroke-linecap="round" stroke-dasharray="70 244" transform="rotate(-90 60 60)" opacity=".85"/>
+          <defs><linearGradient id="anGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#6366f1"/>
+          </linearGradient></defs>
+          <text x="60" y="58" text-anchor="middle" font-size="30" font-weight="800" fill="var(--muted)">?</text>
+          <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
+        </svg>
+      </div>
+      <p class="an-pre-lead">Get a calibrated <b>0–100 score</b> and specific, fixable feedback on your resume — in seconds.</p>
+      <div class="an-pre-grid">
+        ${tile('an-pre-good', 'check',      'Strengths',  "What's already working")}
+        ${tile('an-pre-bad',  'arrowRight', 'Weaknesses', "Exactly what's holding it back")}
+        ${tile('an-pre-fix',  'sparkle',    'Top Fixes',  'With example rewrites you can paste in')}
+      </div>
+      <button class="btn btn-violet" onclick="aiAnalyze()" style="margin-top:4px;">${ICON('sparkle','ico ico-sm')} Analyze my resume</button>
     </div>`;
 }
 

@@ -1070,7 +1070,11 @@ Score on structure, specificity, and impact. Address the reader as "you". OUTPUT
 }
 
 function safeJSON(s) {
-  try { return JSON.parse(s); } catch {}
-  const m = s.match(/\{[\s\S]*\}/); if (m) try { return JSON.parse(m[0]); } catch {}
+  if (s == null) return null;
+  // Strip markdown code fences (```json … ```) the model sometimes wraps output in.
+  const str = String(s).replace(/```(?:json)?/gi, "").trim();
+  try { return JSON.parse(str); } catch {}
+  // Fall back to the first {...} block (handles trailing prose / preamble).
+  const m = str.match(/\{[\s\S]*\}/); if (m) try { return JSON.parse(m[0]); } catch {}
   return null;
 }

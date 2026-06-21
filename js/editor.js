@@ -742,9 +742,9 @@ function _renderTailorResult(text) {
     return `<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);">${esc(text)}</div>`;
   }
   const pill = (k, cls) => `<span class="ats-kw-pill ats-kw-${cls}">${esc(k)}</span>`;
-  const card = (t, ico) => `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(t)}</span></li>`;
+  const card = (t, ico) => `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(_deName(t))}</span></li>`;
   return '<div class="tailor-result">' + blocks.map(b => {
-    if (b.kind === 'intro') return `<p class="ai-para">${b.items.map(esc).join('<br>')}</p>`;
+    if (b.kind === 'intro') return `<p class="ai-para">${b.items.map(i => esc(_deName(i))).join('<br>')}</p>`;
     let inner, badge = '';
     if (b.kind === 'good') { inner = `<div class="tailor-pills">${b.items.map(i => pill(i,'matched')).join('')}</div>`; badge = `<span class="tailor-count">${b.items.length}</span>`; }
     else if (b.kind === 'bad') { inner = `<div class="tailor-pills">${b.items.map(i => pill(i,'missing')).join('')}</div>`; badge = `<span class="tailor-count">${b.items.length}</span>`; }

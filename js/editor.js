@@ -1239,7 +1239,32 @@ async function ai(endpoint, body) {
 // Render freeform AI text into clean recommendation cards: bullet lines become
 // a checklist, ALL-CAPS / colon-terminated lines become subheadings, the rest
 // become readable paragraphs.
+// Safety net: AI output should address the user as "you", never by name or in the
+// third person ("Jane's resume…", "The candidate…"). This scrubs any slips client-side
+// so the rule holds regardless of backend deploy state. Applied to every AI render path.
+function _deName(text) {
+  if (text == null) return text;
+  let s = String(text);
+  // Third-person "candidate" phrasings → second person.
+  s = s.replace(/\bthe candidate['’]s\b/gi, 'your').replace(/\bthe candidate\b/gi, 'you');
+  const full = ((typeof resume !== 'undefined' && resume && resume.personal && resume.personal.fullName) || '').trim();
+  if (full) {
+    const parts = full.split(/\s+/).filter(Boolean);
+    // Longest first so "Jane Doe's" is handled before "Jane's".
+    const names = Array.from(new Set([full, parts[0]].filter(Boolean))).sort((a, b) => b.length - a.length);
+    names.forEach(n => {
+      const e = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(new RegExp('\\b' + e + "['’]s\\b", 'g'), 'your'); // possessive → your
+      s = s.replace(new RegExp('\\b' + e + '\\b', 'g'), 'you');        // standalone → you
+    });
+  }
+  // Re-capitalize "you/your" when it starts a sentence or a bullet.
+  s = s.replace(/(^|[.!?]\s+|[•✓✗→]\s*)(your|you)\b/g, (_, p, w) => p + w.charAt(0).toUpperCase() + w.slice(1));
+  return s;
+}
+
 function _renderAiBody(text) {
+  text = _deName(text);
   const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) return '<p class="ai-para" style="color:var(--muted);">No suggestions returned.</p>';
   const bulletRe = /^([•\-\*–]|\d+[.)])\s+(.*)$/;
@@ -1462,7 +1487,7 @@ function _renderAnalysis(r) {
     return `<div class="ai-body">${_renderAiBody((r && r.text) || '')}</div>`;
   }
   const cards = (arr, ico) => `<ul class="ai-rec-list">${(arr || []).map(t =>
-    `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(t)}</span></li>`).join('')}</ul>`;
+    `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(_deName(t))}</span></li>`).join('')}</ul>`;
   const score = j.overallScore != null ? j.overallScore : null;
   const scoreColor = score == null ? 'var(--accent)' : score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
   let html = '';

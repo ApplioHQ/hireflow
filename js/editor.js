@@ -40,6 +40,7 @@ const SECTION_INFO = {
   ats:           { label: 'ATS Check',      icon: 'check' },
   analysis:      { label: 'AI Analysis',    icon: 'beaker' },
   dashboard:     { label: 'Dashboard',      icon: 'chart' },
+  quickfix:      { label: 'Quick Fixes',    icon: 'check' },
   customize:     { label: 'Customize',      icon: 'settings' }
 };
 
@@ -155,7 +156,7 @@ const SECTIONS = {
   certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
   volunteer: renderVolunteer, publications: renderPublications,
   tailor: renderTailor, ats: renderATS, analysis: renderAnalysis,
-  dashboard: renderDashboard, customize: renderCustomize
+  dashboard: renderDashboard, quickfix: renderQuickFix, customize: renderCustomize
 };
 
 function renderMain() {
@@ -964,6 +965,8 @@ function renderPreview() {
   _checkPageFit();
   if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
   if (window.renderHealthBadge) window.renderHealthBadge();
+  // Keep the free Quick Fixes checklist current as the user edits (no network).
+  if (currentSection === 'quickfix') _refreshQuickFix();
 }
 
 // ============ Fix 3: page overflow indicator ============

@@ -1029,7 +1029,7 @@ section[id] { scroll-margin-top: 80px; }
 /* right-edge fade so lower cards melt into the section (mimics the after-gradient) */
 .dcard::after {
   content: ''; position: absolute; top: -5%; right: -2px; width: 58%; height: 110%;
-  background: linear-gradient(to left, #f7f8fc, transparent); border-radius: 14px;
+  background: linear-gradient(to left, #ffffff, transparent); border-radius: 14px;
   pointer-events: none; transition: opacity .6s ease;
 }
 .dcard-1 { --tx: 0;     --ty: 0;    z-index: 3; filter: none; opacity: 1; }

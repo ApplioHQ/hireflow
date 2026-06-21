@@ -1414,13 +1414,39 @@ async function aiATS() {
   finally { aiLoadingDone(); }
 }
 
+// True if a string looks like a (possibly fenced) JSON object rather than prose.
+function _looksLikeJSON(s) { return typeof s === 'string' && /^\s*(```)?\s*(json)?\s*\{/i.test(s); }
+
 function _renderATSResult(r) {
-  const score = r.score || 0;
+  // Recover structured fields if the backend handed back raw/blob text (e.g. an
+  // un-deployed worker, or the model wrapped output in a ```json fence). This
+  // guarantees we never print raw JSON to the user.
+  let data = r || {};
+  if (data.breakdown == null || _looksLikeJSON(data.feedback) || typeof data.text === 'string') {
+    const extracted = _extractJSON(_looksLikeJSON(data.feedback) ? data.feedback : data.text) || _extractJSON(data.feedback);
+    if (extracted) data = Object.assign({}, data, extracted);
+  }
+
+  const score = Number.isFinite(+data.score) ? Math.max(0, Math.min(100, +data.score)) : 0;
   const color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
   const label = score >= 70 ? 'Strong Match ✓' : score >= 50 ? 'Decent Match' : 'Needs Work';
-  const circ  = 2 * Math.PI * 50; // 314.16
-  const matched = Array.isArray(r.matched) ? r.matched : [];
-  const missing = Array.isArray(r.missing) ? r.missing : [];
+  const circ  = 2 * Math.PI * 50;
+  const bd      = (data.breakdown && typeof data.breakdown === 'object') ? data.breakdown : null;
+  const wins    = Array.isArray(data.wins) ? data.wins : [];
+  const missing = Array.isArray(data.missingKeywords) ? data.missingKeywords
+                : Array.isArray(data.missing) ? data.missing : [];
+  // Only show feedback if it's actual prose — never a raw JSON blob.
+  const feedbackText = (typeof data.feedback === 'string' && !_looksLikeJSON(data.feedback)) ? data.feedback : '';
+
+  const bar = (lbl, v) => {
+    const val = Number.isFinite(+v) ? Math.max(0, Math.min(100, +v)) : null;
+    if (val == null) return '';
+    const c = val >= 70 ? '#22c55e' : val >= 50 ? '#f59e0b' : '#ef4444';
+    return `<div class="ats-bd-row">
+        <div class="ats-bd-head"><span>${esc(lbl)}</span><span style="color:${c};font-weight:700;">${val}</span></div>
+        <div class="ats-bd-track"><div class="ats-bd-fill" style="width:${val}%;background:${c};"></div></div>
+      </div>`;
+  };
 
   document.getElementById('ats-result').innerHTML = `
     <div class="ats-result-card">
@@ -1438,9 +1464,15 @@ function _renderATSResult(r) {
         </div>
       </div>
       <div class="ats-verdict" style="color:${color};">${label}</div>
-      ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ Matched</div><div class="ats-kw-list" id="ats-kw-matched"></div></div>` : ''}
-      ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
-      <div class="ats-feedback-text ai-body">${_renderAiBody(r.feedback || '')}</div>
+      ${bd ? `<div class="ats-breakdown">
+        ${bar('Keywords', bd.keywords)}
+        ${bar('Experience', bd.experience)}
+        ${bar('Formatting', bd.formatting)}
+        ${bar('Completeness', bd.completeness)}
+      </div>` : ''}
+      ${feedbackText ? `<div class="ats-feedback-text ai-body">${_renderAiBody(feedbackText)}</div>` : ''}
+      ${wins.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ What's working</div><ul class="ai-rec-list" id="ats-wins"></ul></div>` : ''}
+      ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing keywords</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
     </div>`;
 
   // Animate ring + counter
@@ -1459,19 +1491,23 @@ function _renderATSResult(r) {
     }
   });
 
-  // Staggered keyword pills
-  function addPills(id, items, cls) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    items.forEach((kw, i) => setTimeout(() => {
-      const pill = document.createElement('span');
-      pill.className = 'ats-kw-pill ats-kw-' + cls;
-      pill.textContent = kw;
-      el.appendChild(pill);
-    }, 600 + i * 80));
-  }
-  addPills('ats-kw-matched', matched, 'matched');
-  addPills('ats-kw-missing', missing, 'missing');
+  // "What's working" cards
+  const winsEl = document.getElementById('ats-wins');
+  if (winsEl) wins.forEach(w => {
+    const li = document.createElement('li');
+    li.className = 'ai-rec';
+    li.innerHTML = `<span class="ai-rec-ico">${ICON('check','ico ico-sm')}</span><span>${esc(_deName(w))}</span>`;
+    winsEl.appendChild(li);
+  });
+
+  // Staggered missing-keyword pills
+  const mEl = document.getElementById('ats-kw-missing');
+  if (mEl) missing.forEach((kw, i) => setTimeout(() => {
+    const pill = document.createElement('span');
+    pill.className = 'ats-kw-pill ats-kw-missing';
+    pill.textContent = kw;
+    mEl.appendChild(pill);
+  }, 500 + i * 70));
 }
 
 // Tolerantly pull a JSON object out of an AI string (handles ```json fences,

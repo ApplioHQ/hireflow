@@ -44,6 +44,43 @@
   .tier .btn { width: 100%; padding: 13px; font-size: 14px; }
   .pricing-foot { text-align: center; margin-top: 40px; color: var(--muted); font-size: 13px; }
   @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+
+  /* ===== Lifetime spotlight card (PricingCard, vanilla) ===== */
+  .pcard-head { text-align: center; margin: 70px auto 0; }
+  .pcard-head h2 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .pcard-head p { color: var(--muted); margin-top: 8px; }
+  .pcard {
+    max-width: 1000px; margin: 28px auto 0; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.28);
+  }
+  .pcard-left { padding: 36px; display: flex; flex-direction: column; justify-content: space-between; gap: 28px; }
+  .pcard-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--accent); background: rgba(99,102,241,.14); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: 4px 10px; margin-bottom: 14px; }
+  .pcard-title { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .pcard-desc { color: var(--muted); margin-top: 8px; line-height: 1.6; font-size: 14px; }
+  .pcard-price-row { display: flex; align-items: baseline; gap: 10px; margin-top: 24px; }
+  .pcard-price { font-size: 52px; font-weight: 800; letter-spacing: -2px; }
+  .pcard-original { font-size: 20px; color: var(--muted); text-decoration: line-through; }
+  .pcard-onetime { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .pcard-cta { width: 100%; padding: 14px; font-size: 15px; }
+  .pcard-right { background: var(--bg-2); padding: 36px; }
+  .pcard-fgroup + .pcard-fgroup { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .pcard-fgroup h4 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .pcard-flist { list-style: none; display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; }
+  .pcard-flist li { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--text); }
+  .pcard-flist li::before { content: "✓"; color: var(--accent); font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  @media (min-width: 600px) { .pcard-flist { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 860px) {
+    .pcard { flex-direction: row; }
+    .pcard-left { width: 40%; }
+    .pcard-right { width: 60%; }
+  }
+  /* stagger entrance — echoes framer-motion staggerChildren */
+  .pcard [data-stagger] { opacity: 0; transform: translateY(18px);
+    transition: opacity .5s ease, transform .55s cubic-bezier(.2,.7,.2,1); transition-delay: calc(var(--i, 0) * .05s); }
+  .pcard.in [data-stagger] { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .pcard [data-stagger] { transition: none; } }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -145,7 +182,7 @@
 <script>
 const FREE_FEATURES = [
   { t: 'Resume Builder (build + customize)', on: true },
-  { t: 'All 9 templates', on: true },
+  { t: 'All 11 templates', on: true },
   { t: 'Job Tracker', on: true },
   { t: '10 resume downloads (total)', on: true },
   { t: 'AI Improve, Tailor, ATS Check, Analysis', on: false },

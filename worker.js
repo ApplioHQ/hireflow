@@ -807,22 +807,24 @@ Rules:
     `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
     { model: SMART_MODEL, max_tokens: 600, temperature: 0.2 });
   const j = safeJSON(raw);
-  if (!j) return { score: 50, feedback: raw };
-
-  // Build readable feedback string from structured output
-  const parts = [];
-  if (j.feedback) parts.push(j.feedback);
-  if (j.breakdown) {
-    parts.push(`\nBreakdown:`);
-    parts.push(`  Keywords: ${j.breakdown.keywords}/100`);
-    parts.push(`  Experience match: ${j.breakdown.experience}/100`);
-    parts.push(`  Formatting: ${j.breakdown.formatting}/100`);
-    parts.push(`  Completeness: ${j.breakdown.completeness}/100`);
+  // Sensible fallback on parse failure — never dump raw model text to the client.
+  if (!j) {
+    return {
+      score: null,
+      breakdown: null,
+      feedback: "We couldn't read the AI's score this time. Please run the check again.",
+      wins: [], issues: [], missingKeywords: [],
+    };
   }
-  if (j.wins?.length) parts.push(`\nWhat's working:\n${j.wins.map(w => `  ✓ ${w}`).join("\n")}`);
-  if (j.issues?.length) parts.push(`\nWhat to fix:\n${j.issues.map(i => `  ✗ ${i}`).join("\n")}`);
-  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k => `  → ${k}`).join("\n")}`);
-  return { score: j.score ?? 50, feedback: parts.join("\n") };
+  // Return structured fields directly so the client renders the score-card components.
+  return {
+    score: typeof j.score === "number" ? j.score : null,
+    breakdown: j.breakdown && typeof j.breakdown === "object" ? j.breakdown : null,
+    feedback: typeof j.feedback === "string" ? j.feedback : "",
+    wins: Array.isArray(j.wins) ? j.wins : [],
+    issues: Array.isArray(j.issues) ? j.issues : [],
+    missingKeywords: Array.isArray(j.missingKeywords) ? j.missingKeywords : [],
+  };
 }
 
 // ============ Analyze ============

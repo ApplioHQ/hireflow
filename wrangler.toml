@@ -1,0 +1,71 @@
+# ============================================================================
+# Applio Worker — Cloudflare configuration
+#
+# Deploy commands:
+#   Production (default env):   wrangler deploy
+#   Staging:                    wrangler deploy --env staging
+#
+# Secrets are NOT stored in this file. Set them per environment:
+#   wrangler secret put JWT_SECRET
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
+#
+#   ...and again for staging by appending --env staging, e.g.:
+#   wrangler secret put JWT_SECRET --env staging
+#   wrangler secret put STRIPE_SECRET_KEY --env staging      # use a TEST-mode key
+#   wrangler secret put STRIPE_WEBHOOK_SECRET --env staging   # use the TEST webhook secret
+# ============================================================================
+
+name = "hireflow-api"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Workers AI binding (must be declared per-environment; see [env.staging.ai] below).
+[ai]
+binding = "AI"
+
+# ---------------------------------------------------------------------------
+# Production (default / top-level environment) — `wrangler deploy`
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "HIREFLOW_KV"
+# Create once with:  wrangler kv:namespace create HIREFLOW_KV
+# then paste the returned id below.
+id = "REPLACE_WITH_PRODUCTION_KV_NAMESPACE_ID"
+
+[vars]
+SITE_URL = "https://appliohq.com"
+ALLOWED_ORIGIN = "https://appliohq.com"
+FREE_DOWNLOAD_LIMIT = "10"
+FREE_AI_TRIALS = "2"
+ADMIN_EMAIL = "you@appliohq.com"            # your account email — gates /feedback/list
+PREMIUM_PRICE_ID = "price_LIVE_premium"     # live-mode Stripe price ID
+LIFETIME_PRICE_ID = "price_LIVE_lifetime"   # live-mode Stripe price ID
+
+# ---------------------------------------------------------------------------
+# Staging — `wrangler deploy --env staging`
+# Deploys a separate worker (hireflow-api-staging) with its own KV + vars + secrets.
+# ---------------------------------------------------------------------------
+[env.staging]
+
+# Separate KV namespace so staging never touches production data.
+# Create with:  wrangler kv:namespace create HIREFLOW_KV --env staging
+# then paste the returned id below.
+[[env.staging.kv_namespaces]]
+binding = "HIREFLOW_KV"
+id = "REPLACE_WITH_STAGING_KV_NAMESPACE_ID"
+
+# Workers AI binding for staging (top-level [ai] does not inherit into named envs).
+[env.staging.ai]
+binding = "AI"
+
+[env.staging.vars]
+# Point these at your staging host — a subdomain or the *.workers.dev URL.
+SITE_URL = "https://staging.appliohq.com"
+ALLOWED_ORIGIN = "https://staging.appliohq.com"
+FREE_DOWNLOAD_LIMIT = "10"
+FREE_AI_TRIALS = "2"
+ADMIN_EMAIL = "you@appliohq.com"
+# Use Stripe TEST-mode price IDs here — staging must never process real payments.
+PREMIUM_PRICE_ID = "price_TEST_premium"
+LIFETIME_PRICE_ID = "price_TEST_lifetime"

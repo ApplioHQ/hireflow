@@ -696,6 +696,274 @@ function _liveBM(ta, meterId) {
 }
 
 
+// ============ Quick Fixes (100% client-side — no AI, no network) ============
+// A self-serve checklist of resume best-practices. Every check below is a pure
+// function over the in-memory `resume` object using only regex/string logic —
+// nothing here calls the Worker, ai(), fetch(), or Cloudflare Workers AI.
+// Available to all users (free included); never gated behind isFree()/isPaid().
+
+// Static weak-opener → strong-verb lookup. Each entry rewrites the start of a
+// bullet. Order matters (longer/more-specific phrases first).
+const QF_VERB_SWAPS = [
+  [/^responsible for\s+/i, 'Managed '],
+  [/^was responsible for\s+/i, 'Managed '],
+  [/^duties included\s+/i, 'Delivered '],
+  [/^in charge of\s+/i, 'Directed '],
+  [/^was tasked with\s+/i, 'Led '],
+  [/^tasked with\s+/i, 'Led '],
+  [/^worked on\s+/i, 'Built '],
+  [/^helped with\s+/i, 'Contributed to '],
+  [/^assisted with\s+/i, 'Supported '],
+  [/^assisted\s+/i, 'Supported '],
+  [/^helped\s+/i, 'Contributed to '],
+];
+
+// Collect every description-style bullet block from experience + projects.
+function _qfBullets() {
+  const out = [];
+  (resume.experience || []).forEach((e, i) => out.push({ key: 'experience', idx: i, label: e.title || ('Experience ' + (i + 1)), desc: e.description || '' }));
+  (resume.projects || []).forEach((e, i) => out.push({ key: 'projects', idx: i, label: e.name || ('Project ' + (i + 1)), desc: e.description || '' }));
+  return out;
+}
+
+// --- Individual checks: each returns an array of issue objects (empty = pass) ---
+
+function _qfWeakVerbs() {
+  const issues = [];
+  _qfBullets().forEach(b => {
+    let count = 0;
+    b.desc.split('\n').forEach(line => {
+      const rest = line.replace(/^\s*[•\-\*]\s*/, '');
+      if (QF_VERB_SWAPS.some(([rx]) => rx.test(rest))) count++;
+    });
+    if (count) issues.push({
+      level: 'warn',
+      title: count + ' weak ' + (count === 1 ? 'opener' : 'openers') + ' in “' + b.label + '”',
+      detail: 'Bullets starting with phrases like “responsible for” read passively. Swap in strong action verbs (e.g. Managed, Built, Led).',
+      action: { type: 'fix', label: 'Auto-fix', run: () => _qfFixVerbs(b.key, b.idx) }
+    });
+  });
+  return issues;
+}
+function _qfFixVerbs(key, idx) {
+  const entry = resume[key][idx];
+  entry.description = (entry.description || '').split('\n').map(line => {
+    const m = line.match(/^(\s*[•\-\*]\s*)?([\s\S]*)$/);
+    const lead = m[1] || '';
+    let rest = m[2];
+    for (const [rx, rep] of QF_VERB_SWAPS) {
+      if (rx.test(rest)) { rest = rest.replace(rx, rep); break; }
+    }
+    return lead + rest;
+  }).join('\n');
+}
+
+function _qfMissingMetrics() {
+  const issues = [];
+  _qfBullets().forEach(b => {
+    if (!b.desc.trim()) return;
+    if (!/[\d$%]/.test(b.desc)) issues.push({
+      level: 'info',
+      title: 'No numbers in “' + b.label + '”',
+      detail: 'Quantify impact with a number, %, or $ amount — recruiters scan for measurable results. (We can’t invent figures for you.)',
+      action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' }
+    });
+  });
+  return issues;
+}
+
+function _qfContact() {
+  const issues = [];
+  const p = resume.personal;
+  [['email', 'Email'], ['phone', 'Phone'], ['location', 'Location']].forEach(([f, lbl]) => {
+    if (!String(p[f] || '').trim()) issues.push({
+      level: 'warn',
+      title: 'Missing ' + lbl,
+      detail: 'Add your ' + lbl.toLowerCase() + ' so recruiters can reach you.',
+      action: { type: 'goto', section: 'personal', focus: 'personal.' + f }
+    });
+  });
+  return issues;
+}
+
+function _qfEmptySections() {
+  const issues = [];
+  if (!resume.experience.length) issues.push({ level: 'warn', title: 'No work experience', detail: 'Add at least one role — this is the most important section.', action: { type: 'goto', section: 'experience' } });
+  if (!resume.education.length) issues.push({ level: 'info', title: 'No education listed', detail: 'Add your education history.', action: { type: 'goto', section: 'education' } });
+  if (!resume.skills.categories.flatMap(c => c.items).length) issues.push({ level: 'warn', title: 'No skills listed', detail: 'Add skills so ATS keyword matching has something to match.', action: { type: 'goto', section: 'skills' } });
+  return issues;
+}
+
+function _qfSummary() {
+  const s = (resume.personal.summary || '').trim();
+  if (!s) return [];
+  const n = s.split(/\s+/).filter(Boolean).length;
+  if (n < 20) return [{ level: 'info', title: 'Summary too short (' + n + ' words)', detail: 'Recruiters need more context — aim for 20–80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
+  if (n > 80) return [{ level: 'info', title: 'Summary too long (' + n + ' words)', detail: 'Tighten this up — keep it under 80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
+  return [];
+}
+
+function _qfDupSkills() {
+  const seen = new Set();
+  let dup = 0;
+  (resume.skills.categories || []).forEach(c => (c.items || []).forEach(it => {
+    const k = String(it).trim().toLowerCase();
+    if (seen.has(k)) dup++; else seen.add(k);
+  }));
+  if (!dup) return [];
+  return [{
+    level: 'warn',
+    title: dup + ' duplicate skill' + (dup > 1 ? 's' : ''),
+    detail: 'The same skill appears more than once (case-insensitive). Remove duplicates to keep your list clean.',
+    action: { type: 'fix', label: 'Remove duplicates', run: _qfFixDupSkills }
+  }];
+}
+function _qfFixDupSkills() {
+  const seen = new Set();
+  (resume.skills.categories || []).forEach(c => {
+    c.items = (c.items || []).filter(it => {
+      const k = String(it).trim().toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true; // preserve first-seen casing
+    });
+  });
+}
+
+function _qfDateFormat() {
+  const fmt = s => {
+    s = String(s || '').trim();
+    if (!s || /^present$/i.test(s)) return null;
+    if (/^[A-Za-z]{3,9}\.?\s+\d{4}$/.test(s)) return 'Mon YYYY';      // Jan 2023
+    if (/^\d{1,2}\/\d{4}$/.test(s)) return 'MM/YYYY';                 // 01/2023
+    if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(s)) return 'MM/DD/YYYY';   // 01/05/2023
+    if (/^\d{4}$/.test(s)) return 'YYYY';                            // 2023
+    return 'other';
+  };
+  const all = [];
+  resume.experience.forEach((e, i) => ['start', 'end'].forEach(f => { const ff = fmt(e[f]); if (ff) all.push({ key: 'experience', idx: i, f, fmt: ff, label: e.title || ('Experience ' + (i + 1)) }); }));
+  resume.education.forEach((e, i) => ['start', 'end'].forEach(f => { const ff = fmt(e[f]); if (ff) all.push({ key: 'education', idx: i, f, fmt: ff, label: e.school || ('Education ' + (i + 1)) }); }));
+  if (all.length < 2) return [];
+  const counts = {};
+  all.forEach(a => counts[a.fmt] = (counts[a.fmt] || 0) + 1);
+  const common = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const off = all.filter(a => a.fmt !== common);
+  if (!off.length) return [];
+  return [{
+    level: 'info',
+    title: off.length + ' inconsistent date format' + (off.length > 1 ? 's' : ''),
+    detail: 'Most dates use the “' + common + '” style. These differ: ' + off.map(o => '“' + o.label + '” (' + o.f + ')').join(', ') + '. Pick one style throughout. (Auto-fix is unsafe to guess here.)',
+    action: { type: 'goto', section: off[0].key, focus: off[0].key + '.' + off[0].idx + '.' + off[0].f }
+  }];
+}
+
+const QF_CHECKS = [
+  { name: 'Strong action verbs', fn: _qfWeakVerbs },
+  { name: 'Quantified impact', fn: _qfMissingMetrics },
+  { name: 'Contact info complete', fn: _qfContact },
+  { name: 'Core sections filled', fn: _qfEmptySections },
+  { name: 'Summary length', fn: _qfSummary },
+  { name: 'No duplicate skills', fn: _qfDupSkills },
+  { name: 'Consistent date formats', fn: _qfDateFormat },
+];
+
+// Flat list of the current render's actionable issues, indexed by qfAction().
+let _qfIssues = [];
+
+function _qfBuild() {
+  _qfIssues = [];
+  let passed = 0;
+  const cards = QF_CHECKS.map(check => {
+    let issues = [];
+    try { issues = check.fn() || []; } catch (e) { issues = []; }
+    if (!issues.length) {
+      passed++;
+      return `<div class="qf-card qf-pass">
+        <span class="qf-ico qf-ico-ok">${_qfCheckSvg()}</span>
+        <div class="qf-card-body"><div class="qf-card-title">${esc(check.name)}</div>
+        <div class="qf-card-detail">Looks good — nothing to fix here.</div></div>
+      </div>`;
+    }
+    return issues.map(issue => {
+      const i = _qfIssues.push(issue) - 1;
+      const lvl = issue.level === 'warn' ? 'warn' : 'info';
+      const btn = issue.action && issue.action.type === 'fix'
+        ? `<button class="btn btn-secondary qf-btn" onclick="qfAction(${i})">${esc(issue.action.label || 'Auto-fix')}</button>`
+        : `<button class="qf-goto" onclick="qfAction(${i})">Go to section →</button>`;
+      return `<div class="qf-card qf-${lvl}">
+        <span class="qf-ico qf-ico-${lvl}">${_qfWarnSvg()}</span>
+        <div class="qf-card-body">
+          <div class="qf-card-title">${esc(issue.title)}</div>
+          <div class="qf-card-detail">${esc(issue.detail)}</div>
+        </div>
+        ${btn}
+      </div>`;
+    }).join('');
+  }).join('');
+
+  const total = QF_CHECKS.length;
+  const pct = Math.round((passed / total) * 100);
+  const barCol = pct >= 80 ? 'var(--accent)' : pct >= 50 ? '#fcd34d' : '#fca5a5';
+  return `
+    <div class="qf-progress">
+      <div class="qf-progress-head">
+        <strong>${passed} of ${total} checks passing</strong>
+        <span class="pill ${pct >= 80 ? 'success' : pct >= 50 ? 'warn' : 'error'}">${pct}%</span>
+      </div>
+      <div class="qf-track"><div class="qf-fill" style="width:${pct}%;background:${barCol};"></div></div>
+    </div>
+    <div class="qf-list">${cards}</div>`;
+}
+
+function renderQuickFix() {
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('check')} Quick Fixes</h3>
+        <span class="qf-free-badge">Free · No AI required</span>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">
+        Instant, self-serve best-practice checks that run entirely in your browser — no Premium, no AI tokens used.
+        Apply fixes with one click, or jump straight to the field that needs your input.
+      </p>
+      <div id="qf-body">${_qfBuild()}</div>
+    </div>`;
+}
+
+// Live refresh of just the checklist body (called from renderPreview while the
+// Quick Fixes section is open). The panel has no text inputs, so re-rendering
+// its innerHTML never steals focus.
+function _refreshQuickFix() {
+  const host = document.getElementById('qf-body');
+  if (host) host.innerHTML = _qfBuild();
+}
+
+function qfAction(i) {
+  const issue = _qfIssues[i];
+  if (!issue || !issue.action) return;
+  const a = issue.action;
+  if (a.type === 'fix') {
+    a.run();
+    save();
+    renderMain(); // re-runs checks + preview
+  } else {
+    nextSection(a.section);
+    if (a.focus) setTimeout(() => {
+      const el = document.querySelector('[data-bind="' + a.focus + '"]');
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        el.classList.add('qf-flash');
+        setTimeout(() => el.classList.remove('qf-flash'), 1600);
+      }
+    }, 60);
+  }
+}
+
+function _qfCheckSvg() { return '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8.5 6.5 12 13 4.5"/></svg>'; }
+function _qfWarnSvg() { return '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.6 15 14H1z"/><line x1="8" y1="6.5" x2="8" y2="9.5"/><circle cx="8" cy="11.6" r="0.4"/></svg>'; }
+
+
 // ============ Tailor / ATS / Analysis / Dashboard / Customize ============
 function _jdWordCount(text) {
   var n = (text || '').trim().split(/\s+/).filter(Boolean).length;

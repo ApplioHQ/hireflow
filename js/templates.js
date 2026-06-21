@@ -557,6 +557,10 @@ function resumeDocHTML(bodyHTML, pageWidth) {
   body { width:${w}px; }
   * { box-sizing:border-box; }
   @page { size:${pageSize}; margin:0; }
+  /* Two-page support: don't split an entry across the page break, and keep a
+     section heading with its content. */
+  .t-entry { break-inside:avoid; page-break-inside:avoid; }
+  h2, h3, h4 { break-after:avoid; page-break-after:avoid; }
 </style></head><body>${bodyHTML}</body></html>`;
 }
 

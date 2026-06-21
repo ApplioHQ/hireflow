@@ -28,6 +28,15 @@ const GROUND_RULE = `STRICT GROUNDING — read first:
 - NEVER use the candidate's name. For any feedback/commentary ABOUT the resume, address the reader directly as "you"/"your" ("Your resume highlights…"), never third person ("Jane's resume…", "The candidate's resume…"). When writing resume CONTENT itself (a summary or bullet points), use standard resume voice — no name, no "I", no "you".
 - Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.`;
 
+// Structured single-line JSON logging. Makes Cloudflare logs (wrangler tail /
+// dashboard) queryable instead of free-text. NEVER pass passwords, tokens, or
+// Stripe secrets in `data`.
+function log(level, event, data = {}) {
+  const line = JSON.stringify({ level, event, timestamp: Date.now(), ...data });
+  if (level === "error") console.error(line);
+  else console.log(line);
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -35,6 +44,9 @@ export default {
     const cors = corsHeaders(env, req);
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+
+    // Liveness/readiness probe — no auth, must stay fast (<500ms).
+    if (path === "/health") return withCors(await healthCheck(env), cors);
 
     // Stripe webhook gets raw body — handle before JSON parsing
     if (path === "/stripe/webhook") {

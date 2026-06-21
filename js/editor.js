@@ -111,11 +111,13 @@ function hydrate() {
   }
 
   // Interview Prep tab — always visible, but show lock for free
+  // Update only the label span so the expandable-tab icon/structure is preserved.
+  const ipLabel = ipTab && ipTab.querySelector('.exp-label');
   if (ipTab && isFree()) {
-    ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
+    if (ipLabel) ipLabel.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
     ipTab.onclick = (e) => { e.preventDefault(); showUpgradeModal('interview'); };
   } else if (ipTab) {
-    ipTab.innerHTML = 'Interview Prep';
+    if (ipLabel) ipLabel.textContent = 'Interview Prep';
     ipTab.onclick = null;
   }
 

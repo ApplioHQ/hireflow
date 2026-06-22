@@ -1062,7 +1062,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .sidebar.mobile-open { transform: translateX(0); }
   /* Preview overlay between the top bar and the bottom nav */
   .right-panel.mob-show {
-    transform: none; position: fixed; inset: 56px 0 52px 0; width: auto; z-index: 165; overflow-y: auto;
+    transform: none !important; position: fixed; inset: 56px 0 52px 0; width: auto; z-index: 165; overflow-y: auto;
   }
   /* Keep page content clear of the fixed bottom bar */
   .main-area { padding-bottom: 64px; }

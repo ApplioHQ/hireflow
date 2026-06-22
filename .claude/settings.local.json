@@ -41,7 +41,9 @@
       "Bash(awk '/function resumeDocHTML/,/^}/' js/templates.js)",
       "Bash(perl -CSD -Mutf8 -i -pe 's{/\\\\\\\\s\\\\*—\\\\\\\\s\\\\*/g}{/\\\\\\\\s*\\\\\\\\u2014\\\\\\\\s*/g}' js/editor.js)",
       "Bash(npx wrangler *)",
-      "Bash(awk 'NR>=60 && NR<=96 && /function /{print NR\": \"$0}' js/editor.js)"
+      "Bash(awk 'NR>=60 && NR<=96 && /function /{print NR\": \"$0}' js/editor.js)",
+      "Bash(sed -n '/function aiLoading\\\\b/,/^}/p' js/editor.js)",
+      "Bash(sed -n '/function aiLoadingDone/,/^}/p' js/editor.js)"
     ]
   }
 }

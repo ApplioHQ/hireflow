@@ -556,7 +556,7 @@ function resumeDocHTML(bodyHTML, pageWidth) {
     font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif; }
   body { width:${w}px;
     /* Print-grade typography: crisp rendering, real kerning/ligatures, and
-       lining tabular figures so date ranges align like a typeset résumé. */
+       lining tabular figures so date ranges align like a typeset resume. */
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     text-rendering:optimizeLegibility; font-kerning:normal;
     font-feature-settings:"kern" 1,"liga" 1,"tnum" 1,"lnum" 1;

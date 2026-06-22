@@ -121,6 +121,8 @@ function hydrate() {
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? planLabel() + ' plan' : 'Free plan';
   // Exports row only matters for free users (paid hides the download pill).
   const expRow = document.getElementById('acct-exports-row'); if (expRow) expRow.style.display = isPaid() ? 'none' : '';
+  // Manage / cancel subscription is only relevant to paying users.
+  const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
 
   // Interview Prep tab, always visible, but show lock for free
   if (ipTab && isFree()) {

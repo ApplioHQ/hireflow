@@ -111,6 +111,17 @@ function hydrate() {
     if (obadge) obadge.innerHTML = ` <span class="ico ico-sm" style="opacity:.5; vertical-align:middle;">${ICONS.lock}</span>`;
   }
 
+  // Account center identity (avatar initials, email, plan label)
+  const acctEmail = (CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
+  const initials = acctEmail ? acctEmail.trim().charAt(0).toUpperCase() : 'A';
+  ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
+    const el = document.getElementById(id); if (el) el.textContent = initials;
+  });
+  const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
+  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? planLabel() + ' plan' : 'Free plan';
+  // Exports row only matters for free users (paid hides the download pill).
+  const expRow = document.getElementById('acct-exports-row'); if (expRow) expRow.style.display = isPaid() ? 'none' : '';
+
   // Interview Prep tab, always visible, but show lock for free
   if (ipTab && isFree()) {
     ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
@@ -1487,6 +1498,33 @@ function signOut() {
   localStorage.removeItem('hf_email');
   location.href = 'index.html';
 }
+
+// ---- Account center dropdown ----
+function toggleAcctMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('acct-menu');
+  if (!menu) return;
+  if (menu.hasAttribute('hidden')) {
+    menu.removeAttribute('hidden');
+    const t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'true');
+    document.getElementById('acct-center').classList.add('open');
+  } else {
+    closeAcctMenu();
+  }
+}
+function closeAcctMenu() {
+  const menu = document.getElementById('acct-menu');
+  if (!menu || menu.hasAttribute('hidden')) return;
+  menu.setAttribute('hidden', '');
+  const t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'false');
+  const c = document.getElementById('acct-center'); if (c) c.classList.remove('open');
+}
+// Close on outside click or Escape.
+document.addEventListener('click', function (e) {
+  const c = document.getElementById('acct-center');
+  if (c && !c.contains(e.target)) closeAcctMenu();
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAcctMenu(); });
 
 // ============ AI calls ============
 async function ai(endpoint, body) {

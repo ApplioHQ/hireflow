@@ -1577,6 +1577,15 @@ function _renderAiBody(text) {
 
 function _titleCase(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperCase()); }
 
+// Turn raw backend/model errors into a calm, human message.
+function _aiErrMsg(e) {
+  const m = (e && e.message) || '';
+  if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
+    return 'The AI is busy right now — give it a few seconds and try again.';
+  }
+  return 'AI failed: ' + m;
+}
+
 // Polished AI suggestion modal with an optional Apply button.
 let _aiSuggestState = null;
 function showAiSuggestion({ title, text, apply, hint }) {

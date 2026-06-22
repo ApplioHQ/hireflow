@@ -223,7 +223,8 @@ function mountSiriWave(canvas, opts) {
   opts = opts || {};
   const size = opts.size || 200;
   const renderScale = opts.renderScale || 0.7;
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  const glOpts = { alpha: true, premultipliedAlpha: false, antialias: true };
+  const gl = canvas.getContext('webgl', glOpts) || canvas.getContext('experimental-webgl', glOpts);
   if (!gl) return null;
   try {
     const compile = (type, src) => {
@@ -250,10 +251,12 @@ function mountSiriWave(canvas, opts) {
     const uTime = gl.getUniformLocation(program, 'iTime');
     const dim = Math.round(size * renderScale);
     canvas.width = dim; canvas.height = dim; gl.viewport(0, 0, dim, dim);
+    gl.clearColor(0, 0, 0, 0);
     const start = performance.now();
     let raf = 0;
     const frame = () => {
       const t = (performance.now() - start) / 1000;
+      gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform2f(uRes, dim, dim);
       gl.uniform1f(uTime, t);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -302,7 +305,7 @@ window.aiLoading = function (message) {
   let cleanup = null;
   if (!reduce) {
     const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'width:200px;height:200px;border-radius:24px;background:#000;box-shadow:0 18px 60px rgba(99,102,241,.25);';
+    canvas.style.cssText = 'width:200px;height:200px;background:transparent;';
     cleanup = mountSiriWave(canvas, { variant: 'wave', size: 200, renderScale: 0.7 });
     if (cleanup) { el.appendChild(canvas); el._siriCleanup = cleanup; }
   }

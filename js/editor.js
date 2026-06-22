@@ -880,6 +880,21 @@ const QF_CHECKS = [
 // Flat list of the current render's actionable issues, indexed by qfAction().
 let _qfIssues = [];
 
+// Run every check and flatten the issues (shared by the Quick Fixes panel and
+// the Dashboard's "top things to fix"). Sets the global _qfIssues so qfAction()
+// indices stay valid for whatever rendered last.
+function _qfGather() {
+  _qfIssues = [];
+  let passed = 0;
+  QF_CHECKS.forEach(function (check) {
+    let issues = [];
+    try { issues = check.fn() || []; } catch (e) { issues = []; }
+    if (!issues.length) passed++;
+    issues.forEach(function (iss) { _qfIssues.push(iss); });
+  });
+  return { passed: passed, total: QF_CHECKS.length, issues: _qfIssues.slice() };
+}
+
 function _qfBuild() {
   _qfIssues = [];
   let passed = 0;

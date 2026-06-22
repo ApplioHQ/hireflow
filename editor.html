@@ -181,7 +181,7 @@ document.getElementById('sidebar-overlay').addEventListener('click', function() 
 });
 // Close sidebar on section click (mobile)
 document.querySelector('.sidebar').addEventListener('click', function(e) {
-  if (e.target.closest('.sidebar-item') && window.innerWidth <= 768) {
+  if (e.target.closest('.sidebar-item') && window.innerWidth <= 900) {
     document.querySelector('.sidebar').classList.remove('mobile-open');
     document.getElementById('sidebar-overlay').classList.remove('show');
     document.getElementById('mob-menu-btn').classList.remove('active');

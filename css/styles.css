@@ -1036,3 +1036,34 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .dash-tiles { grid-template-columns: repeat(2, 1fr); }
   .dash-hero, .dash-sub-card { flex-direction: column; text-align: center; align-items: center; }
 }
+
+/* ===== Editor mobile bottom nav + drawers (styles were missing) =====
+   The editor uses its own classes (.mobile-nav, .mobile-open, #sidebar-overlay)
+   which had no CSS, so the bar rendered raw and showed on every screen. These
+   rules style it and confine it to mobile widths. */
+.mobile-nav { display: none; }
+#sidebar-overlay { position: fixed; inset: 56px 0 0 0; background: rgba(0,0,0,.5); z-index: 155; display: none; }
+#sidebar-overlay.show { display: block; }
+
+@media (max-width: 900px) {
+  .mobile-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: 52px; z-index: 170;
+    background: var(--bg-1); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mobile-nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    background: none; border: none; color: var(--muted); font-size: 10px; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: color .15s;
+  }
+  .mobile-nav-btn .ico { width: 20px; height: 20px; }
+  .mobile-nav-btn:hover, .mobile-nav-btn.active { color: var(--accent); }
+  /* Sidebar slide-in (editor JS toggles .mobile-open) */
+  .sidebar.mobile-open { transform: translateX(0); }
+  /* Preview overlay between the top bar and the bottom nav */
+  .right-panel.mob-show {
+    transform: none; position: fixed; inset: 56px 0 52px 0; width: auto; z-index: 165; overflow-y: auto;
+  }
+  /* Keep page content clear of the fixed bottom bar */
+  .main-area { padding-bottom: 64px; }
+}

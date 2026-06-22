@@ -190,13 +190,8 @@ document.querySelector('.sidebar').addEventListener('click', function(e) {
 // Mobile preview toggle
 document.getElementById('mob-preview-btn').addEventListener('click', function() {
   var rp = document.querySelector('.right-panel');
-  var showing = rp.style.display === 'block';
-  rp.style.display = showing ? '' : 'block';
-  rp.style.position = showing ? '' : 'fixed';
-  rp.style.inset = showing ? '' : '56px 0 52px 0';
-  rp.style.zIndex = showing ? '' : '150';
-  rp.style.overflowY = showing ? '' : 'auto';
-  this.classList.toggle('active', !showing);
+  var showing = rp.classList.toggle('mob-show');
+  this.classList.toggle('active', showing);
 });
 </script>
 

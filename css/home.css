@@ -1038,10 +1038,11 @@ section[id] { scroll-margin-top: 80px; }
 
 /* Engage the whole deck (mouse hover or keyboard focus): fan out + full colour */
 .dcards:hover .dcard,
-.dcards:focus-within .dcard { filter: none; opacity: 1; }
-.dcards:hover .dcard-1, .dcards:focus-within .dcard-1 { transform: skewY(-5deg) translate(-178px, -42px); }
-.dcards:hover .dcard-2, .dcards:focus-within .dcard-2 { transform: skewY(-5deg) translate(10px, 8px); }
-.dcards:hover .dcard-3, .dcards:focus-within .dcard-3 { transform: skewY(-5deg) translate(196px, 56px); }
+.dcards:focus-within .dcard,
+.dcards.is-hinting .dcard { filter: none; opacity: 1; }
+.dcards:hover .dcard-1, .dcards:focus-within .dcard-1, .dcards.is-hinting .dcard-1 { transform: skewY(-5deg) translate(-178px, -42px); }
+.dcards:hover .dcard-2, .dcards:focus-within .dcard-2, .dcards.is-hinting .dcard-2 { transform: skewY(-5deg) translate(10px, 8px); }
+.dcards:hover .dcard-3, .dcards:focus-within .dcard-3, .dcards.is-hinting .dcard-3 { transform: skewY(-5deg) translate(196px, 56px); }
 
 /* The card you point at (or tab to) pops FLAT, scaled up, on top — always readable.
    Placed after the fan rules so it wins on equal specificity. */

@@ -104,13 +104,37 @@ function withFallback(resume, mini, marginsKey) {
   return applySectionToggles(safe);
 }
 
+// ============ Bullet engine ============
+// Impact metrics worth emphasising: money, %, multipliers, magnitudes, and
+// counts paired with a unit (or any 2+ digit number).
+const _METRIC_RE = /(\$\s?\d[\d,]*(?:\.\d+)?\s?(?:k|m|bn|million|billion)?\+?|\b\d[\d,]*(?:\.\d+)?\s?(?:%|x\b|k\b|m\b|bn\b|million|billion|hours?|hrs?|days?|weeks?|months?|years?|users?|customers?|clients?|people|engineers?|products?|teams?|markets?|tickets?|accounts?)|\b\d{2,}\b)/gi;
+// Bold metrics without breaking HTML entities: mark on raw text, escape, then
+// swap the sentinels for real <strong> tags.
+function metricBold(rawText) {
+  const marked = String(rawText == null ? '' : rawText).replace(_METRIC_RE, '\x01$1\x02');
+  return esc(marked).replace(/\x01/g, '<strong>').replace(/\x02/g, '</strong>');
+}
+// Turn a free-text description into professional markup: a real <ul> with
+// hanging indents (multi-line / bulleted), or a clean paragraph (single line).
+function bulletHTML(text) {
+  const raw = String(text || '');
+  if (!raw.trim()) return '';
+  const lines = raw.split('\n').map(l => l.replace(/^\s*[•\-*–▪◦·]\s*/, '').trim()).filter(Boolean);
+  if (!lines.length) return '';
+  const hadBullets = /(^|\n)\s*[•\-*–▪◦·]\s+/.test(raw);
+  if (lines.length === 1 && !hadBullets) {
+    return `<div class="t-entry-desc">${metricBold(lines[0])}</div>`;
+  }
+  return `<ul class="t-bullets">${lines.map(l => `<li>${metricBold(l)}</li>`).join('')}</ul>`;
+}
+
 // ============ Section block builders ============
 function expBlocks(exp) {
   return (exp||[]).map(e => `
     <div class="t-entry">
       <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)} · ${esc(e.company)}</span><span class="t-entry-date">${esc(e.start)} – ${esc(e.end)}</span></div>
       <div class="t-entry-sub">${esc(e.location||'')}</div>
-      <div class="t-entry-desc">${esc(e.description||'').replace(/\n/g,'<br>')}</div>
+      ${bulletHTML(e.description)}
     </div>`).join('');
 }
 function eduBlocks(edu) {
@@ -124,11 +148,11 @@ function projBlocks(proj) {
   return (proj||[]).map(p => `
     <div class="t-entry">
       <div class="t-entry-head"><span class="t-entry-title">${esc(p.name)}</span><span class="t-entry-date">${esc(p.tech||'')}</span></div>
-      <div class="t-entry-desc">${esc(p.description||'')}</div>
+      ${bulletHTML(p.description)}
     </div>`).join('');
 }
 function listBlocks(items, fields) {
-  return (items||[]).map(it => `<div class="t-entry"><div class="t-entry-head"><span class="t-entry-title">${esc(it[fields[0]])} ${it[fields[1]]?'· '+esc(it[fields[1]]):''}</span><span class="t-entry-date">${esc(it[fields[2]]||'')}</span></div>${it.description?`<div class="t-entry-desc">${esc(it.description)}</div>`:''}</div>`).join('');
+  return (items||[]).map(it => `<div class="t-entry"><div class="t-entry-head"><span class="t-entry-title">${esc(it[fields[0]])} ${it[fields[1]]?'· '+esc(it[fields[1]]):''}</span><span class="t-entry-date">${esc(it[fields[2]]||'')}</span></div>${bulletHTML(it.description)}</div>`).join('');
 }
 function skillsLine(skills) {
   return esc((skills?.categories||[]).flatMap(c=>c.items).join(' · '));

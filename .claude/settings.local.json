@@ -35,7 +35,9 @@
       "Bash(sed -n '/async function aiATS/,/^}/p' worker.js)",
       "Bash(sed -n '/function safeJSON/,/^}/p' worker.js)",
       "mcp__mcp-registry__search_mcp_registry",
-      "Bash(node --check js/home.js)"
+      "Bash(node --check js/home.js)",
+      "Bash(grep -rn \"annual\\\\|7.99\\\\|\\\\$59\\\\|/year\\\\|Save 38\" index.html js/home.js)",
+      "Bash(grep -n '\\\\$9.99\\\\|39.99\\\\|data-plan=\\\\\"lifetime\\\\\"' index.html)"
     ]
   }
 }

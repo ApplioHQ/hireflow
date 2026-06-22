@@ -561,10 +561,21 @@ const TEMPLATE_RENDERERS = {
 
 // Public API: render any template
 // renderTemplate(templateId, resume, mini, accent, marginsKey?)
+// Shared across every template + the export iframe: clean hanging-indent bullet
+// lists with emphasised metrics. Inherits colour from the template root so it
+// works on both light and dark templates.
+const SHARED_TEMPLATE_CSS = `<style>
+.t-bullets { list-style: none; margin: .4em 0 0; padding: 0; font-size: .92em; line-height: 1.42; }
+.t-bullets li { position: relative; padding-left: 1.05em; margin-bottom: .28em; }
+.t-bullets li:last-child { margin-bottom: 0; }
+.t-bullets li::before { content: '•'; position: absolute; left: .12em; top: 0; opacity: .65; }
+.t-bullets strong { font-weight: 700; }
+</style>`;
+
 function renderTemplate(templateId, resume, mini, accent, marginsKey) {
   const fn = TEMPLATE_RENDERERS[templateId] || tModern;
   const data = withFallback(resume, mini, marginsKey);
-  return fn(data, accent);
+  return SHARED_TEMPLATE_CSS + fn(data, accent);
 }
 
 // ============ Isolated iframe rendering ============

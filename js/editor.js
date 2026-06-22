@@ -1553,7 +1553,7 @@ function _deName(text) {
 
 function _renderAiBody(text) {
   text = _deName(text);
-  text = String(text || '').replace(/\s*—\s*/g, ', '); // no em dashes in shown output
+  text = String(text || '').replace(/\s*\u2014\s*/g, ', '); // no em dashes in shown output
   const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) return '<p class="ai-para" style="color:var(--muted);">No suggestions returned.</p>';
   const bulletRe = /^([•\-\*–]|\d+[.)])\s+(.*)$/;

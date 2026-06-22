@@ -38,7 +38,8 @@
       "Bash(node --check js/home.js)",
       "Bash(grep -rn \"annual\\\\|7.99\\\\|\\\\$59\\\\|/year\\\\|Save 38\" index.html js/home.js)",
       "Bash(grep -n '\\\\$9.99\\\\|39.99\\\\|data-plan=\\\\\"lifetime\\\\\"' index.html)",
-      "Bash(awk '/function resumeDocHTML/,/^}/' js/templates.js)"
+      "Bash(awk '/function resumeDocHTML/,/^}/' js/templates.js)",
+      "Bash(perl -CSD -Mutf8 -i -pe 's{/\\\\\\\\s\\\\*—\\\\\\\\s\\\\*/g}{/\\\\\\\\s*\\\\\\\\u2014\\\\\\\\s*/g}' js/editor.js)"
     ]
   }
 }

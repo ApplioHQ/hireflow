@@ -225,6 +225,42 @@ function selectTemplate(id) { resume.template = id; save(); renderMain(); }
 
 // ── Illustrated template thumbnails ──
 const TEMPLATE_THUMBS = {
+  consulting: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="22" y="9" width="41" height="5" rx="1" fill="#1a1a1a"/>
+    <rect x="28" y="17" width="29" height="2" rx="1" fill="#777"/>
+    <rect x="8" y="28" width="69" height="2.4" rx="1" fill="#1a1a1a"/>
+    <rect x="8" y="27.5" width="69" height=".7" fill="#1a1a1a"/>
+    <rect x="8" y="34" width="34" height="1.8" rx=".5" fill="#444"/>
+    <rect x="8" y="39" width="63" height="1.4" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="43" width="58" height="1.4" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="47" width="61" height="1.4" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="56" width="69" height="1.6" rx=".5" fill="#1a1a1a"/>
+    <rect x="8" y="62" width="34" height="1.8" rx=".5" fill="#444"/>
+    <rect x="8" y="67" width="63" height="1.4" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="71" width="57" height="1.4" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="80" width="69" height="1.6" rx=".5" fill="#1a1a1a"/>
+    <rect x="8" y="86" width="40" height="1.8" rx=".5" fill="#444"/>
+    <rect x="8" y="91" width="60" height="1.4" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  faang: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="44" height="6" rx="1" fill="#111"/>
+    <rect x="8" y="18" width="50" height="2" rx="1" fill="#9aa0a6"/>
+    <rect x="8" y="29" width="22" height="2.4" rx="1" fill="#2563eb"/>
+    <rect x="8" y="33" width="69" height="1" fill="#2563eb" opacity=".25"/>
+    <rect x="8" y="38" width="36" height="1.9" rx=".5" fill="#202124"/>
+    <rect x="11" y="43" width="60" height="1.4" rx=".5" fill="#d4d6da"/>
+    <rect x="11" y="47" width="55" height="1.4" rx=".5" fill="#d4d6da"/>
+    <rect x="8" y="56" width="22" height="2.4" rx="1" fill="#2563eb"/>
+    <rect x="8" y="60" width="69" height="1" fill="#2563eb" opacity=".25"/>
+    <rect x="8" y="65" width="36" height="1.9" rx=".5" fill="#202124"/>
+    <rect x="11" y="70" width="62" height="1.4" rx=".5" fill="#d4d6da"/>
+    <rect x="11" y="74" width="56" height="1.4" rx=".5" fill="#d4d6da"/>
+    <rect x="8" y="83" width="22" height="2.4" rx="1" fill="#2563eb"/>
+    <rect x="8" y="87" width="69" height="1" fill="#2563eb" opacity=".25"/>
+    <rect x="8" y="92" width="64" height="1.4" rx=".5" fill="#d4d6da"/>
+  </svg>`,
   modern: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>
     <rect x="0" y="0" width="85" height="28" fill="#4f46e5"/>

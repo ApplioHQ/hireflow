@@ -1040,22 +1040,29 @@ section[id] { scroll-margin-top: 80px; }
 .dcards:hover .dcard,
 .dcards:focus-within .dcard,
 .dcards.is-hinting .dcard { filter: none; opacity: 1; }
-.dcards:hover .dcard-1, .dcards:focus-within .dcard-1, .dcards.is-hinting .dcard-1 { transform: skewY(-5deg) translate(-178px, -42px); }
+.dcards:hover .dcard-1, .dcards:focus-within .dcard-1, .dcards.is-hinting .dcard-1 { transform: skewY(-5deg) translate(-214px, -44px); }
 .dcards:hover .dcard-2, .dcards:focus-within .dcard-2, .dcards.is-hinting .dcard-2 { transform: skewY(-5deg) translate(10px, 8px); }
-.dcards:hover .dcard-3, .dcards:focus-within .dcard-3, .dcards.is-hinting .dcard-3 { transform: skewY(-5deg) translate(196px, 56px); }
+.dcards:hover .dcard-3, .dcards:focus-within .dcard-3, .dcards.is-hinting .dcard-3 { transform: skewY(-5deg) translate(232px, 60px); }
 
 /* The card you point at (or tab to) pops FLAT, scaled up, on top — always readable.
    Placed after the fan rules so it wins on equal specificity. */
 .dcards .dcard:hover,
 .dcards .dcard:focus-visible {
-  transform: translate(var(--px, 0), var(--py, -8px)) scale(1.06);
+  transform: translate(var(--px, 0), var(--py, -8px)) scale(1.05);
   filter: none; opacity: 1; z-index: 10;
   border-color: var(--accent);
   box-shadow: 0 26px 60px rgba(15,23,42,.28);
 }
-.dcards .dcard-1:hover, .dcards .dcard-1:focus-visible { --px: -178px; --py: -50px; }
+.dcards .dcard-1:hover, .dcards .dcard-1:focus-visible { --px: -214px; --py: -52px; }
 .dcards .dcard-2:hover, .dcards .dcard-2:focus-visible { --px: 10px;   --py: 0px;   }
-.dcards .dcard-3:hover, .dcards .dcard-3:focus-visible { --px: 196px;  --py: 48px;  }
+.dcards .dcard-3:hover, .dcards .dcard-3:focus-visible { --px: 232px;  --py: 52px;  }
+
+/* When one card is highlighted, recede the other two (dim + blur) so the active
+   card reads as floating ABOVE them instead of slicing through their text. */
+.dcards:has(.dcard:hover) .dcard,
+.dcards:has(.dcard:focus-visible) .dcard { opacity: .28; filter: grayscale(.4) blur(2px); }
+.dcards:has(.dcard:hover) .dcard:hover,
+.dcards:has(.dcard:focus-visible) .dcard:focus-visible { opacity: 1; filter: none; }
 
 .dcard-top { display: flex; align-items: center; gap: 8px; }
 .dcard-ico { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;

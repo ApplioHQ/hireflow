@@ -565,3 +565,51 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
   });
 });
+
+// ── Hero mockup: count-up metrics + cursor parallax tilt ──
+(function () {
+  var hero = document.querySelector('.hero-right');
+  if (!hero) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Count the % metrics up once the hero scrolls into view.
+  var metrics = hero.querySelectorAll('.mock-metric');
+  if (metrics.length) {
+    var mObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        mObs.disconnect();
+        metrics.forEach(function (el) {
+          var target = parseInt(el.dataset.count, 10) || 0;
+          var suffix = el.dataset.suffix || '';
+          if (reduce) { el.textContent = target + suffix; return; }
+          var start = null;
+          (function step(ts) {
+            if (!start) start = ts;
+            var p = Math.min((ts - start) / 1100, 1);
+            el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target) + suffix;
+            if (p < 1) requestAnimationFrame(step);
+          })(performance.now());
+        });
+      });
+    }, { threshold: 0.4 });
+    mObs.observe(hero);
+  }
+
+  // Parallax tilt: the resume card (and its peeking second page) lean toward the
+  // cursor. Float cards keep their idle bob, so we leave them alone.
+  if (reduce) return;
+  var card = hero.querySelector('.mock-resume');
+  var stack = hero.querySelector('.mock-resume-stack');
+  hero.addEventListener('mousemove', function (e) {
+    var r = hero.getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width - 0.5;
+    var py = (e.clientY - r.top) / r.height - 0.5;
+    if (card) card.style.transform = 'rotate(2deg) rotateX(' + (-py * 7).toFixed(2) + 'deg) rotateY(' + (px * 7).toFixed(2) + 'deg)';
+    if (stack) stack.style.transform = 'rotate(5deg) translate(' + (px * 9).toFixed(1) + 'px,' + (py * 9).toFixed(1) + 'px)';
+  });
+  hero.addEventListener('mouseleave', function () {
+    if (card) card.style.transform = 'rotate(2deg)';
+    if (stack) stack.style.transform = 'rotate(5deg)';
+  });
+})();

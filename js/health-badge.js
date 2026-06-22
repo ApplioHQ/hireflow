@@ -78,7 +78,7 @@
     return `<div style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
         <span style="color:var(--text);">${label}</span>
-        <span style="color:${c};font-weight:700;">${has ? val : '—'}</span>
+        <span style="color:${c};font-weight:700;">${has ? val : 'N/A'}</span>
       </div>
       <div style="height:5px;background:var(--bg-1);border-radius:3px;overflow:hidden;">
         <div style="height:100%;width:${has ? val : 0}%;background:${c};border-radius:3px;transition:width .4s;"></div>

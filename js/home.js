@@ -70,26 +70,26 @@ function setPriceMode(mode) {
   const cta    = document.getElementById('paid-cta');
   const savings = document.getElementById('price-savings');
   const badge  = document.getElementById('price-badge');
-  if (mode === 'lifetime') {
+  if (mode === 'annual') {
     if (badge)  badge.textContent  = 'BEST VALUE';
-    if (name)   name.textContent   = 'Lifetime';
-    if (price)  price.textContent  = '$39.99';
-    if (period) period.textContent = ' once';
-    if (sub)    sub.textContent    = 'Pay once. Use forever.';
-    if (cta)    cta.textContent    = 'Buy Lifetime';
-    if (savings) { savings.textContent = '🎉 Save $79.89 vs. 12 months of monthly'; savings.style.display = 'block'; }
+    if (name)   name.textContent   = 'Premium Annual';
+    if (price)  price.textContent  = '$59';
+    if (period) period.textContent = '/year';
+    if (sub)    sub.textContent    = 'Best value — about 5 months free';
+    if (cta)    cta.textContent    = 'Get Annual';
+    if (savings) { savings.textContent = '🎉 Save $36.88 vs. 12 months of monthly'; savings.style.display = 'block'; }
     const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most popular choice — pay once, own it forever.';
+    if (pp) pp.textContent = 'Most users pick Annual — about 5 months free vs. paying monthly.';
   } else {
     if (badge)  badge.textContent  = 'MOST POPULAR';
     if (name)   name.textContent   = 'Premium';
-    if (price)  price.textContent  = '$9.99';
+    if (price)  price.textContent  = '$7.99';
     if (period) period.textContent = '/month';
     if (sub)    sub.textContent    = 'Best for serious job seekers';
     if (cta)    cta.textContent    = 'Go Premium';
     if (savings) { savings.textContent = ''; savings.style.display = 'none'; }
     const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most users choose Lifetime — pay once, use forever.';
+    if (pp) pp.textContent = 'Most users pick Annual — about 5 months free vs. paying monthly.';
   }
   if (window._positionPricePill) window._positionPricePill();
 }

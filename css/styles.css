@@ -792,8 +792,13 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   font-size: 13.5px; line-height: 1.7; color: var(--text); margin: 0 0 10px;
 }
 .ai-body .ai-subhead {
+  display: flex; align-items: center; gap: 8px;
   font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
   color: var(--accent); margin: 16px 0 8px;
+}
+.ai-body .ai-subhead::before {
+  content: ''; width: 14px; height: 2px; border-radius: 2px; flex-shrink: 0;
+  background: linear-gradient(90deg, var(--accent), transparent);
 }
 .ai-body .ai-subhead:first-child { margin-top: 0; }
 /* Recommendation list/cards — shared by AI suggestion modal, tailor & analysis */
@@ -802,17 +807,26 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .ai-rec {
   display: flex; align-items: flex-start; gap: 10px;
   font-size: 13.5px; line-height: 1.55; color: var(--text);
-  background: var(--bg-1); border: 1px solid var(--border);
+  background: var(--bg-1); border: 1px solid var(--border); border-left: 2px solid transparent;
   border-radius: 10px; padding: 10px 12px;
-  transition: border-color .15s, transform .15s;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+  animation: aiRecIn .42s cubic-bezier(.2,.7,.2,1) both;
 }
-.ai-rec:hover { border-color: var(--accent); transform: translateX(2px); }
+.ai-rec:hover { border-color: var(--accent); border-left-color: var(--accent); transform: translateX(2px); box-shadow: 0 4px 14px rgba(99,102,241,.12); }
 .ai-rec-ico {
   flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(99,102,241,.15); color: var(--accent); margin-top: 1px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; margin-top: 1px;
+  box-shadow: 0 2px 6px rgba(99,102,241,.35);
 }
 .ai-rec-ico .ico { width: 12px; height: 12px; }
+/* Staggered entrance so recommendations cascade in instead of popping all at once */
+@keyframes aiRecIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.ai-rec:nth-child(1) { animation-delay: .03s; } .ai-rec:nth-child(2) { animation-delay: .09s; }
+.ai-rec:nth-child(3) { animation-delay: .15s; } .ai-rec:nth-child(4) { animation-delay: .21s; }
+.ai-rec:nth-child(5) { animation-delay: .27s; } .ai-rec:nth-child(6) { animation-delay: .33s; }
+.ai-rec:nth-child(7) { animation-delay: .39s; } .ai-rec:nth-child(8) { animation-delay: .45s; }
+@media (prefers-reduced-motion: reduce) { .ai-rec { animation: none; } }
 
 /* AI suggestion modal */
 .app-dialog.ai-suggest { max-width: 520px; padding: 0; overflow: hidden; }

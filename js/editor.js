@@ -1651,7 +1651,7 @@ async function aiImprove(target) {
       }
     }
     showAiSuggestion({ title: 'AI Suggestion · ' + _titleCase(target), text: suggestion, apply, hint });
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 
@@ -1667,7 +1667,7 @@ async function aiSuggestSkills() {
     } else {
       toast('No skills suggested', { type: 'warn' });
     }
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 
@@ -1679,7 +1679,7 @@ async function aiTailor() {
     if (r.summary) resume.personal.summary = r.summary;
     save(); renderMain();
     toast('Resume tailored', { type: 'success' });
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 
@@ -1693,7 +1693,7 @@ async function aiATS() {
     AI_RESULTS.ats = { score: r.score, ts: Date.now() };
     try { localStorage.setItem('hf_ai_results', JSON.stringify(AI_RESULTS)); } catch {}
     if (window.renderHealthBadge) window.renderHealthBadge();
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 
@@ -1859,7 +1859,7 @@ async function aiAnalyze() {
         <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Resume Analysis</h4></div>
         <div style="padding:16px;">${_renderAnalysis(r)}</div>
       </div>`;
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 
@@ -1933,7 +1933,7 @@ async function importResume() {
     } else {
       toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
-  } catch(e) { if (e.message !== 'Premium required') toast('AI failed: ' + e.message, { type: 'error' }); }
+  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
 

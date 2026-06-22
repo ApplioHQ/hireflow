@@ -1062,3 +1062,8 @@ section[id] { scroll-margin-top: 80px; }
   .dcard::after { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .dcard { transition: none; } }
+
+/* ===== 3 AI tools showcase wrapper ===== */
+.aitools-showcase { margin-top: 56px; padding-top: 40px; border-top: 1px solid #e2e8f0; text-align: center; }
+.aitools-title { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+.aitools-sub { font-size: 14px; color: #64748b; margin: 0 auto; max-width: 520px; }

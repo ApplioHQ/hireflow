@@ -204,7 +204,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float dM    = mix(dUnres, abs(p.y - yMain), res);
     float lorM  = mix(1.0/(1.0 + (0.02*dM)*(0.02*dM)), 1.0, res);
     float boost = (1.0 - res) * (14.0*low + 4.0);
-    col += 0.5 * inten * (lorM + boost) / (sqrt(dM*dM + soft*soft) + th);
+    // Tint the bright central core toward brand indigo (was pure white).
+    vec3 core = vec3(0.55, 0.46, 1.0);
+    col += core * 0.5 * inten * (lorM + boost) / (sqrt(dM*dM + soft*soft) + th);
     col = pow(max(col, 0.0), vec3(1.5));
     float emT = clamp((abs(yScreen) - 1.0 + EDGE_INSET) / (-max(EDGE_MASK, 1e-4)), 0.0, 1.0);
     float em  = emT*emT*(3.0 - 2.0*emT);

@@ -153,8 +153,12 @@ const float HIGH_ABAMP  = 0.06;
 const float RESOLVED    = 1.0;
 const float UNRES_SCALE = 0.14;
 vec3 spectral4(int s){
-    float x = float(s);
-    return clamp(vec3(abs(x-3.0)-1.0, 2.0-abs(x-2.0), 2.0-abs(x-4.0)), 0.0, 1.0);
+    // Brand palette ramp: indigo (#4f46e5) -> violet (#8b5cf6) -> lavender.
+    float x = float(s) / 3.0;
+    vec3 a = vec3(0.310, 0.275, 0.898);
+    vec3 b = vec3(0.545, 0.361, 0.965);
+    vec3 c = vec3(0.706, 0.620, 1.000);
+    return x < 0.5 ? mix(a, b, x * 2.0) : mix(b, c, (x - 0.5) * 2.0);
 }
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
     vec2 R = iResolution.xy;
@@ -207,7 +211,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float gauss = exp(-pow(xN*FALLOFF, 2.0));
     col *= mix(1.0, em*gauss, res);
     col *= res;
-    fragColor = vec4(col, 1.0);
+    // Alpha follows brightness so the dark background is transparent.
+    float a = clamp(max(max(col.r, col.g), col.b), 0.0, 1.0);
+    fragColor = vec4(col, a);
 }
 void main(){ mainImage(gl_FragColor, gl_FragCoord.xy); }`;
 

@@ -34,7 +34,8 @@
       "Bash(python3 -c \"import tomllib,sys; d=tomllib.load\\(open\\('wrangler.toml','rb'\\)\\); print\\('TOML valid. envs:', list\\(d.get\\('env',{}\\).keys\\(\\)\\), '| prod kv:', d['kv_namespaces'][0]['binding'], '| staging kv:', d['env']['staging']['kv_namespaces'][0]['binding']\\)\")",
       "Bash(sed -n '/async function aiATS/,/^}/p' worker.js)",
       "Bash(sed -n '/function safeJSON/,/^}/p' worker.js)",
-      "mcp__mcp-registry__search_mcp_registry"
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(node --check js/home.js)"
     ]
   }
 }

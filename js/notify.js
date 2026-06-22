@@ -122,8 +122,8 @@
 })();
 
 // ============ AI Loading overlay ============
-// aiLoading(message)  — shows a full-screen spinner with a message
-// aiLoadingDone()     — removes it
+// aiLoading(message), shows a full-screen spinner with a message
+// aiLoadingDone(), removes it
 // Both are safe to call multiple times; only one overlay exists at a time.
 
 window.aiLoading = function (message) {

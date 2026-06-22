@@ -1,4 +1,4 @@
-// Shared theme management — works in <head> because we target <html>, not <body>
+// Shared theme management, works in <head> because we target <html>, not <body>
 (function () {
   function applyTheme(light) {
     document.documentElement.classList.toggle('light-mode', light);
@@ -13,7 +13,7 @@
     if (moon) moon.style.display = light ? ''     : 'none';
   }
 
-  // Apply immediately — <html> exists even in <head>
+  // Apply immediately, <html> exists even in <head>
   var savedLight = localStorage.getItem('hf_theme') === 'light';
   if (savedLight) document.documentElement.classList.add('light-mode');
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pricing — Applio AI Resume Builder</title>
+<title>Pricing, Applio AI Resume Builder</title>
 <meta name="description" content="Applio pricing: a free forever plan with all 11 resume templates, Premium at $9.99/mo, and Lifetime at $39.99 once. Unlimited downloads and all AI resume features.">
 <link rel="canonical" href="https://applio.ai/pricing.html">
 <link rel="icon" href="logo.ico">
@@ -76,7 +76,7 @@
     .pcard-left { width: 40%; }
     .pcard-right { width: 60%; }
   }
-  /* stagger entrance — echoes framer-motion staggerChildren */
+  /* stagger entrance, echoes framer-motion staggerChildren */
   .pcard [data-stagger] { opacity: 0; transform: translateY(18px);
     transition: opacity .5s ease, transform .55s cubic-bezier(.2,.7,.2,1); transition-delay: calc(var(--i, 0) * .05s); }
   .pcard.in [data-stagger] { opacity: 1; transform: none; }
@@ -139,7 +139,7 @@
       <div>
         <span class="pcard-badge" data-stagger>★ Best value</span>
         <h3 class="pcard-title" data-stagger>Lifetime</h3>
-        <p class="pcard-desc" data-stagger>Pay once and use Applio — every template and AI tool — for as long as you job-hunt.</p>
+        <p class="pcard-desc" data-stagger>Pay once and use Applio, every template and AI tool, for as long as you job-hunt.</p>
         <div class="pcard-price-row" data-stagger>
           <span class="pcard-price">$39.99</span>
           <span class="pcard-original">$119.88</span>
@@ -226,7 +226,7 @@ renderList('lifetime-list', LIFETIME_FEATURES);
   const token = localStorage.getItem('hf_token');
   if (!token) {
     tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="login.html">Sign in</a><a class="btn btn-primary btn-sm" href="login.html?mode=signup">Sign up</a>`;
-    document.getElementById('free-btn').textContent = 'Get started — free';
+    document.getElementById('free-btn').textContent = 'Get started, free';
     document.getElementById('free-btn').onclick = () => location.href = 'login.html?mode=signup';
     document.getElementById('premium-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Upgrade to Premium</span>`;
     document.getElementById('lifetime-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Buy Lifetime</span>`;

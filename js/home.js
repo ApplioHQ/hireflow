@@ -27,9 +27,9 @@ const rotEl = document.getElementById('hero-rotator');
     }
     setTimeout(tick, 38);
     return;
-    // (typing branch — reached when charIdx < word.length)
+    // (typing branch, reached when charIdx < word.length)
   }
-  // Also need typing branch — restructure:
+  // Also need typing branch, restructure:
   rotEl.textContent = '';
   charIdx = 0; erasing = false; wordIdx = 0;
   function step() {
@@ -79,7 +79,7 @@ function setPriceMode(mode) {
     if (cta)    cta.textContent    = 'Buy Lifetime';
     if (savings) { savings.textContent = '🎉 Save $79.89 vs. 12 months of monthly'; savings.style.display = 'block'; }
     const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most popular choice — pay once, own it forever.';
+    if (pp) pp.textContent = 'Most popular choice, pay once, own it forever.';
   } else {
     if (badge)  badge.textContent  = 'MOST POPULAR';
     if (name)   name.textContent   = 'Premium';
@@ -89,7 +89,7 @@ function setPriceMode(mode) {
     if (cta)    cta.textContent    = 'Go Premium';
     if (savings) { savings.textContent = ''; savings.style.display = 'none'; }
     const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most users choose Lifetime — pay once, use forever.';
+    if (pp) pp.textContent = 'Most users choose Lifetime, pay once, use forever.';
   }
   if (window._positionPricePill) window._positionPricePill();
 }
@@ -525,7 +525,7 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
   const titleObs = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
       if (!e.isIntersecting) return;
-      // Skip light-on-dark titles (final CTA) — they use .light and look fine as-is
+      // Skip light-on-dark titles (final CTA), they use .light and look fine as-is
       if (e.target.classList.contains('light')) { titleObs.unobserve(e.target); return; }
       e.target.classList.add('shine-in');
       e.target.addEventListener('animationend', function () {

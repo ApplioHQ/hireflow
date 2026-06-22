@@ -1,4 +1,4 @@
-// Auth flow — talks to the Cloudflare Worker.
+// Auth flow, talks to the Cloudflare Worker.
 const API = window.HIREFLOW_CONFIG.API_URL;
 
 function showView(v) {

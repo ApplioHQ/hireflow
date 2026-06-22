@@ -20,7 +20,7 @@ const DEFAULT_RESUME = {
 
 let resume = JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME);
 let currentSection = 'template';
-// Cache of the last AI results (read by the health-score badge — never re-fetched).
+// Cache of the last AI results (read by the health-score badge, never re-fetched).
 let AI_RESULTS = (function(){ try { return JSON.parse(localStorage.getItem('hf_ai_results') || '{}'); } catch { return {}; } })();
 
 // ---- Section label/icon map ----
@@ -111,7 +111,7 @@ function hydrate() {
     if (obadge) obadge.innerHTML = ` <span class="ico ico-sm" style="opacity:.5; vertical-align:middle;">${ICONS.lock}</span>`;
   }
 
-  // Interview Prep tab — always visible, but show lock for free
+  // Interview Prep tab, always visible, but show lock for free
   if (ipTab && isFree()) {
     ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
     ipTab.onclick = (e) => { e.preventDefault(); showUpgradeModal('interview'); };
@@ -472,7 +472,7 @@ function renderExperience() {
         <h3>${ICON('briefcase')} Experience</h3>
         <button class="ai-btn" onclick="aiImprove('experience')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
       </div>
-      ${resume.experience.length === 0 ? `<div class="empty-state">No work experience added yet — add your first role to get started.</div>`
+      ${resume.experience.length === 0 ? `<div class="empty-state">No work experience added yet, add your first role to get started.</div>`
         : `<div class="drag-list">${resume.experience.map((e,i) => itemCard('experience', i, [
             ['Job Title','title',e.title], ['Company','company',e.company],
             ['Start Date','start',e.start], ['End Date / Present','end',e.end],
@@ -680,7 +680,7 @@ function _scoreBullet(text) {
   return Math.min(100, score);
 }
 
-// Live bullet meter update — called oninput on each description textarea
+// Live bullet meter update, called oninput on each description textarea
 function _liveBM(ta, meterId) {
   var score = _scoreBullet(ta.value);
   var lbl = document.getElementById(meterId);
@@ -696,10 +696,9 @@ function _liveBM(ta, meterId) {
 }
 
 
-// ============ Quick Fixes (100% client-side — no AI, no network) ============
+// ============ Quick Fixes (100% client-side, no AI, no network) ============
 // A self-serve checklist of resume best-practices. Every check below is a pure
-// function over the in-memory `resume` object using only regex/string logic —
-// nothing here calls the Worker, ai(), fetch(), or Cloudflare Workers AI.
+// function over the in-memory `resume` object using only regex/string logic, // nothing here calls the Worker, ai(), fetch(), or Cloudflare Workers AI.
 // Available to all users (free included); never gated behind isFree()/isPaid().
 
 // Static weak-opener → strong-verb lookup. Each entry rewrites the start of a
@@ -765,7 +764,7 @@ function _qfMissingMetrics() {
     if (!/[\d$%]/.test(b.desc)) issues.push({
       level: 'info',
       title: 'No numbers in “' + b.label + '”',
-      detail: 'Quantify impact with a number, %, or $ amount — recruiters scan for measurable results. (We can’t invent figures for you.)',
+      detail: 'Quantify impact with a number, %, or $ amount, recruiters scan for measurable results. (We can’t invent figures for you.)',
       action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' }
     });
   });
@@ -788,7 +787,7 @@ function _qfContact() {
 
 function _qfEmptySections() {
   const issues = [];
-  if (!resume.experience.length) issues.push({ level: 'warn', title: 'No work experience', detail: 'Add at least one role — this is the most important section.', action: { type: 'goto', section: 'experience' } });
+  if (!resume.experience.length) issues.push({ level: 'warn', title: 'No work experience', detail: 'Add at least one role, this is the most important section.', action: { type: 'goto', section: 'experience' } });
   if (!resume.education.length) issues.push({ level: 'info', title: 'No education listed', detail: 'Add your education history.', action: { type: 'goto', section: 'education' } });
   if (!resume.skills.categories.flatMap(c => c.items).length) issues.push({ level: 'warn', title: 'No skills listed', detail: 'Add skills so ATS keyword matching has something to match.', action: { type: 'goto', section: 'skills' } });
   return issues;
@@ -798,8 +797,8 @@ function _qfSummary() {
   const s = (resume.personal.summary || '').trim();
   if (!s) return [];
   const n = s.split(/\s+/).filter(Boolean).length;
-  if (n < 20) return [{ level: 'info', title: 'Summary too short (' + n + ' words)', detail: 'Recruiters need more context — aim for 20–80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
-  if (n > 80) return [{ level: 'info', title: 'Summary too long (' + n + ' words)', detail: 'Tighten this up — keep it under 80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
+  if (n < 20) return [{ level: 'info', title: 'Summary too short (' + n + ' words)', detail: 'Recruiters need more context, aim for 20–80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
+  if (n > 80) return [{ level: 'info', title: 'Summary too long (' + n + ' words)', detail: 'Tighten this up, keep it under 80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
   return [];
 }
 
@@ -881,7 +880,7 @@ function _qfBuild() {
       return `<div class="qf-card qf-pass">
         <span class="qf-ico qf-ico-ok">${_qfCheckSvg()}</span>
         <div class="qf-card-body"><div class="qf-card-title">${esc(check.name)}</div>
-        <div class="qf-card-detail">Looks good — nothing to fix here.</div></div>
+        <div class="qf-card-detail">Looks good, nothing to fix here.</div></div>
       </div>`;
     }
     return issues.map(issue => {
@@ -923,7 +922,7 @@ function renderQuickFix() {
         <span class="qf-free-badge">Free for everyone</span>
       </div>
       <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">
-        Instant, self-serve best-practice checks that run entirely in your browser — included on every plan.
+        Instant, self-serve best-practice checks that run entirely in your browser, included on every plan.
         Apply fixes with one click, or jump straight to the field that needs your input.
       </p>
       <div id="qf-body">${_qfBuild()}</div>
@@ -1045,7 +1044,7 @@ function renderTailor() {
             <span id="tailor-wc" style="font-size:11px;color:var(--muted);">${wc}</span>
           </label>
           <textarea data-bind="tailor.jobDescription" rows="12"
-            placeholder="Paste the full job description here — the more detail, the better the tailoring…"
+            placeholder="Paste the full job description here, the more detail, the better the tailoring…"
             oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
             style="font-size:13px;line-height:1.6;"
           >${esc(resume.tailor.jobDescription)}</textarea>
@@ -1077,7 +1076,7 @@ function renderATS() {
             <span id="ats-wc" style="font-size:11px;color:var(--muted);"></span>
           </label>
           <textarea id="ats-jd" rows="12"
-            placeholder="Paste the job description — we'll keyword-match it against your resume…"
+            placeholder="Paste the job description, we'll keyword-match it against your resume…"
             oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"
             style="font-size:13px;line-height:1.6;"></textarea>
         </div>
@@ -1106,7 +1105,7 @@ function renderAnalysis() {
     </div>`;
 }
 
-// Appealing pre-analysis state — previews what the AI critique will deliver.
+// Appealing pre-analysis state, previews what the AI critique will deliver.
 function _analysisEmptyState() {
   const tile = (cls, ico, title, sub) =>
     `<div class="an-pre-tile ${cls}">
@@ -1127,7 +1126,7 @@ function _analysisEmptyState() {
           <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
         </svg>
       </div>
-      <p class="an-pre-lead">Get a calibrated <b>0–100 score</b> and specific, fixable feedback on your resume — in seconds.</p>
+      <p class="an-pre-lead">Get a calibrated <b>0–100 score</b> and specific, fixable feedback on your resume, in seconds.</p>
       <div class="an-pre-grid">
         ${tile('an-pre-good', 'check',      'Strengths',  "What's already working")}
         ${tile('an-pre-bad',  'arrowRight', 'Weaknesses', "Exactly what's holding it back")}
@@ -1275,14 +1274,14 @@ function _renderFitIndicator(ratio) {
   let bg, border, color, text;
   if (ratio < 0.6) {
     bg = '#fef9c3'; border = '#eab308'; color = '#854d0e';
-    text = '⚠ Too much empty space — your resume only fills ' + pct + '% of a page. Add more detail.';
+    text = '⚠ Too much empty space, your resume only fills ' + pct + '% of a page. Add more detail.';
   } else if (ratio <= 1.05) {
     bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
-    text = '✓ Great fit — fills one page nicely (' + pct + '%).';
+    text = '✓ Great fit, fills one page nicely (' + pct + '%).';
   } else if (ratio <= 2.1) {
-    // Two-page resumes are fine for experienced candidates — not an error.
+    // Two-page resumes are fine for experienced candidates, not an error.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 Spans two pages (' + pct + '% of a page). Great for fuller experience — both pages export.';
+    text = '📄 Spans two pages (' + pct + '% of a page). Great for fuller experience, both pages export.';
   } else {
     bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
     text = '⚠ Longer than two pages (' + pct + '%). Trim to keep it within two pages.';
@@ -1511,8 +1510,8 @@ async function ai(endpoint, body) {
     CURRENT_USER.aiTrials[data._trial.feature] = data._trial.used;
     const left = data._trial.remaining;
     toast(left > 0
-      ? `Free trial used — ${left} left for this feature`
-      : 'Last free trial used — upgrade for unlimited AI', { type: left > 0 ? 'info' : 'warn', duration: 3500 });
+      ? `Free trial used, ${left} left for this feature`
+      : 'Last free trial used, upgrade for unlimited AI', { type: left > 0 ? 'info' : 'warn', duration: 3500 });
     if (typeof updatePills === 'function') updatePills();
   }
   return data;
@@ -1582,7 +1581,7 @@ function _titleCase(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperC
 function _aiErrMsg(e) {
   const m = (e && e.message) || '';
   if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
-    return 'The AI is busy right now — give it a few seconds and try again.';
+    return 'The AI is busy right now, give it a few seconds and try again.';
   }
   return 'AI failed: ' + m;
 }
@@ -1728,7 +1727,7 @@ function _renderATSResult(r) {
   const wins    = Array.isArray(data.wins) ? data.wins : [];
   const missing = Array.isArray(data.missingKeywords) ? data.missingKeywords
                 : Array.isArray(data.missing) ? data.missing : [];
-  // Only show feedback if it's actual prose — never a raw JSON blob.
+  // Only show feedback if it's actual prose, never a raw JSON blob.
   const feedbackText = (typeof data.feedback === 'string' && !_looksLikeJSON(data.feedback)) ? data.feedback : '';
 
   const bar = (lbl, v) => {
@@ -1941,7 +1940,7 @@ async function importResume() {
       save(); renderMain();
       toast('Resume imported', { type: 'success' });
     } else {
-      toast('Could not parse resume — try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
+      toast('Could not parse resume, try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }

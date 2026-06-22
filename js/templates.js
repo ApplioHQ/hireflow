@@ -50,7 +50,7 @@ const MARGIN_MULT = { Narrow:  0.7,  Normal: 1.0, Wide:    1.35 };
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-// Build inline style for the root template div — sets CSS vars used inside.
+// Build inline style for the root template div, sets CSS vars used inside.
 function customizeStyleAttr(customize, marginsKey) {
   const c = customize || {};
   const font = FONT_STACKS[c.font];

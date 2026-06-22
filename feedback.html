@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Feedback — Applio Admin</title>
+<title>Feedback, Applio Admin</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
@@ -117,7 +117,7 @@ function render(){
                       : `<p style="font-size:13px; color:var(--muted); font-style:italic; margin:0;">(no message)</p>`}
           <div class="fb-meta">
             ${f.category ? `<span class="fb-chip" style="background:rgba(99,102,241,.15);color:#818cf8;">${esc(f.category)}</span>` : ''}
-            <span>📍 ${esc(f.context || '—')}${f.page ? ' · ' + esc(f.page) : ''}</span>
+            <span>📍 ${esc(f.context || ', ')}${f.page ? ' · ' + esc(f.page) : ''}</span>
             <span>👤 ${esc(f.email || 'unknown')} (${esc(f.plan || 'free')})</span>
             <span>🕓 ${_fmtDate(f.timestamp)}</span>
           </div>

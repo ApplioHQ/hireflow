@@ -29,7 +29,7 @@ async function checkSiteStatus() {
 }
 
 function renderOfflineScreen() {
-  // Bare-bones offline screen — no timing info exposed.
+  // Bare-bones offline screen, no timing info exposed.
   document.body.innerHTML = `
     <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:#07091a; color:#e6e9f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;">
       <svg viewBox="0 0 120 100" width="180" height="150" style="margin-bottom:32px; image-rendering:pixelated;" xmlns="http://www.w3.org/2000/svg">
@@ -65,7 +65,7 @@ function renderOfflineScreen() {
       </svg>
       <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Applio is offline</h1>
       <p style="color:#9aa3c7; font-size:15px; max-width:420px; line-height:1.5;">
-        We'll be back soon. Hold tight — your work is safe.
+        We'll be back soon. Hold tight, your work is safe.
       </p>
     </div>`;
   // Periodically re-check status so the page auto-recovers when maintenance ends.
@@ -83,7 +83,7 @@ function redirectIfAdmin() {
   if (!CURRENT_USER || !isAdmin()) return false;
   const here = location.pathname.split('/').pop() || 'index.html';
   if (here !== 'admin.html' && here !== 'index.html' && here !== 'login.html') {
-    // Don't force-redirect on every page — let them browse, but show the link prominently
+    // Don't force-redirect on every page, let them browse, but show the link prominently
     return false;
   }
   if (here === 'index.html' || here === '' || here === 'login.html') {
@@ -179,7 +179,7 @@ function closeAccountModal() {
   }
 }
 
-// Account menu — clicking the crown opens this
+// Account menu, clicking the crown opens this
 async function openBillingPortal() {
   if (document.getElementById('account-menu-bd')) return;
 
@@ -258,7 +258,7 @@ async function sendFeedback(payload) {
 
 // ============ Reusable feedback modal ============
 // Robust feedback form: optional rating, a topic, and a free-text message.
-// Available anywhere plan.js is loaded — call openFeedbackModal({ context }).
+// Available anywhere plan.js is loaded, call openFeedbackModal({ context }).
 function _fbField() {
   return 'width:100%; box-sizing:border-box; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; font-family:inherit;';
 }
@@ -278,7 +278,7 @@ function openFeedbackModal(opts = {}) {
     <div class="app-dialog" style="max-width:440px; position:relative;">
       <button class="modal-close" onclick="closeFeedbackModal()" style="position:absolute;top:14px;right:14px;color:var(--muted);font-size:18px;background:none;border:none;cursor:pointer;">×</button>
       <h3 class="app-dialog-title" style="margin-bottom:6px;">Send Feedback</h3>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">Tell us how Applio is working for you — every bit helps.</p>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">Tell us how Applio is working for you, every bit helps.</p>
 
       <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">Overall experience</label>
       <div style="display:flex;gap:8px;margin-bottom:16px;">
@@ -370,7 +370,7 @@ async function setAdminAccess(enabled) {
 // ============ Auto-boot on every page ============
 // Order is important:
 // 1) Load current user FIRST so isAdmin() resolves correctly.
-// 2) Then run status check — admins bypass the offline screen.
+// 2) Then run status check, admins bypass the offline screen.
 // 3) Inject ADMIN CONSOLE link into topbar if admin.
 async function _applioPageBoot() {
   // Skip on login.html so admins can log in even during maintenance.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Console — Applio</title>
+<title>Admin Console, Applio</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
@@ -85,7 +85,7 @@
         <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
           <div>
             <h3 style="margin:0;">All Users</h3>
-            <p style="margin:4px 0 0;" id="user-summary">—</p>
+            <p style="margin:4px 0 0;" id="user-summary">, </p>
           </div>
           <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
         </div>
@@ -162,8 +162,8 @@ let ALL_USERS = [];
 let ROLE = null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—'; }
-function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—'; }
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ', '; }
+function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ', '; }
 function fmtPlan(p) {
   if (p === 'lifetime') return '<span class="pill success">Lifetime</span>';
   if (p === 'premium')  return '<span class="pill success">Premium</span>';
@@ -239,7 +239,7 @@ function renderUsers() {
   document.getElementById('users-empty').style.display = 'none';
   document.getElementById('users-tbody').innerHTML = list.map(u => {
     const notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
-                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '—';
+                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : ', ';
     const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
     return `
       <tr>
@@ -286,7 +286,7 @@ async function setAdminAccessFromPanel(enabled) {
 async function deleteUser(email) {
   const ok = await confirmDialog({
     title: 'Delete this user?',
-    body: `This will permanently delete ${email} and their saved resume. The Stripe subscription (if any) is NOT cancelled — do that separately in Stripe.`,
+    body: `This will permanently delete ${email} and their saved resume. The Stripe subscription (if any) is NOT cancelled, do that separately in Stripe.`,
     confirmText: 'Delete user',
     cancelText: 'Cancel',
     danger: true

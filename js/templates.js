@@ -153,7 +153,7 @@ function tModern(r, accent) {
       .t-modern h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid ${c}33; padding-bottom: 1%; }
       .t-modern .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-modern .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
-      .t-modern .t-entry-sub { color: #6b7280; font-style: italic; font-size: 85%; }
+      .t-modern .t-entry-sub { color: #4b5563; font-style: italic; font-size: 85%; }
       .t-modern .t-entry-desc { font-size: 88%; margin-top: 1%; }
       .t-modern .summary { font-size: 88%; }
     </style>
@@ -223,7 +223,7 @@ function tCreative(r, accent) {
       .t-creative h2:first-child { margin-top: 0; }
       .t-creative .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); padding-left: 3%; border-left: 2px solid ${c}44; }
       .t-creative .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
-      .t-creative .t-entry-sub { color: #6b7280; font-style: italic; font-size: 82%; }
+      .t-creative .t-entry-sub { color: #4b5563; font-style: italic; font-size: 82%; }
       .t-creative .t-entry-desc { font-size: 86%; margin-top: 1%; }
       .t-creative .summary { font-size: 88%; }
     </style>
@@ -289,7 +289,7 @@ function tProfessional(r, accent) {
       .t-professional h2:first-child { margin-top: 0; }
       .t-professional .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-professional .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
-      .t-professional .t-entry-sub { color: #6b7280; font-size: 82%; }
+      .t-professional .t-entry-sub { color: #4b5563; font-size: 82%; }
       .t-professional .t-entry-desc { font-size: 86%; margin-top: 1%; }
       .t-professional .summary { font-size: 88%; }
     </style>
@@ -461,7 +461,7 @@ function tOnyx(r, accent) {
       .t-onyx h2:first-child { margin-top: 0; }
       .t-onyx .t-entry { margin-bottom: calc(3% * var(--app-space,1)); }
       .t-onyx .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
-      .t-onyx .t-entry-sub { color: #6b7280; font-style: italic; font-size: 82%; }
+      .t-onyx .t-entry-sub { color: #4b5563; font-style: italic; font-size: 82%; }
       .t-onyx .t-entry-desc { font-size: 86%; margin-top: 1%; }
       .t-onyx .summary { font-size: 87%; }
     </style>
@@ -505,7 +505,7 @@ function tSlate(r, accent) {
       .t-slate h2:first-child { margin-top: 0; }
       .t-slate .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); padding-left: 2.5%; }
       .t-slate .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 93%; }
-      .t-slate .t-entry-sub { color: #6b7280; font-style: italic; font-size: 82%; }
+      .t-slate .t-entry-sub { color: #4b5563; font-style: italic; font-size: 82%; }
       .t-slate .t-entry-desc { font-size: 86%; margin-top: 1%; }
       .t-slate .summary { font-size: 88%; padding-left: 2.5%; }
       .t-slate .skills { padding-left: 2.5%; font-size: 87%; }
@@ -554,7 +554,13 @@ function resumeDocHTML(bodyHTML, pageWidth) {
 <style>
   html, body { margin:0; padding:0; background:#fff; color:#111;
     font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif; }
-  body { width:${w}px; }
+  body { width:${w}px;
+    /* Print-grade typography: crisp rendering, real kerning/ligatures, and
+       lining tabular figures so date ranges align like a typeset résumé. */
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility; font-kerning:normal;
+    font-feature-settings:"kern" 1,"liga" 1,"tnum" 1,"lnum" 1;
+    font-variant-numeric: lining-nums tabular-nums; }
   * { box-sizing:border-box; }
   @page { size:${pageSize}; margin:0; }
   /* Two-page support: don't split an entry across the page break, and keep a

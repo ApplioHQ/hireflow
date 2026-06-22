@@ -633,34 +633,41 @@ async function ai(req, env, action) {
 }
 
 async function runAI(env, system, user, opts = {}) {
-  // Try the requested (or default) model; if it errors, fall back to the fast model.
+  // Build an ordered, de-duplicated chain so every call always has at least one
+  // reliable fallback — even when the requested model IS the fast model.
   const wanted = opts.model || FAST_MODEL;
-  const chain = wanted === FAST_MODEL ? [FAST_MODEL] : [wanted, FAST_MODEL];
+  const chain = [...new Set([wanted, FAST_MODEL, FALLBACK_MODEL])];
   let lastErr;
   for (const model of chain) {
-    try {
-      const res = await env.AI.run(model, {
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        max_tokens: opts.max_tokens || 600,
-        temperature: opts.temperature ?? 0.3,
-      });
-      // Different models return different shapes — normalize to a string.
-      let out = res?.response;
-      if (typeof out !== "string") {
-        out =
-          (typeof res?.response?.response === "string" && res.response.response) ||
-          (typeof res?.response?.content === "string" && res.response.content) ||
-          (typeof res?.choices?.[0]?.message?.content === "string" && res.choices[0].message.content) ||
-          (typeof res?.result?.response === "string" && res.result.response) ||
-          "";
+    // One retry per model: empty responses are often transient.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await env.AI.run(model, {
+          messages: [{ role: "system", content: system }, { role: "user", content: user }],
+          max_tokens: opts.max_tokens || 600,
+          temperature: opts.temperature ?? 0.3,
+        });
+        // Different models return different shapes — normalize to a string.
+        let out = res?.response;
+        if (typeof out !== "string") {
+          out =
+            (typeof res?.response?.response === "string" && res.response.response) ||
+            (typeof res?.response?.content === "string" && res.response.content) ||
+            (typeof res?.choices?.[0]?.message?.content === "string" && res.choices[0].message.content) ||
+            (typeof res?.result?.response === "string" && res.result.response) ||
+            "";
+        }
+        // Reasoning models emit <think>…</think> blocks — strip them.
+        out = String(out || "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+        if (out) return out;
+        lastErr = new Error(`${model} returned empty response`);
+        log("warn", "ai_model_empty", { model, attempt });
+        // retry the same model once before moving on
+      } catch (e) {
+        lastErr = e;
+        log("error", "ai_model_failed", { model, attempt, error: e.message || String(e) });
+        break; // hard error — don't retry the same model, move to the next
       }
-      // DeepSeek-R1 and other reasoning models emit <think>…</think> blocks — strip them.
-      out = String(out || "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-      if (out) return out;
-      lastErr = new Error(`${model} returned empty response`);
-    } catch (e) {
-      lastErr = e;
-      log("error", "ai_model_failed", { model, error: e.message || String(e) });
     }
   }
   throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);

@@ -1014,12 +1014,12 @@ section[id] { scroll-margin-top: 80px; }
 .hti svg { flex-shrink: 0; opacity: .6; }
 
 /* ===== Fanned tool deck (DisplayCards, vanilla) ===== */
-.dcards { position: relative; display: grid; place-items: center; min-height: 320px; margin: 40px auto 24px; }
+.dcards { position: relative; display: grid; place-items: center; min-height: 360px; margin: 44px auto 24px; }
 .dcard {
   grid-area: 1 / 1;            /* stack all cards in one cell */
-  width: 340px; min-height: 158px; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: 8px; justify-content: center;
-  padding: 18px 20px; border-radius: 14px;
+  width: 392px; min-height: 184px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 9px; justify-content: center;
+  padding: 22px 24px; border-radius: 16px;
   border: 2px solid #e2e8f0; background: #fff;
   box-shadow: 0 14px 34px rgba(15,23,42,.12);
   filter: grayscale(.55); opacity: .9;
@@ -1034,9 +1034,9 @@ section[id] { scroll-margin-top: 80px; }
 /* Engage the whole deck (mouse hover or keyboard focus): fan out + full colour */
 .dcards:hover .dcard,
 .dcards:focus-within .dcard { filter: none; opacity: 1; }
-.dcards:hover .dcard-1, .dcards:focus-within .dcard-1 { transform: skewY(-5deg) translate(-150px, -36px); }
-.dcards:hover .dcard-2, .dcards:focus-within .dcard-2 { transform: skewY(-5deg) translate(8px, 6px); }
-.dcards:hover .dcard-3, .dcards:focus-within .dcard-3 { transform: skewY(-5deg) translate(166px, 48px); }
+.dcards:hover .dcard-1, .dcards:focus-within .dcard-1 { transform: skewY(-5deg) translate(-178px, -42px); }
+.dcards:hover .dcard-2, .dcards:focus-within .dcard-2 { transform: skewY(-5deg) translate(10px, 8px); }
+.dcards:hover .dcard-3, .dcards:focus-within .dcard-3 { transform: skewY(-5deg) translate(196px, 56px); }
 
 /* The card you point at (or tab to) pops FLAT, scaled up, on top — always readable.
    Placed after the fan rules so it wins on equal specificity. */
@@ -1047,23 +1047,23 @@ section[id] { scroll-margin-top: 80px; }
   border-color: var(--accent);
   box-shadow: 0 26px 60px rgba(15,23,42,.28);
 }
-.dcards .dcard-1:hover, .dcards .dcard-1:focus-visible { --px: -150px; --py: -44px; }
-.dcards .dcard-2:hover, .dcards .dcard-2:focus-visible { --px: 8px;    --py: -2px;  }
-.dcards .dcard-3:hover, .dcards .dcard-3:focus-visible { --px: 166px;  --py: 40px;  }
+.dcards .dcard-1:hover, .dcards .dcard-1:focus-visible { --px: -178px; --py: -50px; }
+.dcards .dcard-2:hover, .dcards .dcard-2:focus-visible { --px: 10px;   --py: 0px;   }
+.dcards .dcard-3:hover, .dcards .dcard-3:focus-visible { --px: 196px;  --py: 48px;  }
 
 .dcard-top { display: flex; align-items: center; gap: 8px; }
 .dcard-ico { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); }
-.dcard-title { font-size: 15px; font-weight: 700; color: var(--accent); line-height: 1.25; }
+  width: 30px; height: 30px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); }
+.dcard-title { font-size: 17px; font-weight: 700; color: var(--accent); line-height: 1.25; }
 .dcard-badge { margin-left: auto; font-size: 10px; font-weight: 700; color: #16a34a;
-  background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); border-radius: 20px; padding: 2px 7px; white-space: nowrap; }
-.dcard-desc { font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.4; }
-.dcard-date { font-size: 12px; color: #64748b; line-height: 1.4; }
+  background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); border-radius: 20px; padding: 3px 8px; white-space: nowrap; }
+.dcard-desc { font-size: 16px; font-weight: 600; color: #1e293b; line-height: 1.45; }
+.dcard-date { font-size: 12.5px; color: #64748b; line-height: 1.45; }
 
 /* Narrow / mobile: drop the fan, show a clean readable full-colour stack (no hover needed) */
 @media (max-width: 760px) {
   .dcards { display: flex; flex-direction: column; align-items: center; gap: 14px; min-height: 0; }
-  .dcard { position: static; width: 100%; max-width: 360px; min-height: 0;
+  .dcard { position: static; width: 100%; max-width: 400px; min-height: 0;
     transform: none !important; filter: none; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .dcard { transition: none; } }

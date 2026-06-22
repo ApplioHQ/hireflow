@@ -169,7 +169,7 @@ const fadeObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.12 });
 document.querySelectorAll(
-  '.problem-card, .feat-card, .step, .trust-card, .price-card, .faq details, .tcard, .ba-card'
+  '.problem-card, .feat-card, .step, .trust-card, .price-card, .faq details, .tcard, .ba-card, .spotlight'
 ).forEach(el => {
   el.classList.add('fade-ready');
   fadeObserver.observe(el);

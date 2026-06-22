@@ -1013,53 +1013,58 @@ section[id] { scroll-margin-top: 80px; }
 .hti { display: flex; align-items: center; gap: 5px; font-size: 12px; color: rgba(255,255,255,.5); }
 .hti svg { flex-shrink: 0; opacity: .6; }
 
-/* ===== Fanned testimonial deck (DisplayCards, vanilla) ===== */
-.dcards { position: relative; display: grid; place-items: center; min-height: 300px; margin: 40px auto 24px; }
+/* ===== Fanned tool deck (DisplayCards, vanilla) ===== */
+.dcards { position: relative; display: grid; place-items: center; min-height: 320px; margin: 40px auto 24px; }
 .dcard {
   grid-area: 1 / 1;            /* stack all cards in one cell */
-  width: 340px; height: 156px; box-sizing: border-box;
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding: 16px 18px; border-radius: 14px;
+  width: 340px; min-height: 158px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 8px; justify-content: center;
+  padding: 18px 20px; border-radius: 14px;
   border: 2px solid #e2e8f0; background: #fff;
   box-shadow: 0 14px 34px rgba(15,23,42,.12);
-  filter: grayscale(1); opacity: .92;
-  transform: skewY(-8deg) translate(var(--tx,0), var(--ty,0));
-  transition: transform .65s cubic-bezier(.2,.7,.2,1), filter .6s ease, opacity .4s ease, border-color .3s, box-shadow .3s;
+  filter: grayscale(.55); opacity: .9;
+  transform: skewY(-5deg) translate(var(--tx,0), var(--ty,0));
+  transition: transform .5s cubic-bezier(.2,.7,.2,1), filter .4s ease, opacity .35s ease, border-color .25s, box-shadow .3s;
+  cursor: pointer; outline: none;
 }
-/* right-edge fade so lower cards melt into the section (mimics the after-gradient) */
-.dcard::after {
-  content: ''; position: absolute; top: -5%; right: -2px; width: 58%; height: 110%;
-  background: linear-gradient(to left, #ffffff, transparent); border-radius: 14px;
-  pointer-events: none; transition: opacity .6s ease;
-}
-.dcard-1 { --tx: 0;     --ty: 0;    z-index: 3; filter: none; opacity: 1; }
-.dcard-2 { --tx: 58px;  --ty: 38px; z-index: 2; }
-.dcard-3 { --tx: 116px; --ty: 76px; z-index: 1; }
-.dcard-1::after { opacity: 0; }   /* top card stays fully readable */
+.dcard-1 { --tx: 0;    --ty: 0;   z-index: 3; filter: none; opacity: 1; }
+.dcard-2 { --tx: 40px; --ty: 30px; z-index: 2; }
+.dcard-3 { --tx: 80px; --ty: 60px; z-index: 1; }
 
-/* Fan out + colorize the whole deck on hover */
-.dcards:hover .dcard { filter: none; opacity: 1; }
-.dcards:hover .dcard::after { opacity: 0; }
-.dcards:hover .dcard-1 { transform: skewY(-8deg) translate(-44px, -48px); }
-.dcards:hover .dcard-2 { transform: skewY(-8deg) translate(58px, 4px); }
-.dcards:hover .dcard-3 { transform: skewY(-8deg) translate(160px, 56px); }
-.dcard:hover { border-color: var(--accent); box-shadow: 0 22px 50px rgba(15,23,42,.22); }
+/* Engage the whole deck (mouse hover or keyboard focus): fan out + full colour */
+.dcards:hover .dcard,
+.dcards:focus-within .dcard { filter: none; opacity: 1; }
+.dcards:hover .dcard-1, .dcards:focus-within .dcard-1 { transform: skewY(-5deg) translate(-150px, -36px); }
+.dcards:hover .dcard-2, .dcards:focus-within .dcard-2 { transform: skewY(-5deg) translate(8px, 6px); }
+.dcards:hover .dcard-3, .dcards:focus-within .dcard-3 { transform: skewY(-5deg) translate(166px, 48px); }
+
+/* The card you point at (or tab to) pops FLAT, scaled up, on top — always readable.
+   Placed after the fan rules so it wins on equal specificity. */
+.dcards .dcard:hover,
+.dcards .dcard:focus-visible {
+  transform: translate(var(--px, 0), var(--py, -8px)) scale(1.06);
+  filter: none; opacity: 1; z-index: 10;
+  border-color: var(--accent);
+  box-shadow: 0 26px 60px rgba(15,23,42,.28);
+}
+.dcards .dcard-1:hover, .dcards .dcard-1:focus-visible { --px: -150px; --py: -44px; }
+.dcards .dcard-2:hover, .dcards .dcard-2:focus-visible { --px: 8px;    --py: -2px;  }
+.dcards .dcard-3:hover, .dcards .dcard-3:focus-visible { --px: 166px;  --py: 40px;  }
 
 .dcard-top { display: flex; align-items: center; gap: 8px; }
 .dcard-ico { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); }
-.dcard-title { font-size: 16px; font-weight: 700; color: var(--accent); }
+.dcard-title { font-size: 15px; font-weight: 700; color: var(--accent); line-height: 1.25; }
 .dcard-badge { margin-left: auto; font-size: 10px; font-weight: 700; color: #16a34a;
   background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); border-radius: 20px; padding: 2px 7px; white-space: nowrap; }
-.dcard-desc { font-size: 16px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dcard-date { font-size: 12px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dcard-desc { font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.4; }
+.dcard-date { font-size: 12px; color: #64748b; line-height: 1.4; }
 
-/* Mobile: drop the fan, show a clean readable stack */
-@media (max-width: 640px) {
-  .dcards { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-  .dcard { position: static; width: 100%; max-width: 360px; height: auto;
-    transform: none; filter: none; opacity: 1; }
-  .dcard::after { display: none; }
+/* Narrow / mobile: drop the fan, show a clean readable full-colour stack (no hover needed) */
+@media (max-width: 760px) {
+  .dcards { display: flex; flex-direction: column; align-items: center; gap: 14px; min-height: 0; }
+  .dcard { position: static; width: 100%; max-width: 360px; min-height: 0;
+    transform: none !important; filter: none; opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .dcard { transition: none; } }
 

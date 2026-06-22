@@ -62,7 +62,7 @@
 
 /* ===== Hero mockup ===== */
 /* reset leaked styles from styles.css .hero-right (class-name collision) */
-.hero-right { position: relative; height: 600px; background: transparent; padding: 0; display: block; }
+.hero-right { position: relative; height: 600px; background: transparent; padding: 0; display: block; perspective: 1200px; }
 .mock-resume {
   position: absolute; top: 0; right: 0; width: 95%; max-width: 540px;
   height: 580px;
@@ -70,6 +70,8 @@
   box-shadow: 0 30px 80px rgba(0,0,0,.5);
   overflow: hidden; font-size: 13px;
   transform: rotate(2deg);
+  transition: transform .18s ease-out;
+  transform-origin: center center;
   display: flex; flex-direction: column;
 }
 .mock-resume .mock-body { flex: 1; overflow: hidden; }
@@ -142,7 +144,19 @@
 .mock-job-head { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
 .mock-job-head span { color: #6b7280; font-size: 11px; font-weight: 500; }
 .mock-job ul { list-style: none; }
-.mock-job li { font-size: 11px; line-height: 1.5; color: #4b5563; margin-bottom: 3px; }
+.mock-job li { font-size: 11px; line-height: 1.5; color: #4b5563; margin-bottom: 3px;
+  border-radius: 4px; animation: li-scan 4.5s ease-in-out infinite; }
+/* Each bullet flashes "optimized" green as the scan beam passes over it. */
+.mock-body .mock-job:nth-of-type(1) li:nth-child(1) { animation-delay: 1.55s; }
+.mock-body .mock-job:nth-of-type(1) li:nth-child(2) { animation-delay: 1.75s; }
+.mock-body .mock-job:nth-of-type(1) li:nth-child(3) { animation-delay: 1.95s; }
+.mock-body .mock-job:nth-of-type(2) li:nth-child(1) { animation-delay: 2.45s; }
+.mock-body .mock-job:nth-of-type(2) li:nth-child(2) { animation-delay: 2.65s; }
+@keyframes li-scan {
+  0%, 100% { background: transparent; box-shadow: none; }
+  3%  { background: rgba(34,197,94,.20); box-shadow: -6px 0 0 rgba(34,197,94,.20); }
+  14% { background: rgba(34,197,94,0); box-shadow: none; }
+}
 .mock-job em { color: #4f46e5; font-style: normal; font-weight: 600; }
 .mock-job strong { color: #4f46e5; font-weight: 700; }
 .mock-skills { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -1002,7 +1016,7 @@ section[id] { scroll-margin-top: 80px; }
 /* ── Reduced motion: respect user preference ── */
 @media (prefers-reduced-motion: reduce) {
   .mock-scan, .hero-visual-glow, .logo-marquee, .float-ats, .float-keywords, .float-kw-list span,
-  .hero-badge, .dot-pulse, .scroll-chevron, .price-card.featured,
+  .mock-job li, .hero-badge, .dot-pulse, .scroll-chevron, .price-card.featured,
   .ticker-dot, .mock-header::after { animation: none !important; }
   #hero-particles { display: none; }
   * { scroll-behavior: auto !important; }

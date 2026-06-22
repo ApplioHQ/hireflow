@@ -1092,3 +1092,33 @@ section[id] { scroll-margin-top: 80px; }
 .aitools-showcase { margin-top: 56px; padding-top: 40px; border-top: 1px solid #e2e8f0; text-align: center; }
 .aitools-title { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
 .aitools-sub { font-size: 14px; color: #64748b; margin: 0 auto; max-width: 520px; }
+
+/* ===== Features: bento layout + cursor spotlight (interactive) ===== */
+.feature-bento { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
+.feat-wide { grid-column: span 2; display: flex; flex-direction: column; }
+.feat-card { position: relative; overflow: hidden; }
+.feat-card > * { position: relative; z-index: 1; }
+/* soft glow that tracks the cursor (vars set in home.js) */
+.feat-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+  pointer-events: none; transition: opacity .25s ease; z-index: 0;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(99,102,241,.13), transparent 62%);
+}
+.feat-card:hover::before { opacity: 1; }
+/* template swatches inside the featured card */
+.feat-swatches { display: flex; align-items: center; gap: 9px; margin-top: auto; padding-top: 22px; }
+.feat-swatches span:not(.feat-swatch-more) {
+  width: 32px; height: 44px; border-radius: 5px; background: var(--sw);
+  box-shadow: 0 3px 8px rgba(15,23,42,.18); border: 1px solid rgba(255,255,255,.5);
+  transition: transform .3s cubic-bezier(.2,.7,.2,1);
+}
+.feat-wide:hover .feat-swatches span:nth-child(1) { transform: translateY(-3px) rotate(-2deg); }
+.feat-wide:hover .feat-swatches span:nth-child(2) { transform: translateY(-6px) rotate(1deg); }
+.feat-wide:hover .feat-swatches span:nth-child(3) { transform: translateY(-2px) rotate(-1deg); }
+.feat-wide:hover .feat-swatches span:nth-child(4) { transform: translateY(-7px) rotate(2deg); }
+.feat-wide:hover .feat-swatches span:nth-child(5) { transform: translateY(-3px) rotate(-2deg); }
+.feat-swatch-more { font-size: 13px; font-weight: 700; color: #6b7280; margin-left: 2px; }
+@media (max-width: 980px) {
+  .feature-bento { grid-template-columns: 1fr; }
+  .feat-wide { grid-column: auto; }
+}

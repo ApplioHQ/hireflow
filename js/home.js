@@ -556,3 +556,12 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
   }, { threshold: 0.5 });
   obs.observe(deck);
 })();
+
+// ── Feature cards: cursor-tracking spotlight glow ──
+document.querySelectorAll('.feat-card').forEach(function (card) {
+  card.addEventListener('mousemove', function (e) {
+    var r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  });
+});

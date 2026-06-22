@@ -243,8 +243,8 @@
 .feat-cyan    { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
 .feat-violet  { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
 .feat-emerald { background: linear-gradient(135deg, #14b8a6, #5eead4); }
-.feat-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-.feat-card p { font-size: 14px; line-height: 1.5; color: #6b7280; }
+.feat-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.feat-card p { font-size: 14px; line-height: 1.55; color: #4b5563; }
 .feat-cta { display: block; margin-top: 12px; font-size: 11px; color: #6366f1; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 
 /* ===== How it works ===== */

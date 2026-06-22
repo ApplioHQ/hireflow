@@ -130,12 +130,16 @@ function bulletHTML(text) {
 
 // ============ Section block builders ============
 function expBlocks(exp) {
-  return (exp||[]).map(e => `
+  return (exp||[]).map(e => {
+    // 3-tier hierarchy: bold role on its own line, company + location beneath.
+    const sub = [e.company, e.location].filter(Boolean).map(esc).join(' · ');
+    return `
     <div class="t-entry">
-      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)} · ${esc(e.company)}</span><span class="t-entry-date">${esc(e.start)} – ${esc(e.end)}</span></div>
-      <div class="t-entry-sub">${esc(e.location||'')}</div>
+      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)}</span><span class="t-entry-date">${esc(e.start)} – ${esc(e.end)}</span></div>
+      ${sub ? `<div class="t-entry-sub">${sub}</div>` : ''}
       ${bulletHTML(e.description)}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function eduBlocks(edu) {
   return (edu||[]).map(e => `

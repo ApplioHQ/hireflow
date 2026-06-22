@@ -60,7 +60,7 @@ const rotEl = document.getElementById('hero-rotator');
   setTimeout(step, 600);
 })();
 
-// ----- Pricing toggle (Monthly / Lifetime) -----
+// ----- Pricing toggle (Monthly / Annual) -----
 function setPriceMode(mode) {
   document.querySelectorAll('.pt-btn').forEach(b => b.classList.toggle('active', b.dataset.plan === mode));
   const name   = document.getElementById('paid-name');

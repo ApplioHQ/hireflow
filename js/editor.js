@@ -1163,33 +1163,113 @@ function _analysisEmptyState() {
 }
 
 function renderDashboard() {
-  const filled = countFilled();
-  const pct = Math.round(filled.score * 100);
+  const h = (window.calculateHealthScore && window.calculateHealthScore()) || { score: 0, completeness: 0, bulletQuality: null, ats: null };
+  const qf = _qfGather();
+  const score = Math.max(0, Math.min(100, h.score));
+  const ringCol = score >= 75 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
+  const C = 213.6, off = C * (1 - score / 100);
+  const verdict = score >= 80 ? ['Looking strong', 'Your resume is in great shape — give it a final read and export.']
+    : score >= 50 ? ['Getting there', 'A few improvements will make this resume noticeably stronger.']
+    : ['Just getting started', 'Fill in the core sections and tighten your bullets to raise your score.'];
+
+  const barCol = function (v, good, ok) { return v >= good ? 'var(--success)' : v >= ok ? 'var(--warning)' : 'var(--danger)'; };
+  const tile = function (label, valHtml, pct, col, section) {
+    return `<div class="dash-tile" onclick="nextSection('${section}')">
+      <div class="dash-tile-label">${label}</div>
+      <div class="dash-tile-val">${valHtml}</div>
+      ${pct != null ? `<div class="dash-tile-bar"><span style="width:${pct}%;background:${col};"></span></div>` : ''}
+    </div>`;
+  };
+  const bq = h.bulletQuality, ats = h.ats;
+  const tiles = [
+    tile('Completeness', h.completeness + '%', h.completeness, 'var(--accent)', 'personal'),
+    tile('Bullet strength', bq == null ? 'N/A' : bq + '%', bq == null ? 0 : bq, bq == null ? 'var(--border)' : barCol(bq, 70, 45), 'experience'),
+    tile('ATS score', ats == null ? 'Not run' : ats + '%', ats == null ? 0 : ats, ats == null ? 'var(--border)' : barCol(ats, 80, 60), 'ats'),
+    tile('Quick Fixes', qf.passed + ' / ' + qf.total, Math.round(qf.passed / qf.total * 100), qf.passed === qf.total ? 'var(--success)' : 'var(--warning)', 'quickfix'),
+  ].join('');
+
+  // Readiness checklist (all client-side, synchronous)
+  const p = resume.personal || {};
+  const hasContact = !!(p.email && p.phone && p.location);
+  const hasMetric = (resume.experience || []).concat(resume.projects || []).some(function (e) { return /[\d$%]/.test(e && e.description || ''); });
+  const noWeak = (typeof _qfWeakVerbs === 'function') ? _qfWeakVerbs().length === 0 : true;
+  const hasSkills = (resume.skills.categories || []).some(function (c) { return (c.items || []).length; });
+  const readyItems = [
+    ['Contact details complete', hasContact, 'personal'],
+    ['At least one quantified bullet', hasMetric, 'experience'],
+    ['No weak opening phrases', noWeak, 'quickfix'],
+    ['Skills listed', hasSkills, 'skills'],
+  ];
+  const readyCount = readyItems.filter(function (i) { return i[1]; }).length;
+  const allReady = readyCount === readyItems.length;
+  const readyRows = readyItems.map(function (it) {
+    return `<div class="dash-ready-item">
+      <span class="dash-ready-ico ${it[1] ? 'dash-ready-ok' : 'dash-ready-no'}">${it[1] ? _qfCheckSvg() : _qfWarnSvg()}</span>
+      <span style="flex:1;${it[1] ? '' : 'color:var(--muted);'}">${it[0]}</span>
+      ${it[1] ? '' : `<button class="qf-goto" onclick="nextSection('${it[2]}')">Fix →</button>`}
+    </div>`;
+  }).join('');
+
+  // Top 3 fixes (first issues are _qfIssues[0..2], so qfAction indices line up)
+  const top = qf.issues.slice(0, 3);
+  const topHtml = top.length ? top.map(function (iss, idx) {
+    const btn = iss.action && iss.action.type === 'fix'
+      ? `<button class="btn btn-secondary qf-btn" onclick="qfAction(${idx})">${esc(iss.action.label || 'Auto-fix')}</button>`
+      : `<button class="qf-goto" onclick="qfAction(${idx})">Go →</button>`;
+    return `<div class="qf-card qf-${iss.level === 'warn' ? 'warn' : 'info'}">
+      <span class="qf-ico qf-ico-${iss.level === 'warn' ? 'warn' : 'info'}">${_qfWarnSvg()}</span>
+      <div class="qf-card-body"><div class="qf-card-title">${esc(iss.title)}</div></div>
+      ${btn}</div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--muted);">No issues — nice work. ✦</div>`;
+
   return `
     <div class="section-card">
-      <div class="section-head"><h3>${ICON('chart')} Dashboard</h3></div>
-      <div class="grid-2" style="margin-bottom:16px;">
-        <div style="background:var(--bg-2); padding:18px; border-radius:10px; border:1px solid var(--border);">
-          <div style="font-size:12px; color:var(--muted);">Your Progress</div>
-          <div style="font-size:36px; font-weight:700; margin-top:4px;">${pct}%</div>
+      <div class="section-head"><h3>${ICON('chart')} Dashboard</h3>${allReady ? '<span class="pill success">Ready to submit</span>' : ''}</div>
+      <div class="dash-hero">
+        <div class="dash-ring">
+          <svg viewBox="0 0 80 80" width="96" height="96"><circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg-3)" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="${ringCol}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 40 40)"/></svg>
+          <div class="dash-ring-num"><div class="dash-ring-score" style="color:${ringCol};">${score}</div><div class="dash-ring-lbl">Health</div></div>
         </div>
-        <div style="background:var(--bg-2); padding:18px; border-radius:10px; border:1px solid var(--border);">
-          <div style="font-size:12px; color:var(--muted);">Sections Completed</div>
-          <div style="font-size:36px; font-weight:700; margin-top:4px;">${filled.done} / ${filled.total}</div>
-        </div>
+        <div><div class="dash-verdict-title">${verdict[0]}</div><div class="dash-verdict-sub">${verdict[1]}</div></div>
       </div>
-      <div class="toggle-row" style="border:none;">
-        <div><strong>Resume Completeness</strong><div style="color:var(--muted); font-size:12px;">Fill all required sections for the best results.</div></div>
-        <div class="pill ${pct>=80?'success':pct>=50?'warn':'error'}">${pct>=80?'Strong':pct>=50?'In progress':'Just started'}</div>
+      <div class="dash-tiles">${tiles}</div>
+      <div class="dash-card">
+        <div class="dash-card-head"><h4>Ready to submit?</h4><span class="pill ${allReady ? 'success' : 'warn'}">${readyCount}/${readyItems.length}</span></div>
+        <div class="dash-ready-list">${readyRows}</div>
       </div>
-      <div style="margin-top:16px;">
-        <strong>Selected Template:</strong> ${esc(resume.template)}
+      <div class="dash-card">
+        <div class="dash-card-head"><h4>Top things to fix</h4>${qf.issues.length > 3 ? `<button class="qf-goto" onclick="nextSection('quickfix')">View all (${qf.issues.length}) →</button>` : ''}</div>
+        <div class="qf-list">${topHtml}</div>
       </div>
+      ${_renderSubCard()}
       <div class="action-row">
         <button class="btn btn-secondary" onclick="nextSection('analysis')">${ICON('arrowLeft')} Back</button>
         <a href="export.html" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
       </div>
     </div>`;
+}
+
+// Manage-subscription card: real billing controls for paid users (reuses the
+// existing billing-portal modal, which includes cancel), upgrade nudge for free.
+function _renderSubCard() {
+  const u = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
+  if (!isPaid()) {
+    return `<div class="dash-card dash-sub-card">
+      <div><strong>Free plan</strong><div class="dash-sub-meta">Unlock AI tailoring, ATS scoring, unlimited exports and more.</div></div>
+      <a class="btn btn-primary btn-sm" href="pricing.html">${ICON('sparkle', 'ico ico-sm')} <span>Upgrade</span></a>
+    </div>`;
+  }
+  const plan = (u && u.plan) || 'premium';
+  const renews = u && u.currentPeriodEnd
+    ? new Date(u.currentPeriodEnd * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
+  const meta = plan === 'lifetime'
+    ? 'Lifetime access — no recurring charges. Manage billing or view invoices anytime.'
+    : (renews ? 'Renews ' + renews + ' · cancel or update billing anytime.' : 'Active subscription · cancel or update billing anytime.');
+  return `<div class="dash-card dash-sub-card">
+    <div><strong>${ICON('crown', 'ico ico-sm')} ${planLabel()} plan</strong><div class="dash-sub-meta">${meta}</div></div>
+    <button class="btn btn-secondary btn-sm" onclick="openBillingPortal()">Manage subscription</button>
+  </div>`;
 }
 
 function countFilled() {

@@ -11,10 +11,12 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
-// Heaviest processing & coding cost (1T Parameters, 262k context window)
-const FAST_MODEL = "@cf/moonshotai/kimi-k2.6";
-// Heaviest reasoning cost (DeepSeek-R1 32B Distill, massive neuron burner)
-const SMART_MODEL = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b";
+// Fast, reliable default for short rewrites/bullets.
+const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+// Capable model for tailoring/ATS/analysis (more reasoning, still reliable).
+const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+// Last-resort model that is always tried if the others error or come back empty.
+const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "interview-feedback", "skills", "improve"]);

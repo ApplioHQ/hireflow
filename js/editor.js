@@ -920,10 +920,10 @@ function renderQuickFix() {
     <div class="section-card">
       <div class="section-head">
         <h3>${ICON('check')} Quick Fixes</h3>
-        <span class="qf-free-badge">Free · No AI required</span>
+        <span class="qf-free-badge">Free for everyone</span>
       </div>
       <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">
-        Instant, self-serve best-practice checks that run entirely in your browser — no Premium, no AI tokens used.
+        Instant, self-serve best-practice checks that run entirely in your browser — included on every plan.
         Apply fixes with one click, or jump straight to the field that needs your input.
       </p>
       <div id="qf-body">${_qfBuild()}</div>

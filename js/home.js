@@ -536,3 +536,23 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
   }, { threshold: 0.6 });
   document.querySelectorAll('.section-title').forEach(function (t) { titleObs.observe(t); });
 })();
+
+// ── 3 AI tools deck: auto-fan once when it scrolls into view (discoverability) ──
+(function () {
+  const deck = document.querySelector('.aitools-showcase .dcards');
+  if (!deck) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (window.matchMedia('(max-width: 760px)').matches) return; // mobile already shows a full stack
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      obs.unobserve(entry.target);
+      // brief peek so users learn the deck is interactive, then collapse
+      setTimeout(() => {
+        deck.classList.add('is-hinting');
+        setTimeout(() => deck.classList.remove('is-hinting'), 1400);
+      }, 400);
+    });
+  }, { threshold: 0.5 });
+  obs.observe(deck);
+})();

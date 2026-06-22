@@ -4,6 +4,8 @@
 // Customize options (font, spacing, margins, section toggles) all apply.
 
 const TEMPLATE_DEFS = [
+  { id: 'consulting',   name: 'Consulting' },
+  { id: 'faang',        name: 'FAANG' },
   { id: 'modern',       name: 'Modern' },
   { id: 'classic',      name: 'Classic' },
   { id: 'creative',     name: 'Creative' },
@@ -557,7 +559,83 @@ function tSlate(r, accent) {
     </div>`;
 }
 
+// Joined, separated contact line shared by the flagship templates.
+function _contactLine(p, sep) {
+  return [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean).map(esc).join(sep);
+}
+
+// ===== Flagship: Consulting (serif, McKinsey / Harvard OCS style) =====
+// Centered serif name, all-caps tracked section headers with hairline rules,
+// no colour, dense-but-airy. Models the highest-signal consulting/finance format.
+function tConsulting(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-consulting { font-family: var(--app-font, Georgia, 'Times New Roman', serif); color:#1a1a1a; height:100%;
+        padding: calc(6% * var(--app-margin,1)) calc(8% * var(--app-margin,1)); line-height:1.34; }
+      .t-consulting .name { text-align:center; font-size:212%; font-weight:700; letter-spacing:.01em; }
+      .t-consulting .contact { text-align:center; font-size:85%; color:#333; margin-top:1.4%; }
+      .t-consulting h2 { font-size:97%; font-weight:700; text-transform:uppercase; letter-spacing:.15em;
+        margin: calc(4.6% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); padding-bottom:.7%; border-bottom:1px solid #1a1a1a; }
+      .t-consulting .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
+      .t-consulting .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:98%; }
+      .t-consulting .t-entry-date { font-weight:400; font-style:italic; font-size:90%; white-space:nowrap; padding-left:4%; }
+      .t-consulting .t-entry-sub { font-style:italic; font-size:91%; color:#333; }
+      .t-consulting .summary { font-size:95%; text-align:justify; }
+    </style>
+    <div class="t-consulting" style="${st}">
+      <div class="name">${esc(p.fullName)}</div>
+      <div class="contact">${_contactLine(p, '&nbsp;&nbsp;•&nbsp;&nbsp;')}</div>
+      ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
+      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
+      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
+      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
+      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
+      ${r.leadership.length?`<h2>Leadership</h2>${listBlocks(r.leadership,['role','org','end'])}`:''}
+      ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
+      ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+    </div>`;
+}
+
+// ===== Flagship: FAANG (clean sans, "Google XYZ" style) =====
+// Left-aligned grotesque, one restrained accent on name/headers, metric-bolded
+// bullets (via the shared engine), single-line skills strip. ATS-friendly.
+function tFaang(r, accent) {
+  const c = accent || '#2563eb';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-faang { font-family: var(--app-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); color:#202124; height:100%;
+        padding: calc(5.5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.35; }
+      .t-faang .name { font-size:202%; font-weight:800; letter-spacing:-.02em; color:#111; }
+      .t-faang .contact { font-size:84%; color:#5f6368; margin-top:1.1%; }
+      .t-faang h2 { font-size:88%; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:${c};
+        margin: calc(4.2% * var(--app-space,1)) 0 calc(1.7% * var(--app-space,1)); }
+      .t-faang h2::after { content:''; display:block; height:1.5px; background:${c}2e; margin-top:.7%; }
+      .t-faang .t-entry { margin-bottom: calc(2.8% * var(--app-space,1)); }
+      .t-faang .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:96%; color:#111; }
+      .t-faang .t-entry-date { font-weight:500; color:#5f6368; font-size:88%; white-space:nowrap; padding-left:4%; }
+      .t-faang .t-entry-sub { font-size:88%; color:#5f6368; }
+      .t-faang .summary { font-size:90%; color:#3c4043; }
+    </style>
+    <div class="t-faang" style="${st}">
+      <div class="name">${esc(p.fullName)}</div>
+      <div class="contact">${_contactLine(p, '&nbsp;·&nbsp;')}</div>
+      ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
+      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
+      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
+      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
+      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
+      ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
+      ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+      ${r.leadership.length?`<h2>Leadership</h2>${listBlocks(r.leadership,['role','org','end'])}`:''}
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
+  consulting: tConsulting, faang: tFaang,
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
   professional: tProfessional, tech: tTech, executive: tExecutive,
   compact: tCompact, elegant: tElegant, onyx: tOnyx, slate: tSlate

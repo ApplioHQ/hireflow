@@ -1105,19 +1105,6 @@ section[id] { scroll-margin-top: 80px; }
   background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(99,102,241,.13), transparent 62%);
 }
 .feat-card:hover::before { opacity: 1; }
-/* template swatches inside the featured card */
-.feat-swatches { display: flex; align-items: center; gap: 9px; margin-top: auto; padding-top: 22px; }
-.feat-swatches span:not(.feat-swatch-more) {
-  width: 32px; height: 44px; border-radius: 5px; background: var(--sw);
-  box-shadow: 0 3px 8px rgba(15,23,42,.18); border: 1px solid rgba(255,255,255,.5);
-  transition: transform .3s cubic-bezier(.2,.7,.2,1);
-}
-.feat-wide:hover .feat-swatches span:nth-child(1) { transform: translateY(-3px) rotate(-2deg); }
-.feat-wide:hover .feat-swatches span:nth-child(2) { transform: translateY(-6px) rotate(1deg); }
-.feat-wide:hover .feat-swatches span:nth-child(3) { transform: translateY(-2px) rotate(-1deg); }
-.feat-wide:hover .feat-swatches span:nth-child(4) { transform: translateY(-7px) rotate(2deg); }
-.feat-wide:hover .feat-swatches span:nth-child(5) { transform: translateY(-3px) rotate(-2deg); }
-.feat-swatch-more { font-size: 13px; font-weight: 700; color: #6b7280; margin-left: 2px; }
 @media (max-width: 980px) {
   .feature-bento { grid-template-columns: 1fr; }
   .feat-wide { grid-column: auto; }

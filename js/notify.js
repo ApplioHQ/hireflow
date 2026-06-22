@@ -269,7 +269,7 @@ function mountSiriWave(canvas, opts) {
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)
   const existing = document.getElementById('ai-loading-overlay');
-  if (existing) existing.remove();
+  if (existing) { if (existing._siriCleanup) existing._siriCleanup(); existing.remove(); }
 
   const el = document.createElement('div');
   el.id = 'ai-loading-overlay';
@@ -278,56 +278,55 @@ window.aiLoading = function (message) {
   el.style.cssText = [
     'position:fixed', 'inset:0', 'z-index:9999',
     'display:flex', 'flex-direction:column',
-    'align-items:center', 'justify-content:center', 'gap:18px',
+    'align-items:center', 'justify-content:center', 'gap:14px',
     'background:rgba(7,9,26,.72)',
     'backdrop-filter:blur(6px)',
     '-webkit-backdrop-filter:blur(6px)',
     'animation:aiOverlayIn .18s ease both',
   ].join(';');
-
-  el.innerHTML = `
-    <style>
+  el.innerHTML = `<style>
       @keyframes aiOverlayIn { from { opacity:0 } to { opacity:1 } }
       @keyframes aiSpinRing  { to { transform: rotate(360deg) } }
       @keyframes aiPulseText { 0%,100% { opacity:.6 } 50% { opacity:1 } }
-    </style>
-    <div style="
-      width:56px; height:56px; position:relative;
-      display:flex; align-items:center; justify-content:center;
-    ">
-      <!-- Outer spinning ring -->
-      <svg viewBox="0 0 56 56" style="
-        position:absolute; inset:0; width:100%; height:100%;
-        animation: aiSpinRing 1.1s linear infinite;
-      ">
-        <circle cx="28" cy="28" r="24"
-          fill="none" stroke="rgba(99,102,241,.25)" stroke-width="4"/>
-        <circle cx="28" cy="28" r="24"
-          fill="none" stroke="#6366f1" stroke-width="4"
-          stroke-linecap="round"
-          stroke-dasharray="36 113"
-          stroke-dashoffset="0"/>
-      </svg>
-      <!-- Sparkle icon in centre -->
-      <svg viewBox="0 0 24 24" width="22" height="22"
-        fill="none" stroke="#a5b4fc" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
-      </svg>
-    </div>
-    <div style="
-      font-size:14px; font-weight:500; color:#e6e9f5; letter-spacing:.01em;
-      animation: aiPulseText 1.8s ease-in-out infinite;
-      max-width:260px; text-align:center; line-height:1.5;
-    " id="ai-loading-msg"></div>`;
+    </style>`;
 
-  el.querySelector('#ai-loading-msg').textContent = message || 'AI is thinking…';
+  // Primary visual: Siri-style WebGL wave. Falls back to an SVG spinner when
+  // WebGL is unavailable or the user prefers reduced motion.
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cleanup = null;
+  if (!reduce) {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'width:200px;height:200px;border-radius:24px;background:#000;box-shadow:0 18px 60px rgba(99,102,241,.25);';
+    cleanup = mountSiriWave(canvas, { variant: 'wave', size: 200, renderScale: 0.7 });
+    if (cleanup) { el.appendChild(canvas); el._siriCleanup = cleanup; }
+  }
+  if (!cleanup) {
+    const sp = document.createElement('div');
+    sp.style.cssText = 'width:56px;height:56px;position:relative;display:flex;align-items:center;justify-content:center;';
+    sp.innerHTML = `
+      <svg viewBox="0 0 56 56" style="position:absolute;inset:0;width:100%;height:100%;animation:aiSpinRing 1.1s linear infinite;">
+        <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(99,102,241,.25)" stroke-width="4"/>
+        <circle cx="28" cy="28" r="24" fill="none" stroke="#6366f1" stroke-width="4" stroke-linecap="round" stroke-dasharray="36 113"/>
+      </svg>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+      </svg>`;
+    el.appendChild(sp);
+  }
+
+  const msg = document.createElement('div');
+  msg.id = 'ai-loading-msg';
+  msg.style.cssText = 'font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:aiPulseText 1.8s ease-in-out infinite;max-width:260px;text-align:center;line-height:1.5;';
+  msg.textContent = message || 'AI is thinking…';
+  el.appendChild(msg);
+
   document.body.appendChild(el);
 };
 
 window.aiLoadingDone = function () {
   const el = document.getElementById('ai-loading-overlay');
   if (!el) return;
+  if (el._siriCleanup) { try { el._siriCleanup(); } catch (e) {} el._siriCleanup = null; }
   el.style.animation = 'aiOverlayIn .15s ease reverse both';
   setTimeout(() => el.remove(), 150);
 };

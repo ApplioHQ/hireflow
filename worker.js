@@ -19,7 +19,8 @@ const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "interview-feedback", "skills", "improve"]);
+// Note: "parse" (Resume Import) is intentionally NOT here — import is free for all users.
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "interview-feedback", "skills", "improve"]);
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).

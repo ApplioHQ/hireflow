@@ -1661,9 +1661,9 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
-  // Free users get a few free trials per feature (enforced server-side).
-  // Block early only when trials for this feature are exhausted.
-  if (isFree() && !canUseAi(endpoint)) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  // Resume Import (parse) is free for everyone — never gate it.
+  // Other endpoints: free users get a few trials, then it paywalls.
+  if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) { showUpgradeModal('ai'); throw new Error('Premium required'); }
   const r = await fetch(API + '/ai/' + endpoint, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
@@ -2044,7 +2044,7 @@ async function aiAnalyze() {
 }
 
 function openModal(id) {
-  if (id === 'import' && isFree() && !canUseAi('parse')) { showUpgradeModal('ai'); return; }
+  // Import is free for everyone — no paywall gate.
   document.getElementById('modal-'+id).classList.add('open');
   if(id==='version') renderVersions();
 }

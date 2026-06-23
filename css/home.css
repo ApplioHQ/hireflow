@@ -1164,6 +1164,17 @@ section[id] { scroll-margin-top: 80px; }
   box-shadow: 0 24px 70px rgba(0,0,0,.45); padding: 22px; color: #e6e9f5; }
 .spot-card.sm-center { text-align: center; }
 
+/* Layered entrance: the text uses the section's .fade-ready; the mockup cards
+   rise and fade in just after, with the back card trailing for depth. */
+.spot-card { opacity: 0; transform: translateY(30px);
+  transition: opacity .7s ease .12s, transform .7s cubic-bezier(.2,.7,.2,1) .12s; }
+.spotlight.fade-in-up .spot-card { opacity: 1; transform: translateY(0); }
+.spot-card-bg { opacity: 0; transition: opacity .9s ease .3s; }
+.spotlight.fade-in-up .spot-card-bg { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .spot-card, .spot-card-bg { transition: none; opacity: 1; transform: none; }
+}
+
 /* mockup internals */
 .sm-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #6b73a0; margin-bottom: 8px; }
 .sm-jd { font-size: 12.5px; line-height: 1.55; color: #aeb6da; background: rgba(255,255,255,.04);

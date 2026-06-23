@@ -2214,7 +2214,37 @@ function _closeMobileDrawers() {
 })();
 
 // ============ Boot ============
+// ---- First-signup welcome screen (plays once) ----
+function _maybeShowWelcome() {
+  if (localStorage.getItem('hf_welcome') !== '1') return;
+  localStorage.removeItem('hf_welcome');
+  const bd = document.createElement('div');
+  bd.id = 'welcome-overlay';
+  bd.innerHTML = `
+    <div class="wel-bg"></div>
+    <div class="wel-card">
+      <div class="wel-logo"><img src="logo.jpeg" alt="Applio"></div>
+      <div class="wel-eyebrow">Welcome to Applio</div>
+      <h1 class="wel-title">Let's land you<br>more interviews.</h1>
+      <p class="wel-sub">Your AI resume workspace is ready, build it, optimize it for ATS, and export a recruiter-ready PDF, all in one place.</p>
+      <button class="wel-btn" type="button" onclick="_closeWelcome()">Start building →</button>
+    </div>`;
+  document.body.appendChild(bd);
+  document.body.style.overflow = 'hidden';
+  // auto-dismiss as a fallback so it never blocks
+  bd._t = setTimeout(_closeWelcome, 9000);
+}
+function _closeWelcome() {
+  const b = document.getElementById('welcome-overlay');
+  if (!b) return;
+  clearTimeout(b._t);
+  b.classList.add('wel-out');
+  document.body.style.overflow = '';
+  setTimeout(() => b.remove(), 420);
+}
+
 (async () => {
+  _maybeShowWelcome();
   await loadCurrentUser();
   hydrate();
   renderMain();

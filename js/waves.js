@@ -85,9 +85,10 @@
         svg.appendChild(path); paths.push(path); lines.push(points);
       }
     }
-    function updateMouse(x, y) {
-      if (!bounding) return;
-      mouse.x = x - bounding.left; mouse.y = y - bounding.top + window.scrollY;
+    function updateMouse(clientX, clientY) {
+      // Fresh viewport-relative rect each move → correct at any scroll position.
+      const rect = container.getBoundingClientRect();
+      mouse.x = clientX - rect.left; mouse.y = clientY - rect.top;
       if (!mouse.set) { mouse.sx = mouse.x; mouse.sy = mouse.y; mouse.lx = mouse.x; mouse.ly = mouse.y; mouse.set = true; }
       container.style.setProperty('--x', mouse.sx + 'px');
       container.style.setProperty('--y', mouse.sy + 'px');
@@ -138,7 +139,7 @@
     setSize(); setLines();
     if (reduce) { movePoints(0); drawLines(); return; }
     window.addEventListener('resize', () => { setSize(); setLines(); });
-    window.addEventListener('mousemove', e => updateMouse(e.pageX, e.pageY));
+    window.addEventListener('mousemove', e => updateMouse(e.clientX, e.clientY));
     container.addEventListener('touchmove', e => { const t = e.touches[0]; if (t) { e.preventDefault(); updateMouse(t.clientX, t.clientY); } }, { passive: false });
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(entries => { entries[0].isIntersecting ? start() : stop(); }, { threshold: 0 }).observe(container);

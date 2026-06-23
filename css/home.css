@@ -1217,3 +1217,8 @@ section[id] { scroll-margin-top: 80px; }
   .spotlight.reverse .spot-text, .spotlight.reverse .spot-mock { order: 0; }
   .spot-mock { min-height: 300px; }
 }
+
+/* ===== Display/accent font on landing headings ===== */
+.hero-title, .rotator, .section-title, .spot-title, .spot-eyebrow, .aitools-title,
+.dcard-title, .feat-card h3, .feat-wide h3, .price-card h3, .pcard-title,
+.home-brand, .stat-num { font-family: var(--font-display); }

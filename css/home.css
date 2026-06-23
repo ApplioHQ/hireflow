@@ -1229,7 +1229,17 @@ section[id] { scroll-margin-top: 80px; }
 .home-brand, .stat-num { font-family: var(--font-display); }
 
 /* ===== Waves background on the hero ===== */
-#hero-waves { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-#hero-waves svg { display: block; width: 100%; height: 100%; }
+#hero-waves { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+  /* Soft vignette so the lines fade into the hero edges instead of cutting off. */
+  -webkit-mask: radial-gradient(125% 105% at 50% 38%, #000 50%, transparent 100%);
+  mask: radial-gradient(125% 105% at 50% 38%, #000 50%, transparent 100%); }
+/* Additive blend makes the indigo/violet strokes glow over the dark hero. */
+#hero-waves svg { display: block; width: 100%; height: 100%; mix-blend-mode: screen; }
+/* Glowing cursor dot that trails the pointer. */
+.wave-dot { position: absolute; top: 0; left: 0; width: 10px; height: 10px; border-radius: 50%;
+  margin: -5px 0 0 -5px; opacity: 0; pointer-events: none; will-change: transform;
+  background: radial-gradient(circle, #fff 0%, #a5b4fc 42%, rgba(99,102,241,0) 72%);
+  box-shadow: 0 0 18px 5px rgba(139,92,246,.5); transition: opacity .3s ease; }
 .hero .hero-inner { position: relative; z-index: 2; }
 .hero .hero-bg { z-index: 0; }
+@media (prefers-reduced-motion: reduce) { .wave-dot { display: none; } }

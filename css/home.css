@@ -1227,3 +1227,9 @@ section[id] { scroll-margin-top: 80px; }
 .hero-title, .rotator, .section-title, .spot-title, .spot-eyebrow, .aitools-title,
 .dcard-title, .feat-card h3, .feat-wide h3, .price-card h3, .pcard-title,
 .home-brand, .stat-num { font-family: var(--font-display); }
+
+/* ===== Waves background on the hero ===== */
+#hero-waves { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+#hero-waves svg { display: block; width: 100%; height: 100%; }
+.hero .hero-inner { position: relative; z-index: 2; }
+.hero .hero-bg { z-index: 0; }

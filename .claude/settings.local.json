@@ -47,7 +47,9 @@
       "Bash(node --check js/notify.js)",
       "mcp__visualize__read_me",
       "mcp__visualize__show_widget",
-      "Bash(node --check js/waves.js)"
+      "Bash(node --check js/waves.js)",
+      "Bash(chmod +x scripts/backup-kv.sh scripts/restore-kv.sh)",
+      "Bash(bash scripts/backup-kv.sh)"
     ]
   }
 }

@@ -1132,24 +1132,19 @@ section[id] { scroll-margin-top: 80px; }
     radial-gradient(60% 50% at 80% 30%, rgba(99,102,241,.14), transparent 60%),
     radial-gradient(50% 50% at 10% 80%, rgba(139,92,246,.12), transparent 60%),
     #0a0e27;
-  padding: 150px 0; position: relative; overflow: hidden;
+  padding: 130px 0; position: relative; overflow: hidden;
 }
-/* Eased multi-stop "scrim" fades (an ease-in-out alpha ramp) so the blend
-   dissolves smoothly instead of showing a flat grey band. Taller for a gentler
-   transition. Top blends from the white Features section, bottom into the light
-   How-It-Works section. */
-.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:240px; z-index:0; pointer-events:none;
+/* Eased "scrim" fades that sit entirely within the top/bottom padding (≈110px,
+   well above the content at ~130px) so they smoothly bridge the white sections
+   without washing over the eyebrow/title. */
+.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:110px; z-index:0; pointer-events:none;
   background: linear-gradient(180deg,
-    #fff 0%, rgba(255,255,255,.985) 12%, rgba(255,255,255,.94) 22%, rgba(255,255,255,.86) 31%,
-    rgba(255,255,255,.74) 40%, rgba(255,255,255,.60) 49%, rgba(255,255,255,.45) 58%,
-    rgba(255,255,255,.31) 67%, rgba(255,255,255,.19) 76%, rgba(255,255,255,.10) 85%,
-    rgba(255,255,255,.04) 93%, rgba(255,255,255,0) 100%); }
-.spotlights::after { content:''; position:absolute; bottom:0; left:0; right:0; height:240px; z-index:0; pointer-events:none;
+    #fff 0%, rgba(255,255,255,.92) 16%, rgba(255,255,255,.78) 32%, rgba(255,255,255,.55) 50%,
+    rgba(255,255,255,.32) 66%, rgba(255,255,255,.14) 82%, rgba(255,255,255,0) 100%); }
+.spotlights::after { content:''; position:absolute; bottom:0; left:0; right:0; height:110px; z-index:0; pointer-events:none;
   background: linear-gradient(0deg,
-    #f7f8fc 0%, rgba(247,248,252,.985) 12%, rgba(247,248,252,.94) 22%, rgba(247,248,252,.86) 31%,
-    rgba(247,248,252,.74) 40%, rgba(247,248,252,.60) 49%, rgba(247,248,252,.45) 58%,
-    rgba(247,248,252,.31) 67%, rgba(247,248,252,.19) 76%, rgba(247,248,252,.10) 85%,
-    rgba(247,248,252,.04) 93%, rgba(247,248,252,0) 100%); }
+    #f7f8fc 0%, rgba(247,248,252,.92) 16%, rgba(247,248,252,.78) 32%, rgba(247,248,252,.55) 50%,
+    rgba(247,248,252,.32) 66%, rgba(247,248,252,.14) 82%, rgba(247,248,252,0) 100%); }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
   align-items: center; padding: 56px 0; }
 .spotlight + .spotlight { border-top: 1px solid rgba(255,255,255,.06); }

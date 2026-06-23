@@ -147,6 +147,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     const el = document.getElementById('hero-waves');
-    if (el) initWaves(el);
+    // Themed to the app: indigo lines over the hero's brand gradient (transparent bg).
+    if (el) initWaves(el, { strokeColor: '#818cf8', backgroundColor: 'transparent', strokeOpacity: 0.16 });
   });
 })();

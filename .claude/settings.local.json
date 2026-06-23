@@ -45,7 +45,8 @@
       "Bash(sed -n '/function aiLoading\\\\b/,/^}/p' js/editor.js)",
       "Bash(sed -n '/function aiLoadingDone/,/^}/p' js/editor.js)",
       "Bash(node --check js/notify.js)",
-      "mcp__visualize__read_me"
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget"
     ]
   }
 }

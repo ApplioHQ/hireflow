@@ -44,7 +44,8 @@
       "Bash(awk 'NR>=60 && NR<=96 && /function /{print NR\": \"$0}' js/editor.js)",
       "Bash(sed -n '/function aiLoading\\\\b/,/^}/p' js/editor.js)",
       "Bash(sed -n '/function aiLoadingDone/,/^}/p' js/editor.js)",
-      "Bash(node --check js/notify.js)"
+      "Bash(node --check js/notify.js)",
+      "mcp__visualize__read_me"
     ]
   }
 }

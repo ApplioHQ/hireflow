@@ -299,10 +299,11 @@ if (tickerEl) {
   });
 })();
 
-// ── Hero canvas particle network ──
+// ── Hero canvas particle network (skipped when the waves background is present) ──
 (function () {
   const hero = document.querySelector('.hero');
   if (!hero) return;
+  if (document.getElementById('hero-waves')) return; // waves.js owns the hero bg
   const canvas = document.createElement('canvas');
   canvas.id = 'hero-particles';
   hero.prepend(canvas);

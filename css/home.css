@@ -1125,10 +1125,21 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ===== Feature spotlights (alternating mockups) ===== */
-.spotlights { background: #0a0e27; padding: 80px 0; position: relative; overflow: hidden; }
-.spotlights::before { content:''; position:absolute; inset:0;
-  background: radial-gradient(60% 50% at 80% 10%, rgba(99,102,241,.14), transparent 60%),
-              radial-gradient(50% 50% at 10% 90%, rgba(139,92,246,.12), transparent 60%); pointer-events:none; }
+.spotlights {
+  /* base dark + subtle brand glows baked into the background so the pseudo-
+     elements are free for the top/bottom colour fades. */
+  background:
+    radial-gradient(60% 50% at 80% 30%, rgba(99,102,241,.14), transparent 60%),
+    radial-gradient(50% 50% at 10% 80%, rgba(139,92,246,.12), transparent 60%),
+    #0a0e27;
+  padding: 120px 0; position: relative; overflow: hidden;
+}
+/* Top fade: blend down from the white Features section (#fff) into the dark band. */
+.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:150px; z-index:0; pointer-events:none;
+  background: linear-gradient(180deg, #fff 0%, rgba(10,14,39,0) 100%); }
+/* Bottom fade: blend the dark band into the light How-It-Works section (#f7f8fc). */
+.spotlights::after { content:''; position:absolute; bottom:0; left:0; right:0; height:150px; z-index:0; pointer-events:none;
+  background: linear-gradient(0deg, #f7f8fc 0%, rgba(10,14,39,0) 100%); }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
   align-items: center; padding: 56px 0; }
 .spotlight + .spotlight { border-top: 1px solid rgba(255,255,255,.06); }

@@ -1236,3 +1236,16 @@ section[id] { scroll-margin-top: 80px; }
   transform: translate3d(calc(var(--x) - 50%), calc(var(--y) - 50%), 0); }
 .hero .hero-inner { position: relative; z-index: 2; }
 .hero .hero-bg { z-index: 0; }
+
+/* ===== Hero left: refined glass panel (overrides the legacy flat gradient) ===== */
+.hero .hero-left {
+  background: linear-gradient(155deg, rgba(99,102,241,0.30) 0%, rgba(67,56,202,0.16) 45%, rgba(30,27,75,0.10) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 52px 48px 46px;
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  box-shadow: 0 32px 80px rgba(7,9,26,0.5), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+@media (max-width: 768px) {
+  .hero .hero-left { padding: 34px 24px 30px; border-radius: 20px; }
+}

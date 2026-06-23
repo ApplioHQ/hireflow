@@ -81,6 +81,7 @@
         path.setAttribute('fill', 'none');
         path.setAttribute('stroke', strokeColor);
         path.setAttribute('stroke-width', '1');
+        path.setAttribute('stroke-opacity', String(opts.strokeOpacity != null ? opts.strokeOpacity : 1));
         svg.appendChild(path); paths.push(path); lines.push(points);
       }
     }

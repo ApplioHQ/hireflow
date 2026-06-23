@@ -1148,7 +1148,6 @@ section[id] { scroll-margin-top: 80px; }
     rgba(247,248,252,.76) 36%, rgba(247,248,252,.63) 45%, rgba(247,248,252,.5) 54%,
     rgba(247,248,252,.37) 63%, rgba(247,248,252,.25) 72%, rgba(247,248,252,.15) 81%,
     rgba(247,248,252,.07) 90%, rgba(247,248,252,0) 100%); }
-    rgba(247,248,252,.32) 66%, rgba(247,248,252,.14) 82%, rgba(247,248,252,0) 100%); }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
   align-items: center; padding: 56px 0; }
 .spotlight + .spotlight { border-top: 1px solid rgba(255,255,255,.06); }

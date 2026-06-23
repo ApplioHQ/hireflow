@@ -1,0 +1,9 @@
+# KV backups contain user emails + password hashes — never commit them.
+backups/
+
+# Dependencies / tooling
+node_modules/
+.wrangler/
+.dev.vars
+*.log
+.DS_Store

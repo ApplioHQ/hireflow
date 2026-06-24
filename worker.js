@@ -258,6 +258,7 @@ async function me(req, env) {
   const payload = await authenticate(req, env);
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
+  await maybeResetDownloads(env, user);
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
   return {
     email: user.email,
@@ -265,6 +266,7 @@ async function me(req, env) {
     isPaid: isPaidPlan(user),
     downloadsUsed: user.downloadsUsed || 0,
     downloadLimit: limit,
+    downloadsResetAt: user.downloadsResetAt || null,
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
     aiTrials: user.aiTrials || {},
@@ -286,10 +288,31 @@ async function getResume(req, env) {
 }
 
 // ============ Downloads ============
+// Unix timestamp (seconds) for 00:00 UTC on the first day of next month.
+function firstOfNextMonthUnix() {
+  const now = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
+  return Math.floor(next.getTime() / 1000);
+}
+// Reset the monthly download allowance when the reset date has passed.
+// Mutates and persists the user record so the limit feels like a monthly
+// allowance rather than a permanent lifetime cap.
+async function maybeResetDownloads(env, user) {
+  const now = Math.floor(Date.now() / 1000);
+  if (!user.downloadsResetAt) {
+    user.downloadsResetAt = firstOfNextMonthUnix();
+    await putUser(env, user);
+  } else if (now > user.downloadsResetAt) {
+    user.downloadsUsed = 0;
+    user.downloadsResetAt = firstOfNextMonthUnix();
+    await putUser(env, user);
+  }
+}
 async function incrementDownload(req, env) {
   const payload = await authenticate(req, env);
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
+  await maybeResetDownloads(env, user);
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
   const paid = isPaidPlan(user);
   const used = user.downloadsUsed || 0;

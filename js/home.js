@@ -614,3 +614,39 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     if (stack) stack.style.transform = 'rotate(5deg)';
   });
 })();
+
+// ── Spotlights: animate each mockup when it scrolls into view ──
+(function () {
+  var spots = document.querySelectorAll('[data-spot]');
+  if (!spots.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el, target) {
+    if (reduce) { el.textContent = target; return; }
+    var start = null;
+    (function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / 1100, 1);
+      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+      if (p < 1) requestAnimationFrame(step);
+    })(performance.now());
+  }
+  function animateSpot(el) {
+    el.querySelectorAll('.sm-count').forEach(function (c) { countUp(c, parseInt(c.dataset.count, 10) || 0); });
+    var ring = el.querySelector('.sm-ring-fill');
+    if (ring) { var t = parseInt(ring.dataset.target, 10) || 0; ring.style.strokeDashoffset = (314 * (1 - t / 100)).toFixed(1); }
+    el.querySelectorAll('.sm-bar-fill').forEach(function (b, i) {
+      var w = (parseInt(b.dataset.w, 10) || 0) + '%';
+      if (reduce) { b.style.width = w; } else { setTimeout(function () { b.style.width = w; }, 120 * i); }
+    });
+    el.querySelectorAll('.sm-chip.ok').forEach(function (c, i) {
+      if (reduce) { c.classList.add('lit'); } else { setTimeout(function () { c.classList.add('lit'); }, 150 + 120 * i); }
+    });
+    if (!reduce) el.querySelectorAll('.sm-bullets li').forEach(function (li, i) { setTimeout(function () { li.classList.add('hl'); }, 180 * i); });
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { animateSpot(e.target); io.unobserve(e.target); } });
+    }, { threshold: 0.35 });
+    spots.forEach(function (s) { io.observe(s); });
+  } else { spots.forEach(animateSpot); }
+})();

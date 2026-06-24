@@ -1634,12 +1634,10 @@ function _applyFullZoom() {
 function _renderFullPreview() {
   const f = document.getElementById('full-frame');
   if (!f) return;
-  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
-  const doc = writeResumeFrame(f, html, 816);
-  const fit = () => { f.style.height = (doc.documentElement.scrollHeight) + 'px'; };
-  fit();
-  setTimeout(fit, 60);
-  _applyFullZoom();
+  _mountResume(f, false, function (doc) {
+    f.style.height = (doc.documentElement.scrollHeight) + 'px';
+    _applyFullZoom();
+  });
 }
 
 function _buildFullOverlay() {
@@ -1680,9 +1678,8 @@ function _buildFullOverlay() {
   });
 }
 
-function _bindPreviewClicks() {
-  const preview = document.getElementById('preview');
-  if (!preview) return;
+function _bindPreviewClicks(doc) {
+  if (!doc) return;
   const SECTION_MAP = {
     'experience': 'experience', 'education': 'education', 'skills': 'skills',
     'projects': 'projects', 'certifications': 'certifications', 'awards': 'awards',
@@ -1690,8 +1687,9 @@ function _bindPreviewClicks() {
     'summary': 'personal', 'profile': 'personal', 'objective': 'personal',
     'workexperience': 'experience', 'professionalexperience': 'experience',
   };
-  // Make section headings clickable
-  preview.querySelectorAll('h2').forEach(h2 => {
+  // Make section headings clickable (handlers added from the parent context, so
+  // the same-origin iframe can call back into nextSection()).
+  doc.querySelectorAll('h2').forEach(h2 => {
     const key = h2.textContent.toLowerCase().replace(/[^a-z]/g, '');
     const section = SECTION_MAP[key] || Object.keys(SECTION_MAP).reduce((found, k) => found || (key.includes(k) ? SECTION_MAP[k] : null), null);
     if (!section) return;
@@ -1700,7 +1698,7 @@ function _bindPreviewClicks() {
     h2.addEventListener('click', () => nextSection(section));
   });
   // Make header/name area jump to personal
-  const header = preview.querySelector('[class*="header"], [class*="name"]');
+  const header = doc.querySelector('[class*="header"], [class*="name"]');
   if (header) {
     header.classList.add('preview-jump');
     header.title = 'Click to edit Personal Info';

@@ -1616,15 +1616,24 @@ const MAX_SHEETS = 6;      // safety cap so pathological content can't run away
 // on a gray canvas. When a block won't fit on the current sheet, a spacer pushes
 // it to the top of the next one (so a page "fills up" and a fresh page begins).
 // Runs inside the preview iframe only, so the export/PDF stays a clean flow.
+// Raise the résumé's real content (every body child except <style> and our own
+// sheets) above the painted sheets. Note body.firstElementChild is a <style> tag,
+// so we can't target a single "root" element.
+function _contentEls(body) {
+  return Array.from(body.children).filter(el => el.tagName !== 'STYLE' && !el.classList.contains('hf-sheet'));
+}
+
 function _paginate(doc, ratio) {
   const body = doc.body;
-  const rootEl = body.firstElementChild;       // template root (.t-modern, …)
-  // Reset any previous pagination so re-renders are idempotent.
+  // Reset any previous pagination so re-renders (incl. the fonts-ready re-run) are idempotent.
   doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(e => e.remove());
   body.style.background = '';
   body.style.minHeight = '';
   body.style.position = '';
-  if (rootEl) { rootEl.style.position = ''; rootEl.style.zIndex = ''; }
+  _contentEls(body).forEach(el => {
+    el.style.zIndex = '';
+    if (el.dataset.hfpos) { el.style.position = ''; delete el.dataset.hfpos; }
+  });
   if (!(ratio > 1.0)) return;                  // fits on one page — nothing to do
 
   const flow = _bestFlowRoot(body);
@@ -1650,11 +1659,14 @@ function _paginate(doc, ratio) {
   }
 
   const totalPages = page + 1;
-  // Paint the white sheets behind the content, with a gray canvas showing through
-  // the gaps. Content (rootEl) sits above the sheets.
+  // Gray canvas + raise content above the (yet-to-be-added) sheets.
   body.style.position = 'relative';
   body.style.background = '#e9eaef';
-  if (rootEl) { rootEl.style.position = 'relative'; rootEl.style.zIndex = '1'; }
+  _contentEls(body).forEach(el => {
+    if (doc.defaultView.getComputedStyle(el).position === 'static') { el.style.position = 'relative'; el.dataset.hfpos = '1'; }
+    el.style.zIndex = '1';
+  });
+  // Paint the white sheets behind (appended last, z-index 0 < content's 1).
   const w = body.clientWidth || 816;
   for (let i = 0; i < totalPages; i++) {
     const sheet = doc.createElement('div');

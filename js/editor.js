@@ -1466,26 +1466,53 @@ function _mountResume(frame, mini, cb) {
   return doc;
 }
 
+// Mini preview zoom (1 = fit-to-width). Persists across re-renders.
+let _miniZoom = 1;
+function _miniRefs() {
+  const wrap = document.getElementById('preview');
+  const sizer = wrap && wrap.querySelector('.preview-sizer');
+  const frame = sizer && sizer.querySelector('iframe');
+  return { wrap, sizer, frame };
+}
+function setMiniZoom(kind) {
+  if (kind === 'fit') _miniZoom = 1;
+  else _miniZoom = Math.min(2.5, Math.max(0.5, +(_miniZoom + kind).toFixed(2)));
+  const r = _miniRefs();
+  if (r.frame && r.frame._doc) _scaleMini(r.wrap, r.sizer, r.frame, r.frame._doc);
+  const lbl = document.getElementById('mini-zoom-label');
+  if (lbl) lbl.textContent = _miniZoom === 1 ? 'Fit' : Math.round(_miniZoom * 100) + '%';
+}
+
 function renderPreview() {
   const wrap = document.getElementById('preview');
   if (!wrap) return;
-  let frame = wrap.querySelector('iframe');
+  let sizer = wrap.querySelector('.preview-sizer');
+  let frame = sizer && sizer.querySelector('iframe');
   if (!frame) {
+    wrap.innerHTML = '';
+    sizer = document.createElement('div');
+    sizer.className = 'preview-sizer';
+    sizer.style.cssText = 'position:relative; margin:0 auto;';
     frame = document.createElement('iframe');
     frame.id = 'preview-frame';
     frame.title = 'Resume preview';
     frame.setAttribute('scrolling', 'no');
-    frame.style.cssText = 'width:816px; border:0; background:#fff; display:block; transform-origin:top left;';
-    wrap.innerHTML = '';
-    wrap.appendChild(frame);
-    // Re-scale (not re-render) when the panel resizes — keeps the fit correct
-    // when the sidebar collapses or the window changes.
+    // Starts transparent; fades in once measured + scaled (kills the flash of
+    // unscaled/unfonted content).
+    frame.style.cssText = 'width:816px; border:0; background:#fff; display:block; transform-origin:top left; opacity:0; transition:opacity .18s ease;';
+    sizer.appendChild(frame);
+    wrap.appendChild(sizer);
+    // Re-scale (not re-render) when the panel resizes.
     if (window.ResizeObserver && !wrap._ro) {
-      wrap._ro = new ResizeObserver(() => { if (frame._doc) _scaleMini(wrap, frame, frame._doc); });
+      wrap._ro = new ResizeObserver(() => {
+        const r = _miniRefs();
+        if (r.frame && r.frame._doc) _scaleMini(r.wrap, r.sizer, r.frame, r.frame._doc);
+      });
       wrap._ro.observe(wrap);
     }
   }
-  _mountResume(frame, true, function (doc) { frame._doc = doc; _renderMiniInto(wrap, frame, doc); });
+  const sz = sizer, fr = frame;
+  _mountResume(frame, true, function (doc) { fr._doc = doc; _renderMiniInto(wrap, sz, fr, doc); });
   if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
   if (window.renderHealthBadge) window.renderHealthBadge();
   // Keep the free Quick Fixes checklist current as the user edits (no network).

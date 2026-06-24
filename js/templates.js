@@ -670,7 +670,10 @@ function resumeDocHTML(bodyHTML, pageWidth) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
   html, body { margin:0; padding:0; background:#fff; color:#111;
-    font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif; }
+    font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif;
+    /* Force background colours/gradients (template headers, sidebars) to print
+       instead of being stripped by the browser's "economy" print default. */
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   body { width:${w}px;
     /* Print-grade typography: crisp rendering, real kerning/ligatures, and
        lining tabular figures so date ranges align like a typeset resume. */

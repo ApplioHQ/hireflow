@@ -1152,7 +1152,8 @@ section[id] { scroll-margin-top: 80px; }
     rgba(247,248,252,.07) 90%, rgba(247,248,252,0) 100%); }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
   align-items: center; padding: 34px 0; }
-.spotlight + .spotlight { border-top: 1px solid rgba(255,255,255,.06); }
+.spotlight + .spotlight { border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 22%, rgba(255,255,255,.12) 78%, transparent) 1; }
 .spotlight.reverse .spot-text { order: 2; }
 .spotlight.reverse .spot-mock { order: 1; }
 .spot-eyebrow { display:inline-block; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;

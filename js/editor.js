@@ -1528,10 +1528,7 @@ function _injectPreviewChrome(doc) {
   st.textContent =
     '.preview-jump{cursor:pointer;transition:background .12s;}' +
     '.preview-jump:hover{background:rgba(99,102,241,.10)!important;outline:2px solid rgba(99,102,241,.35);outline-offset:1px;border-radius:3px;}' +
-    '.preview-page-gap{position:relative;height:18px;margin:6px -12%;background:#9aa3b8;' +
-      'box-shadow:inset 0 8px 8px -8px rgba(0,0,0,.5),inset 0 -8px 8px -8px rgba(0,0,0,.5);}' +
-    '.preview-page-gap span{position:absolute;top:50%;right:14%;transform:translateY(-50%);' +
-      'font-size:11px;font-weight:700;letter-spacing:.03em;color:#fff;background:rgba(0,0,0,.25);padding:1px 6px;border-radius:4px;}';
+    '.hf-pagebreak{pointer-events:none;}';
   doc.head.appendChild(st);
 }
 
@@ -1541,7 +1538,7 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
   if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
   const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
   _renderFitIndicator(ratio);
-  _drawPageBreak(doc, ratio);
+  _paginate(doc, ratio);
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
 }
@@ -1612,31 +1609,61 @@ function _bestFlowRoot(preview) {
   return best;
 }
 
-function _drawPageBreak(doc, ratio) {
-  // Clear any previously-inserted page gutters.
-  doc.querySelectorAll('.preview-page-gap').forEach(l => l.remove());
-  // Only meaningful when content actually spills past one page.
-  if (ratio <= 1.0) return;
-  // Insert a real "gutter" between page-sized slices of content so the preview
-  // reads as separate sheets of paper, not one scroll with a line through it.
-  // We're now operating inside the render iframe at TRUE page pixels, so the
-  // boundary lands exactly where the printed page breaks — no cross-context math.
-  const root = _bestFlowRoot(doc.body);
-  const maxSheets = Math.min(Math.floor(ratio + 1e-4) + 1, 3);
-  const bodyTop = doc.body.getBoundingClientRect().top;
-  let boundary = PAGE_PX, sheet = 1;              // one printed page = PAGE_PX (true px)
-  for (const child of Array.from(root.children)) {
-    if (sheet >= maxSheets) break;
-    const y = child.getBoundingClientRect().top - bodyTop;   // top of child within the page
-    if (y >= boundary) {
-      const gap = doc.createElement('div');
-      gap.className = 'preview-page-gap';
-      gap.innerHTML = '<span>Page ' + (sheet + 1) + '</span>';
-      root.insertBefore(gap, child);
-      boundary += PAGE_PX;
-      sheet++;
+const SHEET_GAP = 24;      // gray gap between page sheets (true px)
+const MAX_SHEETS = 6;      // safety cap so pathological content can't run away
+
+// Google-Docs-style pagination: lay the résumé out as discrete white page sheets
+// on a gray canvas. When a block won't fit on the current sheet, a spacer pushes
+// it to the top of the next one (so a page "fills up" and a fresh page begins).
+// Runs inside the preview iframe only, so the export/PDF stays a clean flow.
+function _paginate(doc, ratio) {
+  const body = doc.body;
+  const rootEl = body.firstElementChild;       // template root (.t-modern, …)
+  // Reset any previous pagination so re-renders are idempotent.
+  doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(e => e.remove());
+  body.style.background = '';
+  body.style.minHeight = '';
+  body.style.position = '';
+  if (rootEl) { rootEl.style.position = ''; rootEl.style.zIndex = ''; }
+  if (!(ratio > 1.0)) return;                  // fits on one page — nothing to do
+
+  const flow = _bestFlowRoot(body);
+  const step = PAGE_PX + SHEET_GAP;
+  let page = 0;
+  for (const child of Array.from(flow.children)) {
+    if (page >= MAX_SHEETS - 1) break;
+    const bodyTop = body.getBoundingClientRect().top;     // re-read (spacers shift layout)
+    const r = child.getBoundingClientRect();
+    const top = r.top - bodyTop;
+    const bottom = top + r.height;
+    const pageTop = page * step;
+    const pageBottom = pageTop + PAGE_PX;
+    // Block overflows this sheet and isn't the first thing on it → bump to next sheet.
+    if (bottom > pageBottom && top > pageTop + 1) {
+      const nextTop = (page + 1) * step;
+      const sp = doc.createElement('div');
+      sp.className = 'hf-pagebreak';
+      sp.style.cssText = 'height:' + Math.max(0, Math.round(nextTop - top)) + 'px;';
+      flow.insertBefore(sp, child);
+      page++;
     }
   }
+
+  const totalPages = page + 1;
+  // Paint the white sheets behind the content, with a gray canvas showing through
+  // the gaps. Content (rootEl) sits above the sheets.
+  body.style.position = 'relative';
+  body.style.background = '#e9eaef';
+  if (rootEl) { rootEl.style.position = 'relative'; rootEl.style.zIndex = '1'; }
+  const w = body.clientWidth || 816;
+  for (let i = 0; i < totalPages; i++) {
+    const sheet = doc.createElement('div');
+    sheet.className = 'hf-sheet';
+    sheet.style.cssText = 'position:absolute; left:0; top:' + (i * step) + 'px; width:' + w + 'px; height:' +
+      PAGE_PX + 'px; background:#fff; z-index:0; box-shadow:0 1px 5px rgba(0,0,0,.28); border-radius:2px;';
+    body.appendChild(sheet);
+  }
+  body.style.minHeight = (totalPages * PAGE_PX + (totalPages - 1) * SHEET_GAP) + 'px';
 }
 
 // ============ Fix 2: full-screen preview lightbox ============

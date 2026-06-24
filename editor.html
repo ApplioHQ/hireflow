@@ -102,9 +102,9 @@
       <h4>Live Preview</h4>
       <button class="btn btn-secondary btn-block btn-sm" style="margin-bottom:10px;" onclick="openFullPreview()">⛶ Full Preview</button>
       <div class="preview-controls">
-        <button class="preview-btn">100%</button>
-        <button class="preview-btn">−</button>
-        <button class="preview-btn">+</button>
+        <button class="preview-btn" onclick="setMiniZoom(-0.15)" title="Zoom out">−</button>
+        <button class="preview-btn" id="mini-zoom-label" onclick="setMiniZoom('fit')" title="Reset to fit width">Fit</button>
+        <button class="preview-btn" onclick="setMiniZoom(0.15)" title="Zoom in">+</button>
       </div>
       <div class="preview-mini" id="preview"></div>
       <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px;">

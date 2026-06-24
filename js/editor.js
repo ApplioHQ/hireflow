@@ -1536,24 +1536,37 @@ function _injectPreviewChrome(doc) {
 }
 
 // Idempotent: paint chrome, bind jumps once, compute fit, paginate, scale.
-function _renderMiniInto(wrap, frame, doc) {
+function _renderMiniInto(wrap, sizer, frame, doc) {
   _injectPreviewChrome(doc);
   if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
   const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
   _renderFitIndicator(ratio);
   _drawPageBreak(doc, ratio);
-  _scaleMini(wrap, frame, doc);
+  _scaleMini(wrap, sizer, frame, doc);
+  frame.style.opacity = '1';                  // reveal once measured + scaled
 }
 
-// Scale the true-size iframe down to the available panel width.
-function _scaleMini(wrap, frame, doc) {
+// Scale the true-size iframe down to fit the panel (× the user's zoom). The
+// sizer reserves the *scaled* footprint so scrollbars reflect the zoomed size.
+function _scaleMini(wrap, sizer, frame, doc) {
   const avail = wrap.clientWidth || 0;
-  if (avail < 1) return;                      // hidden/collapsed — RO will retry
-  const s = avail / 816;
+  if (avail < 1) return;                       // hidden/collapsed — RO will retry
+  const z = _miniZoom || 1;
+  const s = (avail / 816) * z;
   const h = doc.documentElement.scrollHeight || doc.body.scrollHeight || 0;
   frame.style.height = h + 'px';
   frame.style.transform = 'scale(' + s + ')';
-  wrap.style.height = Math.round(h * s) + 'px';
+  sizer.style.width = Math.round(816 * s) + 'px';
+  sizer.style.height = Math.round(h * s) + 'px';
+  if (z > 1) {
+    // Zoomed in: fixed-height scroll viewport (both axes).
+    wrap.style.height = '70vh';
+    wrap.style.overflow = 'auto';
+  } else {
+    // Fit: panel grows to the full résumé, no scrollbars.
+    wrap.style.height = Math.round(h * s) + 'px';
+    wrap.style.overflow = 'hidden';
+  }
 }
 
 function _renderFitIndicator(ratio) {
@@ -1742,6 +1755,14 @@ function nextSection(s) {
 function addItem(key, b) { resume[key].push(b); save(); renderMain(); }
 function removeItem(key, idx) { resume[key].splice(idx,1); save(); renderMain(); }
 
+// Coalesce rapid keystrokes into one preview re-render so typing stays smooth
+// (each render re-writes the iframe + re-measures; doing it per keystroke flickers).
+let _previewTimer = null;
+function schedulePreview() {
+  clearTimeout(_previewTimer);
+  _previewTimer = setTimeout(renderPreview, 160);
+}
+
 function bindAutoSave() {
   document.querySelectorAll('[data-bind]').forEach(el => {
     el.addEventListener('input', () => {
@@ -1749,7 +1770,7 @@ function bindAutoSave() {
       let obj = resume;
       for (let i=0;i<path.length-1;i++) obj = obj[path[i]];
       obj[path[path.length-1]] = el.value;
-      save(); renderPreview();
+      save(); schedulePreview();
     });
   });
 }

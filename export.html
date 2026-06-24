@@ -227,9 +227,11 @@ function updatePills() {
   } else {
     planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
     const left = downloadsLeft();
+    const used = CURRENT_USER?.downloadsUsed || 0;
+    const lim = CURRENT_USER?.downloadLimit || 10;
     dlPill.style.display = '';
-    dlPill.innerHTML = `<span class="pill ${left<=2?'warn':''}">${ICON('download','ico ico-sm')} ${CURRENT_USER?.downloadsUsed || 0} / ${CURRENT_USER?.downloadLimit || 10}</span>`;
-    info.innerHTML = `${left} of ${CURRENT_USER?.downloadLimit || 10} downloads left on Free plan. <a href="pricing.html" style="color:var(--accent);">Go unlimited →</a>`;
+    dlPill.innerHTML = `<span class="pill" style="background:var(--bg-2);color:var(--muted);border:1px solid var(--border);">${ICON('download','ico ico-sm')} ${used} of ${lim} free downloads used</span>`;
+    info.innerHTML = `${left} of ${lim} downloads left this month on Free plan. <a href="pricing.html" style="color:var(--accent);">Go unlimited →</a>`;
   }
 }
 

@@ -1100,9 +1100,13 @@ function renderTailor() {
           <h3 class="ai-card-title">Tailor to Job</h3>
           <p class="ai-card-sub">AI rewrites your summary &amp; bullets to match the role.</p>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="aiTailor()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Generate</button>
+        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <button class="btn btn-primary btn-sm" onclick="aiTailor()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Generate</button>
+          ${freeAiLabel('tailor')}
+        </div>
       </div>
       <div class="ai-card-body">
+        ${freeAiBanner('tailor')}
         <div class="form-field">
           <label style="display:flex;justify-content:space-between;">
             <span>Job Description</span>
@@ -1145,7 +1149,9 @@ function renderATS() {
             oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"
             style="font-size:13px;line-height:1.6;"></textarea>
         </div>
+        ${freeAiBanner('ats')}
         <button class="btn btn-emerald btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
+        ${freeAiLabel('ats')}
         <div id="ats-result" style="margin-top:16px;"></div>
         ${navRow('tailor','analysis')}
       </div>
@@ -1161,9 +1167,13 @@ function renderAnalysis() {
           <h3 class="ai-card-title">AI Resume Analysis</h3>
           <p class="ai-card-sub">Detailed strengths, weaknesses, and actionable improvements.</p>
         </div>
-        <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="margin-left:auto;white-space:nowrap;flex-shrink:0;">${ICON('sparkle','ico ico-sm')} Analyze</button>
+        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Analyze</button>
+          ${freeAiLabel('analysis')}
+        </div>
       </div>
       <div class="ai-card-body">
+        ${freeAiBanner('analysis')}
         <div id="analysis-result">${_analysisEmptyState()}</div>
         ${navRow('ats','dashboard')}
       </div>

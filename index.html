@@ -639,8 +639,24 @@
     </div>
     <h2 class="section-title light">Ready to land more interviews?</h2>
     <p class="section-sub light">Build your AI-optimized resume in minutes. Free forever, no credit card needed.</p>
-    <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Build My Resume Free →</a>
+    <a href="login.html?mode=signup" class="liquid-btn">
+      <span class="liquid-btn-shadow" aria-hidden="true"></span>
+      <span class="liquid-btn-blur" aria-hidden="true"></span>
+      <span class="liquid-btn-label">Build My Resume Free →</span>
+    </a>
     <p class="final-tagline">2-minute setup · No credit card · Cancel anytime</p>
+    <!-- Liquid-glass SVG filter (ported from the 21st.dev LiquidButton) -->
+    <svg class="liquid-glass-defs" aria-hidden="true" width="0" height="0" style="position:absolute">
+      <defs>
+        <filter id="container-glass" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
+          <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
+          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
+          <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
+          <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
+        </filter>
+      </defs>
+    </svg>
   </div>
 </section>
 

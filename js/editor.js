@@ -139,12 +139,8 @@ const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.section;
-    // tailor/ats/analysis are premium, but free users may still have trials left.
-    const SECTION_FEATURE = { tailor: 'tailor', ats: 'ats', analysis: 'analyze' };
-    if (PRO_SECTIONS.has(sec) && isFree() && !canUseAi(SECTION_FEATURE[sec])) {
-      showUpgradeModal('optimize');
-      return;
-    }
+    // Free users may now enter Pro sections (tailor/ats/analysis) and see the full
+    // UI. The free-use gate is handled inside the section, just before the AI runs.
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     item.classList.add('active');
     currentSection = sec;
@@ -1077,6 +1073,21 @@ function _renderTailorResult(text) {
         ${inner}
       </div>`;
   }).join('') + '</div>';
+}
+
+// Subtle upgrade banner shown above the action button inside a Pro section.
+function freeAiBanner(feature) {
+  if (isPaid()) return '';
+  const ctx = feature === 'analysis' ? 'analysis' : feature;
+  if (hasFreeAiUse(feature)) {
+    return `<div class="free-ai-banner">${ICON('sparkle','ico ico-sm')}<span>This feature uses <b>1 of your free AI uses</b>.</span></div>`;
+  }
+  return `<div class="free-ai-banner used">${ICON('sparkle','ico ico-sm')}<span>You've used your free trial for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
+}
+// Small "1 free use remaining" label shown beneath each AI button.
+function freeAiLabel(feature) {
+  if (isPaid()) return '';
+  return `<div class="free-ai-label">${hasFreeAiUse(feature) ? '1 free use remaining' : 'Free trial used'}</div>`;
 }
 
 function renderTailor() {

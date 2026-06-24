@@ -1505,6 +1505,21 @@ function _renderFitIndicator(ratio) {
   ind.textContent = text;
 }
 
+// Pick the container that holds the resume's main vertical flow (where section
+// blocks are siblings) so gutters land at real block boundaries. Templates vary:
+// some use a ".body" column, others stack sections directly in the root, so we
+// fall back to the densest block container (ignoring bullet lists).
+function _bestFlowRoot(preview) {
+  const named = preview.querySelector('.body');
+  if (named) return named;
+  let best = preview.firstElementChild || preview, bestN = best.children ? best.children.length : 0;
+  preview.querySelectorAll('div, section, main').forEach(el => {
+    const n = el.children.length;
+    if (n > bestN) { best = el; bestN = n; }
+  });
+  return best;
+}
+
 function _drawPageBreak(ratio, trueH) {
   const preview = document.getElementById('preview');
   // Clear any previously-inserted page gutters.
@@ -1515,7 +1530,7 @@ function _drawPageBreak(ratio, trueH) {
   // reads as separate sheets of paper, not one scroll with a line through it.
   // The gutter is pushed into the flow (it reflows content rather than covering
   // it), at the first block boundary that falls past each printed-page edge.
-  const root = preview.querySelector('.body') || preview.firstElementChild || preview;
+  const root = _bestFlowRoot(preview);
   const contentH = preview.scrollHeight;          // scaled height, measured without gutters
   const pageH = contentH / ratio;                 // scaled height of one printed page
   const maxSheets = Math.min(Math.floor(ratio + 1e-4) + 1, 3);

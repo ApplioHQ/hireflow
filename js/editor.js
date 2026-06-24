@@ -1180,6 +1180,66 @@ function renderAnalysis() {
     </div>`;
 }
 
+// Appealing pre-run state for ATS, previews the score + what gets graded.
+function _atsEmptyState() {
+  const tile = (ico, title, sub) =>
+    `<div class="an-pre-tile an-pre-emerald">
+      <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
+      <div><b>${title}</b><span>${sub}</span></div>
+    </div>`;
+  return `
+    <div class="an-pre">
+      <div class="an-pre-ring">
+        <svg viewBox="0 0 120 120" width="92" height="92">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="9"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#atsPreGrad)" stroke-width="9"
+            stroke-linecap="round" stroke-dasharray="80 234" transform="rotate(-90 60 60)" opacity=".85"/>
+          <defs><linearGradient id="atsPreGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#10b981"/>
+          </linearGradient></defs>
+          <text x="60" y="58" text-anchor="middle" font-size="30" font-weight="800" fill="var(--muted)">?</text>
+          <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
+        </svg>
+      </div>
+      <p class="an-pre-lead">Paste a job description above to get an <b>ATS match score</b> with the exact keywords and fixes that get you past the automated filters <b>~70% of resumes</b> never survive.</p>
+      <div class="an-pre-grid an-pre-grid-4">
+        ${tile('target',    'Keywords',    'Matched to the posting')}
+        ${tile('briefcase', 'Experience',  'Relevance to the role')}
+        ${tile('doc',       'Formatting',  'ATS-safe structure')}
+        ${tile('sparkle',   'Fixes',       'Exactly what to add')}
+      </div>
+    </div>`;
+}
+
+// Appealing pre-run state for Tailor, shows a before → after transformation.
+function _tailorEmptyState() {
+  const tile = (ico, title, sub) =>
+    `<div class="an-pre-tile an-pre-fix">
+      <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
+      <div><b>${title}</b><span>${sub}</span></div>
+    </div>`;
+  return `
+    <div class="tailor-pre">
+      <div class="tailor-ba">
+        <div class="tailor-ba-col tailor-ba-before">
+          <span class="tailor-ba-tag">Your bullet</span>
+          <p>Responsible for managing the team and helping out with various projects.</p>
+        </div>
+        <div class="tailor-ba-arrow">${ICON('arrowRight', 'ico')}</div>
+        <div class="tailor-ba-col tailor-ba-after">
+          <span class="tailor-ba-tag">Tailored to the role</span>
+          <p>Led an <b>8-person team</b> to ship <b>3 cross-functional projects</b>, mapping each win to the role's focus on <b>delivery &amp; ownership</b>.</p>
+        </div>
+      </div>
+      <div class="an-pre-grid">
+        ${tile('bolt',   'Rewrites bullets', 'Punchier, results-first')}
+        ${tile('target', 'Aligns keywords',  'Mirrors the posting')}
+        ${tile('user',   'Reframes summary', 'Speaks to the role')}
+      </div>
+      <p class="tailor-pre-note">Grounded in your real experience, never invented.</p>
+    </div>`;
+}
+
 // Appealing pre-analysis state, previews what the AI critique will deliver.
 function _analysisEmptyState() {
   const tile = (cls, ico, title, sub) =>

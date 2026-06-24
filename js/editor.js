@@ -1702,6 +1702,9 @@ function _renderFullPreview() {
   const f = document.getElementById('full-frame');
   if (!f) return;
   _mountResume(f, false, function (doc) {
+    _injectPreviewChrome(doc);
+    const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
+    _paginate(doc, ratio);
     f.style.height = (doc.documentElement.scrollHeight) + 'px';
     _applyFullZoom();
   });

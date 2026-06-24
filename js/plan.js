@@ -103,6 +103,27 @@ function trialsUsed(feature) { return (CURRENT_USER && CURRENT_USER.aiTrials && 
 function trialsLeft(feature) { return isPaid() ? Infinity : Math.max(0, _trialLimit() - trialsUsed(feature)); }
 // Can the user still use this AI feature (paid, or has trials left)?
 function canUseAi(feature) { return isPaid() || trialsLeft(feature) > 0; }
+
+// ---- Free AI uses (client-side soft limit in localStorage) ----
+// Each premium AI feature gets 1 free try before the paywall. This is a soft,
+// per-browser limit — it resets if the user clears storage. That's acceptable;
+// it's an on-ramp, not a billing constraint, so it's never synced to KV.
+const FREE_AI_USE_KEY = 'hf_free_ai_uses';
+const FREE_AI_DEFAULTS = { tailor: 0, ats: 0, analysis: 0, interview: 0, improve: 0 };
+function getFreeAiUses() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(FREE_AI_USE_KEY) || '{}') || {};
+    return Object.assign({}, FREE_AI_DEFAULTS, raw);
+  } catch (e) { return Object.assign({}, FREE_AI_DEFAULTS); }
+}
+function freeAiUsesLeft(feature) { return isPaid() ? Infinity : Math.max(0, 1 - (getFreeAiUses()[feature] || 0)); }
+function hasFreeAiUse(feature) { return freeAiUsesLeft(feature) > 0; }
+function consumeFreeAiUse(feature) {
+  const uses = getFreeAiUses();
+  uses[feature] = (uses[feature] || 0) + 1;
+  try { localStorage.setItem(FREE_AI_USE_KEY, JSON.stringify(uses)); } catch (e) {}
+  return uses[feature];
+}
 function planLabel() {
   if (!CURRENT_USER) return 'Free';
   if (CURRENT_USER.plan === 'lifetime') return 'Lifetime';
@@ -400,15 +421,23 @@ if (document.readyState === 'loading') {
 }
 
 // ============ Upgrade modal ============
-function showUpgradeModal(reason) {
+function showUpgradeModal(reason, context) {
   if (document.getElementById('upgrade-modal-bd')) return;
   const reasons = {
     ai: { title: 'AI features are Premium', body: 'Tailoring, ATS scoring, AI Improve, interview prep and resume analysis are part of Premium. Upgrade to unlock everything.' },
     interview: { title: 'Interview Prep is Premium', body: 'Generate practice questions tailored to any role with AI. Upgrade to unlock.' },
     optimize: { title: 'Optimize is Premium', body: 'Tailor to Job, ATS Check, and AI Analysis are part of Premium. Upgrade to unlock.' },
-    downloads: { title: 'Download limit reached', body: `You've used all 10 free downloads. Upgrade to Premium or Lifetime for unlimited downloads.` }
+    downloads: { title: 'Download limit reached', body: `You've used all 10 free downloads for this month. Upgrade to Premium or Lifetime for unlimited downloads.` }
   };
   const r = reasons[reason] || { title: 'Upgrade to Premium', body: 'Unlock AI features, interview prep, and unlimited downloads.' };
+  // Optional contextual first line tied to what the user just did.
+  const ctx = context || reason;
+  const contextLines = {
+    ats: 'You ran an ATS check — upgrade to run it again anytime and apply the missing keywords automatically.',
+    tailor: 'You tailored your resume to a job — upgrade to do this for every application.',
+    downloads: "You've used your 10 free downloads — upgrade for unlimited."
+  };
+  const contextLine = contextLines[ctx];
   const bd = document.createElement('div');
   bd.id = 'upgrade-modal-bd';
   bd.className = 'modal-backdrop open';

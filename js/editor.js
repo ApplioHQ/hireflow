@@ -1507,26 +1507,31 @@ function _renderFitIndicator(ratio) {
 
 function _drawPageBreak(ratio, trueH) {
   const preview = document.getElementById('preview');
-  if (getComputedStyle(preview).position === 'static') preview.style.position = 'relative';
-  // Clear previous dividers.
-  preview.querySelectorAll('.page-break-line').forEach(l => l.remove());
+  // Clear any previously-inserted page gutters.
+  preview.querySelectorAll('.preview-page-gap').forEach(l => l.remove());
   // Only meaningful when content actually spills past one page.
   if (ratio <= 1.0) return;
-  const contentH = preview.scrollHeight;
-  // Draw a divider at every full-page boundary that falls within the content
-  // (so a two-page resume shows where page 1 ends and page 2 begins).
-  const pages = Math.min(Math.floor(ratio + 1e-4), 3);
-  for (let k = 1; k <= pages; k++) {
-    const breakY = Math.round((k * PAGE_PX / trueH) * contentH);
-    if (breakY >= contentH - 1) break;
-    const line = document.createElement('div');
-    line.className = 'page-break-line';
-    line.style.cssText = 'position:absolute; left:0; right:0; top:' + breakY + 'px; height:0; border-top:1.5px dashed #94a3b8; pointer-events:none; z-index:5;';
-    const tag = document.createElement('span');
-    tag.textContent = 'Page ' + (k + 1);
-    tag.style.cssText = 'position:absolute; right:3px; top:-8px; font-size:7px; font-weight:600; color:#64748b; background:#fff; padding:0 3px; border-radius:3px;';
-    line.appendChild(tag);
-    preview.appendChild(line);
+  // Insert a real "gutter" between page-sized slices of content so the preview
+  // reads as separate sheets of paper, not one scroll with a line through it.
+  // The gutter is pushed into the flow (it reflows content rather than covering
+  // it), at the first block boundary that falls past each printed-page edge.
+  const root = preview.querySelector('.body') || preview.firstElementChild || preview;
+  const contentH = preview.scrollHeight;          // scaled height, measured without gutters
+  const pageH = contentH / ratio;                 // scaled height of one printed page
+  const maxSheets = Math.min(Math.floor(ratio + 1e-4) + 1, 3);
+  const previewTop = preview.getBoundingClientRect().top - preview.scrollTop;
+  let boundary = pageH, sheet = 1;
+  for (const child of Array.from(root.children)) {
+    if (sheet >= maxSheets) break;
+    const y = child.getBoundingClientRect().top - previewTop;   // top of child within the preview
+    if (y >= boundary) {
+      const gap = document.createElement('div');
+      gap.className = 'preview-page-gap';
+      gap.innerHTML = '<span>Page ' + (sheet + 1) + '</span>';
+      root.insertBefore(gap, child);
+      boundary += pageH;
+      sheet++;
+    }
   }
 }
 

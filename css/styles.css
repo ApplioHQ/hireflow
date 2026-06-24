@@ -302,6 +302,19 @@ input, textarea, select { font-family: inherit; }
   font-size: 4px; line-height: 1.35;
   box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
+/* Page gutter: makes the live preview read as separate sheets of paper.
+   Over-bleeds horizontally (clipped by #preview's overflow:hidden) so it spans
+   the full sheet width, with inset shadows to read as the gap between pages. */
+.preview-page-gap {
+  position: relative; height: 14px; margin: 5px -12%;
+  background: #9aa3b8;
+  box-shadow: inset 0 7px 7px -7px rgba(0,0,0,.5), inset 0 -7px 7px -7px rgba(0,0,0,.5);
+}
+.preview-page-gap span {
+  position: absolute; top: 50%; right: 14%; transform: translateY(-50%);
+  font-size: 6px; font-weight: 700; letter-spacing: .03em; color: #fff;
+  background: rgba(0,0,0,.22); padding: 0 4px; border-radius: 3px;
+}
 
 /* ===== Color swatches ===== */
 .swatch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }

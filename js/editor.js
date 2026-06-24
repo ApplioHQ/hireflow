@@ -1441,40 +1441,92 @@ function navRow(prev, next) {
 }
 
 // ============ Preview (uses template renderer) ============
+// ============ Preview: single source of truth ============
+// Both the mini panel and the full-screen overlay render the résumé into an
+// iframe at TRUE page width (816px = US-Letter at 96dpi) — the exact document
+// the PDF prints — and scale it with CSS transform. This guarantees the preview
+// is pixel-identical to the export, instead of the old lossy font-size scaling.
+const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
+
+// Render the résumé into `frame`, wait for web fonts to load (so measurements
+// aren't taken against the fallback font), then hand back the live document.
+// `cb` may run more than once (initial + after fonts settle) and must be idempotent.
+function _mountResume(frame, mini, cb) {
+  const html = renderTemplate(resume.template, resume, mini, resume.customize.accent);
+  const doc = writeResumeFrame(frame, html, 816);
+  const ready = () => { try { cb(doc); } catch (e) { /* preview is non-critical */ } };
+  const fonts = doc.fonts;
+  if (fonts && fonts.ready && typeof fonts.ready.then === 'function') {
+    fonts.ready.then(ready);
+    setTimeout(ready, 1000);   // fallback if font loading stalls
+  } else {
+    ready();
+    setTimeout(ready, 60);
+  }
+  return doc;
+}
+
 function renderPreview() {
-  document.getElementById('preview').innerHTML = renderTemplate(resume.template, resume, true, resume.customize.accent);
-  _bindPreviewClicks();
-  _checkPageFit();
+  const wrap = document.getElementById('preview');
+  if (!wrap) return;
+  let frame = wrap.querySelector('iframe');
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.id = 'preview-frame';
+    frame.title = 'Resume preview';
+    frame.setAttribute('scrolling', 'no');
+    frame.style.cssText = 'width:816px; border:0; background:#fff; display:block; transform-origin:top left;';
+    wrap.innerHTML = '';
+    wrap.appendChild(frame);
+    // Re-scale (not re-render) when the panel resizes — keeps the fit correct
+    // when the sidebar collapses or the window changes.
+    if (window.ResizeObserver && !wrap._ro) {
+      wrap._ro = new ResizeObserver(() => { if (frame._doc) _scaleMini(wrap, frame, frame._doc); });
+      wrap._ro.observe(wrap);
+    }
+  }
+  _mountResume(frame, true, function (doc) { frame._doc = doc; _renderMiniInto(wrap, frame, doc); });
   if (_fullOverlay && _fullOverlay.style.display === 'flex') _renderFullPreview();
   if (window.renderHealthBadge) window.renderHealthBadge();
   // Keep the free Quick Fixes checklist current as the user edits (no network).
   if (currentSection === 'quickfix') _refreshQuickFix();
 }
 
-// ============ Fix 3: page overflow indicator ============
-const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
-let _measureFrame = null;
+// Inject preview-only chrome (clickable-heading affordance + page gutters) into
+// the iframe doc. Never touches the export render, so the PDF stays clean.
+function _injectPreviewChrome(doc) {
+  if (doc.getElementById('hf-preview-chrome')) return;
+  const st = doc.createElement('style');
+  st.id = 'hf-preview-chrome';
+  st.textContent =
+    '.preview-jump{cursor:pointer;transition:background .12s;}' +
+    '.preview-jump:hover{background:rgba(99,102,241,.10)!important;outline:2px solid rgba(99,102,241,.35);outline-offset:1px;border-radius:3px;}' +
+    '.preview-page-gap{position:relative;height:18px;margin:6px -12%;background:#9aa3b8;' +
+      'box-shadow:inset 0 8px 8px -8px rgba(0,0,0,.5),inset 0 -8px 8px -8px rgba(0,0,0,.5);}' +
+    '.preview-page-gap span{position:absolute;top:50%;right:14%;transform:translateY(-50%);' +
+      'font-size:11px;font-weight:700;letter-spacing:.03em;color:#fff;background:rgba(0,0,0,.25);padding:1px 6px;border-radius:4px;}';
+  doc.head.appendChild(st);
+}
 
-function _checkPageFit() {
-  const preview = document.getElementById('preview');
-  if (!preview) return;
-  // Measure the resume's true full-scale height in an isolated, offscreen iframe.
-  if (!_measureFrame) {
-    _measureFrame = document.createElement('iframe');
-    _measureFrame.setAttribute('aria-hidden', 'true');
-    _measureFrame.style.cssText = 'position:absolute; left:-9999px; top:0; width:816px; height:10px; border:0; visibility:hidden;';
-    document.body.appendChild(_measureFrame);
-  }
-  const html = renderTemplate(resume.template, resume, false, resume.customize.accent);
-  const doc = writeResumeFrame(_measureFrame, html, 816);
-  const apply = () => {
-    const trueH = doc.body.scrollHeight || doc.documentElement.scrollHeight;
-    const ratio = trueH / PAGE_PX;
-    _renderFitIndicator(ratio);
-    _drawPageBreak(ratio, trueH);
-  };
-  apply();
-  setTimeout(apply, 50); // re-measure once layout settles
+// Idempotent: paint chrome, bind jumps once, compute fit, paginate, scale.
+function _renderMiniInto(wrap, frame, doc) {
+  _injectPreviewChrome(doc);
+  if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
+  const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
+  _renderFitIndicator(ratio);
+  _drawPageBreak(doc, ratio);
+  _scaleMini(wrap, frame, doc);
+}
+
+// Scale the true-size iframe down to the available panel width.
+function _scaleMini(wrap, frame, doc) {
+  const avail = wrap.clientWidth || 0;
+  if (avail < 1) return;                      // hidden/collapsed — RO will retry
+  const s = avail / 816;
+  const h = doc.documentElement.scrollHeight || doc.body.scrollHeight || 0;
+  frame.style.height = h + 'px';
+  frame.style.transform = 'scale(' + s + ')';
+  wrap.style.height = Math.round(h * s) + 'px';
 }
 
 function _renderFitIndicator(ratio) {
@@ -1520,31 +1572,28 @@ function _bestFlowRoot(preview) {
   return best;
 }
 
-function _drawPageBreak(ratio, trueH) {
-  const preview = document.getElementById('preview');
+function _drawPageBreak(doc, ratio) {
   // Clear any previously-inserted page gutters.
-  preview.querySelectorAll('.preview-page-gap').forEach(l => l.remove());
+  doc.querySelectorAll('.preview-page-gap').forEach(l => l.remove());
   // Only meaningful when content actually spills past one page.
   if (ratio <= 1.0) return;
   // Insert a real "gutter" between page-sized slices of content so the preview
   // reads as separate sheets of paper, not one scroll with a line through it.
-  // The gutter is pushed into the flow (it reflows content rather than covering
-  // it), at the first block boundary that falls past each printed-page edge.
-  const root = _bestFlowRoot(preview);
-  const contentH = preview.scrollHeight;          // scaled height, measured without gutters
-  const pageH = contentH / ratio;                 // scaled height of one printed page
+  // We're now operating inside the render iframe at TRUE page pixels, so the
+  // boundary lands exactly where the printed page breaks — no cross-context math.
+  const root = _bestFlowRoot(doc.body);
   const maxSheets = Math.min(Math.floor(ratio + 1e-4) + 1, 3);
-  const previewTop = preview.getBoundingClientRect().top - preview.scrollTop;
-  let boundary = pageH, sheet = 1;
+  const bodyTop = doc.body.getBoundingClientRect().top;
+  let boundary = PAGE_PX, sheet = 1;              // one printed page = PAGE_PX (true px)
   for (const child of Array.from(root.children)) {
     if (sheet >= maxSheets) break;
-    const y = child.getBoundingClientRect().top - previewTop;   // top of child within the preview
+    const y = child.getBoundingClientRect().top - bodyTop;   // top of child within the page
     if (y >= boundary) {
-      const gap = document.createElement('div');
+      const gap = doc.createElement('div');
       gap.className = 'preview-page-gap';
       gap.innerHTML = '<span>Page ' + (sheet + 1) + '</span>';
       root.insertBefore(gap, child);
-      boundary += pageH;
+      boundary += PAGE_PX;
       sheet++;
     }
   }

@@ -50,7 +50,8 @@
       "Bash(node --check js/waves.js)",
       "Bash(chmod +x scripts/backup-kv.sh scripts/restore-kv.sh)",
       "Bash(bash scripts/backup-kv.sh)",
-      "Bash(npx --yes wrangler --version)"
+      "Bash(npx --yes wrangler --version)",
+      "Bash(perl -0pi -e 's/10 PDF downloads, no credit card/10 PDF downloads per month, no credit card/g' index.html)"
     ]
   }
 }

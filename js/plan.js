@@ -445,6 +445,7 @@ function showUpgradeModal(reason, context) {
     <div class="modal" style="max-width:520px;">
       <button class="modal-close" onclick="closeUpgradeModal()">×</button>
       <h3 style="margin-bottom:8px;">${r.title}</h3>
+      ${contextLine ? `<p style="color:var(--text); font-size:14px; font-weight:600; margin-bottom:10px;">${contextLine}</p>` : ''}
       <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">${r.body}</p>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <button class="btn btn-secondary" onclick="startCheckout('premium')" style="flex-direction:column; padding:14px; height:auto;">

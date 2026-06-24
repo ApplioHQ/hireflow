@@ -68,12 +68,11 @@ function hydrate() {
     const info = SECTION_INFO[s];
     if (!info) return;
     const isPro = PRO_SECTIONS.has(s);
-    // Only show the lock once free trials for that feature are used up.
-    const SECTION_FEATURE = { tailor: 'tailor', ats: 'ats', analysis: 'analyze' };
-    const showLock = isPro && isFree() && !canUseAi(SECTION_FEATURE[s]);
+    // Free users can enter Pro sections now — show a subtle "Pro" badge instead of a lock.
+    const showProBadge = isPro && isFree();
     const done = _sectionComplete(s);
-    const indicator = showLock
-      ? `<span class="ico ico-sm" style="margin-left:auto;opacity:.7;">${ICONS.lock}</span>`
+    const indicator = showProBadge
+      ? `<span class="sidebar-pro-badge">Pro</span>`
       : done
         ? `<span class="s-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg></span>`
         : `<span class="s-dot"></span>`;
@@ -1660,10 +1659,18 @@ document.addEventListener('click', function (e) {
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAcctMenu(); });
 
 // ============ AI calls ============
+// Map AI endpoints → the free-use feature key tracked in localStorage.
+const AI_TRIAL_FEATURE = { tailor: 'tailor', ats: 'ats', analyze: 'analysis', improve: 'improve' };
 async function ai(endpoint, body) {
-  // Resume Import (parse) is free for everyone — never gate it.
-  // Other endpoints: free users get a few trials, then it paywalls.
-  if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  // Resume Import (parse) is free for everyone — never gate it (it has its own gate).
+  // Other endpoints: free users get 1 free use per feature, then it paywalls.
+  const feature = AI_TRIAL_FEATURE[endpoint];
+  if (endpoint !== 'parse' && isFree() && feature) {
+    if (!hasFreeAiUse(feature)) { showUpgradeModal('ai', feature === 'analysis' ? 'analysis' : feature); throw new Error('Premium required'); }
+    consumeFreeAiUse(feature);
+  } else if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) {
+    showUpgradeModal('ai'); throw new Error('Premium required');
+  }
   const r = await fetch(API + '/ai/' + endpoint, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},

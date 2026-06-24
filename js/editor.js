@@ -90,24 +90,17 @@ function hydrate() {
   document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span style="margin-left:8px;">Version History</span>`;
   document.getElementById('btn-import-go').innerHTML = `${ICON('sparkle')} <span>Import with AI</span>`;
 
-  // Plan pill + download counter
+  // Plan pill (download counter lives only on the export page now)
   const planPill = document.getElementById('plan-pill');
-  const dlPill = document.getElementById('download-pill');
   const ipTab = document.getElementById('ip-tab');
   const obadge = document.getElementById('optimize-badge');
 
   if (isPaid()) {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-    if (dlPill) dlPill.style.display = 'none';
     if (obadge) obadge.innerHTML = '';
   } else {
     planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-    const left = downloadsLeft();
-    if (dlPill) {
-      dlPill.style.display = '';
-      dlPill.innerHTML = `<span class="pill ${left<=2?'warn':''}" title="Free plan downloads">${ICON('download','ico ico-sm')} ${CURRENT_USER?.downloadsUsed || 0} / ${CURRENT_USER?.downloadLimit || 10}</span>`;
-    }
-    if (obadge) obadge.innerHTML = ` <span class="ico ico-sm" style="opacity:.5; vertical-align:middle;">${ICONS.lock}</span>`;
+    if (obadge) obadge.innerHTML = ` <span class="sidebar-pro-badge">Pro</span>`;
   }
 
   // Account center identity (avatar initials, email, plan label)
@@ -118,8 +111,6 @@ function hydrate() {
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? planLabel() + ' plan' : 'Free plan';
-  // Exports row only matters for free users (paid hides the download pill).
-  const expRow = document.getElementById('acct-exports-row'); if (expRow) expRow.style.display = isPaid() ? 'none' : '';
   // Manage / cancel subscription is only relevant to paying users.
   const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
 

@@ -1931,6 +1931,12 @@ async function aiSuggestSkills() {
 }
 
 async function aiTailor() {
+  const jd = (resume.tailor.jobDescription || '').trim();
+  if (jd.length < 30) {
+    toast('Paste a job description first, so we have a role to tailor to.', { type: 'warn' });
+    const ta = document.querySelector('[data-bind="tailor.jobDescription"]'); if (ta) ta.focus();
+    return;
+  }
   aiLoading('Tailoring your resume to the job description…');
   try {
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
@@ -1943,7 +1949,12 @@ async function aiTailor() {
 }
 
 async function aiATS() {
-  const jd = document.getElementById('ats-jd').value;
+  const jd = (document.getElementById('ats-jd').value || '').trim();
+  if (jd.length < 30) {
+    toast('Paste a job description first, so we have something to score against.', { type: 'warn' });
+    const ta = document.getElementById('ats-jd'); if (ta) ta.focus();
+    return;
+  }
   aiLoading('Scoring your resume against the job description…');
   try {
     const r = await ai('ats', { jobDescription: jd, resume });

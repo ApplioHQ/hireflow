@@ -1122,7 +1122,7 @@ function renderTailor() {
           <div class="ai-result-box ai-result-indigo">
             <div class="ai-result-label">✦ Tailoring Results</div>
             <div style="padding:14px;">${_renderTailorResult(resume.tailor.tailoredSummary)}</div>
-          </div>` : ''}
+          </div>` : _tailorEmptyState()}
         ${navRow('publications','ats')}
       </div>
     </div>`;
@@ -1152,7 +1152,7 @@ function renderATS() {
         ${freeAiBanner('ats')}
         <button class="btn btn-emerald btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
         ${freeAiLabel('ats')}
-        <div id="ats-result" style="margin-top:16px;"></div>
+        <div id="ats-result" style="margin-top:16px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
     </div>`;

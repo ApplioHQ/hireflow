@@ -54,7 +54,8 @@
       "Bash(perl -0pi -e 's/10 PDF downloads, no credit card/10 PDF downloads per month, no credit card/g' index.html)",
       "Bash(git check-ignore *)",
       "Bash(sed -n '/^async function aiATS/,/^}/p' js/editor.js)",
-      "Bash(sed -n '/function _renderTailorResult/,/^}/p' js/editor.js)"
+      "Bash(sed -n '/function _renderTailorResult/,/^}/p' js/editor.js)",
+      "Bash(grep -nE \"padding: ?[0-9]{2,}px 0|padding-top: ?[0-9]{2,}px|padding-bottom: ?[0-9]{2,}px|margin-bottom: ?[0-9]{2,}px|margin: ?[0-9]{2,}px\" css/home.css)"
     ]
   }
 }

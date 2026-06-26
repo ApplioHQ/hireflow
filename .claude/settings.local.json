@@ -57,7 +57,8 @@
       "Bash(sed -n '/function _renderTailorResult/,/^}/p' js/editor.js)",
       "Bash(grep -nE \"padding: ?[0-9]{2,}px 0|padding-top: ?[0-9]{2,}px|padding-bottom: ?[0-9]{2,}px|margin-bottom: ?[0-9]{2,}px|margin: ?[0-9]{2,}px\" css/home.css)",
       "Bash(grep -nE \"\\\\\\\\\\\\$\\\\{[a-z]\" js/templates.js)",
-      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);const c={};a.forEach\\(k=>{const p=k.name.split\\(':'\\)[0];c[p]=\\(c[p]||0\\)+1}\\);console.log\\('key prefixes:',JSON.stringify\\(c\\),'total',a.length\\)}\\)\")"
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);const c={};a.forEach\\(k=>{const p=k.name.split\\(':'\\)[0];c[p]=\\(c[p]||0\\)+1}\\);console.log\\('key prefixes:',JSON.stringify\\(c\\),'total',a.length\\)}\\)\")",
+      "Bash(node --input-type=module -e ' *)"
     ]
   }
 }

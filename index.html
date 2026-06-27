@@ -509,27 +509,49 @@
 </section>
 
 <!-- ============ WHY APPLIO vs CHATGPT ============ -->
-<section class="section-light" id="why-applio">
+<style>
+  #why-applio .cmp-eyebrow { display:block; text-align:center; font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6366f1; margin-bottom:14px; }
+  #why-applio .cmp-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-top:4px; }
+  #why-applio table { width:100%; min-width:700px; max-width:980px; margin:0 auto; border-collapse:separate; border-spacing:0; font-size:15px; color:#111827; }
+  #why-applio thead th { vertical-align:bottom; }
+  #why-applio .col-label { text-align:left; padding:0 18px 18px; font-weight:600; color:#9ca3af; font-size:13px; width:30%; }
+  #why-applio .col-applio { padding:18px 16px; background:#6366f1; color:#fff; font-size:19px; font-weight:800; border-radius:16px 16px 0 0; box-shadow:0 6px 20px rgba(99,102,241,.28); }
+  #why-applio .col-applio small { display:block; font-size:11px; font-weight:600; opacity:.85; margin-top:3px; letter-spacing:.02em; text-transform:none; }
+  #why-applio .col-other { padding:18px 18px 14px; color:#9ca3af; font-weight:700; font-size:15px; }
+  #why-applio td { padding:16px 18px; line-height:1.45; vertical-align:top; }
+  #why-applio .feat { font-weight:650; color:#111827; transition:color .15s ease; }
+  #why-applio .cell-applio { background:rgba(99,102,241,.06); border-left:1px solid rgba(99,102,241,.2); border-right:1px solid rgba(99,102,241,.2); }
+  #why-applio tbody tr:last-child .cell-applio { border-bottom:1px solid rgba(99,102,241,.2); border-radius:0 0 16px 16px; }
+  #why-applio .cell-other { color:#6b7280; background:#fafafa; }
+  #why-applio tbody tr:not(:last-child) td { border-bottom:1px solid #eef0f4; }
+  #why-applio tbody tr:hover .feat { color:#4f46e5; }
+  #why-applio .cell-flex { display:flex; align-items:flex-start; }
+  #why-applio .mk { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; font-weight:800; margin-right:10px; flex:none; }
+  #why-applio .mk-ok { background:rgba(34,197,94,.16); color:#16a34a; }
+  #why-applio .mk-no { background:rgba(148,163,184,.18); color:#94a3b8; }
+</style>
+<section class="section-light" id="why-applio" style="padding-bottom:120px;">
   <div class="container">
+    <span class="cmp-eyebrow">Applio vs. ChatGPT</span>
     <h2 class="section-title">"Why not just use ChatGPT?"</h2>
     <p class="section-sub">You can paste prompts into a chatbot — but a blank AI doesn't know recruiters, ATS filters, or how to keep your resume truthful and formatted. Applio is built end-to-end for one job: getting you interviews.</p>
 
-    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
-    <table style="width:100%; min-width:680px; max-width:940px; margin:0 auto; border-collapse:separate; border-spacing:0; font-size:15px; color:#111827;">
+    <div class="cmp-scroll">
+    <table>
       <thead>
         <tr>
-          <th scope="col" style="text-align:left; padding:0 16px 14px; font-weight:600; color:#6b7280;">What landing the interview really takes</th>
-          <th scope="col" style="padding:16px; background:#6366f1; color:#fff; font-size:18px; font-weight:800; border-radius:14px 14px 0 0;">Applio</th>
-          <th scope="col" style="padding:16px 16px 14px; color:#6b7280; font-weight:700; font-size:15px;">ChatGPT &amp; other AIs</th>
+          <th scope="col" class="col-label">What landing the interview really takes</th>
+          <th scope="col" class="col-applio">Applio<small>Purpose-built resume AI</small></th>
+          <th scope="col" class="col-other">ChatGPT &amp; other AIs</th>
         </tr>
       </thead>
       <tbody id="why-rows"></tbody>
     </table>
     </div>
 
-    <p style="text-align:center; color:#6b7280; font-size:13.5px; max-width:620px; margin:22px auto 0; line-height:1.6;">A general chatbot is a brilliant blank page. Applio is the page already set up to win — purpose-built scoring, templates, and guardrails so you ship a resume that actually gets read.</p>
-    <div style="text-align:center; margin-top:30px;">
+    <div style="text-align:center; margin-top:36px;">
       <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Build my resume the smart way →</a>
+      <p style="color:#9ca3af; font-size:13px; margin-top:14px;">Free to start · No credit card · 2-minute setup</p>
     </div>
   </div>
 </section>
@@ -545,17 +567,16 @@
     ['Keeps your work', 'Saved version history + a built-in job application tracker', 'Everything vanishes when the chat resets'],
     ['No prompt engineering', 'Click a button — the expertise is built in', 'Only as good as the prompt you can write'],
   ];
-  var check = '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,.15);color:#16a34a;font-weight:800;margin-right:8px;flex:none;">✓</span>';
-  var cross = '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(148,163,184,.18);color:#94a3b8;font-weight:800;margin-right:8px;flex:none;">✕</span>';
+  var ok = '<span class="mk mk-ok">✓</span>';
+  var no = '<span class="mk mk-no">✕</span>';
   var tb = document.getElementById('why-rows');
   if (!tb) return;
-  ROWS.forEach(function (r, i) {
-    var last = i === ROWS.length - 1;
+  ROWS.forEach(function (r) {
     var tr = document.createElement('tr');
     tr.innerHTML =
-      '<td style="padding:15px 16px; font-weight:600; border-bottom:1px solid ' + (last ? 'transparent' : '#eef0f4') + ';">' + r[0] + '</td>' +
-      '<td style="padding:15px 16px; background:rgba(99,102,241,.06); border-left:1px solid rgba(99,102,241,.18); border-right:1px solid rgba(99,102,241,.18);' + (last ? 'border-bottom:1px solid rgba(99,102,241,.18); border-radius:0 0 14px 14px;' : '') + '"><div style="display:flex;align-items:flex-start;">' + check + '<span style="color:#1e293b;line-height:1.45;">' + r[1] + '</span></div></td>' +
-      '<td style="padding:15px 16px; border-bottom:1px solid ' + (last ? 'transparent' : '#eef0f4') + ';"><div style="display:flex;align-items:flex-start;">' + cross + '<span style="color:#6b7280;line-height:1.45;">' + r[2] + '</span></div></td>';
+      '<td class="feat">' + r[0] + '</td>' +
+      '<td class="cell-applio"><span class="cell-flex">' + ok + '<span style="color:#1e293b;">' + r[1] + '</span></span></td>' +
+      '<td class="cell-other"><span class="cell-flex">' + no + '<span>' + r[2] + '</span></span></td>';
     tb.appendChild(tr);
   });
 })();

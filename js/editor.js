@@ -1572,18 +1572,29 @@ function _scaleMini(wrap, sizer, frame, doc) {
   const avail = wrap.clientWidth || 0;
   if (avail < 1) return;                       // hidden/collapsed — RO will retry
   const z = _miniZoom || 1;
-  const s = (avail / 816) * z;
   const h = doc.documentElement.scrollHeight || doc.body.scrollHeight || 0;
+  let s;
+  if (_previewMode === 'page') {
+    // Size one full page to the reading viewport height (never wider than the
+    // panel), then scroll vertically to move through the painted page sheets.
+    s = Math.min(_pageViewportH() / PAGE_PX, avail / 816) * z;
+  } else {
+    s = (avail / 816) * z;
+  }
   frame.style.height = h + 'px';
   frame.style.transform = 'scale(' + s + ')';
   sizer.style.width = Math.round(816 * s) + 'px';
   sizer.style.height = Math.round(h * s) + 'px';
-  if (z > 1) {
+  if (_previewMode === 'page') {
+    // One-page reading view: fixed viewport, scroll page-to-page.
+    wrap.style.height = _pageViewportH() + 'px';
+    wrap.style.overflow = 'auto';
+  } else if (z > 1) {
     // Zoomed in: fixed-height scroll viewport (both axes).
     wrap.style.height = '70vh';
     wrap.style.overflow = 'auto';
   } else {
-    // Fit: panel grows to the full résumé, no scrollbars.
+    // Fit width: panel grows to the full résumé, no scrollbars.
     wrap.style.height = Math.round(h * s) + 'px';
     wrap.style.overflow = 'hidden';
   }

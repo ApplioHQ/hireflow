@@ -1415,6 +1415,11 @@ function renderCustomize() {
   const c = resume.customize;
   return `
     <div class="section-card">
+      <style>
+        .sec-move { background:var(--bg-2); border:1px solid var(--border); color:var(--muted); border-radius:4px; width:22px; height:13px; font-size:8px; line-height:1; padding:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .sec-move:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+        .sec-move:disabled { opacity:.3; cursor:default; }
+      </style>
       <div class="section-head"><h3>${ICON('settings')} Customize Template</h3></div>
       <div style="margin-bottom:18px;">
         <label style="font-size:13px; color:var(--muted);">Accent Color</label>
@@ -1436,15 +1441,37 @@ function renderCustomize() {
       </div>
       <div style="margin-top:18px;">
         <strong>Resume Sections</strong>
-        <div style="margin-top:10px;">
-          ${Object.keys(c.sections).map(k=>`
+        <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Use ↑ ↓ to reorder sections, and the switch to show or hide each one.</p>
+        <div>
+          ${_sectionOrder().map((k,i,arr)=>`
             <div class="toggle-row">
-              <span style="text-transform:capitalize;">${k}</span>
+              <span style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; flex-direction:column; gap:2px;">
+                  <button class="sec-move" title="Move up" onclick="moveSection('${k}',-1)" ${i===0?'disabled':''}>▲</button>
+                  <button class="sec-move" title="Move down" onclick="moveSection('${k}',1)" ${i===arr.length-1?'disabled':''}>▼</button>
+                </span>
+                <span style="text-transform:capitalize;${c.sections[k]?'':'opacity:.5;'}">${k}</span>
+              </span>
               <div class="toggle ${c.sections[k]?'on':''}" onclick="toggleSection('${k}')"></div>
             </div>`).join('')}
         </div>
       </div>
     </div>`;
+}
+const ALL_SECTIONS = ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications'];
+// Current section order: saved order (valid keys only) + any missing sections appended.
+function _sectionOrder() {
+  const saved = (resume.customize.sectionOrder || []).filter(k => ALL_SECTIONS.includes(k));
+  const seen = new Set(saved);
+  return saved.concat(ALL_SECTIONS.filter(k => !seen.has(k)));
+}
+function moveSection(k, dir) {
+  const order = _sectionOrder();
+  const i = order.indexOf(k), j = i + dir;
+  if (i < 0 || j < 0 || j >= order.length) return;
+  order[i] = order[j]; order[j] = k;
+  resume.customize.sectionOrder = order;
+  save(); renderMain();
 }
 function setCustom(k,v) { resume.customize[k]=v; save(); renderMain(); }
 function toggleSection(k){ resume.customize.sections[k]=!resume.customize.sections[k]; save(); renderMain(); }

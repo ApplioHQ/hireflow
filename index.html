@@ -508,6 +508,59 @@
   </div>
 </section>
 
+<!-- ============ WHY APPLIO vs CHATGPT ============ -->
+<section class="section-light" id="why-applio">
+  <div class="container">
+    <h2 class="section-title">"Why not just use ChatGPT?"</h2>
+    <p class="section-sub">You can paste prompts into a chatbot — but a blank AI doesn't know recruiters, ATS filters, or how to keep your resume truthful and formatted. Applio is built end-to-end for one job: getting you interviews.</p>
+
+    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <table style="width:100%; min-width:680px; max-width:940px; margin:0 auto; border-collapse:separate; border-spacing:0; font-size:15px; color:#111827;">
+      <thead>
+        <tr>
+          <th scope="col" style="text-align:left; padding:0 16px 14px; font-weight:600; color:#6b7280;">What landing the interview really takes</th>
+          <th scope="col" style="padding:16px; background:#6366f1; color:#fff; font-size:18px; font-weight:800; border-radius:14px 14px 0 0;">Applio</th>
+          <th scope="col" style="padding:16px 16px 14px; color:#6b7280; font-weight:700; font-size:15px;">ChatGPT &amp; other AIs</th>
+        </tr>
+      </thead>
+      <tbody id="why-rows"></tbody>
+    </table>
+    </div>
+
+    <p style="text-align:center; color:#6b7280; font-size:13.5px; max-width:620px; margin:22px auto 0; line-height:1.6;">A general chatbot is a brilliant blank page. Applio is the page already set up to win — purpose-built scoring, templates, and guardrails so you ship a resume that actually gets read.</p>
+    <div style="text-align:center; margin-top:30px;">
+      <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Build my resume the smart way →</a>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  // Comparison rows — every Applio claim maps to a real, shipped feature.
+  var ROWS = [
+    ['A real ATS match score for the actual job', 'Scores your resume 0–100 and flags the exact missing keywords', 'Guesses in prose — no real scoring or keyword gap analysis'],
+    ['Recruiter-ready formatting', '13 designed templates + pixel-perfect one-click PDF', 'Plain text you have to reformat yourself every time'],
+    ['Stays truthful', 'Grounded in only what you wrote — never invents jobs or metrics', 'Will happily fabricate roles, numbers, and achievements'],
+    ['Tailored to a specific posting', 'Paste the job description, get a matched resume in ~30s', 'Re-prompt, copy, paste, and reformat for every application'],
+    ['Pick your strongest resume for a role', 'Best Match scores multiple resumes and crowns the winner', 'No memory of your versions — you compare them by hand'],
+    ['Keeps your work', 'Saved version history + a built-in job application tracker', 'Everything vanishes when the chat resets'],
+    ['No prompt engineering', 'Click a button — the expertise is built in', 'Only as good as the prompt you can write'],
+  ];
+  var check = '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,.15);color:#16a34a;font-weight:800;margin-right:8px;flex:none;">✓</span>';
+  var cross = '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(148,163,184,.18);color:#94a3b8;font-weight:800;margin-right:8px;flex:none;">✕</span>';
+  var tb = document.getElementById('why-rows');
+  if (!tb) return;
+  ROWS.forEach(function (r, i) {
+    var last = i === ROWS.length - 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="padding:15px 16px; font-weight:600; border-bottom:1px solid ' + (last ? 'transparent' : '#eef0f4') + ';">' + r[0] + '</td>' +
+      '<td style="padding:15px 16px; background:rgba(99,102,241,.06); border-left:1px solid rgba(99,102,241,.18); border-right:1px solid rgba(99,102,241,.18);' + (last ? 'border-bottom:1px solid rgba(99,102,241,.18); border-radius:0 0 14px 14px;' : '') + '"><div style="display:flex;align-items:flex-start;">' + check + '<span style="color:#1e293b;line-height:1.45;">' + r[1] + '</span></div></td>' +
+      '<td style="padding:15px 16px; border-bottom:1px solid ' + (last ? 'transparent' : '#eef0f4') + ';"><div style="display:flex;align-items:flex-start;">' + cross + '<span style="color:#6b7280;line-height:1.45;">' + r[2] + '</span></div></td>';
+    tb.appendChild(tr);
+  });
+})();
+</script>
+
 <!-- ============ TESTIMONIALS ============ -->
 <section class="section-light">
   <div class="container">

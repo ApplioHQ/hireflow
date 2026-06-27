@@ -2075,7 +2075,8 @@ function _aiErrMsg(e) {
   if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
     return 'The AI is busy right now, give it a few seconds and try again.';
   }
-  return 'AI failed: ' + m;
+  // Never surface raw model/binding/internal text to the user.
+  return 'Something went wrong generating that. Please try again.';
 }
 
 // Polished AI suggestion modal with an optional Apply button.

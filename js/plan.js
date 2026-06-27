@@ -149,7 +149,7 @@ async function startCheckout(plan) {
     if (!r.ok) throw new Error(data.error || 'Failed to start checkout');
     location.href = data.url;
   } catch (e) {
-    if (window.toast) toast('Could not start checkout: ' + e.message, { type: 'error' });
+    if (window.toast) toast("We couldn't start checkout. Please try again in a moment.", { type: 'error' });
     else console.error(e);
   }
 }
@@ -166,7 +166,7 @@ async function _openStripePortal() {
     if (!r.ok) throw new Error(data.error || 'Failed to open portal');
     location.href = data.url;
   } catch (e) {
-    if (window.toast) toast('Could not open billing portal: ' + e.message, { type: 'error' });
+    if (window.toast) toast("We couldn't open the billing page. Please try again in a moment.", { type: 'error' });
   }
 }
 
@@ -188,7 +188,7 @@ async function syncWithStripe(closeModalFirst = true) {
     if (window.toast) toast(data.message || 'Account synced', { type: 'success' });
     setTimeout(() => location.reload(), 1200);
   } catch (e) {
-    if (window.toast) toast('Sync failed: ' + e.message, { type: 'error' });
+    if (window.toast) toast("We couldn't sync your account just now. Please try again in a few seconds.", { type: 'error' });
   }
 }
 

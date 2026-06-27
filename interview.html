@@ -89,7 +89,7 @@ async function generate() {
     _startPracticeMode(questions);
   } catch(e) {
     hideAILoading();
-    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Error: ' + esc(e.message) + '</div>';
+    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Something went wrong generating your questions. Please try again.</div>';
   }
 }
 
@@ -214,7 +214,7 @@ function _renderPracticeQuestion() {
         + '<div style="padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);">' + esc(data.feedback||'') + '</div>'
         + '</div>';
     } catch(e) {
-      fb.innerHTML = '<div style="color:var(--danger);font-size:13px;">Could not get feedback: ' + e.message + '</div>';
+      fb.innerHTML = '<div style="color:var(--danger);font-size:13px;">We couldn\'t score that answer right now. Please try again.</div>';
     }
   });
 

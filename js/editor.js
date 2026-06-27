@@ -1673,23 +1673,24 @@ function _paginate(doc, ratio) {
   if (!(ratio > 1.0)) return 1;                // fits on one page — nothing to do
 
   const flow = _bestFlowRoot(body);
+  const units = _breakUnits(flow);
   const step = PAGE_PX + SHEET_GAP;
   let page = 0;
-  for (const child of Array.from(flow.children)) {
+  for (const unit of units) {
     if (page >= MAX_SHEETS - 1) break;
     const bodyTop = body.getBoundingClientRect().top;     // re-read (spacers shift layout)
-    const r = child.getBoundingClientRect();
+    const r = unit.getBoundingClientRect();
     const top = r.top - bodyTop;
     const bottom = top + r.height;
     const pageTop = page * step;
     const pageBottom = pageTop + PAGE_PX;
-    // Block overflows this sheet and isn't the first thing on it → bump to next sheet.
+    // Unit overflows this sheet and isn't the first thing on it → bump to next sheet.
     if (bottom > pageBottom && top > pageTop + 1) {
       const nextTop = (page + 1) * step;
       const sp = doc.createElement('div');
       sp.className = 'hf-pagebreak';
       sp.style.cssText = 'height:' + Math.max(0, Math.round(nextTop - top)) + 'px;';
-      flow.insertBefore(sp, child);
+      (unit.parentNode || flow).insertBefore(sp, unit);
       page++;
     }
   }

@@ -59,7 +59,8 @@
       "Bash(grep -nE \"\\\\\\\\\\\\$\\\\{[a-z]\" js/templates.js)",
       "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);const c={};a.forEach\\(k=>{const p=k.name.split\\(':'\\)[0];c[p]=\\(c[p]||0\\)+1}\\);console.log\\('key prefixes:',JSON.stringify\\(c\\),'total',a.length\\)}\\)\")",
       "Bash(node --input-type=module -e ' *)",
-      "Bash(node test.mjs)"
+      "Bash(node test.mjs)",
+      "Bash(git rev-list *)"
     ]
   }
 }

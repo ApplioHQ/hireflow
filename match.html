@@ -196,7 +196,7 @@ function _renderResults(scored, paywalled, attempted){
 
   html += '<div class="section-card"><div class="section-head"><h3>Ranked results</h3></div>';
   html += ok.map((s, idx) => _rowHTML(s, idx, idx === 0)).join('');
-  html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">—</div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">Couldn’t score: ${esc(s.error||'unknown error')}</div></div></div></div>`).join('');
+  html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">—</div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">${esc(s.error||"Couldn't score this resume — please try again.")}</div></div></div></div>`).join('');
   html += '</div>';
 
   if (paywalled) {

@@ -1085,15 +1085,17 @@ function _renderTailorResult(text) {
 function freeAiBanner(feature) {
   if (isPaid()) return '';
   const ctx = feature === 'analysis' ? 'analysis' : feature;
-  if (hasFreeAiUse(feature)) {
-    return `<div class="free-ai-banner">${ICON('sparkle','ico ico-sm')}<span>This feature uses <b>1 of your free AI uses</b>.</span></div>`;
+  const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);  // server-tracked count
+  if (left > 0) {
+    return `<div class="free-ai-banner">${ICON('sparkle','ico ico-sm')}<span>This feature has <b>${left} free AI ${left === 1 ? 'use' : 'uses'}</b> left.</span></div>`;
   }
-  return `<div class="free-ai-banner used">${ICON('sparkle','ico ico-sm')}<span>You've used your free trial for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
+  return `<div class="free-ai-banner used">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
 }
-// Small "1 free use remaining" label shown beneath each AI button.
+// Small "N free uses remaining" label shown beneath each AI button.
 function freeAiLabel(feature) {
   if (isPaid()) return '';
-  return `<div class="free-ai-label">${hasFreeAiUse(feature) ? '1 free use remaining' : 'Free trial used'}</div>`;
+  const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);
+  return `<div class="free-ai-label">${left > 0 ? `${left} free ${left === 1 ? 'use' : 'uses'} remaining` : 'Free trials used'}</div>`;
 }
 
 function renderTailor() {
@@ -1894,8 +1896,6 @@ document.addEventListener('click', function (e) {
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAcctMenu(); });
 
 // ============ AI calls ============
-// Map AI endpoints → the free-use feature key tracked in localStorage.
-const AI_TRIAL_FEATURE = { tailor: 'tailor', ats: 'ats', analyze: 'analysis', improve: 'improve' };
 async function ai(endpoint, body) {
   // Resume Import (parse) is free for everyone — never gate it.
   // Every other AI feature gives free users a limited number of free trials,

@@ -383,7 +383,7 @@ async function setAdminAccess(enabled) {
     if (window.toast) toast(enabled ? 'ADMIN access enabled' : 'ADMIN access disabled', { type: 'success' });
     return data;
   } catch (e) {
-    if (window.toast) toast('Failed: ' + e.message, { type: 'error' });
+    if (window.toast) toast("That action couldn't be completed. Please try again.", { type: 'error' });
   }
 }
 

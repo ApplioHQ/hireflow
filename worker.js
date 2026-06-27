@@ -260,10 +260,12 @@ async function me(req, env) {
   if (!user) throw err(404, "User not found");
   await maybeResetDownloads(env, user);
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
+  const adminEmail = (env.ADMIN_EMAIL || "").toLowerCase();
   return {
     email: user.email,
     plan: user.plan || "free",
     isPaid: isPaidPlan(user),
+    isAdmin: !!adminEmail && (user.email || "").toLowerCase() === adminEmail,
     downloadsUsed: user.downloadsUsed || 0,
     downloadLimit: limit,
     downloadsResetAt: user.downloadsResetAt || null,

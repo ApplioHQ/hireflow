@@ -233,6 +233,10 @@ async function openBillingPortal() {
     rows.push(`<div class="acct-row" style="border:1px solid var(--warning); background:rgba(245,158,11,.08); padding:10px; border-radius:8px;"><span style="font-size:12px; color:#fcd34d; line-height:1.4;">No Stripe billing record is linked yet. If you just paid, click <strong>Sync with Stripe</strong> below.</span></div>`);
 
   const buttons = [];
+  // Admin-only: a link to the feedback inbox (only the ADMIN_EMAIL account sees this).
+  if (u.isAdmin) {
+    buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback.html'">📥 View user feedback</button>`);
+  }
   if (u.hasStripeCustomer) {
     buttons.push(`<button class="btn btn-primary" onclick="_openStripePortal()">Manage Billing &amp; Cancel</button>`);
   }

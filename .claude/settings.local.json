@@ -87,7 +87,10 @@
       "Bash(rm -f /tmp/l.js)",
       "Bash(grep -nE \"err\\\\\\([0-9]+, *\\\\\"|throw err|\\\\\"error\\\\\"|message:|return \\\\{.*message|Stripe error|AI model error|No Stripe|No billing|Invalid plan|Invalid token|Invalid email|Token expired|Admin access|Unknown AI|Too many|Missing signature|Invalid signature\" worker.js)",
       "Bash(grep -rnE \"toast\\\\\\([^\\)]*\\\\+ ?e\\\\.message|innerHTML[^;]*\\\\+ ?\\(e|err\\)\\\\.message|\\\\\\\\\\\\$\\\\{esc\\\\\\(e\\\\.message\\\\\\)\\\\}|AI failed:|Stripe error|Stripe customer|AI model error|sk_|Request failed \\\\\\(\" js/plan.js js/editor.js js/auth.js index.html editor.html login.html jobs.html interview.html match.html export.html success.html pricing.html feedback.html worker.js)",
-      "Bash(awk '/social/{f=1} f{print NR\": \"$0} /<\\\\/div>/{if\\(f\\)c++; if\\(c>=3\\)f=0}' index.html)"
+      "Bash(awk '/social/{f=1} f{print NR\": \"$0} /<\\\\/div>/{if\\(f\\)c++; if\\(c>=3\\)f=0}' index.html)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('feedback.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/c.js',last||'//'\\);\")",
+      "Bash(node --check /tmp/c.js)",
+      "Bash(rm -f /tmp/c.js)"
     ]
   }
 }

@@ -278,13 +278,23 @@ async function me(req, env) {
 async function saveResume(req, env) {
   const payload = await authenticate(req, env);
   const { resume } = await req.json();
+  // Reject missing/invalid payloads. JSON.stringify(undefined) is `undefined`,
+  // which KV would store as the literal string "undefined" and brick every
+  // subsequent GET /resume (JSON.parse fails). Arrays/primitives aren't valid
+  // resume documents either.
+  if (resume === null || typeof resume !== "object" || Array.isArray(resume)) {
+    throw err(400, "Missing or invalid resume");
+  }
   await env.HIREFLOW_KV.put(`resume:${payload.email.toLowerCase()}`, JSON.stringify(resume));
   return { ok: true };
 }
 async function getResume(req, env) {
   const payload = await authenticate(req, env);
   const raw = await env.HIREFLOW_KV.get(`resume:${payload.email.toLowerCase()}`);
-  return { resume: raw ? JSON.parse(raw) : null };
+  if (!raw) return { resume: null };
+  // Tolerate a corrupt/legacy value instead of 500ing the editor on load.
+  try { return { resume: JSON.parse(raw) }; }
+  catch (e) { log("warn", "resume_parse_failed", { email: payload.email }); return { resume: null }; }
 }
 
 // ============ Downloads ============
@@ -639,8 +649,13 @@ async function ai(req, env, action) {
     default: throw err(404, "Unknown AI action");
   }
 
-  // Consume one free trial only after the action succeeded.
-  if (trial) {
+  // Don't charge a trial for a no-op guard result (e.g. empty input → a
+  // "add some content first" message), only for real generated output.
+  const noCharge = result && typeof result === "object" && result._noCharge;
+  if (result && typeof result === "object") delete result._noCharge;
+
+  // Consume one free trial only after the action did real work.
+  if (trial && !noCharge) {
     user.aiTrials = user.aiTrials || {};
     user.aiTrials[trial.action] = trial.used + 1;
     await putUser(env, user);

@@ -105,9 +105,17 @@
 <script>
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
-let jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]');
+let jobs = (function () {
+  try { const j = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); return Array.isArray(j) ? j : []; }
+  catch { return []; }  // corrupt storage must not white-screen the tracker
+})();
 let filter = 'all';
 let editingId = null;
+
+// Monotonic, collision-proof id (numeric, so the unquoted onclick handlers stay
+// valid). Date.now() alone collides when two jobs are added in the same ms.
+let _lastId = 0;
+function _uid() { const n = Date.now(); _lastId = n > _lastId ? n : _lastId + 1; return _lastId; }
 
 const STATUSES = ['Saved','Applied','Interviewing','Offer','Rejected'];
 const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };

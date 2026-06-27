@@ -593,13 +593,7 @@ function tConsulting(r, accent) {
       <div class="name">${esc(p.fullName)}</div>
       <div class="contact">${_contactLine(p, '&nbsp;&nbsp;•&nbsp;&nbsp;')}</div>
       ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
-      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
-      ${r.leadership.length?`<h2>Leadership</h2>${listBlocks(r.leadership,['role','org','end'])}`:''}
-      ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
-      ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+      ${orderedBody(r)}
     </div>`;
 }
 
@@ -629,13 +623,7 @@ function tFaang(r, accent) {
       <div class="name">${esc(p.fullName)}</div>
       <div class="contact">${_contactLine(p, '&nbsp;·&nbsp;')}</div>
       ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
-      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
-      ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
-      ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
-      ${r.leadership.length?`<h2>Leadership</h2>${listBlocks(r.leadership,['role','org','end'])}`:''}
+      ${orderedBody(r)}
     </div>`;
 }
 

@@ -386,7 +386,12 @@ async function stripeCall(env, method, path, body) {
   if (body) opts.body = formEncode(body);
   const r = await fetch(`https://api.stripe.com${path}`, opts);
   const data = await r.json();
-  if (!r.ok) throw err(r.status, data.error?.message || "Stripe error");
+  if (!r.ok) {
+    // Log the real provider error for debugging, but never surface provider name
+    // or raw provider text to the user.
+    log("error", "payment_api_error", { status: r.status, detail: data.error?.message || "unknown" });
+    throw err(r.status >= 500 ? 502 : 400, "Payment service is temporarily unavailable. Please try again.");
+  }
   return data;
 }
 function formEncode(obj, prefix) {
@@ -440,7 +445,7 @@ async function syncWithStripe(req, env) {
   const search = await stripeCall(env, "GET",
     `/v1/customers?email=${encodeURIComponent(user.email)}&limit=1`);
   if (!search.data || !search.data.length) {
-    return { ok: false, message: "No Stripe customer found for " + user.email + ". If you paid, make sure the same email was used at checkout." };
+    return { ok: false, message: "We couldn't find a matching billing record. If you just paid, use the same email you checked out with." };
   }
   const customer = search.data[0];
   user.stripeCustomerId = customer.id;
@@ -488,7 +493,7 @@ async function syncWithStripe(req, env) {
     linked: true,
     plan: user.plan || "free",
     hasStripeCustomer: true,
-    message: "Customer linked, but no active subscription found. If you just paid, wait ~30 seconds and try again.",
+    message: "Your account is linked, but we don't see an active plan yet. If you just paid, wait ~30 seconds and try again.",
   };
 }
 
@@ -709,7 +714,8 @@ async function runAI(env, system, user, opts = {}) {
       }
     }
   }
-  throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);
+  log("error", "ai_unavailable", { detail: lastErr?.message || "unknown" });
+  throw err(502, "The AI is temporarily unavailable. Please try again in a moment.");
 }
 
 // ============ Improve writing ============

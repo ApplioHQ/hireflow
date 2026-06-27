@@ -8,6 +8,19 @@
 <link rel="canonical" href="https://applio.ai/login.html">
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+  /* Assisted password confirmation — live per-character match feedback. */
+  .pw-match { display:flex; gap:3px; margin:-4px 0 12px; min-height:6px; }
+  .pw-seg { flex:1 1 0; height:6px; border-radius:3px; background:rgba(148,163,184,.25); transition:background .2s ease; }
+  .pw-seg.ok  { background:#10b981; }
+  .pw-seg.bad { background:#ef4444; }
+  input.pw-matched { border-color:#10b981 !important; box-shadow:0 0 0 1px #10b981; }
+  @keyframes pw-shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }
+  .pw-shake { animation:pw-shake .4s ease; }
+  .pw-hint { font-size:12px; margin:-2px 0 12px; min-height:15px; }
+  .pw-hint.ok  { color:#10b981; }
+  .pw-hint.bad { color:#ef4444; }
+</style>
 </head>
 <body class="auth-body">
   <div class="auth-card">
@@ -57,6 +70,8 @@
           <label>Confirm Password</label>
           <input type="password" name="confirm" placeholder="Re-enter password" minlength="8" required>
         </div>
+        <div id="pw-match" class="pw-match" aria-hidden="true"></div>
+        <div id="pw-hint" class="pw-hint" role="status" aria-live="polite"></div>
         <button type="submit" class="btn btn-primary btn-block">Create account</button>
       </form>
     </div>

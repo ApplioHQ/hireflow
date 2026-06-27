@@ -1600,7 +1600,7 @@ function _scaleMini(wrap, sizer, frame, doc) {
   }
 }
 
-function _renderFitIndicator(ratio) {
+function _renderFitIndicator(ratio, pages) {
   const preview = document.getElementById('preview');
   let ind = document.getElementById('page-fit-indicator');
   if (!ind) {
@@ -1609,20 +1609,22 @@ function _renderFitIndicator(ratio) {
     preview.parentNode.insertBefore(ind, preview.nextSibling);
   }
   const pct = Math.round(ratio * 100);
+  pages = pages || Math.max(1, Math.ceil(ratio));
   let bg, border, color, text;
   if (ratio < 0.6) {
     bg = '#fef9c3'; border = '#eab308'; color = '#854d0e';
     text = '⚠ Too much empty space, your resume only fills ' + pct + '% of a page. Add more detail.';
   } else if (ratio <= 1.05) {
     bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
-    text = '✓ Great fit, fills one page nicely (' + pct + '%).';
+    text = '✓ Great fit — fills one page nicely (' + pct + '%).';
   } else if (ratio <= 2.1) {
     // Two-page resumes are fine for experienced candidates, not an error.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 Spans two pages (' + pct + '% of a page). Great for fuller experience, both pages export.';
+    text = '📄 ' + pages + ' pages — great for fuller experience. All pages export. Try “One page” to read each clearly.';
   } else {
-    bg = '#fee2e2'; border = '#ef4444'; color = '#991b1b';
-    text = '⚠ Longer than two pages (' + pct + '%). Trim to keep it within two pages.';
+    // Long resumes are legitimate (senior / academic). Encourage, don't scold.
+    bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
+    text = '📄 ' + pages + ' pages — fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
   }
   ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
   ind.textContent = text;

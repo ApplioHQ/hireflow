@@ -1634,6 +1634,27 @@ function _renderFitIndicator(ratio, pages) {
 // blocks are siblings) so gutters land at real block boundaries. Templates vary:
 // some use a ".body" column, others stack sections directly in the root, so we
 // fall back to the densest block container (ignoring bullet lists).
+// Choose the elements a page break is allowed to land between. Keep every block
+// WHOLE by default (keep-together: an experience entry's header never separates
+// from its bullets) — UNLESS the block is taller than a full page, in which case
+// descend one level so the break can fall between its children (e.g. between
+// individual entries) instead of slicing the block across the gutter. When no
+// block is oversized this returns exactly flow.children, i.e. today's behavior.
+function _breakUnits(root) {
+  const units = [];
+  for (const child of Array.from(root.children)) {
+    if (child.classList && child.classList.contains('hf-pagebreak')) continue;
+    const tooTall = child.getBoundingClientRect().height > PAGE_PX;
+    const kids = child.children ? Array.from(child.children) : [];
+    if (tooTall && kids.length > 1) {
+      for (const gc of kids) units.push(gc);
+    } else {
+      units.push(child);
+    }
+  }
+  return units;
+}
+
 function _bestFlowRoot(preview) {
   const named = preview.querySelector('.body');
   if (named) return named;

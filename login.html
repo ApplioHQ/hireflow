@@ -84,6 +84,51 @@
     // initial view from ?mode=signup
     const params = new URLSearchParams(location.search);
     if (params.get('mode') === 'signup') showView('signup');
+
+    // ---- Assisted password confirmation (vanilla port) ----
+    // Live per-character match feedback between the chosen password and the
+    // confirm field: green/red segments, a shake on a mismatched keystroke, and a
+    // green border once they match. We compare against what the user typed — the
+    // password is never shown in plaintext.
+    (function () {
+      const form = document.getElementById('form-signup');
+      if (!form) return;
+      const pw = form.querySelector('input[name="password"]');
+      const cf = form.querySelector('input[name="confirm"]');
+      const strip = document.getElementById('pw-match');
+      const hint = document.getElementById('pw-hint');
+      if (!pw || !cf || !strip) return;
+      let prevLen = 0;
+
+      function paint(shake) {
+        const p = pw.value, c = cf.value;
+        strip.innerHTML = '';
+        for (let i = 0; i < p.length; i++) {
+          const seg = document.createElement('div');
+          seg.className = 'pw-seg' + (i < c.length ? (c[i] === p[i] ? ' ok' : ' bad') : '');
+          strip.appendChild(seg);
+        }
+        const matched = c.length > 0 && c === p;
+        cf.classList.toggle('pw-matched', matched);
+        if (hint) {
+          if (!c.length) { hint.textContent = ''; hint.className = 'pw-hint'; }
+          else if (matched) { hint.textContent = '✓ Passwords match'; hint.className = 'pw-hint ok'; }
+          else { hint.textContent = 'Keep going — they don’t match yet'; hint.className = 'pw-hint bad'; }
+        }
+        if (shake) { cf.classList.remove('pw-shake'); void cf.offsetWidth; cf.classList.add('pw-shake'); }
+      }
+
+      cf.addEventListener('input', function () {
+        const p = pw.value, c = cf.value;
+        // Shake when the newest character is wrong, or typed past the password length.
+        const typedForward = c.length > prevLen;
+        const lastWrong = c.length <= p.length && c[c.length - 1] !== p[c.length - 1];
+        const overflow = c.length > p.length;
+        prevLen = c.length;
+        paint(typedForward && (lastWrong || overflow));
+      });
+      pw.addEventListener('input', function () { prevLen = cf.value.length; paint(false); });
+    })();
   </script>
 </body>
 </html>

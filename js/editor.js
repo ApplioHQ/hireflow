@@ -1087,15 +1087,23 @@ function freeAiBanner(feature) {
   const ctx = feature === 'analysis' ? 'analysis' : feature;
   const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);  // server-tracked count
   if (left > 0) {
-    return `<div class="free-ai-banner">${ICON('sparkle','ico ico-sm')}<span>This feature has <b>${left} free AI ${left === 1 ? 'use' : 'uses'}</b> left.</span></div>`;
+    return `<div class="free-ai-banner" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>This feature has <b>${left} free AI ${left === 1 ? 'use' : 'uses'}</b> left.</span></div>`;
   }
-  return `<div class="free-ai-banner used">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
+  return `<div class="free-ai-banner used" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
 }
 // Small "N free uses remaining" label shown beneath each AI button.
 function freeAiLabel(feature) {
   if (isPaid()) return '';
   const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);
-  return `<div class="free-ai-label">${left > 0 ? `${left} free ${left === 1 ? 'use' : 'uses'} remaining` : 'Free trials used'}</div>`;
+  return `<div class="free-ai-label" data-feat="${feature}">${left > 0 ? `${left} free ${left === 1 ? 'use' : 'uses'} remaining` : 'Free trials used'}</div>`;
+}
+// Re-render the inline trial banners/labels in place so they always reflect the
+// LIVE per-feature count. Without this they show the count from when the section
+// first rendered — e.g. a stale "2 free uses remaining" even after both are used,
+// which then mismatches the (correct) paywall. Called after every AI attempt.
+function _refreshTrialUI() {
+  document.querySelectorAll('.free-ai-banner[data-feat]').forEach(el => { el.outerHTML = freeAiBanner(el.getAttribute('data-feat')); });
+  document.querySelectorAll('.free-ai-label[data-feat]').forEach(el => { el.outerHTML = freeAiLabel(el.getAttribute('data-feat')); });
 }
 
 function renderTailor() {

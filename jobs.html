@@ -121,7 +121,10 @@ const STATUSES = ['Saved','Applied','Interviewing','Offer','Rejected'];
 const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function _save(){ localStorage.setItem('hf_jobs', JSON.stringify(jobs)); }
+function _save(){
+  try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); return true; }
+  catch(e){ toast('Could not save — your browser storage may be full', { type:'error', duration:4500 }); return false; }
+}
 function toggleForm(){
   const f=document.getElementById('add-form');
   const opening = f.style.display==='none';
@@ -142,7 +145,7 @@ function saveJob(){
     const j = jobs.find(x=>x.id===editingId); if (j) Object.assign(j, fields);
     toast('Job updated', { type:'success' });
   } else {
-    jobs.unshift(Object.assign({ id: Date.now(), addedAt: Date.now() }, fields));
+    jobs.unshift(Object.assign({ id: _uid(), addedAt: Date.now() }, fields));
     toast('Job added', { type:'success' });
   }
   _save();

@@ -69,7 +69,7 @@ async function generate() {
   const role = document.getElementById('role').value.trim();
   const jd = document.getElementById('jd').value.trim();
   if (!role) return toast('Enter a role first', { type: 'warn' });
-  const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+  let resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch { resume = {}; }
   document.getElementById('results').innerHTML = '';
   showAILoading('Generating your interview questions…');
   try {

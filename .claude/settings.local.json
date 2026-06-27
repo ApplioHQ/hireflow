@@ -70,7 +70,8 @@
       "Bash(npm i *)",
       "Read(//tmp/**)",
       "Bash(node -e \"console.log\\('puppeteer ready:', !!require\\('puppeteer'\\)\\)\")",
-      "Bash(cd *)"
+      "Bash(cd *)",
+      "Bash(node verify.mjs)"
     ]
   }
 }

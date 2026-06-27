@@ -327,10 +327,7 @@ function tMinimal(r, accent) {
       <div class="name">${esc(p.fullName)}</div>
       <div class="contact">${[p.email,p.phone,p.location,p.linkedin].filter(Boolean).map(esc).join(' &nbsp;·&nbsp; ')}</div>
       ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
-      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
+      ${orderedBody(r)}
     </div>`;
 }
 
@@ -367,10 +364,7 @@ function tProfessional(r, accent) {
       </div>
       <div class="main">
         ${p.summary?`<h2>Professional Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-        ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-        ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
-        ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
-        ${r.awards.length?`<h2>Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+        ${orderedBody(r, {only: MAIN_COLUMN_KEYS})}
       </div>
     </div>`;
 }

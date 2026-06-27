@@ -65,7 +65,12 @@
       "Bash(node ftest.mjs)",
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('editor.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/e.js',last||'//none'\\);\")",
       "Bash(node --check /tmp/e.js)",
-      "Bash(rm -f /tmp/e.js)"
+      "Bash(rm -f /tmp/e.js)",
+      "Bash(npm init *)",
+      "Bash(npm i *)",
+      "Read(//tmp/**)",
+      "Bash(node -e \"console.log\\('puppeteer ready:', !!require\\('puppeteer'\\)\\)\")",
+      "Bash(cd *)"
     ]
   }
 }

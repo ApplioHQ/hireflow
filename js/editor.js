@@ -1981,7 +1981,17 @@ async function ai(endpoint, body) {
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
     body: JSON.stringify(body)
   });
-  if (r.status === 402) { showUpgradeModal('ai'); throw new Error('Premium required'); }
+  if (r.status === 402) {
+    // Backend (source of truth) says this feature is out of free trials. Our local
+    // count was stale, so mark it exhausted and refresh the banners/labels — that's
+    // the "says 2 left but still paywalls" mismatch corrected.
+    if (CURRENT_USER) {
+      CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
+      CURRENT_USER.aiTrials[endpoint] = (typeof _trialLimit === 'function' ? _trialLimit() : ((CURRENT_USER && CURRENT_USER.freeAiTrials) || 2));
+      _refreshTrialUI();
+    }
+    showUpgradeModal('ai'); throw new Error('Premium required');
+  }
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));
     throw new Error(data.error || `Request failed (${r.status})`);
@@ -1995,7 +2005,7 @@ async function ai(endpoint, body) {
     toast(left > 0
       ? `Free trial used, ${left} left for this feature`
       : 'Last free trial used, upgrade for unlimited AI', { type: left > 0 ? 'info' : 'warn', duration: 3500 });
-    if (typeof updatePills === 'function') updatePills();
+    _refreshTrialUI();
   }
   return data;
 }

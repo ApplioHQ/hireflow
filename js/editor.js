@@ -1560,8 +1560,8 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
   _injectPreviewChrome(doc);
   if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
   const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
-  _renderFitIndicator(ratio);
-  _paginate(doc, ratio);
+  const pages = _paginate(doc, ratio);
+  _renderFitIndicator(ratio, pages);
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
 }
@@ -1644,7 +1644,7 @@ function _bestFlowRoot(preview) {
 }
 
 const SHEET_GAP = 24;      // gray gap between page sheets (true px)
-const MAX_SHEETS = 6;      // safety cap so pathological content can't run away
+const MAX_SHEETS = 16;     // safety cap so pathological content can't run away (covers long CVs)
 
 // Google-Docs-style pagination: lay the résumé out as discrete white page sheets
 // on a gray canvas. When a block won't fit on the current sheet, a spacer pushes
@@ -1668,7 +1668,7 @@ function _paginate(doc, ratio) {
     el.style.zIndex = '';
     if (el.dataset.hfpos) { el.style.position = ''; delete el.dataset.hfpos; }
   });
-  if (!(ratio > 1.0)) return;                  // fits on one page — nothing to do
+  if (!(ratio > 1.0)) return 1;                // fits on one page — nothing to do
 
   const flow = _bestFlowRoot(body);
   const step = PAGE_PX + SHEET_GAP;
@@ -1708,8 +1708,19 @@ function _paginate(doc, ratio) {
     sheet.style.cssText = 'position:absolute; left:0; top:' + (i * step) + 'px; width:' + w + 'px; height:' +
       PAGE_PX + 'px; background:#fff; z-index:0; box-shadow:0 1px 5px rgba(0,0,0,.28); border-radius:2px;';
     body.appendChild(sheet);
+    // Page number in the gutter beneath each sheet — never overlaps content, and
+    // makes a multi-page resume read like a real document. (.hf-sheet class means
+    // it's cleared on the next re-render with the other pagination chrome.)
+    const num = doc.createElement('div');
+    num.className = 'hf-sheet hf-sheet-num';
+    num.textContent = 'Page ' + (i + 1) + ' of ' + totalPages;
+    num.style.cssText = 'position:absolute; left:0; top:' + (i * step + PAGE_PX + 5) + 'px; width:' + w +
+      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#94a3b8; z-index:0;';
+    body.appendChild(num);
   }
-  body.style.minHeight = (totalPages * PAGE_PX + (totalPages - 1) * SHEET_GAP) + 'px';
+  // +1 extra gap so the final page's number label has room below the last sheet.
+  body.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';
+  return totalPages;
 }
 
 // ============ Fix 2: full-screen preview lightbox ============

@@ -164,6 +164,49 @@ function skillsLine(skills) {
   return esc((skills?.categories||[]).flatMap(c=>c.items).join(' · '));
 }
 
+// ============ Reorderable body sections ============
+// The user can reorder these in Customize (e.g. Skills before Experience). Summary
+// stays pinned at the top (handled by each template's header), so it's not listed.
+const BODY_SECTION_ORDER = ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications'];
+// Sections that live in the MAIN column of two-column templates (skills + education
+// are rendered in those templates' sidebars, so they don't participate there).
+const MAIN_COLUMN_KEYS = ['experience','projects','certifications','awards','leadership','volunteer','publications'];
+const SECTION_DEF = {
+  experience:     { title: 'Experience',     html: r => r.experience.length ? expBlocks(r.experience) : '' },
+  education:      { title: 'Education',       html: r => r.education.length ? eduBlocks(r.education) : '' },
+  skills:         { title: 'Skills',          html: (r, cls) => skillsLine(r.skills) ? `<div class="${cls || 'summary'}">${skillsLine(r.skills)}</div>` : '' },
+  projects:       { title: 'Projects',        html: r => r.projects.length ? projBlocks(r.projects) : '' },
+  certifications: { title: 'Certifications',  html: r => r.certifications.length ? listBlocks(r.certifications, ['name','issuer','date']) : '' },
+  awards:         { title: 'Awards',          html: r => r.awards.length ? listBlocks(r.awards, ['name','issuer','date']) : '' },
+  leadership:     { title: 'Leadership',      html: r => r.leadership.length ? listBlocks(r.leadership, ['role','org','end']) : '' },
+  volunteer:      { title: 'Volunteer',       html: r => r.volunteer.length ? listBlocks(r.volunteer, ['role','org','end']) : '' },
+  publications:   { title: 'Publications',    html: r => r.publications.length ? listBlocks(r.publications, ['title','venue','date']) : '' },
+};
+// Section keys in the user's chosen order: honor customize.sectionOrder, then
+// append any sections it doesn't mention (so new sections still appear), drop
+// unknown keys.
+function sectionKeysInOrder(r) {
+  const saved = (r.customize && Array.isArray(r.customize.sectionOrder)) ? r.customize.sectionOrder : [];
+  const seen = new Set(), out = [];
+  for (const k of saved) if (SECTION_DEF[k] && !seen.has(k)) { out.push(k); seen.add(k); }
+  for (const k of BODY_SECTION_ORDER) if (!seen.has(k)) out.push(k);
+  return out;
+}
+// Render the reorderable sections (each <h2>Title</h2> + content), skipping empties.
+// opts: { only:[keys], titleTag:'h2'|'h3', titles:{key:override}, titleTransform:fn, skillsClass }
+function orderedBody(r, opts) {
+  opts = opts || {};
+  const tag = opts.titleTag || 'h2';
+  const titles = opts.titles || {};
+  const xform = opts.titleTransform || (s => s);
+  return sectionKeysInOrder(r)
+    .filter(k => !opts.only || opts.only.includes(k))
+    .map(k => {
+      const inner = SECTION_DEF[k].html(r, opts.skillsClass);
+      return inner ? `<${tag}>${xform(titles[k] || SECTION_DEF[k].title)}</${tag}>${inner}` : '';
+    }).join('');
+}
+
 // ============ TEMPLATES ============
 // Each template's CSS uses var(--app-font) (falls back to its native font),
 // var(--app-space, 1) for inter-section/entry gaps, and

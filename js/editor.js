@@ -9,7 +9,8 @@ const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
     accent: '#4f46e5', font: 'Inter', spacing: 'medium',
-    sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true }
+    sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true },
+    sectionOrder: ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications']
   },
   personal: { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' },
   experience: [], education: [], skills: { categories: [] }, projects: [],

@@ -1,6 +1,18 @@
 // Auth flow, talks to the Cloudflare Worker.
 const API = window.HIREFLOW_CONFIG.API_URL;
 
+// Account-scoped data lives in global localStorage keys (resume/jobs/AI cache).
+// When a DIFFERENT account signs in, wipe the previous account's local copy so it
+// never leaks into the new session (the editor then re-hydrates from that
+// account's own cloud copy). Same-account re-login keeps the local working copy.
+function _switchAccountIfNeeded(newEmail) {
+  const prev = (localStorage.getItem('hf_email') || '').toLowerCase();
+  const next = (newEmail || '').toLowerCase();
+  if (prev !== next) {
+    ['hf_resume', 'hf_jobs', 'hf_ai_results', 'hf_welcome'].forEach(k => localStorage.removeItem(k));
+  }
+}
+
 function showView(v) {
   document.getElementById('view-signin').style.display = v === 'signin' ? '' : 'none';
   document.getElementById('view-signup').style.display = v === 'signup' ? '' : 'none';
@@ -32,6 +44,7 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
       email: f.get('email'),
       password: f.get('password')
     });
+    _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     // Admin / super-admin → admin console; regular users → editor
@@ -53,6 +66,7 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
       email: f.get('email'),
       password: f.get('password')
     });
+    _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen

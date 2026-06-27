@@ -1932,8 +1932,7 @@ async function saveResume() {
 }
 
 function signOut() {
-  localStorage.removeItem('hf_token');
-  localStorage.removeItem('hf_email');
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
   location.href = 'index.html';
 }
 

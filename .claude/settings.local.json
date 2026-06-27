@@ -76,7 +76,10 @@
       "Bash(node --check /tmp/m.js)",
       "Bash(rm -f /tmp/m.js)",
       "Bash(node verify-match.mjs)",
-      "Bash(grep -oE \"['\\\\\"][^'\\\\\"]+$\")"
+      "Bash(grep -oE \"['\\\\\"][^'\\\\\"]+$\")",
+      "Bash(sed -i '' 's|await cfField.click\\({ clickCount: 3 }\\);|await page.$eval\\('\\\\''#form-signup input[name=confirm]'\\\\'', el => { el.value='\\\\'''\\\\''; el.dispatchEvent\\(new Event\\('\\\\''input'\\\\'',{bubbles:true}\\)\\); }\\);|; s|await cfField.press\\('\\\\''Backspace'\\\\''\\);||' verify-auth.mjs)",
+      "Bash(node verify-auth.mjs)",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(s\\);console.log\\('full match:',JSON.stringify\\(j.full\\)\\);}\\)\")"
     ]
   }
 }

@@ -856,8 +856,11 @@ function _atsExtractKeywords(jd){
   for (const ph of ATS_SKILL_PHRASES) if (text.includes(ph)) found.set(ph, true);
   const words = text.match(/[a-z][a-z0-9+.#/]{1,}/g) || [];
   const freq = new Map();
-  for (const w of words) {
-    if (ATS_STOPWORDS.has(w) || w.length < 2) continue;
+  for (const raw of words) {
+    // Strip edge sentence punctuation ("engineer." → "engineer") while keeping
+    // internal marks intact ("node.js", "ci/cd").
+    const w = raw.replace(/^[.\-/_]+|[.\-/_]+$/g, "");
+    if (w.length < 2 || ATS_STOPWORDS.has(w)) continue;
     freq.set(w, (freq.get(w) || 0) + 1);
     if (ATS_SKILL_WORDS.has(w)) found.set(w, true);
   }

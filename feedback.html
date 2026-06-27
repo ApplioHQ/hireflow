@@ -155,7 +155,7 @@ async function load(){
   } catch(e) {
     document.getElementById('fb-count').textContent = '';
     document.getElementById('fb-message').innerHTML =
-      `<div class="section-card" style="color:var(--danger);">Could not load feedback: ${esc(e.message)}</div>`;
+      `<div class="section-card" style="color:var(--danger);">Couldn't load feedback right now. Please refresh and try again.</div>`;
   }
 }
 

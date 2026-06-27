@@ -31,7 +31,7 @@ async function apiPost(path, body) {
     body: JSON.stringify(body)
   });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || 'Request failed');
+  if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
   return data;
 }
 

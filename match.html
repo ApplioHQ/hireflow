@@ -163,7 +163,7 @@ async function runMatch(){
       if (data._trial) _noteTrial(data._trial);
       scored.push(Object.assign({ label: cands[i].label }, data));
     } catch(e) {
-      scored.push({ label: cands[i].label, error: e.message });
+      scored.push({ label: cands[i].label, error: "Couldn't score this resume — please try again." });
     }
   }
   aiLoadingDone();

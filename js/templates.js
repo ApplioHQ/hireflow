@@ -401,10 +401,7 @@ function tTech(r, accent) {
         </div>
       </div>
       ${p.summary?`<h2>summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>experience</h2>${expBlocks(r.experience)}`:''}
-      ${skillsLine(r.skills)?`<h2>skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.projects.length?`<h2>projects</h2>${projBlocks(r.projects)}`:''}
-      ${r.education.length?`<h2>education</h2>${eduBlocks(r.education)}`:''}
+      ${orderedBody(r, {titleTransform: s => s.toLowerCase()})}
     </div>`;
 }
 
@@ -430,10 +427,7 @@ function tExecutive(r, accent) {
       <div class="subtitle">Curriculum Vitae</div>
       <div class="contact">${[p.email,p.phone,p.location].filter(Boolean).map(esc).join(' &nbsp;·&nbsp; ')}</div>
       ${p.summary?`<h2>Profile</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
-      ${skillsLine(r.skills)?`<h2>Competencies</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.awards.length?`<h2>Honors &amp; Awards</h2>${listBlocks(r.awards,['name','issuer','date'])}`:''}
+      ${orderedBody(r, {titles: {skills: 'Competencies', awards: 'Honors &amp; Awards'}})}
     </div>`;
 }
 
@@ -457,11 +451,7 @@ function tCompact(r, accent) {
       <div class="name">${esc(p.fullName)}</div>
       <div class="contact">${[p.email,p.phone,p.location,p.linkedin].filter(Boolean).map(esc).join(' &nbsp;·&nbsp; ')}</div>
       ${p.summary?`<div class="summary">${esc(p.summary)}</div>`:''}
-      ${r.experience.length?`<h2>Experience</h2>${expBlocks(r.experience)}`:''}
-      ${r.education.length?`<h2>Education</h2>${eduBlocks(r.education)}`:''}
-      ${skillsLine(r.skills)?`<h2>Skills</h2><div class="summary">${skillsLine(r.skills)}</div>`:''}
-      ${r.projects.length?`<h2>Projects</h2>${projBlocks(r.projects)}`:''}
-      ${r.certifications.length?`<h2>Certifications</h2>${listBlocks(r.certifications,['name','issuer','date'])}`:''}
+      ${orderedBody(r)}
     </div>`;
 }
 

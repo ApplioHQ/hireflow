@@ -2524,9 +2524,28 @@ function _closeWelcome() {
   setTimeout(() => b.remove(), 420);
 }
 
+// One-time cloud hydrate: on a fresh device or after cleared storage, the local
+// working copy is empty even though a saved resume exists in the cloud. Pull it
+// so the user doesn't see a blank editor and overwrite their real resume. We only
+// do this when there was NO local resume, so unsaved local edits are never clobbered.
+async function _hydrateFromCloud() {
+  if (HAD_LOCAL_RESUME) return;
+  try {
+    const r = await fetch(API + '/resume', { headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data && data.resume && typeof data.resume === 'object') {
+      resume = data.resume;
+      if (!Array.isArray(resume.versions)) resume.versions = [];
+      localStorage.setItem('hf_resume', JSON.stringify(resume));
+    }
+  } catch (_) { /* offline / transient — fall back to the local default */ }
+}
+
 (async () => {
   _maybeShowWelcome();
   await loadCurrentUser();
+  await _hydrateFromCloud();
   hydrate();
   renderMain();
 })();

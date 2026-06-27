@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Match, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .bm-cand { border:1px solid var(--border); border-radius:10px; background:var(--bg-2); padding:12px; margin-bottom:12px; }
+  .bm-cand-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .bm-cand-head input { flex:1; font-weight:600; font-size:13px; background:transparent; border:0; border-bottom:1px solid transparent; color:var(--text); padding:4px 2px; }
+  .bm-cand-head input:focus { outline:none; border-bottom-color:var(--accent); }
+  .bm-cand textarea { width:100%; box-sizing:border-box; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; line-height:1.55; resize:vertical; font-family:inherit; }
+  .bm-tag { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:20px; }
+  .bm-row { border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; background:var(--bg-2); }
+  .bm-row.best { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .bm-row-head { display:flex; align-items:center; gap:12px; padding:14px 16px; }
+  .bm-rank { font-size:13px; font-weight:800; color:var(--muted); min-width:22px; text-align:center; }
+  .bm-score { font-size:26px; font-weight:800; min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
+  .bm-bar-wrap { flex:1; }
+  .bm-bar { height:8px; background:var(--bg); border-radius:6px; overflow:hidden; margin-top:6px; }
+  .bm-bar-fill { height:100%; border-radius:6px; transition:width .5s ease; }
+  .bm-sub { display:grid; grid-template-columns:repeat(2,1fr); gap:10px 18px; padding:0 16px 14px; }
+  .bm-sub-item { font-size:12px; }
+  .bm-sub-bar { height:5px; background:var(--bg); border-radius:4px; overflow:hidden; margin-top:4px; }
+  .bm-sub-bar > div { height:100%; background:var(--accent); border-radius:4px; }
+  .bm-detail { border-top:1px solid var(--border); }
+  .bm-detail summary { cursor:pointer; padding:10px 16px; font-size:12.5px; font-weight:600; color:var(--accent); list-style:none; }
+  .bm-detail summary::-webkit-details-marker { display:none; }
+  .bm-detail .bm-detail-body { padding:0 16px 14px; font-size:12.5px; line-height:1.6; color:var(--muted); }
+  .bm-chip { display:inline-block; font-size:11px; padding:3px 9px; border-radius:20px; background:var(--bg); border:1px solid var(--border); margin:3px 4px 0 0; color:var(--text); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
+    <a class="topbar-tab" href="interview.html">Interview Prep</a>
+    <a class="topbar-tab active" href="match.html">Best Match</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="health-badge"></span>
+    <span id="plan-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main style="padding:32px 20px; max-width:860px; margin:0 auto;">
+  <div class="section-card">
+    <div class="section-head"><h3 id="bm-title"></h3></div>
+    <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Paste a job description and two or more resume versions. Applio scores each against the role and finds your strongest match.</p>
+
+    <div class="form-field">
+      <label>Job Description</label>
+      <textarea id="bm-jd" rows="6" placeholder="Paste the full job posting here…"></textarea>
+    </div>
+
+    <label style="display:block; font-size:12px; color:var(--muted); margin:6px 0 8px;">Resumes to compare</label>
+    <div id="bm-candidates"></div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 18px;">
+      <button class="btn btn-ghost btn-sm" id="bm-add"></button>
+      <button class="btn btn-ghost btn-sm" id="bm-use-saved"></button>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="bm-run"></button>
+    <div id="bm-banner"></div>
+  </div>
+
+  <div id="bm-results"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/health-badge.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login.html';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function signOut(){ localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href='index.html'; }
+
+// ── Candidate list state ──
+let _candidates = [ { label:'Resume 1', content:'', type:'text' }, { label:'Resume 2', content:'', type:'text' } ];
+
+function _renderCandidates() {
+  const wrap = document.getElementById('bm-candidates');
+  wrap.innerHTML = _candidates.map((c, i) => {
+    const tag = c.type === 'saved'
+      ? `<span class="bm-tag" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.35);">Saved resume</span>`
+      : '';
+    const body = c.type === 'saved'
+      ? `<div style="font-size:12px;color:var(--muted);padding:8px 2px;">Using your saved resume from the editor (${esc(c.preview||'')}). It’s scored as-is.</div>`
+      : `<textarea rows="5" placeholder="Paste this resume’s full text…" oninput="_onCandInput(${i}, this.value)">${esc(c.content)}</textarea>`;
+    return `<div class="bm-cand">
+      <div class="bm-cand-head">
+        ${ICON('doc','ico ico-sm')}
+        <input value="${esc(c.label)}" oninput="_onCandLabel(${i}, this.value)" aria-label="Resume label">
+        ${tag}
+        ${_candidates.length > 1 ? `<button class="btn btn-ghost btn-xs" onclick="_removeCand(${i})" title="Remove">${ICON('trash','ico ico-sm')}</button>` : ''}
+      </div>
+      ${body}
+    </div>`;
+  }).join('');
+}
+function _onCandInput(i, v){ if (_candidates[i]) _candidates[i].content = v; }
+function _onCandLabel(i, v){ if (_candidates[i]) _candidates[i].label = v; }
+function _removeCand(i){ _candidates.splice(i,1); _renderCandidates(); }
+function _addCandidate(){
+  if (_candidates.length >= 8) { toast('You can compare up to 8 resumes at once', {type:'warn'}); return; }
+  _candidates.push({ label:'Resume ' + (_candidates.length+1), content:'', type:'text' });
+  _renderCandidates();
+}
+function _useSavedResume(){
+  let saved; try { saved = JSON.parse(localStorage.getItem('hf_resume') || 'null'); } catch { saved = null; }
+  if (!saved || !saved.personal) { toast('No saved resume found — build one in the Resume Builder first', {type:'warn'}); return; }
+  if (_candidates.some(c => c.type === 'saved')) { toast('Your saved resume is already added', {type:'info'}); return; }
+  const name = (saved.personal && saved.personal.fullName) ? saved.personal.fullName : 'My resume';
+  _candidates.push({ label: name + ' (saved)', content: saved, type:'saved', preview: name });
+  _renderCandidates();
+  toast('Added your saved resume', {type:'success'});
+}
+
+function _noteTrial(t){
+  if (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) {
+    CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
+    CURRENT_USER.aiTrials[t.feature] = t.used;
+  }
+}
+
+// ── Run the match ──
+async function runMatch(){
+  const jd = document.getElementById('bm-jd').value.trim();
+  if (jd.length < 40) { toast('Paste a fuller job description first (a few lines).', {type:'warn'}); return; }
+  // Valid candidates: saved resume, or pasted text with enough content.
+  const cands = _candidates.filter(c => c.type === 'saved' || (typeof c.content === 'string' && c.content.trim().length >= 40));
+  if (cands.length < 1) { toast('Add at least one resume (paste a few lines or use your saved resume).', {type:'warn'}); return; }
+  if (isFree() && !canUseAi('ats')) { showUpgradeModal('ats'); return; }
+
+  document.getElementById('bm-results').innerHTML = '';
+  const scored = [];
+  let paywalled = false;
+  aiLoading('Scoring resume 1 of ' + cands.length + '…');
+  for (let i = 0; i < cands.length; i++) {
+    if (isFree() && !canUseAi('ats')) { paywalled = true; break; }
+    aiLoading('Scoring resume ' + (i+1) + ' of ' + cands.length + '…');
+    try {
+      const r = await fetch(API + '/ai/ats', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body: JSON.stringify({ jobDescription: jd, resume: cands[i].content })
+      });
+      if (r.status === 402) { paywalled = true; break; }
+      if (!r.ok) throw new Error('Scoring failed (' + r.status + ')');
+      const data = await r.json();
+      if (data._trial) _noteTrial(data._trial);
+      scored.push(Object.assign({ label: cands[i].label }, data));
+    } catch(e) {
+      scored.push({ label: cands[i].label, error: e.message });
+    }
+  }
+  aiLoadingDone();
+  _renderResults(scored, paywalled, cands.length);
+}
+
+function _scoreColor(s){ return s == null ? 'var(--muted)' : s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
+
+function _renderResults(scored, paywalled, attempted){
+  const ok = scored.filter(s => typeof s.score === 'number');
+  ok.sort((a,b) => (b.score||0) - (a.score||0));
+  const errored = scored.filter(s => typeof s.score !== 'number');
+  const res = document.getElementById('bm-results');
+  if (!ok.length && !errored.length) { res.innerHTML = ''; return; }
+
+  let html = '';
+  if (ok.length) {
+    const best = ok[0];
+    html += `<div class="section-card" style="border:1px solid var(--accent); background:linear-gradient(135deg, rgba(99,102,241,.10), rgba(139,92,246,.06));">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="font-size:34px;">${ICON('trophy','ico').replace('class="ico"','style="width:34px;height:34px;color:var(--accent);"')}</div>
+        <div>
+          <div style="font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); font-weight:700;">Best match for this job</div>
+          <div style="font-size:20px; font-weight:800; margin-top:2px;">${esc(best.label)} — <span style="color:${_scoreColor(best.score)};">${best.score}/100</span></div>
+          ${best.feedback ? `<div style="font-size:13px; color:var(--muted); margin-top:4px; line-height:1.5;">${esc(best.feedback)}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  html += '<div class="section-card"><div class="section-head"><h3>Ranked results</h3></div>';
+  html += ok.map((s, idx) => _rowHTML(s, idx, idx === 0)).join('');
+  html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">—</div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">Couldn’t score: ${esc(s.error||'unknown error')}</div></div></div></div>`).join('');
+  html += '</div>';
+
+  if (paywalled) {
+    html += `<div class="section-card" style="text-align:center;">
+      <p style="font-size:14px; margin-bottom:6px;"><strong>Scored ${ok.length} of ${attempted} resumes.</strong></p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You’ve used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
+      <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
+    </div>`;
+  }
+  res.innerHTML = html;
+}
+
+function _rowHTML(s, idx, isBest){
+  const col = _scoreColor(s.score);
+  const bd = s.breakdown && typeof s.breakdown === 'object' ? s.breakdown : null;
+  const subKeys = [['keywords','Keywords'],['experience','Experience'],['formatting','Formatting'],['completeness','Completeness']];
+  const sub = bd ? `<div class="bm-sub">` + subKeys.map(([k,lbl]) => {
+    const v = typeof bd[k] === 'number' ? bd[k] : 0;
+    return `<div class="bm-sub-item"><div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">${lbl}</span><span style="font-weight:600;">${v}</span></div><div class="bm-sub-bar"><div style="width:${Math.max(0,Math.min(100,v))}%;"></div></div></div>`;
+  }).join('') + `</div>` : '';
+
+  const list = (arr, title, mark, color) => (Array.isArray(arr) && arr.length)
+    ? `<div style="margin-bottom:8px;"><div style="font-weight:600;color:var(--text);margin-bottom:3px;">${title}</div>` + arr.map(x => `<div style="display:flex;gap:6px;"><span style="color:${color};">${mark}</span><span>${esc(x)}</span></div>`).join('') + `</div>`
+    : '';
+  const missing = (Array.isArray(s.missingKeywords) && s.missingKeywords.length)
+    ? `<div style="margin-top:6px;"><div style="font-weight:600;color:var(--text);margin-bottom:4px;">Missing keywords</div>${s.missingKeywords.map(k => `<span class="bm-chip">${esc(k)}</span>`).join('')}</div>`
+    : '';
+  const hasDetail = sub || s.wins || s.issues || missing;
+
+  return `<div class="bm-row ${isBest ? 'best' : ''}">
+    <div class="bm-row-head">
+      <div class="bm-rank">${isBest ? ICON('crown','ico ico-sm').replace('class="ico ico-sm"','style="width:16px;height:16px;color:var(--accent);"') : '#' + (idx+1)}</div>
+      <div class="bm-score" style="color:${col};">${s.score}</div>
+      <div class="bm-bar-wrap">
+        <strong style="font-size:14px;">${esc(s.label)}</strong>
+        <div class="bm-bar"><div class="bm-bar-fill" style="width:${Math.max(0,Math.min(100,s.score))}%; background:${col};"></div></div>
+      </div>
+    </div>
+    ${hasDetail ? `<details class="bm-detail"><summary>Details</summary><div class="bm-detail-body">
+      ${sub}
+      ${list(s.wins, 'What works', '✓', '#22c55e')}
+      ${list(s.issues, 'What to fix', '✗', '#f59e0b')}
+      ${missing}
+    </div></details>` : ''}
+  </div>`;
+}
+
+(async () => {
+  await loadCurrentUser();
+  document.getElementById('bm-title').innerHTML = `${ICON('target')} <span>Best Resume Match</span>`;
+  document.getElementById('bm-add').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add another resume</span>`;
+  document.getElementById('bm-use-saved').innerHTML = `${ICON('doc','ico ico-sm')} <span>Use my saved resume</span>`;
+  document.getElementById('bm-run').innerHTML = `${ICON('sparkle')} <span>Score &amp; find best match</span>`;
+  document.getElementById('bm-add').addEventListener('click', _addCandidate);
+  document.getElementById('bm-use-saved').addEventListener('click', _useSavedResume);
+  document.getElementById('bm-run').addEventListener('click', runMatch);
+
+  const planPill = document.getElementById('plan-pill');
+  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+
+  _renderCandidates();
+
+  const banner = document.getElementById('bm-banner');
+  if (isFree()) {
+    const left = trialsLeft('ats');
+    if (left <= 0) {
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials — matching needs <a href="pricing.html" style="color:var(--accent);">Premium</a>.</p>`;
+    } else {
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'score':'scores'}</strong> left — each resume scored uses one. Then it’s Premium.</p>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>

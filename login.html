@@ -43,7 +43,7 @@
         </div>
         <div class="form-field">
           <label>Password</label>
-          <input type="password" name="password" placeholder="••••••••" required>
+          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Sign in</button>
       </form>
@@ -66,11 +66,11 @@
         </div>
         <div class="form-field">
           <label>Password</label>
-          <input type="password" name="password" placeholder="Min. 8 characters" minlength="8" required>
+          <input type="password" name="password" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password" required>
         </div>
         <div class="form-field">
           <label>Confirm Password</label>
-          <input type="password" name="confirm" placeholder="Re-enter password" minlength="8" required>
+          <input type="password" name="confirm" placeholder="Re-enter password" minlength="8" autocomplete="new-password" required>
         </div>
         <div id="pw-match" class="pw-match" aria-hidden="true"></div>
         <div id="pw-hint" class="pw-hint" role="status" aria-live="polite"></div>
@@ -130,6 +130,11 @@
         paint(typedForward && (lastWrong || overflow));
       });
       pw.addEventListener('input', function () { prevLen = cf.value.length; paint(false); });
+      // Browser/password-manager autofill often sets values without an 'input'
+      // event — catch those via 'change' and a deferred initial paint.
+      cf.addEventListener('change', function () { paint(false); });
+      pw.addEventListener('change', function () { prevLen = cf.value.length; paint(false); });
+      setTimeout(function () { prevLen = cf.value.length; paint(false); }, 400);
     })();
   </script>
 </body>

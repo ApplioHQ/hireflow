@@ -817,61 +817,161 @@ Rules:
   return { text: lines.join("\n"), summary: j.summary };
 }
 
-// ============ ATS check ============
-async function aiATS(env, { jobDescription, resume }) {
-  const sys = `${GROUND_RULE}
+// ============ Deterministic ATS scoring (explainable, model-independent) ============
+// Real ATS rank on objective signals, not vibes: keyword coverage against the job,
+// parseable structure, completeness, and quantified impact. We compute those in code
+// so the score is consistent, defensible, and works even when the model is down; the
+// model is then used only to add qualitative narrative on top of the fixed numbers.
+const ATS_STOPWORDS = new Set("a an the and or but for nor of to in on at by with from as is are was were be been being this that these those you your our we they it its their will would can could should may might must do does did have has had not no if then than so into over under more most very who whom which what when where why how about after again all also any because before between both during each few here own same some too up out off down only just via per etc using use used uses including include includes work works working role roles team teams ability strong excellent good great new ideal candidate join help build builds building plus years year experience experienced required preferred responsibilities requirements skills".split(/\s+/));
+const ATS_SKILL_PHRASES = ["project management","machine learning","data analysis","customer service","product management","software development","web development","cloud computing","ci/cd","unit testing","data science","user experience","quality assurance","business development","social media","supply chain","financial analysis","problem solving","time management","public speaking","team leadership","stakeholder management","continuous integration","rest api","version control"];
+const ATS_SKILL_WORDS = new Set("python java javascript typescript react angular vue node nodejs go golang rust ruby php swift kotlin scala sql nosql postgres postgresql mysql mongodb redis aws azure gcp kubernetes docker terraform linux git github graphql html css sass tailwind django flask spring express rails kafka spark hadoop tableau excel powerpoint salesforce sap jira figma photoshop seo marketing sales accounting finance leadership communication analytics agile scrum devops cybersecurity nursing teaching".split(/\s+/));
+const ATS_ACTION_VERBS = new Set("led managed built created developed designed launched delivered drove increased decreased reduced improved grew scaled owned shipped implemented architected automated optimized streamlined coordinated directed founded established mentored trained negotiated analyzed researched produced generated achieved exceeded won spearheaded oversaw migrated rebuilt refactored deployed".split(/\s+/));
 
-You are an ATS (Applicant Tracking System) and resume scoring expert.
+function _atsNorm(s){ return String(s == null ? "" : s).toLowerCase(); }
+function _atsResumeText(resume){
+  if (!resume || typeof resume !== "object") return "";
+  const parts = [];
+  const p = resume.personal || {}; parts.push(p.summary, p.fullName, p.location);
+  (resume.experience || []).forEach(e => parts.push(e.title, e.company, e.description));
+  (resume.education || []).forEach(e => parts.push(e.school, e.degree, e.field, e.notes));
+  ((resume.skills && resume.skills.categories) || []).forEach(c => parts.push((c.items || []).join(" ")));
+  (resume.projects || []).forEach(e => parts.push(e.name, e.tech, e.description));
+  ["certifications","awards","leadership","volunteer","publications"].forEach(k =>
+    (resume[k] || []).forEach(e => parts.push(Object.values(e || {}).join(" "))));
+  return _atsNorm(parts.filter(Boolean).join("  "));
+}
+function _atsBullets(resume){
+  const out = [];
+  ((resume && resume.experience) || []).forEach(e =>
+    String(e.description || "").split(/\n+/).forEach(line => {
+      const t = line.replace(/^[•*\-▪→●\s]+/, "").trim();
+      if (t) out.push(t);
+    }));
+  return out;
+}
+function _atsExtractKeywords(jd){
+  const text = _atsNorm(jd);
+  if (!text.trim()) return [];
+  const found = new Map();
+  for (const ph of ATS_SKILL_PHRASES) if (text.includes(ph)) found.set(ph, true);
+  const words = text.match(/[a-z][a-z0-9+.#/]{1,}/g) || [];
+  const freq = new Map();
+  for (const w of words) {
+    if (ATS_STOPWORDS.has(w) || w.length < 2) continue;
+    freq.set(w, (freq.get(w) || 0) + 1);
+    if (ATS_SKILL_WORDS.has(w)) found.set(w, true);
+  }
+  const ranked = [...freq.entries()].filter(([w]) => w.length >= 3).sort((a, b) => b[1] - a[1]);
+  for (const [w] of ranked) { if (found.size >= 22) break; if (!found.has(w)) found.set(w, true); }
+  return [...found.keys()].slice(0, 22);
+}
+function _atsScore(jobDescription, resume){
+  const rtext = _atsResumeText(resume);
+  const hasJD = !!(jobDescription && String(jobDescription).trim().length >= 20);
+  const kws = hasJD ? _atsExtractKeywords(jobDescription) : [];
+  const matched = [], missing = [];
+  for (const k of kws) {
+    const esc = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const present = k.includes(" ") ? rtext.includes(k)
+      : new RegExp("(^|[^a-z0-9])" + esc + "([^a-z0-9]|$)").test(rtext);
+    (present ? matched : missing).push(k);
+  }
+  const skillItems = ((resume && resume.skills && resume.skills.categories) || [])
+    .reduce((n, c) => n + ((c.items || []).length), 0);
+  const kwScore = (hasJD && kws.length)
+    ? Math.round(100 * matched.length / kws.length)
+    : Math.max(0, Math.min(100, skillItems * 8));
 
-Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific; cite only what's actually in the resume. Output STRICT JSON:
+  const p = (resume && resume.personal) || {};
+  const exp = (resume && resume.experience) || [];
+  const datedRoles = exp.filter(e => (e.start || e.end)).length;
+  const bullets = _atsBullets(resume);
+  const fmtChecks = [
+    !!p.email, !!(p.phone || p.linkedin), exp.length >= 1,
+    exp.length ? datedRoles / exp.length >= 0.5 : false,
+    bullets.length >= 3, !!p.summary, bullets.length <= 40,
+  ];
+  const fmtScore = Math.round(100 * fmtChecks.filter(Boolean).length / fmtChecks.length);
 
-{
-  "score": <integer 0-100>,
-  "breakdown": {
-    "keywords": <0-100>,
-    "experience": <0-100>,
-    "formatting": <0-100>,
-    "completeness": <0-100>
-  },
-  "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
-  "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
-  "issues": ["<specific weakness — name the section and what to fix>", "<another>", "<another>", "<another>"],
-  "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
+  const compChecks = [
+    !!p.summary, exp.length >= 1, ((resume && resume.education) || []).length >= 1,
+    skillItems >= 3,
+    (((resume && resume.projects) || []).length + ((resume && resume.certifications) || []).length) >= 1,
+  ];
+  const compScore = Math.round(100 * compChecks.filter(Boolean).length / compChecks.length);
+
+  const quantified = bullets.filter(b => /\d/.test(b)).length;
+  const actionStarts = bullets.filter(b => ATS_ACTION_VERBS.has((b.split(/\s+/)[0] || "").toLowerCase().replace(/[^a-z]/g, ""))).length;
+  const bulletsPerRole = exp.length ? bullets.length / exp.length : 0;
+  const quantRatio = bullets.length ? quantified / bullets.length : 0;
+  const actionRatio = bullets.length ? actionStarts / bullets.length : 0;
+  const expScore = Math.round(100 * (
+    0.40 * Math.min(1, bulletsPerRole / 3) +
+    0.35 * Math.min(1, quantRatio / 0.4) +
+    0.25 * Math.min(1, actionRatio / 0.6)
+  ));
+
+  const w = hasJD ? { kw: .35, exp: .30, fmt: .15, comp: .20 } : { kw: .10, exp: .45, fmt: .20, comp: .25 };
+  const score = Math.max(0, Math.min(100, Math.round(kwScore * w.kw + expScore * w.exp + fmtScore * w.fmt + compScore * w.comp)));
+  return {
+    score, hasJD,
+    breakdown: { keywords: kwScore, experience: expScore, formatting: fmtScore, completeness: compScore },
+    matchedKeywords: matched, missingKeywords: missing,
+    signals: { bullets: bullets.length, quantRatio, actionRatio, bulletsPerRole, datedRoles, roles: exp.length, skillItems, hasSummary: !!p.summary, hasEducation: ((resume && resume.education) || []).length >= 1 },
+  };
+}
+function _atsSynthNarrative(det){
+  const s = det.signals, b = det.breakdown, wins = [], issues = [];
+  const totalKw = det.matchedKeywords.length + det.missingKeywords.length;
+  if (det.hasJD && det.matchedKeywords.length) wins.push(`Matches ${det.matchedKeywords.length} of ${totalKw} key terms from the job description`);
+  if (s.quantRatio >= 0.4) wins.push(`${Math.round(s.quantRatio * 100)}% of your bullet points include measurable results`);
+  if (s.actionRatio >= 0.6) wins.push(`Most bullet points start with a strong action verb`);
+  if (b.completeness >= 80) wins.push(`All the core sections are present and filled in`);
+  if (det.hasJD && det.missingKeywords.length) issues.push(`Add these terms from the posting where they truly apply to you: ${det.missingKeywords.slice(0, 6).join(", ")}`);
+  if (s.bullets && s.quantRatio < 0.4) issues.push(`Only ${Math.round(s.quantRatio * 100)}% of bullet points include numbers — add metrics like %, $, time saved, or scale`);
+  if (s.roles && s.bulletsPerRole < 3) issues.push(`Add more detail to your roles — aim for 3 to 5 bullet points each`);
+  if (!s.hasSummary) issues.push(`Add a short professional summary at the top`);
+  if (!s.hasEducation) issues.push(`Add an education section`);
+  if (s.roles && s.datedRoles < s.roles) issues.push(`Add start and end dates to every role`);
+  if (!wins.length) wins.push(`You have a solid starting point to build on`);
+  if (!issues.length) issues.push(`Tighten the wording and keep the focus on your most relevant, recent experience`);
+  const labels = { keywords: "keyword match", experience: "experience detail", formatting: "formatting", completeness: "completeness" };
+  const ordered = Object.entries(b).sort((a, c) => c[1] - a[1]);
+  const best = ordered[0], worst = ordered[ordered.length - 1];
+  const feedback = `Your strongest area is ${labels[best[0]]} (${best[1]} out of 100); the biggest opportunity is ${labels[worst[0]]} (${worst[1]} out of 100). ${det.score >= 70 ? "You're close — a few targeted tweaks will get this submission-ready." : "Work through the fixes below to make this more competitive."}`;
+  return { feedback, wins: wins.slice(0, 3), issues: issues.slice(0, 4) };
 }
 
-Scoring rubric:
-- 90-100: strong match, ready to submit
-- 70-89: solid, needs minor tweaks
-- 50-69: relevant but needs significant work
-- below 50: major gaps
+// ============ ATS check ============
+async function aiATS(env, { jobDescription, resume }) {
+  // Authoritative, explainable score computed in code — consistent run to run and
+  // available even if the model is unavailable.
+  const det = _atsScore(jobDescription, resume);
+  const base = _atsSynthNarrative(det);
+  // Best-effort qualitative polish from the model. The numbers are already fixed;
+  // the model only rewrites the narrative, and we fall back to the computed copy
+  // if it's unavailable or returns nothing usable.
+  let nice = null;
+  try {
+    const sys = `${GROUND_RULE}
 
-Rules:
-- score is the weighted overall (not just the average)
-- wins/issues should reference specific resume content, not generic advice
-- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, completeness)
-- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+You are a sharp, encouraging resume coach. You are given a candidate's resume, the job description, and an ALREADY-COMPUTED ATS analysis (scores + matched/missing keywords). Do NOT invent or change any numbers. Write narrative that is consistent with the analysis and references real resume content. Output STRICT JSON:
+{ "feedback": "<2-3 sentence summary of what's working and the top opportunity>", "wins": ["<specific strength>", "<another>", "<another>"], "issues": ["<specific, actionable fix naming the section>", "<another>", "<another>"] }
+OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+    const raw = await runAI(env, sys,
+      `Computed breakdown: ${JSON.stringify(det.breakdown)}\nMatched keywords: ${det.matchedKeywords.join(", ") || "(none)"}\nMissing keywords: ${det.missingKeywords.join(", ") || "(none)"}\n\nJob Description:\n${(jobDescription || "(none provided — judge against general best practices)").slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
+      { model: SMART_MODEL, max_tokens: 500, temperature: 0.3 });
+    nice = safeJSON(raw);
+  } catch (e) { /* model unavailable — computed narrative is used */ }
 
-  const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 600, temperature: 0.2 });
-  const j = safeJSON(raw);
-  // Sensible fallback on parse failure — never dump raw model text to the client.
-  if (!j) {
-    return {
-      score: null,
-      breakdown: null,
-      feedback: "We couldn't read the AI's score this time. Please run the check again.",
-      wins: [], issues: [], missingKeywords: [],
-    };
-  }
-  // Return structured fields directly so the client renders the score-card components.
   return {
-    score: typeof j.score === "number" ? j.score : null,
-    breakdown: j.breakdown && typeof j.breakdown === "object" ? j.breakdown : null,
-    feedback: typeof j.feedback === "string" ? j.feedback : "",
-    wins: Array.isArray(j.wins) ? j.wins : [],
-    issues: Array.isArray(j.issues) ? j.issues : [],
-    missingKeywords: Array.isArray(j.missingKeywords) ? j.missingKeywords : [],
+    score: det.score,
+    breakdown: det.breakdown,
+    feedback: (nice && typeof nice.feedback === "string" && nice.feedback.trim()) ? nice.feedback : base.feedback,
+    wins: (nice && Array.isArray(nice.wins) && nice.wins.length) ? nice.wins.slice(0, 3) : base.wins,
+    issues: (nice && Array.isArray(nice.issues) && nice.issues.length) ? nice.issues.slice(0, 4) : base.issues,
+    matchedKeywords: det.matchedKeywords,
+    missingKeywords: det.missingKeywords,
   };
 }
 

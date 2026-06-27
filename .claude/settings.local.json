@@ -75,7 +75,8 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('match.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/m.js',last||'//none'\\);\")",
       "Bash(node --check /tmp/m.js)",
       "Bash(rm -f /tmp/m.js)",
-      "Bash(node verify-match.mjs)"
+      "Bash(node verify-match.mjs)",
+      "Bash(grep -oE \"['\\\\\"][^'\\\\\"]+$\")"
     ]
   }
 }

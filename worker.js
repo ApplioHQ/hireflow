@@ -715,7 +715,7 @@ async function runAI(env, system, user, opts = {}) {
 // ============ Improve writing ============
 async function aiImprove(env, { target, text }) {
   if (!text || !text.trim()) {
-    return { text: "Add some content first, then click AI Improve to refine it." };
+    return { text: "Add some content first, then click AI Improve to refine it.", _noCharge: true };
   }
   const isSummary = target === "summary" || target === "personal";
   const sys = isSummary
@@ -1101,7 +1101,7 @@ Rules:
 // ============ Interview answer feedback ============
 async function aiInterviewFeedback(env, { question, answer }) {
   if (!answer || answer.trim().length < 10) {
-    return { score: 0, feedback: "Write a fuller answer (a few sentences) and try again." };
+    return { score: 0, feedback: "Write a fuller answer (a few sentences) and try again.", _noCharge: true };
   }
   const sys = `${GROUND_RULE}
 

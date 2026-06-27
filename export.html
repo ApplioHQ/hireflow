@@ -60,7 +60,7 @@
         </select>
       </div>
       <button class="btn btn-primary btn-block" onclick="tryExport('pdf')" id="btn-pdf"></button>
-      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="printFrame()">Print</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="tryExport('pdf')">Print</button>
       <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
     </div>
   </aside>
@@ -74,7 +74,10 @@
 <script>
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login.html';
-const resume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+const resume = (function () {
+  try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
+  catch { return {}; }  // corrupt storage must not white-screen the export page
+})();
 
 let _exportFrame = null;
 function render() {

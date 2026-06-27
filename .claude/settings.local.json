@@ -62,7 +62,10 @@
       "Bash(node test.mjs)",
       "Bash(git rev-list *)",
       "Bash(perl -0pi -e \"s/const ip = '198\\\\.51\\\\.100\\\\.77';/const ip = 'rl-signup-' + Date.now\\(\\);/; s/const ip = '198\\\\.51\\\\.100\\\\.88';/const ip = 'rl-login-' + Date.now\\(\\);/\" test.mjs)",
-      "Bash(node ftest.mjs)"
+      "Bash(node ftest.mjs)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('editor.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/e.js',last||'//none'\\);\")",
+      "Bash(node --check /tmp/e.js)",
+      "Bash(rm -f /tmp/e.js)"
     ]
   }
 }

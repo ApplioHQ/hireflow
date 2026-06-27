@@ -18,7 +18,13 @@ const DEFAULT_RESUME = {
   versions: []
 };
 
-let resume = JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME);
+// Whether the browser already had a saved resume — drives the one-time cloud
+// hydrate below (fresh device / cleared storage should pull the cloud copy).
+const HAD_LOCAL_RESUME = !!localStorage.getItem('hf_resume');
+let resume = (function () {
+  try { return JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME); }
+  catch { return structuredClone(DEFAULT_RESUME); }  // corrupt storage must not white-screen the editor
+})();
 let currentSection = 'template';
 // Cache of the last AI results (read by the health-score badge, never re-fetched).
 let AI_RESULTS = (function(){ try { return JSON.parse(localStorage.getItem('hf_ai_results') || '{}'); } catch { return {}; } })();
@@ -1891,14 +1897,15 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 // Map AI endpoints → the free-use feature key tracked in localStorage.
 const AI_TRIAL_FEATURE = { tailor: 'tailor', ats: 'ats', analyze: 'analysis', improve: 'improve' };
 async function ai(endpoint, body) {
-  // Resume Import (parse) is free for everyone — never gate it (it has its own gate).
-  // Other endpoints: free users get 1 free use per feature, then it paywalls.
-  const feature = AI_TRIAL_FEATURE[endpoint];
-  if (endpoint !== 'parse' && isFree() && feature) {
-    if (!hasFreeAiUse(feature)) { showUpgradeModal('ai', feature === 'analysis' ? 'analysis' : feature); throw new Error('Premium required'); }
-    consumeFreeAiUse(feature);
-  } else if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) {
-    showUpgradeModal('ai'); throw new Error('Premium required');
+  // Resume Import (parse) is free for everyone — never gate it.
+  // Every other AI feature gives free users a limited number of free trials,
+  // ENFORCED BY THE BACKEND (per-feature, default 2). We only pre-check the
+  // server-tracked count to show the upgrade modal without a wasted request —
+  // and we never consume a local counter here, so a network/error/402 can't
+  // burn a trial (the backend consumes only on a real, successful result).
+  if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) {
+    showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
+    throw new Error('Premium required');
   }
   const r = await fetch(API + '/ai/' + endpoint, {
     method:'POST',
@@ -2342,8 +2349,35 @@ async function restoreVersion(i) {
     danger: true
   });
   if (!ok) return;
-  resume = resume.versions[i].data; save(); closeModal('version'); renderMain();
+  const history = resume.versions || [];
+  const snap = history[i] && history[i].data;
+  if (!snap) return;
+  // Deep-clone so edits don't mutate the archived snapshot, and KEEP the
+  // version history (snapshots are stored without it, so a raw assign would
+  // wipe every saved version on the next save).
+  resume = JSON.parse(JSON.stringify(snap));
+  resume.versions = history;
+  save(); closeModal('version'); renderMain();
   toast('Version restored', { type: 'success' });
+}
+
+// Coerce whatever /ai/parse returns into the exact shape the editor renders, so
+// a malformed AI response (skills as array/string, missing categories, non-array
+// sections) can't throw inside renderSkills/renderExperience/renderCustomize.
+function _normalizeImported(raw) {
+  const base = structuredClone(DEFAULT_RESUME);
+  if (!raw || typeof raw !== 'object') return base;
+  if (raw.personal && typeof raw.personal === 'object') Object.assign(base.personal, raw.personal);
+  for (const k of ['experience','education','projects','certifications','awards','leadership','volunteer','publications']) {
+    if (Array.isArray(raw[k])) base[k] = raw[k];
+  }
+  // skills: accept {categories:[...]}, a bare array, or a comma/pipe string.
+  let cats = null;
+  if (raw.skills && Array.isArray(raw.skills.categories)) cats = raw.skills.categories;
+  else if (Array.isArray(raw.skills)) cats = [{ name: 'All', items: raw.skills }];
+  else if (typeof raw.skills === 'string') cats = [{ name: 'All', items: raw.skills.split(/[,|]/).map(s => s.trim()).filter(Boolean) }];
+  if (cats) base.skills = { categories: cats.map(c => ({ name: (c && c.name) || 'All', items: Array.isArray(c && c.items) ? c.items : [] })) };
+  return base;
 }
 
 async function importResume() {
@@ -2354,7 +2388,7 @@ async function importResume() {
   try {
     const r = await ai('parse', { text });
     if (r.resume) {
-      resume = Object.assign(structuredClone(DEFAULT_RESUME), r.resume);
+      resume = _normalizeImported(r.resume);
       save(); renderMain();
       toast('Resume imported', { type: 'success' });
     } else {

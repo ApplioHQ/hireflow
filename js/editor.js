@@ -1476,6 +1476,21 @@ function _mountResume(frame, mini, cb) {
 
 // Mini preview zoom (1 = fit-to-width). Persists across re-renders.
 let _miniZoom = 1;
+// View mode: 'width' fits the whole page width (default, good overview); 'page'
+// sizes ONE full page to the panel's reading height so multi-page resumes are
+// legible and you scroll page-by-page through the painted sheets.
+let _previewMode = 'width';
+function _pageViewportH() { return Math.max(360, Math.round(window.innerHeight * 0.74)); }
+function toggleFitMode() {
+  _previewMode = _previewMode === 'page' ? 'width' : 'page';
+  _miniZoom = 1;
+  const r = _miniRefs();
+  if (r.frame && r.frame._doc) _scaleMini(r.wrap, r.sizer, r.frame, r.frame._doc);
+  const btn = document.getElementById('mini-mode-btn');
+  if (btn) btn.textContent = _previewMode === 'page' ? '↔ Fit width' : '▭ One page';
+  const lbl = document.getElementById('mini-zoom-label');
+  if (lbl) lbl.textContent = 'Fit';
+}
 function _miniRefs() {
   const wrap = document.getElementById('preview');
   const sizer = wrap && wrap.querySelector('.preview-sizer');

@@ -103,8 +103,9 @@
       <button class="btn btn-secondary btn-block btn-sm" style="margin-bottom:10px;" onclick="openFullPreview()">⛶ Full Preview</button>
       <div class="preview-controls">
         <button class="preview-btn" onclick="setMiniZoom(-0.15)" title="Zoom out">−</button>
-        <button class="preview-btn" id="mini-zoom-label" onclick="setMiniZoom('fit')" title="Reset to fit width">Fit</button>
+        <button class="preview-btn" id="mini-zoom-label" onclick="setMiniZoom('fit')" title="Reset zoom">Fit</button>
         <button class="preview-btn" onclick="setMiniZoom(0.15)" title="Zoom in">+</button>
+        <button class="preview-btn" id="mini-mode-btn" onclick="toggleFitMode()" title="Switch between fitting the page width and reading one full page at a time">▭ One page</button>
       </div>
       <div class="preview-mini" id="preview"></div>
       <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px;">

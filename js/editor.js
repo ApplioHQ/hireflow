@@ -1477,6 +1477,15 @@ function moveSection(k, dir) {
 }
 function setCustom(k,v) { resume.customize[k]=v; save(); renderMain(); }
 function toggleSection(k){ resume.customize.sections[k]=!resume.customize.sections[k]; save(); renderMain(); }
+// Keyboard support for the click-only swatches/toggles (Enter or Space activates).
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target;
+  if (t && t.classList && (t.classList.contains('swatch') || t.classList.contains('toggle'))) {
+    e.preventDefault();
+    t.click();
+  }
+});
 
 // ============ Nav row helper ============
 function navRow(prev, next) {

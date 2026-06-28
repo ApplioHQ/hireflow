@@ -20,7 +20,8 @@ const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (Resume Import) is intentionally NOT here, import is free for all users.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "interview-feedback", "skills", "improve"]);
+// Interview prep (questions + answer feedback) is free for everyone, like parse.
+const PRO_AI = new Set(["tailor", "ats", "analyze", "skills", "improve"]);
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).

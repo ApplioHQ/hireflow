@@ -91,7 +91,9 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('feedback.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,last;while\\(\\(m=re.exec\\(h\\)\\)\\)last=m[1];fs.writeFileSync\\('/tmp/c.js',last||'//'\\);\")",
       "Bash(node --check /tmp/c.js)",
       "Bash(rm -f /tmp/c.js)",
-      "Bash(grep -nE \"experience.length\\\\?\\\\`<h2>Experience|experience.length\\\\?\\\\`<h3>Experience|<h2>Experience|<h3>Experience|grid-template-columns\" js/templates.js)"
+      "Bash(grep -nE \"experience.length\\\\?\\\\`<h2>Experience|experience.length\\\\?\\\\`<h3>Experience|<h2>Experience|<h3>Experience|grid-template-columns\" js/templates.js)",
+      "Bash(sed -n '/^function save\\(\\)/,/^}/p;/^let _saveStatusTimer/,/^}/p' js/editor.js)",
+      "Bash(sed -n '/function removeItem/p' js/editor.js)"
     ]
   }
 }

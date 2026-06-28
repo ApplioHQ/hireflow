@@ -29,7 +29,8 @@ const GROUND_RULE = `STRICT GROUNDING, read first:
 - Never fabricate or estimate numbers (%, $, headcount, scale, dates). If the input has no metric, keep it qualitative.
 - If something isn't in the input, omit it, do not guess.
 - NEVER use the candidate's name. For any feedback/commentary ABOUT the resume, address the reader directly as "you"/"your" ("Your resume highlights…"), never third person ("Jane's resume…", "The candidate's resume…"). When writing resume CONTENT itself (a summary or bullet points), use standard resume voice, no name, no "I", no "you".
-- Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.`;
+- Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.
+- Punctuation: never use em dashes. Use commas, periods, parentheses, or colons instead, so the writing reads naturally.`;
 
 // Structured single-line JSON logging. Makes Cloudflare logs (wrangler tail /
 // dashboard) queryable instead of free-text. NEVER pass passwords, tokens, or

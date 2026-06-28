@@ -79,7 +79,6 @@ async function generate() {
       body: JSON.stringify({ role, jobDescription: jd, resume })
     });
     hideAILoading();
-    if (r.status === 402) { showUpgradeModal('interview'); return; }
     if (!r.ok) throw new Error('AI failed');
     const data = await r.json();
     if (data._trial) _noteTrial(data._trial);
@@ -248,21 +247,11 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='index.ht
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
   else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-  if (isFree() && !canUseAi('interview')) {
-    // No free trials left, show the upgrade card.
-    document.querySelector('main .section-card').innerHTML = `
-      <div style="text-align:center; padding:30px 20px;">
-        <div style="display:flex; justify-content:center; margin-bottom:16px; color:var(--accent);">${ICON('lock','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"')}</div>
-        <h2 style="font-size:22px; margin-bottom:8px;">You've used your free interview trials</h2>
-        <p style="color:var(--muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto;">Upgrade to Premium for unlimited AI-generated practice questions and answer feedback.</p>
-        <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock with Premium</span></a>
-      </div>`;
-  } else if (isFree()) {
-    // Free user with trials remaining, show a small banner.
-    const left = trialsLeft('interview');
+  // Interview Prep is free for everyone, no trial banner or paywall.
+  if (isFree()) {
     const note = document.createElement('p');
     note.style.cssText = 'font-size:12px;color:var(--muted);text-align:center;margin-top:10px;';
-    note.innerHTML = `✨ <strong style="color:var(--accent);">${left} free ${left===1?'try':'tries'}</strong> left, then it's Premium.`;
+    note.innerHTML = `✨ Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.`;
     document.querySelector('main .section-card').appendChild(note);
   }
 })();

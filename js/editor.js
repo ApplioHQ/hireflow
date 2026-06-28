@@ -2287,6 +2287,66 @@ async function aiTailor() {
   finally { aiLoadingDone(); }
 }
 
+// Best-effort title/company from the pasted job description (first line + an
+// "at <Company>" / "Company:" pattern). The user confirms/edits before saving.
+function _guessJob(jd) {
+  const lines = (jd || '').split('\n').map(s => s.trim()).filter(Boolean);
+  let title = lines[0] || '';
+  if (title.length > 70) title = title.slice(0, 70);
+  let company = '';
+  const m = (jd || '').match(/(?:\bat|@|company:)\s+([A-Z][\w&.'-]+(?:\s+[A-Z][\w&.'-]+){0,2})/);
+  if (m) company = m[1].trim();
+  return { title, company };
+}
+// Save the tailored-to job into the Job Tracker (shared hf_jobs localStorage),
+// matching the tracker's record shape so follow-up reminders etc. just work.
+function saveTailorToTracker() {
+  const jd = (resume.tailor.jobDescription || '').trim();
+  if (jd.length < 30) { toast('Add a job description first', { type: 'warn' }); return; }
+  const g = _guessJob(jd);
+  _trackerDialog(g.title, g.company, jd);
+}
+function _trackerDialog(title, company, jd) {
+  const old = document.getElementById('trk-dialog-bd'); if (old) old.remove();
+  const bd = document.createElement('div');
+  bd.id = 'trk-dialog-bd';
+  bd.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(8,10,25,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+  const f = 'width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;';
+  bd.innerHTML =
+    '<div class="section-card" style="max-width:440px;width:100%;position:relative;">' +
+      '<button id="trk-x" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">×</button>' +
+      '<h3 style="margin:0 0 4px;">' + ICON('briefcase','ico ico-sm') + ' Save to Job Tracker</h3>' +
+      '<p style="font-size:12px;color:var(--muted);margin:0 0 14px;">Added as <b>Applied</b>. Confirm the details, edit anytime in the tracker.</p>' +
+      '<label style="font-size:12px;color:var(--muted);">Job title</label>' +
+      '<input id="trk-title" style="' + f + 'margin:4px 0 12px;">' +
+      '<label style="font-size:12px;color:var(--muted);">Company</label>' +
+      '<input id="trk-company" style="' + f + 'margin:4px 0 4px;">' +
+      '<div style="display:flex;gap:8px;margin-top:16px;">' +
+        '<button class="btn btn-secondary" id="trk-cancel" style="flex:1;">Cancel</button>' +
+        '<button class="btn btn-primary" id="trk-save" style="flex:1;">Add to Tracker</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(bd);
+  bd.querySelector('#trk-title').value = title || '';
+  bd.querySelector('#trk-company').value = company || '';
+  const close = () => bd.remove();
+  bd.addEventListener('click', e => { if (e.target === bd) close(); });
+  bd.querySelector('#trk-x').onclick = close;
+  bd.querySelector('#trk-cancel').onclick = close;
+  bd.querySelector('#trk-save').onclick = () => {
+    const t = bd.querySelector('#trk-title').value.trim();
+    const c = bd.querySelector('#trk-company').value.trim();
+    if (!t || !c) { toast('Title and company are required', { type: 'warn' }); return; }
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(arr)) arr = []; } catch { arr = []; }
+    const now = Date.now();
+    arr.unshift({ id: now, addedAt: now, statusAt: now, title: t, company: c, location: '', status: 'Applied', notes: jd.slice(0, 280), tailored: true });
+    try { localStorage.setItem('hf_jobs', JSON.stringify(arr)); } catch (e) { toast('Could not save, storage may be full', { type: 'error' }); return; }
+    close();
+    toast('Added to Job Tracker', { type: 'success' });
+  };
+}
+
 async function aiATS() {
   const jd = (document.getElementById('ats-jd').value || '').trim();
   if (jd.length < 30) {

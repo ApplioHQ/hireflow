@@ -24,8 +24,17 @@
   .jt-followup {
     margin-top:8px; font-size:12px; font-weight:600; color:#b45309;
     background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.3);
-    border-radius:8px; padding:6px 10px; display:inline-block;
+    border-radius:8px; padding:6px 10px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   }
+  .jt-followup-btn {
+    font:inherit; font-size:11px; font-weight:700; cursor:pointer;
+    color:#fff; background:#f59e0b; border:0; border-radius:6px; padding:4px 10px;
+    white-space:nowrap;
+  }
+  .jt-followup-btn:hover { background:#d97706; }
+  .jt-mail-field { width:100%; box-sizing:border-box; padding:9px 11px; background:var(--bg-2);
+    border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:inherit; }
   @media (max-width:640px){ .jt-stats { grid-template-columns:repeat(3,1fr); } }
 </style>
 </head>
@@ -232,7 +241,10 @@ function render(){
             ${_statusBadge(j.status)}
           </div>
           <div style="color:var(--muted); font-size:12px;">${j.location?esc(j.location)+' · ':''}added ${new Date(j.addedAt).toLocaleDateString()}</div>
-          ${fu ? `<div class="jt-followup">⏰ No update in ${fu} days, time to follow up on this ${j.status==='Interviewing'?'interview':'application'}.</div>` : ''}
+          ${fu ? `<div class="jt-followup">
+            <span>⏰ No update in ${fu} days, time to follow up on this ${j.status==='Interviewing'?'interview':'application'}.</span>
+            <button class="jt-followup-btn" onclick="draftFollowUp(${j.id})">✉ Draft follow-up</button>
+          </div>` : ''}
           ${j.notes ? `<p style="font-size:13px; margin-top:8px; word-break:break-word;">${esc(j.notes)}</p>`:''}
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
@@ -248,6 +260,57 @@ function render(){
     </div>
   `; }).join('');
 }
+// Generate a ready-to-send follow-up email for a stale application/interview.
+// Pure client-side template (no AI, no backend) tailored to the job's status.
+function draftFollowUp(id){
+  const j = jobs.find(x=>x.id===id); if(!j) return;
+  const interviewing = j.status === 'Interviewing';
+  const subject = interviewing
+    ? `Thank you — ${j.title} interview`
+    : `Following up on my ${j.title} application`;
+  const body = interviewing
+    ? `Hi [Interviewer],\n\nThank you again for taking the time to speak with me about the ${j.title} role at ${j.company}. I really enjoyed our conversation about [topic you discussed] and came away even more excited about the opportunity.\n\nPlease let me know if there's anything else I can provide. I look forward to hearing about the next steps.\n\nBest regards,\n[Your name]`
+    : `Hi [Hiring Manager],\n\nI recently applied for the ${j.title} role at ${j.company} and wanted to reaffirm my strong interest. I'm excited about [what draws you to the role], and I believe my experience in [your strength] would let me contribute quickly.\n\nI'd welcome the chance to discuss the role further and am happy to share any additional information. Thank you for your time and consideration.\n\nBest regards,\n[Your name]`;
+  _openEmailDialog(subject, body);
+}
+
+function _openEmailDialog(subject, body){
+  const old = document.getElementById('mail-dialog-bd'); if (old) old.remove();
+  const bd = document.createElement('div');
+  bd.id = 'mail-dialog-bd';
+  bd.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(8,10,25,.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+  bd.innerHTML =
+    '<div class="section-card" style="max-width:560px;width:100%;position:relative;">' +
+      '<button id="md-x" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">×</button>' +
+      '<h3 style="margin:0 0 4px;">✉ Follow-up email</h3>' +
+      '<p style="font-size:12px;color:var(--muted);margin:0 0 14px;">Fill in the [bracketed] bits, then copy or open in your mail app.</p>' +
+      '<label style="font-size:12px;color:var(--muted);">Subject</label>' +
+      '<input id="md-subj" class="jt-mail-field" style="margin:4px 0 12px;">' +
+      '<label style="font-size:12px;color:var(--muted);">Message</label>' +
+      '<textarea id="md-body" rows="11" class="jt-mail-field" style="margin-top:4px;resize:vertical;line-height:1.5;"></textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:14px;">' +
+        '<button class="btn btn-secondary" id="md-copy" style="flex:1;">Copy</button>' +
+        '<button class="btn btn-primary" id="md-open" style="flex:1;">Open in email app</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(bd);
+  bd.querySelector('#md-subj').value = subject;
+  bd.querySelector('#md-body').value = body;
+  const close = () => bd.remove();
+  bd.addEventListener('click', e => { if (e.target === bd) close(); });
+  bd.querySelector('#md-x').onclick = close;
+  bd.querySelector('#md-copy').onclick = async () => {
+    const text = bd.querySelector('#md-subj').value + '\n\n' + bd.querySelector('#md-body').value;
+    try { await navigator.clipboard.writeText(text); toast('Copied to clipboard', { type:'success' }); }
+    catch { toast('Copy failed, select the text manually', { type:'warn' }); }
+  };
+  bd.querySelector('#md-open').onclick = () => {
+    const s = encodeURIComponent(bd.querySelector('#md-subj').value);
+    const b = encodeURIComponent(bd.querySelector('#md-body').value);
+    window.location.href = `mailto:?subject=${s}&body=${b}`;
+  };
+}
+
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
 
 document.getElementById('jt-title').innerHTML = `${ICON('briefcase','ico ico-lg')} <span>Job Tracker</span>`;

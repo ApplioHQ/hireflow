@@ -1176,3 +1176,14 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   border: 1px solid rgba(99,102,241,.28);
   border-radius: 6px; padding: 1px 6px;
 }
+
+/* Respect users who prefer reduced motion: calm all animations/transitions.
+   (The WebGL waves background already self-disables via matchMedia.) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

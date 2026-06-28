@@ -1177,6 +1177,26 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   border-radius: 6px; padding: 1px 6px;
 }
 
+/* Button press micro-interaction — subtle tactile feedback on click. */
+.btn { transition: transform .08s ease, filter .15s ease, background .15s ease, box-shadow .15s ease; }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+
+/* Toast action button (e.g. Undo). */
+.app-toast-action {
+  margin-left: 10px; flex: none; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.28); color: inherit; font-weight: 700;
+  font-size: 12px; padding: 3px 11px; border-radius: 6px; cursor: pointer;
+}
+.app-toast-action:hover { background: rgba(255,255,255,.28); }
+
+/* Loading skeleton shimmer. */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-2) 25%, rgba(148,163,184,.18) 37%, var(--bg-2) 63%);
+  background-size: 400% 100%; animation: sk-shimmer 1.4s ease infinite;
+  border-radius: 8px; min-height: 14px;
+}
+@keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
 /* Respect users who prefer reduced motion: calm all animations/transitions.
    (The WebGL waves background already self-disables via matchMedia.) */
 @media (prefers-reduced-motion: reduce) {

@@ -1925,7 +1925,13 @@ function nextSection(s) {
   renderMain();
 }
 function addItem(key, b) { resume[key].push(b); save(); renderMain(); }
-function removeItem(key, idx) { resume[key].splice(idx,1); save(); renderMain(); }
+function removeItem(key, idx) {
+  const removed = resume[key][idx];
+  resume[key].splice(idx, 1); save(); renderMain();
+  toast('Item removed', { type: 'info', duration: 6000, action: { label: 'Undo', onClick: () => {
+    resume[key].splice(idx, 0, removed); save(); renderMain(); toast('Restored', { type: 'success' });
+  } } });
+}
 
 // Coalesce rapid keystrokes into one preview re-render so typing stays smooth
 // (each render re-writes the iframe + re-measures; doing it per keystroke flickers).

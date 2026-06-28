@@ -1619,17 +1619,20 @@ function _scaleMini(wrap, sizer, frame, doc) {
   if (avail < 1) return;                       // hidden/collapsed, RO will retry
   const z = _miniZoom || 1;
   const h = doc.documentElement.scrollHeight || doc.body.scrollHeight || 0;
+  // The iframe body is the gray canvas (CANVAS_W wide); scale that to the panel.
+  const cw = CANVAS_W;
   let s;
   if (_previewMode === 'page') {
     // Size one full page to the reading viewport height (never wider than the
     // panel), then scroll vertically to move through the painted page sheets.
-    s = Math.min(_pageViewportH() / PAGE_PX, avail / 816) * z;
+    s = Math.min(_pageViewportH() / PAGE_PX, avail / cw) * z;
   } else {
-    s = (avail / 816) * z;
+    s = (avail / cw) * z;
   }
+  frame.style.width = cw + 'px';
   frame.style.height = h + 'px';
   frame.style.transform = 'scale(' + s + ')';
-  sizer.style.width = Math.round(816 * s) + 'px';
+  sizer.style.width = Math.round(cw * s) + 'px';
   sizer.style.height = Math.round(h * s) + 'px';
   if (_previewMode === 'page') {
     // One-page reading view: fixed viewport, scroll page-to-page.
@@ -1731,68 +1734,77 @@ function _contentEls(body) {
 
 function _paginate(doc, ratio) {
   const body = doc.body;
-  // Reset any previous pagination so re-renders (incl. the fonts-ready re-run) are idempotent.
+  // --- Reset so re-renders (incl. the fonts-ready re-run) are idempotent: unwrap
+  // the page column, remove sheets, and clear every inline style we set. ---
   doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(e => e.remove());
-  body.style.background = '';
-  body.style.minHeight = '';
-  body.style.position = '';
+  const prevCol = Array.from(body.children).find(el => el.classList && el.classList.contains('hf-doc'));
+  if (prevCol) { while (prevCol.firstChild) body.insertBefore(prevCol.firstChild, prevCol); prevCol.remove(); }
+  ['background', 'minHeight', 'position', 'width', 'padding', 'margin'].forEach(p => { body.style[p] = ''; });
   _contentEls(body).forEach(el => {
     el.style.zIndex = '';
     if (el.dataset.hfpos) { el.style.position = ''; delete el.dataset.hfpos; }
   });
-  if (!(ratio > 1.0)) return 1;                // fits on one page, nothing to do
 
-  const flow = _bestFlowRoot(body);
+  // --- Wrap the résumé (everything except the <style> tag) into a centered 816px
+  // page column, and turn the body into a gray canvas around it. This gives the
+  // pages gray margins on all four sides + an all-around shadow, like Google Docs. ---
+  const col = doc.createElement('div');
+  col.className = 'hf-doc';
+  col.style.cssText = 'position:relative; width:' + PAGE_W + 'px; margin:0 auto;';
+  _contentEls(body).forEach(el => col.appendChild(el));
+  body.appendChild(col);
+  body.style.background = '#e9eaef';
+  body.style.width = CANVAS_W + 'px';
+  body.style.padding = CANVAS_PAD + 'px 0';
+  body.style.margin = '0';
+
+  // --- Paginate: bump any block that overflows the current sheet to the top of
+  // the next one (a page fills, a fresh page begins). Measured within the column. ---
+  const flow = _bestFlowRoot(col);
   const units = _breakUnits(flow);
   const step = PAGE_PX + SHEET_GAP;
   let page = 0;
   for (const unit of units) {
     if (page >= MAX_SHEETS - 1) break;
-    const bodyTop = body.getBoundingClientRect().top;     // re-read (spacers shift layout)
+    const colTop = col.getBoundingClientRect().top;       // re-read (spacers shift layout)
     const r = unit.getBoundingClientRect();
-    const top = r.top - bodyTop;
+    const top = r.top - colTop;
     const bottom = top + r.height;
-    const pageTop = page * step;
-    const pageBottom = pageTop + PAGE_PX;
-    // Unit overflows this sheet and isn't the first thing on it → bump to next sheet.
-    if (bottom > pageBottom && top > pageTop + 1) {
-      const nextTop = (page + 1) * step;
+    const sheetTop = page * step;
+    const sheetBottom = sheetTop + PAGE_PX;
+    if (bottom > sheetBottom && top > sheetTop + 1) {
       const sp = doc.createElement('div');
       sp.className = 'hf-pagebreak';
-      sp.style.cssText = 'height:' + Math.max(0, Math.round(nextTop - top)) + 'px;';
+      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
       (unit.parentNode || flow).insertBefore(sp, unit);
       page++;
     }
   }
-
   const totalPages = page + 1;
-  // Gray canvas + raise content above the (yet-to-be-added) sheets.
-  body.style.position = 'relative';
-  body.style.background = '#e9eaef';
-  _contentEls(body).forEach(el => {
+
+  // --- Raise the content above the sheets (within the column). ---
+  Array.from(col.children).forEach(el => {
+    if (el.classList.contains('hf-pagebreak')) return;
     if (doc.defaultView.getComputedStyle(el).position === 'static') { el.style.position = 'relative'; el.dataset.hfpos = '1'; }
     el.style.zIndex = '1';
   });
-  // Paint the white sheets behind (appended last, z-index 0 < content's 1).
-  const w = body.clientWidth || 816;
+  // --- Paint white page sheets behind the content, with the page number in each gutter. ---
   for (let i = 0; i < totalPages; i++) {
     const sheet = doc.createElement('div');
     sheet.className = 'hf-sheet';
-    sheet.style.cssText = 'position:absolute; left:0; top:' + (i * step) + 'px; width:' + w + 'px; height:' +
-      PAGE_PX + 'px; background:#fff; z-index:0; box-shadow:0 1px 5px rgba(0,0,0,.28); border-radius:2px;';
-    body.appendChild(sheet);
-    // Page number in the gutter beneath each sheet, never overlaps content, and
-    // makes a multi-page resume read like a real document. (.hf-sheet class means
-    // it's cleared on the next re-render with the other pagination chrome.)
+    sheet.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step) + 'px; height:' + PAGE_PX +
+      'px; background:#fff; z-index:0; border-radius:2px;' +
+      'box-shadow:0 0 0 1px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.16), 0 10px 24px rgba(0,0,0,.10);';
+    col.appendChild(sheet);
     const num = doc.createElement('div');
     num.className = 'hf-sheet hf-sheet-num';
     num.textContent = 'Page ' + (i + 1) + ' of ' + totalPages;
-    num.style.cssText = 'position:absolute; left:0; top:' + (i * step + PAGE_PX + 5) + 'px; width:' + w +
-      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#94a3b8; z-index:0;';
-    body.appendChild(num);
+    num.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX + 6) +
+      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#8a93a6; z-index:0;';
+    col.appendChild(num);
   }
   // +1 extra gap so the final page's number label has room below the last sheet.
-  body.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';
+  col.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';
   return totalPages;
 }
 

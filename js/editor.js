@@ -121,11 +121,8 @@ function hydrate() {
   // Manage / cancel subscription is only relevant to paying users.
   const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
 
-  // Interview Prep tab, always visible, but show lock for free
-  if (ipTab && isFree()) {
-    ipTab.innerHTML = `Interview Prep <span class="ico ico-sm" style="vertical-align:middle; opacity:.6;">${ICONS.lock}</span>`;
-    ipTab.onclick = (e) => { e.preventDefault(); showUpgradeModal('interview'); };
-  } else if (ipTab) {
+  // Interview Prep is free for everyone, no lock, navigates normally.
+  if (ipTab) {
     ipTab.innerHTML = 'Interview Prep';
     ipTab.onclick = null;
   }

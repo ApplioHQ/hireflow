@@ -35,13 +35,27 @@
     el.className = `app-toast app-toast-${type}`;
     el.innerHTML = `<span class="app-toast-ico">${iconFor(type)}</span><span class="app-toast-msg"></span>`;
     el.querySelector('.app-toast-msg').textContent = message;
-    c.appendChild(el);
-    requestAnimationFrame(() => el.classList.add('app-toast-in'));
-    setTimeout(() => {
+    let removeTimer;
+    const dismiss = () => {
+      clearTimeout(removeTimer);
       el.classList.remove('app-toast-in');
       el.classList.add('app-toast-out');
       setTimeout(() => el.remove(), 250);
-    }, duration);
+    };
+    // Optional action button, e.g. { label: 'Undo', onClick: fn }.
+    if (opts.action && opts.action.label) {
+      const btn = document.createElement('button');
+      btn.className = 'app-toast-action';
+      btn.type = 'button';
+      btn.textContent = opts.action.label;
+      btn.addEventListener('click', () => {
+        try { opts.action.onClick && opts.action.onClick(); } finally { dismiss(); }
+      });
+      el.appendChild(btn);
+    }
+    c.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('app-toast-in'));
+    removeTimer = setTimeout(dismiss, duration);
   };
 
   function buildBackdrop() {

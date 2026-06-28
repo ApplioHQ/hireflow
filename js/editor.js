@@ -1731,7 +1731,7 @@ function _contentEls(body) {
   return Array.from(body.children).filter(el => el.tagName !== 'STYLE' && !el.classList.contains('hf-sheet'));
 }
 
-function _paginate(doc, ratio) {
+function _paginate(doc) {
   const body = doc.body;
   // --- Reset so re-renders (incl. the fonts-ready re-run) are idempotent: unwrap
   // the page column, remove sheets, and clear every inline style we set. ---
@@ -1848,8 +1848,7 @@ function _renderFullPreview() {
   if (!f) return;
   _mountResume(f, false, function (doc) {
     _injectPreviewChrome(doc);
-    const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
-    _paginate(doc, ratio);
+    _paginate(doc);
     f.style.height = (doc.documentElement.scrollHeight) + 'px';
     _applyFullZoom();
   });

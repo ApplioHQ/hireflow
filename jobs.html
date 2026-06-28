@@ -21,6 +21,11 @@
   .jt-stat-label { font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.02em; }
   .jt-card { transition:transform .12s, box-shadow .12s; }
   .jt-card:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.16); }
+  .jt-followup {
+    margin-top:8px; font-size:12px; font-weight:600; color:#b45309;
+    background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.3);
+    border-radius:8px; padding:6px 10px; display:inline-block;
+  }
   @media (max-width:640px){ .jt-stats { grid-template-columns:repeat(3,1fr); } }
 </style>
 </head>
@@ -218,7 +223,7 @@ function render(){
   _renderStats();
   document.getElementById('job-list').innerHTML = (list.length===0 && jobs.length>0)
     ? `<div class="section-card" style="text-align:center;color:var(--muted);padding:30px;">No jobs match your search/filter.</div>`
-    : list.map(j => `
+    : list.map(j => { const fu = _followUpDays(j); return `
     <div class="section-card jt-card" style="margin-bottom:10px;border-left:3px solid ${STATUS_COLOR[j.status]||'#64748b'};">
       <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
         <div style="min-width:0;">
@@ -227,6 +232,7 @@ function render(){
             ${_statusBadge(j.status)}
           </div>
           <div style="color:var(--muted); font-size:12px;">${j.location?esc(j.location)+' · ':''}added ${new Date(j.addedAt).toLocaleDateString()}</div>
+          ${fu ? `<div class="jt-followup">⏰ No update in ${fu} days, time to follow up on this ${j.status==='Interviewing'?'interview':'application'}.</div>` : ''}
           ${j.notes ? `<p style="font-size:13px; margin-top:8px; word-break:break-word;">${esc(j.notes)}</p>`:''}
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
@@ -240,7 +246,7 @@ function render(){
         </div>
       </div>
     </div>
-  `).join('');
+  `; }).join('');
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
 

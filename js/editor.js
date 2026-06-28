@@ -1605,9 +1605,8 @@ function _injectPreviewChrome(doc) {
 function _renderMiniInto(wrap, sizer, frame, doc) {
   _injectPreviewChrome(doc);
   if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
-  const ratio = (doc.body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
-  const pages = _paginate(doc, ratio);
-  _renderFitIndicator(ratio, pages);
+  const pages = _paginate(doc);
+  _renderFitIndicator(doc._lastRatio, pages);
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
 }
@@ -1744,6 +1743,10 @@ function _paginate(doc, ratio) {
     el.style.zIndex = '';
     if (el.dataset.hfpos) { el.style.position = ''; delete el.dataset.hfpos; }
   });
+
+  // Measure true content height in this clean state (correct even on the
+  // fonts-ready re-run, when the body was already paginated on entry).
+  doc._lastRatio = (body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
 
   // --- Wrap the résumé (everything except the <style> tag) into a centered 816px
   // page column, and turn the body into a gray canvas around it. This gives the

@@ -128,8 +128,13 @@ function render(){
 }
 
 async function load(){
-  document.getElementById('fb-message').innerHTML = '';
   document.getElementById('fb-count').textContent = 'Loading…';
+  document.getElementById('fb-message').innerHTML = Array.from({length:3}).map(function(){
+    return '<div class="section-card" style="padding:16px;margin-bottom:12px;">'
+      + '<div class="skeleton" style="width:38%;height:14px;margin-bottom:12px;"></div>'
+      + '<div class="skeleton" style="width:92%;height:12px;margin-bottom:7px;"></div>'
+      + '<div class="skeleton" style="width:64%;height:12px;"></div></div>';
+  }).join('');
   try {
     const r = await fetch(API + '/feedback/list', { headers: { Authorization: 'Bearer ' + TOKEN } });
     if (r.status === 403) {

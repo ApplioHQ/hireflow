@@ -198,7 +198,6 @@ function _renderPracticeQuestion() {
         headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
         body: JSON.stringify({ question: q.question, answer: answer })
       });
-      if (r.status === 402) { fb.innerHTML = ''; showUpgradeModal('ai'); return; }
       if (!r.ok) throw new Error('AI failed');
       var data = await r.json();
       if (data._trial) _noteTrial(data._trial);

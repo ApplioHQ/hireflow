@@ -1424,7 +1424,7 @@ function renderCustomize() {
       <div style="margin-bottom:18px;">
         <label style="font-size:13px; color:var(--muted);">Accent Color</label>
         <div class="swatch-grid" style="margin-top:8px;">
-          ${SWATCHES.map(s=>`<div class="swatch ${c.accent===s?'selected':''}" style="background:${s};" onclick="setCustom('accent','${s}')"></div>`).join('')}
+          ${SWATCHES.map((s,i)=>`<div class="swatch ${c.accent===s?'selected':''}" style="background:${s};" role="button" tabindex="0" aria-label="Accent color ${i+1}${c.accent===s?', selected':''}" onclick="setCustom('accent','${s}')"></div>`).join('')}
         </div>
       </div>
       <div class="form-field">
@@ -1452,12 +1452,14 @@ function renderCustomize() {
                 </span>
                 <span style="text-transform:capitalize;${c.sections[k]?'':'opacity:.5;'}">${k}</span>
               </span>
-              <div class="toggle ${c.sections[k]?'on':''}" onclick="toggleSection('${k}')"></div>
+              <div class="toggle ${c.sections[k]?'on':''}" role="switch" tabindex="0" aria-checked="${!!c.sections[k]}" aria-label="Show ${k} section" onclick="toggleSection('${k}')"></div>
             </div>`).join('')}
         </div>
+        <button class="btn btn-ghost btn-xs" style="margin-top:12px;" onclick="resetSectionOrder()">↺ Reset to default order</button>
       </div>
     </div>`;
 }
+function resetSectionOrder(){ resume.customize.sectionOrder = ALL_SECTIONS.slice(); save(); renderMain(); toast('Section order reset', {type:'info'}); }
 const ALL_SECTIONS = ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications'];
 // Current section order: saved order (valid keys only) + any missing sections appended.
 function _sectionOrder() {

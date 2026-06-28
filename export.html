@@ -199,17 +199,24 @@ function updatePageSize() {
   render();
 }
 
+// "Jordan_Rivera_Resume.pdf" from the candidate's name (falls back to "resume").
+function _resumeFilename(ext) {
+  const name = ((resume.personal && resume.personal.fullName) || '').trim()
+    .replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+  const base = name ? name + '_Resume' : 'resume';
+  return ext ? base + '.' + ext : base;
+}
 function exportHTML() {
   const doc = _exportFrame && _exportFrame.contentDocument;
   const html = doc ? '<!DOCTYPE html>' + doc.documentElement.outerHTML
                    : renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent);
   const blob = new Blob([html], {type:'text/html'});
-  download(blob, 'resume.html');
+  download(blob, _resumeFilename('html'));
 }
 function exportTXT() {
   const doc = _exportFrame && _exportFrame.contentDocument;
   const txt = doc ? doc.body.innerText : '';
-  download(new Blob([txt], {type:'text/plain'}), 'resume.txt');
+  download(new Blob([txt], {type:'text/plain'}), _resumeFilename('txt'));
 }
 function download(blob, name) {
   const url = URL.createObjectURL(blob);

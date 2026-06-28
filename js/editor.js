@@ -1937,7 +1937,7 @@ function save() {
   _setSaveStatus('● Unsaved changes', 'var(--warning)');
 }
 
-async function saveResume() {
+async function saveResume(silent) {
   resume.versions = resume.versions || [];
   // Snapshot excludes versions array to prevent recursive nesting
   const { versions: _v, ...snap } = resume;
@@ -1954,10 +1954,18 @@ async function saveResume() {
     cloudOk = r.ok;
   } catch (_) {}
   _setSaveStatus('✓ Saved', 'var(--success)');
-  // Open version history so users can see saved versions and restore any of them
-  openModal('version');
+  // Open version history (button save) so users can restore versions. A keyboard
+  // save (⌘S) stays quiet so it doesn't yank focus into a modal mid-edit.
+  if (!silent) openModal('version');
   toast(cloudOk ? 'Saved to cloud ✓' : 'Saved locally ✓', { type: 'success' });
 }
+// ⌘/Ctrl+S saves to the cloud without opening the version modal.
+document.addEventListener('keydown', function (e) {
+  if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
+    e.preventDefault();
+    saveResume(true);
+  }
+});
 
 function signOut() {
   ['hf_token','hf_email','hf_resume','hf_jobs','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));

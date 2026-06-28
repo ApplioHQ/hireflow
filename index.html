@@ -75,6 +75,21 @@
     </button>
   </div>
 </nav>
+<script>
+  // Auth-aware nav: signed-in visitors go straight to the editor instead of being
+  // asked to sign in / sign up again.
+  (function () {
+    if (!localStorage.getItem('hf_token')) return;
+    var actions = document.querySelector('.nav-actions');
+    if (actions) {
+      var ghost = actions.querySelector('.btn-ghost'); if (ghost) ghost.remove();
+      var primary = actions.querySelector('.btn-primary');
+      if (primary) { primary.textContent = 'Open editor →'; primary.href = 'editor.html'; }
+    }
+    var sticky = document.getElementById('sticky-cta');
+    if (sticky) { sticky.textContent = 'Open editor →'; sticky.href = 'editor.html'; }
+  })();
+</script>
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="top">

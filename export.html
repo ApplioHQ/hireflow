@@ -106,6 +106,38 @@ function _expBreakUnits(root, pageH) {
   }
   return units;
 }
+// True if a break-unit is a section heading we shouldn't strand at a page bottom.
+function _expIsHeading(el) {
+  if (/^H[1-4]$/.test(el.tagName)) return true;
+  const t = (el.textContent || '').trim();
+  return !!(el.querySelector && el.querySelector('h1,h2,h3,h4')) && t.length > 0 && t.length < 60;
+}
+// Decide which units start a new page, on CONTINUOUS (un-paginated) coordinates,
+// so the identical result drives both the on-screen preview and the printed PDF
+// (true WYSIWYG). Widow control: a heading is never left alone at a page bottom,
+// it moves to the next page with its content.
+function _expComputeBreaks(measured, pageH) {
+  const set = new Set();
+  let pageStartY = 0;
+  for (let i = 0; i < measured.length; i++) {
+    if (set.size >= EXP_MAX - 1) break;
+    const m = measured[i];
+    if (m.top - pageStartY < 1) continue;             // first unit on the page
+    if (m.top + m.h - pageStartY > pageH) {            // overflows this page
+      let b = m;
+      const prev = measured[i - 1];                    // keep a heading with its block
+      if (prev && _expIsHeading(prev.el) && prev.top - pageStartY > 1) b = prev;
+      set.add(b.el);
+      pageStartY = b.top;
+    }
+  }
+  return set;
+}
+// Measure each break-unit's continuous position relative to `ref`'s top.
+function _expMeasure(units, ref) {
+  const base = ref.getBoundingClientRect().top;
+  return units.map(u => { const r = u.getBoundingClientRect(); return { el: u, top: r.top - base, h: r.height }; });
+}
 function _expPaginate(doc) {
   const body = doc.body, pageW = _expPageW(), pageH = _expPageH(), canvasW = pageW + EXP_PAD * 2;
   doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(e => e.remove());
@@ -118,17 +150,21 @@ function _expPaginate(doc) {
   body.appendChild(col);
   body.style.background = '#e9eaef'; body.style.width = canvasW + 'px'; body.style.padding = EXP_PAD + 'px 0'; body.style.margin = '0';
   const flow = _expFlowRoot(col), units = _expBreakUnits(flow, pageH), step = pageH + EXP_GAP;
-  let page = 0;
-  for (const unit of units) {
-    if (page >= EXP_MAX - 1) break;
-    const ct = col.getBoundingClientRect().top, r = unit.getBoundingClientRect(), top = r.top - ct, bottom = top + r.height, st = page * step, sb = st + pageH;
-    if (bottom > sb && top > st + 1) {
-      const sp = doc.createElement('div'); sp.className = 'hf-pagebreak';
-      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
-      (unit.parentNode || flow).insertBefore(sp, unit); page++;
-    }
+  // Measure ONCE on continuous coords, then compute the break set (same as print).
+  const measured = _expMeasure(units, col);
+  const breaks = _expComputeBreaks(measured, pageH);
+  // Push each break unit to the top of its sheet with a spacer.
+  let accGap = 0, k = 0;
+  for (const m of measured) {
+    if (!breaks.has(m.el)) continue;
+    const target = (k + 1) * step;
+    const spH = Math.max(0, Math.round(target - (m.top + accGap)));
+    const sp = doc.createElement('div'); sp.className = 'hf-pagebreak';
+    sp.style.cssText = 'height:' + spH + 'px;';
+    (m.el.parentNode || flow).insertBefore(sp, m.el);
+    accGap += spH; k++;
   }
-  const total = page + 1;
+  const total = k + 1;
   Array.from(col.children).forEach(el => {
     if (el.classList.contains('hf-pagebreak')) return;
     if (doc.defaultView.getComputedStyle(el).position === 'static') el.style.position = 'relative';
@@ -167,6 +203,18 @@ function _renderClean() {
   const doc = writeResumeFrame(_exportFrame, html, _expPageW());
   try { doc.title = _resumeFilename(''); } catch (_) {}
   _exportFrame.style.transform = 'none';
+  // WYSIWYG: force the PDF to break at the SAME units the preview shows, rather
+  // than relying on the browser's native heuristics (which can disagree by a block
+  // near a boundary). Résumé fonts are system fonts, so this fresh doc measures
+  // accurately and synchronously, matching what _expPaginate computed.
+  try {
+    const pageH = _expPageH();
+    const units = _expBreakUnits(_expFlowRoot(doc.body), pageH);
+    _expComputeBreaks(_expMeasure(units, doc.body), pageH).forEach(el => {
+      el.style.breakBefore = 'page';
+      el.style.pageBreakBefore = 'always';
+    });
+  } catch (_) {}
   return doc;
 }
 function render() {

@@ -1712,7 +1712,10 @@ function _bestFlowRoot(preview) {
   return best;
 }
 
+const PAGE_W = 816;        // page width (US-Letter at 96dpi)
 const SHEET_GAP = 24;      // gray gap between page sheets (true px)
+const CANVAS_PAD = 40;     // gray canvas margin around the page column (true px)
+const CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins
 const MAX_SHEETS = 16;     // safety cap so pathological content can't run away (covers long CVs)
 
 // Google-Docs-style pagination: lay the résumé out as discrete white page sheets

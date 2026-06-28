@@ -1193,7 +1193,7 @@ function renderAnalysis() {
       </div>
       <div class="ai-card-body">
         ${freeAiBanner('analysis')}
-        <div id="analysis-result">${_analysisEmptyState()}</div>
+        <div id="analysis-result">${resume.analysis ? _analysisPanel(resume.analysis) : _analysisEmptyState()}</div>
         ${navRow('ats','dashboard')}
       </div>
     </div>`;
@@ -2563,15 +2563,24 @@ function _renderAnalysis(r) {
   return `<div class="tailor-result">${html}</div>`;
 }
 
+// Result panel markup, shared by a fresh run and by re-rendering the section
+// (so the analysis survives navigating away and back).
+function _analysisPanel(r) {
+  return `
+    <div class="ai-result-panel">
+      <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Resume Analysis</h4></div>
+      <div style="padding:16px;">${_renderAnalysis(r)}</div>
+    </div>`;
+}
+
 async function aiAnalyze() {
   aiLoading('Analyzing your resume with AI…');
   try {
     const r = await ai('analyze', { resume });
-    document.getElementById('analysis-result').innerHTML = `
-      <div class="ai-result-panel">
-        <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Resume Analysis</h4></div>
-        <div style="padding:16px;">${_renderAnalysis(r)}</div>
-      </div>`;
+    resume.analysis = r;            // persist so it's restored when revisiting the section
+    save();
+    const el = document.getElementById('analysis-result');
+    if (el) el.innerHTML = _analysisPanel(r);
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }

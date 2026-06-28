@@ -80,32 +80,126 @@ const resume = (function () {
 })();
 
 let _exportFrame = null;
-function render() {
-  const marginsKey = document.getElementById('margins')?.value || 'Normal';
-  const pageSize = document.getElementById('page-size')?.value || 'letter';
-  const pageWidth = pageSize === 'a4' ? 794 : 816;
-  const html = renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent, marginsKey);
+
+// ===== Google-Docs-style paginated preview =====
+// The preview shows the résumé as discrete white page sheets on a gray canvas.
+// The SAME iframe is the print/export source, so anything that produces a file
+// (PDF print, HTML, TXT) first re-renders it CLEAN via _renderClean(), so the
+// output never contains the canvas/sheets/page-number chrome.
+const EXP_PAD = 40, EXP_GAP = 24, EXP_MAX = 16;
+function _expPageW() { return (document.getElementById('page-size')?.value === 'a4') ? 794 : 816; }
+function _expPageH() { return (document.getElementById('page-size')?.value === 'a4') ? 1123 : 1056; }
+function _expContentEls(body) { return Array.from(body.children).filter(el => el.tagName !== 'STYLE' && !el.classList.contains('hf-sheet')); }
+function _expFlowRoot(root) {
+  const n = root.querySelector('.body'); if (n) return n;
+  let best = root.firstElementChild || root, bn = best.children ? best.children.length : 0;
+  root.querySelectorAll('div, section, main').forEach(el => { if (el.children.length > bn) { best = el; bn = el.children.length; } });
+  return best;
+}
+function _expBreakUnits(root, pageH) {
+  const units = [];
+  for (const c of Array.from(root.children)) {
+    if (c.classList && c.classList.contains('hf-pagebreak')) continue;
+    const kids = c.children ? Array.from(c.children) : [];
+    if (c.getBoundingClientRect().height > pageH && kids.length > 1) kids.forEach(k => units.push(k));
+    else units.push(c);
+  }
+  return units;
+}
+function _expPaginate(doc) {
+  const body = doc.body, pageW = _expPageW(), pageH = _expPageH(), canvasW = pageW + EXP_PAD * 2;
+  doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(e => e.remove());
+  const prev = Array.from(body.children).find(el => el.classList && el.classList.contains('hf-doc'));
+  if (prev) { while (prev.firstChild) body.insertBefore(prev.firstChild, prev); prev.remove(); }
+  const col = doc.createElement('div');
+  col.className = 'hf-doc';
+  col.style.cssText = 'position:relative; width:' + pageW + 'px; margin:0 auto;';
+  _expContentEls(body).forEach(el => col.appendChild(el));
+  body.appendChild(col);
+  body.style.background = '#e9eaef'; body.style.width = canvasW + 'px'; body.style.padding = EXP_PAD + 'px 0'; body.style.margin = '0';
+  const flow = _expFlowRoot(col), units = _expBreakUnits(flow, pageH), step = pageH + EXP_GAP;
+  let page = 0;
+  for (const unit of units) {
+    if (page >= EXP_MAX - 1) break;
+    const ct = col.getBoundingClientRect().top, r = unit.getBoundingClientRect(), top = r.top - ct, bottom = top + r.height, st = page * step, sb = st + pageH;
+    if (bottom > sb && top > st + 1) {
+      const sp = doc.createElement('div'); sp.className = 'hf-pagebreak';
+      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
+      (unit.parentNode || flow).insertBefore(sp, unit); page++;
+    }
+  }
+  const total = page + 1;
+  Array.from(col.children).forEach(el => {
+    if (el.classList.contains('hf-pagebreak')) return;
+    if (doc.defaultView.getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    el.style.zIndex = '1';
+  });
+  for (let i = 0; i < total; i++) {
+    const s = doc.createElement('div'); s.className = 'hf-sheet';
+    s.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step) + 'px; height:' + pageH +
+      'px; background:#fff; z-index:0; border-radius:2px; box-shadow:0 0 0 1px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.16),0 10px 24px rgba(0,0,0,.10);';
+    col.appendChild(s);
+    const num = doc.createElement('div'); num.className = 'hf-sheet';
+    num.textContent = 'Page ' + (i + 1) + ' of ' + total;
+    num.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + pageH + 6) +
+      'px; text-align:center; font:600 11px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#8a93a6; z-index:0;';
+    col.appendChild(num);
+  }
+  col.style.minHeight = (total * pageH + total * EXP_GAP) + 'px';
+}
+function _expScale(doc) {
   const container = document.getElementById('resume-preview');
-  container.style.maxWidth = pageWidth + 'px';
+  const canvasW = _expPageW() + EXP_PAD * 2;
+  const sizer = container.querySelector('.exp-sizer');
+  const avail = container.clientWidth || canvasW;
+  const s = Math.min(1, avail / canvasW);
+  const h = doc.documentElement.scrollHeight;
+  _exportFrame.style.width = canvasW + 'px';
+  _exportFrame.style.height = h + 'px';
+  _exportFrame.style.transform = 'scale(' + s + ')';
+  if (sizer) { sizer.style.width = Math.round(canvasW * s) + 'px'; sizer.style.height = Math.round(h * s) + 'px'; }
+}
+// Clean, un-paginated render — used for the visible preview's base AND for any
+// file output (print / HTML / TXT) so exports never include the canvas chrome.
+function _renderClean() {
+  const marginsKey = document.getElementById('margins')?.value || 'Normal';
+  const html = renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent, marginsKey);
+  const doc = writeResumeFrame(_exportFrame, html, _expPageW());
+  try { doc.title = _resumeFilename(''); } catch (_) {}
+  _exportFrame.style.transform = 'none';
+  return doc;
+}
+function render() {
+  const container = document.getElementById('resume-preview');
+  container.style.maxWidth = (_expPageW() + EXP_PAD * 2) + 'px';
+  container.style.background = '#e9eaef';
   if (!_exportFrame) {
+    container.innerHTML = '';
+    const sizer = document.createElement('div');
+    sizer.className = 'exp-sizer';
+    sizer.style.cssText = 'position:relative; margin:0 auto;';
     _exportFrame = document.createElement('iframe');
     _exportFrame.id = 'resume-frame';
     _exportFrame.title = 'Resume preview';
-    _exportFrame.style.cssText = 'width:100%; border:0; background:#fff; display:block;';
-    container.innerHTML = '';
-    container.appendChild(_exportFrame);
+    _exportFrame.setAttribute('scrolling', 'no');
+    _exportFrame.style.cssText = 'border:0; background:#fff; display:block; transform-origin:top left;';
+    sizer.appendChild(_exportFrame);
+    container.appendChild(sizer);
   }
-  const doc = writeResumeFrame(_exportFrame, html, pageWidth);
-  // Name the print document so "Save as PDF" defaults to the candidate's name.
-  try { doc.title = _resumeFilename(''); } catch (_) {}
-  // Auto-size the iframe height to its content.
-  const fit = () => { _exportFrame.style.height = (doc.documentElement.scrollHeight) + 'px'; };
-  fit();
-  setTimeout(fit, 60);
+  const doc = _renderClean();
+  const apply = () => { _expPaginate(doc); _expScale(doc); };
+  apply();
+  setTimeout(apply, 60);
 }
+window.addEventListener('resize', () => {
+  if (_exportFrame && _exportFrame.contentDocument && _exportFrame.contentDocument.querySelector('.hf-doc')) _expScale(_exportFrame.contentDocument);
+});
 function printFrame() {
-  if (_exportFrame && _exportFrame.contentWindow) _exportFrame.contentWindow.print();
-  else window.print();
+  if (!(_exportFrame && _exportFrame.contentWindow)) { window.print(); return; }
+  _renderClean();                       // strip the canvas/sheets so the PDF is clean
+  _exportFrame.contentWindow.focus();
+  _exportFrame.contentWindow.print();
+  setTimeout(render, 400);              // restore the paginated preview afterward
 }
 
 async function tryExport(fmt) {
@@ -209,16 +303,18 @@ function _resumeFilename(ext) {
   return ext ? base + '.' + ext : base;
 }
 function exportHTML() {
-  const doc = _exportFrame && _exportFrame.contentDocument;
+  // Render clean first so the downloaded file has no canvas/sheet chrome.
+  const doc = _exportFrame ? _renderClean() : null;
   const html = doc ? '<!DOCTYPE html>' + doc.documentElement.outerHTML
                    : renderTemplate(resume.template || 'modern', resume, false, resume.customize?.accent);
-  const blob = new Blob([html], {type:'text/html'});
-  download(blob, _resumeFilename('html'));
+  download(new Blob([html], {type:'text/html'}), _resumeFilename('html'));
+  if (_exportFrame) render();           // restore the paginated preview
 }
 function exportTXT() {
-  const doc = _exportFrame && _exportFrame.contentDocument;
+  const doc = _exportFrame ? _renderClean() : null;
   const txt = doc ? doc.body.innerText : '';
   download(new Blob([txt], {type:'text/plain'}), _resumeFilename('txt'));
+  if (_exportFrame) render();
 }
 function download(blob, name) {
   const url = URL.createObjectURL(blob);

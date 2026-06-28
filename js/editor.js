@@ -174,6 +174,8 @@ function renderMain() {
   // Close mobile drawers when navigating
   _closeMobileDrawers();
   bindAutoSave();
+  _wireAutoGrow();
+  setTimeout(_wireAutoGrow, 60);   // re-fit after fonts/layout settle
   renderPreview();
   // Bind tag input if on skills section
   if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
@@ -1921,6 +1923,15 @@ function schedulePreview() {
   _previewTimer = setTimeout(renderPreview, 160);
 }
 
+// Grow a textarea to fit its content so long bullets aren't cramped in a tiny box.
+function _autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+function _wireAutoGrow() {
+  document.querySelectorAll('#main textarea').forEach(el => {
+    el.style.overflowY = 'hidden';
+    el.addEventListener('input', () => _autoGrow(el));
+    _autoGrow(el);
+  });
+}
 function bindAutoSave() {
   document.querySelectorAll('[data-bind]').forEach(el => {
     el.addEventListener('input', () => {

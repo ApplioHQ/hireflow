@@ -1965,9 +1965,26 @@ function _setSaveStatus(msg, color) {
   if (color) _saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 4000);
 }
 
+let _cloudTimer = null;
 function save() {
   localStorage.setItem('hf_resume', JSON.stringify(resume));
   _setSaveStatus('● Unsaved changes', 'var(--warning)');
+  // Debounced cloud autosave so work is never stranded on one device.
+  clearTimeout(_cloudTimer);
+  _cloudTimer = setTimeout(_cloudSaveNow, 1400);
+}
+async function _cloudSaveNow() {
+  _setSaveStatus('Saving…', 'var(--muted)');
+  try {
+    const r = await fetch(API + '/resume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+      body: JSON.stringify({ resume })
+    });
+    _setSaveStatus(r.ok ? '✓ All changes saved' : 'Saved on this device', r.ok ? 'var(--success)' : 'var(--muted)');
+  } catch (_) {
+    _setSaveStatus('Saved on this device', 'var(--muted)');
+  }
 }
 
 async function saveResume(silent) {

@@ -2514,9 +2514,24 @@ function _renderAnalysis(r) {
   const scoreColor = score == null ? 'var(--accent)' : score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
   let html = '';
   if (score != null) {
-    html += `<div class="an-score" style="border-color:${scoreColor}33;">
-      <div class="an-score-num" style="color:${scoreColor};">${score}<span>/100</span></div>
-      <div class="an-score-label">Overall resume score</div>
+    const C = 2 * Math.PI * 42;
+    const off = (C * (1 - Math.max(0, Math.min(100, score)) / 100)).toFixed(1);
+    const verdict = score >= 80 ? 'Excellent' : score >= 65 ? 'Strong' : score >= 50 ? 'Solid' : 'Needs work';
+    html += `<div class="an-ring-wrap">
+      <div class="an-ring-svg">
+        <svg viewBox="0 0 100 100" width="100" height="100" style="display:block;">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="${scoreColor}" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off}" transform="rotate(-90 50 50)"
+            style="filter:drop-shadow(0 0 5px ${scoreColor}66);"/>
+        </svg>
+        <div class="an-ring-center">
+          <div class="an-ring-num" style="color:${scoreColor};">${score}</div>
+          <div class="an-ring-sub">/100</div>
+        </div>
+      </div>
+      <div class="an-ring-verdict" style="color:${scoreColor};">${verdict}</div>
+      <div class="an-ring-label">Resume quality</div>
     </div>`;
   }
   if (j.summary) html += `<p class="ai-para" style="margin-bottom:14px;">${esc(_deName(j.summary))}</p>`;

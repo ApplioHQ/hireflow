@@ -20,6 +20,13 @@
   .pw-hint { font-size:12px; margin:-2px 0 12px; min-height:15px; }
   .pw-hint.ok  { color:#10b981; }
   .pw-hint.bad { color:#ef4444; }
+  /* Show/hide password + Caps Lock warning */
+  .pw-wrap { position:relative; }
+  .pw-wrap input { padding-right:58px !important; }
+  .pw-toggle { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:0; cursor:pointer; color:var(--muted); font-size:12px; font-weight:600; padding:4px 6px; border-radius:6px; }
+  .pw-toggle:hover { color:var(--accent); background:var(--bg-2); }
+  .pw-caps { font-size:11px; color:#f59e0b; margin:-8px 0 12px; display:none; }
+  .pw-caps.on { display:block; }
 </style>
 </head>
 <body class="auth-body">

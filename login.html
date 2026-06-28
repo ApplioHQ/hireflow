@@ -9,7 +9,7 @@
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <style>
-  /* Assisted password confirmation — live per-character match feedback. */
+  /* Assisted password confirmation, live per-character match feedback. */
   .pw-match { display:flex; gap:3px; margin:-4px 0 12px; min-height:6px; }
   .pw-seg { flex:1 1 0; height:6px; border-radius:3px; background:rgba(148,163,184,.25); transition:background .2s ease; }
   .pw-seg.ok  { background:#10b981; }
@@ -90,7 +90,7 @@
     // ---- Assisted password confirmation (vanilla port) ----
     // Live per-character match feedback between the chosen password and the
     // confirm field: green/red segments, a shake on a mismatched keystroke, and a
-    // green border once they match. We compare against what the user typed — the
+    // green border once they match. We compare against what the user typed, the
     // password is never shown in plaintext.
     (function () {
       const form = document.getElementById('form-signup');
@@ -115,7 +115,7 @@
         if (hint) {
           if (!c.length) { hint.textContent = ''; hint.className = 'pw-hint'; }
           else if (matched) { hint.textContent = '✓ Passwords match'; hint.className = 'pw-hint ok'; }
-          else { hint.textContent = 'Keep going — they don’t match yet'; hint.className = 'pw-hint bad'; }
+          else { hint.textContent = 'Keep going, they don’t match yet'; hint.className = 'pw-hint bad'; }
         }
         if (shake) { cf.classList.remove('pw-shake'); void cf.offsetWidth; cf.classList.add('pw-shake'); }
       }
@@ -131,7 +131,7 @@
       });
       pw.addEventListener('input', function () { prevLen = cf.value.length; paint(false); });
       // Browser/password-manager autofill often sets values without an 'input'
-      // event — catch those via 'change' and a deferred initial paint.
+      // event, catch those via 'change' and a deferred initial paint.
       cf.addEventListener('change', function () { paint(false); });
       pw.addEventListener('change', function () { prevLen = cf.value.length; paint(false); });
       setTimeout(function () { prevLen = cf.value.length; paint(false); }, 400);

@@ -181,7 +181,7 @@ input, textarea, select { font-family: inherit; }
 
 /* ===== Expandable action buttons (icon-only, reveal label on hover) ===== */
 /* Each .exp-act button shows just its icon; the trailing label span expands on
-   hover with a spring-ish easing — the ExpandableTabs interaction applied to the
+   hover with a spring-ish easing, the ExpandableTabs interaction applied to the
    topbar utility actions (Import / Save / Feedback). */
 .exp-act {
   gap: 0;            /* override .btn gap so a collapsed label leaves no dead space */
@@ -535,15 +535,15 @@ input, textarea, select { font-family: inherit; }
   width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-/* Indigo — Tailor */
+/* Indigo, Tailor */
 .ai-card-indigo .ai-card-header { background: linear-gradient(135deg, rgba(99,102,241,.08) 0%, transparent 100%); }
 .ai-icon-indigo { background: rgba(99,102,241,.15); color: #818cf8; }
 .ai-card-indigo { border-top: 3px solid #6366f1 !important; }
-/* Emerald — ATS */
+/* Emerald, ATS */
 .ai-card-emerald .ai-card-header { background: linear-gradient(135deg, rgba(16,185,129,.08) 0%, transparent 100%); }
 .ai-icon-emerald { background: rgba(16,185,129,.15); color: #34d399; }
 .ai-card-emerald { border-top: 3px solid #10b981 !important; }
-/* Violet — Analysis */
+/* Violet, Analysis */
 .ai-card-violet .ai-card-header { background: linear-gradient(135deg, rgba(139,92,246,.08) 0%, transparent 100%); }
 .ai-icon-violet { background: rgba(139,92,246,.15); color: #a78bfa; }
 .ai-card-violet { border-top: 3px solid #8b5cf6 !important; }
@@ -829,7 +829,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   background: linear-gradient(90deg, var(--accent), transparent);
 }
 .ai-body .ai-subhead:first-child { margin-top: 0; }
-/* Recommendation list/cards — shared by AI suggestion modal, tailor & analysis */
+/* Recommendation list/cards, shared by AI suggestion modal, tailor & analysis */
 .ai-rec-list { list-style: none; margin: 0 0 2px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .ai-rec-list li::marker { content: ''; }
 .ai-rec {

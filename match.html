@@ -120,7 +120,7 @@ function _addCandidate(){
 }
 function _useSavedResume(){
   let saved; try { saved = JSON.parse(localStorage.getItem('hf_resume') || 'null'); } catch { saved = null; }
-  if (!saved || !saved.personal) { toast('No saved resume found — build one in the Resume Builder first', {type:'warn'}); return; }
+  if (!saved || !saved.personal) { toast('No saved resume found, build one in the Resume Builder first', {type:'warn'}); return; }
   if (_candidates.some(c => c.type === 'saved')) { toast('Your saved resume is already added', {type:'info'}); return; }
   const name = (saved.personal && saved.personal.fullName) ? saved.personal.fullName : 'My resume';
   _candidates.push({ label: name + ' (saved)', content: saved, type:'saved', preview: name });
@@ -163,7 +163,7 @@ async function runMatch(){
       if (data._trial) _noteTrial(data._trial);
       scored.push(Object.assign({ label: cands[i].label }, data));
     } catch(e) {
-      scored.push({ label: cands[i].label, error: "Couldn't score this resume — please try again." });
+      scored.push({ label: cands[i].label, error: "Couldn't score this resume, please try again." });
     }
   }
   aiLoadingDone();
@@ -187,7 +187,7 @@ function _renderResults(scored, paywalled, attempted){
         <div style="font-size:34px;">${ICON('trophy','ico').replace('class="ico"','style="width:34px;height:34px;color:var(--accent);"')}</div>
         <div>
           <div style="font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); font-weight:700;">Best match for this job</div>
-          <div style="font-size:20px; font-weight:800; margin-top:2px;">${esc(best.label)} — <span style="color:${_scoreColor(best.score)};">${best.score}/100</span></div>
+          <div style="font-size:20px; font-weight:800; margin-top:2px;">${esc(best.label)}, <span style="color:${_scoreColor(best.score)};">${best.score}/100</span></div>
           ${best.feedback ? `<div style="font-size:13px; color:var(--muted); margin-top:4px; line-height:1.5;">${esc(best.feedback)}</div>` : ''}
         </div>
       </div>
@@ -196,7 +196,7 @@ function _renderResults(scored, paywalled, attempted){
 
   html += '<div class="section-card"><div class="section-head"><h3>Ranked results</h3></div>';
   html += ok.map((s, idx) => _rowHTML(s, idx, idx === 0)).join('');
-  html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">—</div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">${esc(s.error||"Couldn't score this resume — please try again.")}</div></div></div></div>`).join('');
+  html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">, </div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">${esc(s.error||"Couldn't score this resume, please try again.")}</div></div></div></div>`).join('');
   html += '</div>';
 
   if (paywalled) {
@@ -264,9 +264,9 @@ function _rowHTML(s, idx, isBest){
   if (isFree()) {
     const left = trialsLeft('ats');
     if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials — matching needs <a href="pricing.html" style="color:var(--accent);">Premium</a>.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials, matching needs <a href="pricing.html" style="color:var(--accent);">Premium</a>.</p>`;
     } else {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'score':'scores'}</strong> left — each resume scored uses one. Then it’s Premium.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'score':'scores'}</strong> left, each resume scored uses one. Then it’s Premium.</p>`;
     }
   }
 })();

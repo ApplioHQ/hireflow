@@ -106,7 +106,7 @@ function canUseAi(feature) { return isPaid() || trialsLeft(feature) > 0; }
 
 // ---- Free AI uses (client-side soft limit in localStorage) ----
 // Each premium AI feature gets 1 free try before the paywall. This is a soft,
-// per-browser limit — it resets if the user clears storage. That's acceptable;
+// per-browser limit, it resets if the user clears storage. That's acceptable;
 // it's an on-ramp, not a billing constraint, so it's never synced to KV.
 const FREE_AI_USE_KEY = 'hf_free_ai_uses';
 const FREE_AI_DEFAULTS = { tailor: 0, ats: 0, analysis: 0, interview: 0, improve: 0 };
@@ -436,9 +436,9 @@ function showUpgradeModal(reason, context) {
   // Optional contextual first line tied to what the user just did.
   const ctx = context || reason;
   const contextLines = {
-    ats: 'You ran an ATS check — upgrade to run it again anytime and apply the missing keywords automatically.',
-    tailor: 'You tailored your resume to a job — upgrade to do this for every application.',
-    downloads: "You've used your 10 free downloads — upgrade for unlimited."
+    ats: 'You ran an ATS check, upgrade to run it again anytime and apply the missing keywords automatically.',
+    tailor: 'You tailored your resume to a job, upgrade to do this for every application.',
+    downloads: "You've used your 10 free downloads, upgrade for unlimited."
   };
   const contextLine = contextLines[ctx];
   const bd = document.createElement('div');

@@ -1,4 +1,4 @@
-// ============ Waves background — faithful vanilla port of the 21st.dev simplex-noise Waves ============
+// ============ Waves background, faithful vanilla port of the 21st.dev simplex-noise Waves ============
 // The original is React + TypeScript + Tailwind and depends on the `simplex-noise`
 // npm package. This codebase is plain HTML/CSS/JS with no build step, so the noise
 // generator is vendored inline (compact public-domain 2D simplex) and the component

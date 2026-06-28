@@ -19,16 +19,16 @@ const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
 // AI endpoints that require Premium/Lifetime
-// Note: "parse" (Resume Import) is intentionally NOT here — import is free for all users.
+// Note: "parse" (Resume Import) is intentionally NOT here, import is free for all users.
 const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "interview-feedback", "skills", "improve"]);
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).
-const GROUND_RULE = `STRICT GROUNDING — read first:
+const GROUND_RULE = `STRICT GROUNDING, read first:
 - Use ONLY facts the candidate actually provided. Never invent jobs, employers, projects, tools, certifications, degrees, metrics, or achievements they did not state (e.g. don't add "Created a GitHub project" if it's not in their input).
 - Never fabricate or estimate numbers (%, $, headcount, scale, dates). If the input has no metric, keep it qualitative.
-- If something isn't in the input, omit it — do not guess.
-- NEVER use the candidate's name. For any feedback/commentary ABOUT the resume, address the reader directly as "you"/"your" ("Your resume highlights…"), never third person ("Jane's resume…", "The candidate's resume…"). When writing resume CONTENT itself (a summary or bullet points), use standard resume voice — no name, no "I", no "you".
+- If something isn't in the input, omit it, do not guess.
+- NEVER use the candidate's name. For any feedback/commentary ABOUT the resume, address the reader directly as "you"/"your" ("Your resume highlights…"), never third person ("Jane's resume…", "The candidate's resume…"). When writing resume CONTENT itself (a summary or bullet points), use standard resume voice, no name, no "I", no "you".
 - Be concise: no preamble, no restating the task, no filler. Shortest output that fully answers.`;
 
 // Structured single-line JSON logging. Makes Cloudflare logs (wrangler tail /
@@ -48,10 +48,10 @@ export default {
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
-    // Liveness/readiness probe — no auth, must stay fast (<500ms).
+    // Liveness/readiness probe, no auth, must stay fast (<500ms).
     if (path === "/health") return withCors(await healthCheck(env), cors);
 
-    // Stripe webhook gets raw body — handle before JSON parsing
+    // Stripe webhook gets raw body, handle before JSON parsing
     if (path === "/stripe/webhook") {
       return handleWebhook(req, env).then(r => withCors(r, cors)).catch(e => withCors(json({ error: e.message }, e.status || 500), cors));
     }
@@ -107,7 +107,7 @@ function err(status, message) { const e = new Error(message); e.status = status;
 // ============ Rate limiting ============
 // Fixed-window rate limiter backed by KV (no extra bindings). The counter and its
 // window-reset timestamp are stored together; the whole entry auto-expires via
-// expirationTtl. Every call increments the counter — successes count too — so the
+// expirationTtl. Every call increments the counter, successes count too, so the
 // limit can't be bypassed by alternating valid/invalid attempts; only the passage
 // of `windowSeconds` resets it. KV is eventually consistent, so this is best-effort
 // throttling (good enough to blunt credential stuffing), not a hard guarantee.
@@ -469,7 +469,7 @@ async function syncWithStripe(req, env) {
       plan: "premium",
       hasStripeCustomer: true,
       currentPeriodEnd: sub.current_period_end,
-      message: "Synced — Premium subscription active",
+      message: "Synced, Premium subscription active",
     };
   }
 
@@ -484,7 +484,7 @@ async function syncWithStripe(req, env) {
     user.currentPeriodEnd = null;
     user.updatedAt = Date.now();
     await putUser(env, user);
-    return { ok: true, linked: true, plan: "lifetime", hasStripeCustomer: true, message: "Synced — Lifetime access active" };
+    return { ok: true, linked: true, plan: "lifetime", hasStripeCustomer: true, message: "Synced, Lifetime access active" };
   }
 
   // 4) Customer exists but no active subscription or paid one-time
@@ -527,7 +527,7 @@ async function handleWebhook(req, env) {
   const obj = event.data.object;
 
   // Idempotency: Stripe retries deliver the same event.id. If we've already
-  // processed it, 200 immediately so Stripe stops retrying — don't reapply.
+  // processed it, 200 immediately so Stripe stops retrying, don't reapply.
   const dedupeKey = `stripe_event:${event.id}`;
   if (await env.HIREFLOW_KV.get(dedupeKey)) {
     log("info", "stripe_webhook_duplicate", { id: event.id, type: event.type });
@@ -680,7 +680,7 @@ async function ai(req, env, action) {
 
 async function runAI(env, system, user, opts = {}) {
   // Build an ordered, de-duplicated chain so every call always has at least one
-  // reliable fallback — even when the requested model IS the fast model.
+  // reliable fallback, even when the requested model IS the fast model.
   const wanted = opts.model || FAST_MODEL;
   const chain = [...new Set([wanted, FAST_MODEL, FALLBACK_MODEL])];
   let lastErr;
@@ -693,7 +693,7 @@ async function runAI(env, system, user, opts = {}) {
           max_tokens: opts.max_tokens || 600,
           temperature: opts.temperature ?? 0.3,
         });
-        // Different models return different shapes — normalize to a string.
+        // Different models return different shapes, normalize to a string.
         let out = res?.response;
         if (typeof out !== "string") {
           out =
@@ -703,7 +703,7 @@ async function runAI(env, system, user, opts = {}) {
             (typeof res?.result?.response === "string" && res.result.response) ||
             "";
         }
-        // Reasoning models emit <think>…</think> blocks — strip them.
+        // Reasoning models emit <think>…</think> blocks, strip them.
         out = String(out || "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
         if (out) return out;
         lastErr = new Error(`${model} returned empty response`);
@@ -712,7 +712,7 @@ async function runAI(env, system, user, opts = {}) {
       } catch (e) {
         lastErr = e;
         log("error", "ai_model_failed", { model, attempt, error: e.message || String(e) });
-        break; // hard error — don't retry the same model, move to the next
+        break; // hard error, don't retry the same model, move to the next
       }
     }
   }
@@ -731,17 +731,17 @@ async function aiImprove(env, { target, text }) {
 
 You are an elite resume writer. Rewrite the candidate's professional summary using only what they wrote:
 - 2-3 sentences, ~40-60 words
-- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…") — only if that seniority/role is in the input
+- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…"), only if that seniority/role is in the input
 - Names 2-3 competencies that appear in the input
 - Active voice, third-person implied (no "I"/"you"), no buzzwords
-- Plain text only — no markdown, headers, or quotes
+- Plain text only, no markdown, headers, or quotes
 
 OUTPUT: Only the rewritten summary. Nothing else.`
     : `${GROUND_RULE}
 
 You are an elite resume writer. Rewrite the following ${target} content into achievement-focused bullets:
 - Each bullet starts with a strong past-tense action verb (never repeat a verb)
-- Keep ONLY metrics already in the input; if there are none, stay qualitative — never add fake numbers
+- Keep ONLY metrics already in the input; if there are none, stay qualitative, never add fake numbers
 - Each bullet under ~20 words; 3-5 bullets
 - Mark each bullet with "• ", one per line
 - Plain text only
@@ -761,7 +761,7 @@ async function aiSkills(env, { experience }) {
   const sys = `${GROUND_RULE}
 
 You extract resume-ready skills from work history. Return a comma-separated list of 10-15 skills the candidate clearly demonstrates, drawn only from their stated titles and described work (hard skills, methodologies, relevant soft skills).
-- Only skills evidenced by the input — do not add tools/technologies they never mention
+- Only skills evidenced by the input, do not add tools/technologies they never mention
 - Industry-standard naming (e.g. "Project Management", not "managing projects")
 - No duplicates, no generic filler ("Teamwork", "Hard worker")
 
@@ -791,7 +791,7 @@ Analyze the job description and the candidate's resume, then output STRICT JSON 
   "matchedKeywords": ["<keyword 1>", "<keyword 2>", "..."],
   "missingKeywords": ["<important JD keyword the resume doesn't mention>", "..."],
   "emphasize": [
-    "<short, actionable note: 'Lead with your AWS migration work — JD heavily emphasizes cloud infra'>",
+    "<short, actionable note: 'Lead with your AWS migration work, JD heavily emphasizes cloud infra'>",
     "<another note>",
     "<another note>"
   ],
@@ -806,7 +806,7 @@ Rules:
 - matchedKeywords: 6-10 entries the JD asks for that the resume already shows
 - missingKeywords: 3-6 important JD keywords the resume is missing
 - emphasize: 3 short coaching notes, each one sentence
-- bulletSuggestions: 3 rewrites built ONLY from experience already in the resume — reworded for the JD, never new claims
+- bulletSuggestions: 3 rewrites built ONLY from experience already in the resume, reworded for the JD, never new claims
 - missingKeywords are gaps to flag, NOT permission to invent that experience
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
@@ -939,8 +939,8 @@ function _atsSynthNarrative(det){
   if (s.actionRatio >= 0.6) wins.push(`Most bullet points start with a strong action verb`);
   if (b.completeness >= 80) wins.push(`All the core sections are present and filled in`);
   if (det.hasJD && det.missingKeywords.length) issues.push(`Add these terms from the posting where they truly apply to you: ${det.missingKeywords.slice(0, 6).join(", ")}`);
-  if (s.bullets && s.quantRatio < 0.4) issues.push(`Only ${Math.round(s.quantRatio * 100)}% of bullet points include numbers — add metrics like %, $, time saved, or scale`);
-  if (s.roles && s.bulletsPerRole < 3) issues.push(`Add more detail to your roles — aim for 3 to 5 bullet points each`);
+  if (s.bullets && s.quantRatio < 0.4) issues.push(`Only ${Math.round(s.quantRatio * 100)}% of bullet points include numbers, add metrics like %, $, time saved, or scale`);
+  if (s.roles && s.bulletsPerRole < 3) issues.push(`Add more detail to your roles, aim for 3 to 5 bullet points each`);
   if (!s.hasSummary) issues.push(`Add a short professional summary at the top`);
   if (!s.hasEducation) issues.push(`Add an education section`);
   if (s.roles && s.datedRoles < s.roles) issues.push(`Add start and end dates to every role`);
@@ -949,13 +949,13 @@ function _atsSynthNarrative(det){
   const labels = { keywords: "keyword match", experience: "experience detail", formatting: "formatting", completeness: "completeness" };
   const ordered = Object.entries(b).sort((a, c) => c[1] - a[1]);
   const best = ordered[0], worst = ordered[ordered.length - 1];
-  const feedback = `Your strongest area is ${labels[best[0]]} (${best[1]} out of 100); the biggest opportunity is ${labels[worst[0]]} (${worst[1]} out of 100). ${det.score >= 70 ? "You're close — a few targeted tweaks will get this submission-ready." : "Work through the fixes below to make this more competitive."}`;
+  const feedback = `Your strongest area is ${labels[best[0]]} (${best[1]} out of 100); the biggest opportunity is ${labels[worst[0]]} (${worst[1]} out of 100). ${det.score >= 70 ? "You're close, a few targeted tweaks will get this submission-ready." : "Work through the fixes below to make this more competitive."}`;
   return { feedback, wins: wins.slice(0, 3), issues: issues.slice(0, 4) };
 }
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  // Authoritative, explainable score computed in code — consistent run to run and
+  // Authoritative, explainable score computed in code, consistent run to run and
   // available even if the model is unavailable.
   const det = _atsScore(jobDescription, resume);
   const base = _atsSynthNarrative(det);
@@ -970,10 +970,10 @@ You are a sharp, encouraging resume coach. You are given a candidate's resume, t
 { "feedback": "<2-3 sentence summary of what's working and the top opportunity>", "wins": ["<specific strength>", "<another>", "<another>"], "issues": ["<specific, actionable fix naming the section>", "<another>", "<another>"] }
 OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
     const raw = await runAI(env, sys,
-      `Computed breakdown: ${JSON.stringify(det.breakdown)}\nMatched keywords: ${det.matchedKeywords.join(", ") || "(none)"}\nMissing keywords: ${det.missingKeywords.join(", ") || "(none)"}\n\nJob Description:\n${(jobDescription || "(none provided — judge against general best practices)").slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
+      `Computed breakdown: ${JSON.stringify(det.breakdown)}\nMatched keywords: ${det.matchedKeywords.join(", ") || "(none)"}\nMissing keywords: ${det.missingKeywords.join(", ") || "(none)"}\n\nJob Description:\n${(jobDescription || "(none provided, judge against general best practices)").slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
       { model: SMART_MODEL, max_tokens: 500, temperature: 0.3 });
     nice = safeJSON(raw);
-  } catch (e) { /* model unavailable — computed narrative is used */ }
+  } catch (e) { /* model unavailable, computed narrative is used */ }
 
   return {
     score: det.score,
@@ -1018,18 +1018,18 @@ Output STRICT JSON:
   "missingSections": ["<a section that would strengthen this resume, e.g. 'Skills', 'Projects'>"]
 }
 
-Scoring rubric — calibrate honestly:
-- 90-100: recruiter-ready — quantified results, strong structure, no gaps
-- 75-89: solid — minor tightening needed
-- 60-74: workable but generic — duties over impact, few metrics
-- 40-59: weak — vague bullets, missing sections, little quantification
+Scoring rubric, calibrate honestly:
+- 90-100: recruiter-ready, quantified results, strong structure, no gaps
+- 75-89: solid, minor tightening needed
+- 60-74: workable but generic, duties over impact, few metrics
+- 40-59: weak, vague bullets, missing sections, little quantification
 - below 40: needs a rebuild
 
 Rules:
 - Give 3 strengths, 3 weaknesses, and 3 topFixes ordered by impact (highest first).
-- Every strength/weakness MUST reference a real part of THIS resume — never generic advice like "add more keywords".
+- Every strength/weakness MUST reference a real part of THIS resume, never generic advice like "add more keywords".
 - Mark only the 1-2 highest-leverage fixes as "high"; the rest "medium".
-- In an "example" rewrite, sharpen wording only — never add fake numbers, tools, or claims.
+- In an "example" rewrite, sharpen wording only, never add fake numbers, tools, or claims.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
@@ -1049,12 +1049,12 @@ Rules:
   };
 }
 
-// ============ Parse (resume import — most important!) ============
+// ============ Parse (resume import, most important!) ============
 async function aiParse(env, { text }) {
   if (!text || text.trim().length < 30) {
-    throw err(400, "Paste at least a few lines from your resume — 'test' isn't enough text to parse.");
+    throw err(400, "Paste at least a few lines from your resume, 'test' isn't enough text to parse.");
   }
-  const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy — line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
+  const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy, line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
 
 Extract everything into this EXACT JSON schema. Fill every field you can confidently extract. Use "" for unknown strings and [] for empty arrays.
 
@@ -1063,7 +1063,7 @@ SCHEMA:
   "personal": {
     "fullName": "<full name from top of resume>",
     "email": "<email address>",
-    "phone": "<phone number — keep original format>",
+    "phone": "<phone number, keep original format>",
     "location": "<city, state OR city, country>",
     "linkedin": "<linkedin URL or username>",
     "github": "<github URL or username>",
@@ -1074,7 +1074,7 @@ SCHEMA:
     {
       "title": "<job title>",
       "company": "<company name>",
-      "start": "<start date — e.g. 'Jan 2022' or '2022'>",
+      "start": "<start date, e.g. 'Jan 2022' or '2022'>",
       "end": "<end date or 'Present'>",
       "location": "<city, state or 'Remote'>",
       "description": "<all bullets joined with newlines, each starting with '• '>"
@@ -1083,7 +1083,7 @@ SCHEMA:
   "education": [
     {
       "school": "<school name>",
-      "degree": "<degree type — B.S., M.S., Ph.D., B.A., etc.>",
+      "degree": "<degree type, B.S., M.S., Ph.D., B.A., etc.>",
       "field": "<major / field of study>",
       "gpa": "<GPA if mentioned>",
       "start": "<start year>",
@@ -1135,7 +1135,7 @@ CRITICAL RULES:
 4. Name + contact: usually the first 1-5 lines of the resume.
 5. Skills: extract every listed skill, comma/pipe/bullet separated. Put all under one category "All" unless the resume explicitly groups them.
 6. Don't hallucinate. If a field isn't in the text, leave it empty.
-7. Don't truncate descriptions — keep all bullet content.
+7. Don't truncate descriptions, keep all bullet content.
 
 OUTPUT FORMAT:
 - ONLY the JSON object.
@@ -1166,7 +1166,7 @@ Format EXACTLY like this (no markdown, no JSON, plain text):
 
 [Behavioral]
 1. <Question>
-   Tip: <One-line strategic tip — what they're really testing, what to emphasize from the candidate's resume>
+   Tip: <One-line strategic tip, what they're really testing, what to emphasize from the candidate's resume>
 
 2. <Question>
    Tip: <Tip>
@@ -1201,7 +1201,7 @@ Format EXACTLY like this (no markdown, no JSON, plain text):
 Rules:
 - Questions should reference specifics from the candidate's actual resume when natural
 - Tips should mention which resume bullet/experience to lean on for the answer
-- Avoid generic questions like "What's your greatest weakness?" — interviewers ask sharper questions today
+- Avoid generic questions like "What's your greatest weakness?", interviewers ask sharper questions today
 - No preamble. Start directly with "[Behavioral]".`;
 
   return { text: await runAI(env, sys,

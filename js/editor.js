@@ -19,7 +19,7 @@ const DEFAULT_RESUME = {
   versions: []
 };
 
-// Whether the browser already had a saved resume — drives the one-time cloud
+// Whether the browser already had a saved resume, drives the one-time cloud
 // hydrate below (fresh device / cleared storage should pull the cloud copy).
 const HAD_LOCAL_RESUME = !!localStorage.getItem('hf_resume');
 let resume = (function () {
@@ -75,7 +75,7 @@ function hydrate() {
     const info = SECTION_INFO[s];
     if (!info) return;
     const isPro = PRO_SECTIONS.has(s);
-    // Free users can enter Pro sections now — show a subtle "Pro" badge instead of a lock.
+    // Free users can enter Pro sections now, show a subtle "Pro" badge instead of a lock.
     const showProBadge = isPro && isFree();
     const done = _sectionComplete(s);
     const indicator = showProBadge
@@ -1090,7 +1090,7 @@ function freeAiBanner(feature) {
   if (left > 0) {
     return `<div class="free-ai-banner" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>This feature has <b>${left} free AI ${left === 1 ? 'use' : 'uses'}</b> left.</span></div>`;
   }
-  return `<div class="free-ai-banner used" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature — <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
+  return `<div class="free-ai-banner used" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature, <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
 }
 // Small "N free uses remaining" label shown beneath each AI button.
 function freeAiLabel(feature) {
@@ -1100,7 +1100,7 @@ function freeAiLabel(feature) {
 }
 // Re-render the inline trial banners/labels in place so they always reflect the
 // LIVE per-feature count. Without this they show the count from when the section
-// first rendered — e.g. a stale "2 free uses remaining" even after both are used,
+// first rendered, e.g. a stale "2 free uses remaining" even after both are used,
 // which then mismatches the (correct) paywall. Called after every AI attempt.
 function _refreshTrialUI() {
   document.querySelectorAll('.free-ai-banner[data-feat]').forEach(el => { el.outerHTML = freeAiBanner(el.getAttribute('data-feat')); });
@@ -1294,7 +1294,7 @@ function renderDashboard() {
   const score = Math.max(0, Math.min(100, h.score));
   const ringCol = score >= 75 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
   const C = 213.6, off = C * (1 - score / 100);
-  const verdict = score >= 80 ? ['Looking strong', 'Your resume is in great shape — give it a final read and export.']
+  const verdict = score >= 80 ? ['Looking strong', 'Your resume is in great shape, give it a final read and export.']
     : score >= 50 ? ['Getting there', 'A few improvements will make this resume noticeably stronger.']
     : ['Just getting started', 'Fill in the core sections and tighten your bullets to raise your score.'];
 
@@ -1346,7 +1346,7 @@ function renderDashboard() {
       <span class="qf-ico qf-ico-${iss.level === 'warn' ? 'warn' : 'info'}">${_qfWarnSvg()}</span>
       <div class="qf-card-body"><div class="qf-card-title">${esc(iss.title)}</div></div>
       ${btn}</div>`;
-  }).join('') : `<div style="font-size:13px;color:var(--muted);">No issues — nice work. ✦</div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--muted);">No issues, nice work. ✦</div>`;
 
   return `
     <div class="section-card">
@@ -1390,7 +1390,7 @@ function _renderSubCard() {
     ? new Date(u.currentPeriodEnd * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
   const meta = plan === 'lifetime'
-    ? 'Lifetime access — no recurring charges. Manage billing or view invoices anytime.'
+    ? 'Lifetime access, no recurring charges. Manage billing or view invoices anytime.'
     : (renews ? 'Renews ' + renews + ' · cancel or update billing anytime.' : 'Active subscription · cancel or update billing anytime.');
   return `<div class="dash-card dash-sub-card">
     <div><strong>${ICON('crown', 'ico ico-sm')} ${planLabel()} plan</strong><div class="dash-sub-meta">${meta}</div></div>
@@ -1487,8 +1487,8 @@ function navRow(prev, next) {
 // ============ Preview (uses template renderer) ============
 // ============ Preview: single source of truth ============
 // Both the mini panel and the full-screen overlay render the résumé into an
-// iframe at TRUE page width (816px = US-Letter at 96dpi) — the exact document
-// the PDF prints — and scale it with CSS transform. This guarantees the preview
+// iframe at TRUE page width (816px = US-Letter at 96dpi), the exact document
+// the PDF prints, and scale it with CSS transform. This guarantees the preview
 // is pixel-identical to the export, instead of the old lossy font-size scaling.
 const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
 
@@ -1606,7 +1606,7 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
 // sizer reserves the *scaled* footprint so scrollbars reflect the zoomed size.
 function _scaleMini(wrap, sizer, frame, doc) {
   const avail = wrap.clientWidth || 0;
-  if (avail < 1) return;                       // hidden/collapsed — RO will retry
+  if (avail < 1) return;                       // hidden/collapsed, RO will retry
   const z = _miniZoom || 1;
   const h = doc.documentElement.scrollHeight || doc.body.scrollHeight || 0;
   let s;
@@ -1652,15 +1652,15 @@ function _renderFitIndicator(ratio, pages) {
     text = '⚠ Too much empty space, your resume only fills ' + pct + '% of a page. Add more detail.';
   } else if (ratio <= 1.05) {
     bg = '#dcfce7'; border = '#22c55e'; color = '#166534';
-    text = '✓ Great fit — fills one page nicely (' + pct + '%).';
+    text = '✓ Great fit, fills one page nicely (' + pct + '%).';
   } else if (ratio <= 2.1) {
     // Two-page resumes are fine for experienced candidates, not an error.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 ' + pages + ' pages — great for fuller experience. All pages export. Try “One page” to read each clearly.';
+    text = '📄 ' + pages + ' pages, great for fuller experience. All pages export. Try “One page” to read each clearly.';
   } else {
     // Long resumes are legitimate (senior / academic). Encourage, don't scold.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 ' + pages + ' pages — fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
+    text = '📄 ' + pages + ' pages, fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
   }
   ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
   ind.textContent = text;
@@ -1672,7 +1672,7 @@ function _renderFitIndicator(ratio, pages) {
 // fall back to the densest block container (ignoring bullet lists).
 // Choose the elements a page break is allowed to land between. Keep every block
 // WHOLE by default (keep-together: an experience entry's header never separates
-// from its bullets) — UNLESS the block is taller than a full page, in which case
+// from its bullets), UNLESS the block is taller than a full page, in which case
 // descend one level so the break can fall between its children (e.g. between
 // individual entries) instead of slicing the block across the gutter. When no
 // block is oversized this returns exactly flow.children, i.e. today's behavior.
@@ -1727,7 +1727,7 @@ function _paginate(doc, ratio) {
     el.style.zIndex = '';
     if (el.dataset.hfpos) { el.style.position = ''; delete el.dataset.hfpos; }
   });
-  if (!(ratio > 1.0)) return 1;                // fits on one page — nothing to do
+  if (!(ratio > 1.0)) return 1;                // fits on one page, nothing to do
 
   const flow = _bestFlowRoot(body);
   const units = _breakUnits(flow);
@@ -1768,7 +1768,7 @@ function _paginate(doc, ratio) {
     sheet.style.cssText = 'position:absolute; left:0; top:' + (i * step) + 'px; width:' + w + 'px; height:' +
       PAGE_PX + 'px; background:#fff; z-index:0; box-shadow:0 1px 5px rgba(0,0,0,.28); border-radius:2px;';
     body.appendChild(sheet);
-    // Page number in the gutter beneath each sheet — never overlaps content, and
+    // Page number in the gutter beneath each sheet, never overlaps content, and
     // makes a multi-page resume read like a real document. (.hf-sheet class means
     // it's cleared on the next re-render with the other pagination chrome.)
     const num = doc.createElement('div');
@@ -1993,11 +1993,10 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
-  // Resume Import (parse) is free for everyone — never gate it.
+  // Resume Import (parse) is free for everyone, never gate it.
   // Every other AI feature gives free users a limited number of free trials,
   // ENFORCED BY THE BACKEND (per-feature, default 2). We only pre-check the
-  // server-tracked count to show the upgrade modal without a wasted request —
-  // and we never consume a local counter here, so a network/error/402 can't
+  // server-tracked count to show the upgrade modal without a wasted request,   // and we never consume a local counter here, so a network/error/402 can't
   // burn a trial (the backend consumes only on a real, successful result).
   if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) {
     showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
@@ -2010,7 +2009,7 @@ async function ai(endpoint, body) {
   });
   if (r.status === 402) {
     // Backend (source of truth) says this feature is out of free trials. Our local
-    // count was stale, so mark it exhausted and refresh the banners/labels — that's
+    // count was stale, so mark it exhausted and refresh the banners/labels, that's
     // the "says 2 left but still paywalls" mismatch corrected.
     if (CURRENT_USER) {
       CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
@@ -2405,7 +2404,7 @@ async function aiAnalyze() {
 }
 
 function openModal(id) {
-  // Import is free for everyone — no paywall gate.
+  // Import is free for everyone, no paywall gate.
   document.getElementById('modal-'+id).classList.add('open');
   if(id==='version') renderVersions();
 }
@@ -2646,7 +2645,7 @@ async function _hydrateFromCloud() {
       if (!Array.isArray(resume.versions)) resume.versions = [];
       localStorage.setItem('hf_resume', JSON.stringify(resume));
     }
-  } catch (_) { /* offline / transient — fall back to the local default */ }
+  } catch (_) { /* offline / transient, fall back to the local default */ }
 }
 
 (async () => {

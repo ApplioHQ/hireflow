@@ -56,7 +56,7 @@
   color: #c4b5fd; font-size: 13px; font-weight: 500; margin-bottom: 28px;
 }
 .hero-title { font-size: clamp(40px, 5.2vw, 72px); font-weight: 800; line-height: 1.04; letter-spacing: -1.5px; margin-bottom: 28px; color: #fff; }
-/* The rotating word can be the longest line — keep it on one line and never let it clip. */
+/* The rotating word can be the longest line, keep it on one line and never let it clip. */
 .rotator { white-space: nowrap; max-width: 100%; }
 .rotator { background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
 .hero-sub { font-size: 18px; color: rgba(255,255,255,.7); max-width: 520px; line-height: 1.55; margin-bottom: 36px; }
@@ -1060,7 +1060,7 @@ section[id] { scroll-margin-top: 80px; }
 .dcards:hover .dcard-2, .dcards:focus-within .dcard-2, .dcards.is-hinting .dcard-2 { transform: skewY(-5deg) translate(10px, 8px); }
 .dcards:hover .dcard-3, .dcards:focus-within .dcard-3, .dcards.is-hinting .dcard-3 { transform: skewY(-5deg) translate(232px, 60px); }
 
-/* The card you point at (or tab to) pops FLAT, scaled up, on top — always readable.
+/* The card you point at (or tab to) pops FLAT, scaled up, on top, always readable.
    Placed after the fan rules so it wins on equal specificity. */
 .dcards .dcard:hover,
 .dcards .dcard:focus-visible {

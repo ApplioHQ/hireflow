@@ -124,7 +124,7 @@ const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function _save(){
   try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); return true; }
-  catch(e){ toast('Could not save — your browser storage may be full', { type:'error', duration:4500 }); return false; }
+  catch(e){ toast('Could not save, your browser storage may be full', { type:'error', duration:4500 }); return false; }
 }
 function toggleForm(){
   const f=document.getElementById('add-form');

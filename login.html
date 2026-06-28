@@ -143,6 +143,40 @@
       pw.addEventListener('change', function () { prevLen = cf.value.length; paint(false); });
       setTimeout(function () { prevLen = cf.value.length; paint(false); }, 400);
     })();
+
+    // ---- Show/hide password toggle + Caps Lock warning (all password fields) ----
+    (function () {
+      document.querySelectorAll('input[type="password"]').forEach(function (inp) {
+        var field = inp.closest('.form-field') || inp.parentNode;
+        var wrap = document.createElement('div');
+        wrap.className = 'pw-wrap';
+        inp.parentNode.insertBefore(wrap, inp);
+        wrap.appendChild(inp);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pw-toggle';
+        btn.textContent = 'Show';
+        btn.setAttribute('aria-label', 'Show password');
+        wrap.appendChild(btn);
+        btn.addEventListener('click', function () {
+          var hidden = inp.type === 'password';
+          inp.type = hidden ? 'text' : 'password';
+          btn.textContent = hidden ? 'Hide' : 'Show';
+          btn.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+          inp.focus();
+        });
+        var caps = document.createElement('div');
+        caps.className = 'pw-caps';
+        caps.textContent = '⚠ Caps Lock is on';
+        field.appendChild(caps);
+        var checkCaps = function (e) {
+          if (e.getModifierState) caps.classList.toggle('on', e.getModifierState('CapsLock'));
+        };
+        inp.addEventListener('keydown', checkCaps);
+        inp.addEventListener('keyup', checkCaps);
+        inp.addEventListener('blur', function () { caps.classList.remove('on'); });
+      });
+    })();
   </script>
 </body>
 </html>

@@ -1136,7 +1136,10 @@ function renderTailor() {
         </div>
         ${resume.tailor.tailoredSummary ? `
           <div class="ai-result-box ai-result-indigo">
-            <div class="ai-result-label">✦ Tailoring Results</div>
+            <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+              <span>✦ Tailoring Results</span>
+              <button class="btn btn-ghost btn-xs" onclick="saveTailorToTracker()" style="white-space:nowrap;">${ICON('briefcase','ico ico-sm')} Save to Job Tracker</button>
+            </div>
             <div style="padding:14px;">${_renderTailorResult(resume.tailor.tailoredSummary)}</div>
           </div>` : _tailorEmptyState()}
         ${navRow('publications','ats')}

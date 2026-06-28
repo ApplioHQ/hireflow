@@ -96,6 +96,8 @@ function render() {
     container.appendChild(_exportFrame);
   }
   const doc = writeResumeFrame(_exportFrame, html, pageWidth);
+  // Name the print document so "Save as PDF" defaults to the candidate's name.
+  try { doc.title = _resumeFilename(''); } catch (_) {}
   // Auto-size the iframe height to its content.
   const fit = () => { _exportFrame.style.height = (doc.documentElement.scrollHeight) + 'px'; };
   fit();

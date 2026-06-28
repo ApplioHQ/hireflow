@@ -121,6 +121,17 @@ function _uid() { const n = Date.now(); _lastId = n > _lastId ? n : _lastId + 1;
 const STATUSES = ['Saved','Applied','Interviewing','Offer','Rejected'];
 const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };
 
+// Nudge to follow up on active applications that have gone quiet. Pure client-side:
+// uses statusAt (when the status last changed) and falls back to addedAt for older
+// jobs saved before we tracked it.
+const FOLLOWUP_DAYS = 7;
+function _followUpDays(j){
+  if (j.status !== 'Applied' && j.status !== 'Interviewing') return 0;
+  const since = j.statusAt || j.addedAt || Date.now();
+  const days = Math.floor((Date.now() - since) / 86400000);
+  return days >= FOLLOWUP_DAYS ? days : 0;
+}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function _save(){
   try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); return true; }
@@ -143,10 +154,11 @@ function saveJob(){
     status: document.getElementById('j-status').value,
     notes: document.getElementById('j-notes').value.trim() };
   if (editingId) {
-    const j = jobs.find(x=>x.id===editingId); if (j) Object.assign(j, fields);
+    const j = jobs.find(x=>x.id===editingId);
+    if (j) { const changed = j.status !== fields.status; Object.assign(j, fields); if (changed || !j.statusAt) j.statusAt = Date.now(); }
     toast('Job updated', { type:'success' });
   } else {
-    jobs.unshift(Object.assign({ id: _uid(), addedAt: Date.now() }, fields));
+    jobs.unshift(Object.assign({ id: _uid(), addedAt: Date.now(), statusAt: Date.now() }, fields));
     toast('Job added', { type:'success' });
   }
   _save();
@@ -174,7 +186,7 @@ async function removeJob(id){
   if (!ok) return;
   jobs = jobs.filter(j=>j.id!==id); _save(); render();
 }
-function updateStatus(id, s){ const j=jobs.find(x=>x.id===id); if(j){ j.status=s; _save(); render(); } }
+function updateStatus(id, s){ const j=jobs.find(x=>x.id===id); if(j){ if(j.status!==s) j.statusAt=Date.now(); j.status=s; _save(); render(); } }
 
 function _statusBadge(s){
   const c = STATUS_COLOR[s] || '#64748b';
@@ -198,7 +210,9 @@ function render(){
   const q = (document.getElementById('jt-search').value || '').toLowerCase();
   const list = jobs.filter(j => (filter==='all' || j.status===filter) &&
     (!q || [j.title,j.company,j.notes,j.location].some(v => (v||'').toLowerCase().includes(q))));
-  document.getElementById('job-count').textContent = jobs.length + ' job' + (jobs.length===1?'':'s') + ' tracked';
+  const dueCount = jobs.filter(_followUpDays).length;
+  document.getElementById('job-count').innerHTML = jobs.length + ' job' + (jobs.length===1?'':'s') + ' tracked' +
+    (dueCount ? ` · <span style="color:#f59e0b;font-weight:600;">⏰ ${dueCount} to follow up</span>` : '');
   document.getElementById('empty').style.display = jobs.length===0 ? '' : 'none';
   document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('success', b.dataset.filter===filter));
   _renderStats();

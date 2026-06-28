@@ -1927,8 +1927,7 @@ function schedulePreview() {
 function _autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
 function _wireAutoGrow() {
   document.querySelectorAll('#main textarea').forEach(el => {
-    el.style.overflowY = 'hidden';
-    el.addEventListener('input', () => _autoGrow(el));
+    if (!el._agBound) { el._agBound = true; el.style.overflowY = 'hidden'; el.addEventListener('input', () => _autoGrow(el)); }
     _autoGrow(el);
   });
 }

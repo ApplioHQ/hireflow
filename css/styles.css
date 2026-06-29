@@ -1185,7 +1185,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   border-radius: 6px; padding: 1px 6px;
 }
 
-/* Button press micro-interaction — subtle tactile feedback on click. */
+/* Button press micro-interaction, subtle tactile feedback on click. */
 .btn { transition: transform .08s ease, filter .15s ease, background .15s ease, box-shadow .15s ease; }
 .btn:active:not(:disabled) { transform: translateY(1px) scale(.99); }
 

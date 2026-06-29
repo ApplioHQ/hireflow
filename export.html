@@ -195,7 +195,7 @@ function _expScale(doc) {
   _exportFrame.style.transform = 'scale(' + s + ')';
   if (sizer) { sizer.style.width = Math.round(canvasW * s) + 'px'; sizer.style.height = Math.round(h * s) + 'px'; }
 }
-// Clean, un-paginated render — used for the visible preview's base AND for any
+// Clean, un-paginated render, used for the visible preview's base AND for any
 // file output (print / HTML / TXT) so exports never include the canvas chrome.
 function _renderClean() {
   const marginsKey = document.getElementById('margins')?.value || 'Normal';

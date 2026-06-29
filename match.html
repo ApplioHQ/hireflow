@@ -142,14 +142,16 @@ async function runMatch(){
   // Valid candidates: saved resume, or pasted text with enough content.
   const cands = _candidates.filter(c => c.type === 'saved' || (typeof c.content === 'string' && c.content.trim().length >= 40));
   if (cands.length < 1) { toast('Add at least one resume (paste a few lines or use your saved resume).', {type:'warn'}); return; }
-  if (isFree() && !canUseAi('ats')) { showUpgradeModal('ats'); return; }
+  // Use the SAME free-AI bucket as the editor (localStorage hf_free_ai_uses) so a
+  // free user's "1 free ATS use" is consistent everywhere. One match run = one use.
+  if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
+  if (isFree()) consumeFreeAiUse('ats');
 
   document.getElementById('bm-results').innerHTML = '';
   const scored = [];
   let paywalled = false;
   aiLoading('Scoring resume 1 of ' + cands.length + '…');
   for (let i = 0; i < cands.length; i++) {
-    if (isFree() && !canUseAi('ats')) { paywalled = true; break; }
     aiLoading('Scoring resume ' + (i+1) + ' of ' + cands.length + '…');
     try {
       const r = await fetch(API + '/ai/ats', {

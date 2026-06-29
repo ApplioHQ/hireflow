@@ -266,7 +266,7 @@ function draftFollowUp(id){
   const j = jobs.find(x=>x.id===id); if(!j) return;
   const interviewing = j.status === 'Interviewing';
   const subject = interviewing
-    ? `Thank you — ${j.title} interview`
+    ? `Thank you for the ${j.title} interview`
     : `Following up on my ${j.title} application`;
   const body = interviewing
     ? `Hi [Interviewer],\n\nThank you again for taking the time to speak with me about the ${j.title} role at ${j.company}. I really enjoyed our conversation about [topic you discussed] and came away even more excited about the opportunity.\n\nPlease let me know if there's anything else I can provide. I look forward to hearing about the next steps.\n\nBest regards,\n[Your name]`

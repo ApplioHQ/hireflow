@@ -112,12 +112,12 @@ function _parseQuestions(raw) {
 }
 
 function _noteTrial(t) {
-  if (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) {
+  // Interview Prep is free for everyone, so we don't show a "trial used" toast
+  // here (it would be misleading). Still sync any trial data the API returns.
+  if (typeof CURRENT_USER !== 'undefined' && CURRENT_USER && t && t.feature) {
     CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
     CURRENT_USER.aiTrials[t.feature] = t.used;
   }
-  toast(t.remaining > 0 ? 'Free trial used, ' + t.remaining + ' left' : 'Last free trial used, upgrade for unlimited',
-    { type: t.remaining > 0 ? 'info' : 'warn', duration: 3500 });
 }
 
 // ── Practice Mode ──

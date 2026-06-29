@@ -17,6 +17,7 @@
 .home-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
 .home-brand img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
 .home-nav-links { display: flex; gap: 32px; }
+.nav-signin-m { display: none; }   /* shown only inside the mobile menu (desktop has the Sign in button) */
 .home-nav-links a { color: rgba(255,255,255,.75); font-size: 14px; font-weight: 500; text-decoration: none; transition: color .15s; }
 .home-nav-links a:hover { color: #fff; }
 .home-nav .btn { padding: 9px 18px; font-size: 13px; }
@@ -721,6 +722,7 @@
   .home-nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 40; flex-direction: column; background: #0d1130; padding: 16px 20px; gap: 4px; border-bottom: 1px solid rgba(255,255,255,.1); }
   .home-nav-links.nav-open { display: flex; }
   .home-nav-links a { padding: 10px 8px; font-size: 15px; }
+  .home-nav-links a.nav-signin-m { display: block; }   /* mobile-only Sign in inside the menu */
   .home-nav { position: relative; }
   .nav-actions .btn-ghost { display: none; }
   .testimonial-grid { grid-template-columns: 1fr; }

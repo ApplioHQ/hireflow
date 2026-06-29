@@ -75,9 +75,33 @@ if (plan === 'lifetime') {
       iconEl.style.boxShadow = '0 0 0 6px rgba(16,185,129,.2)';
     }
   } else {
-    msgEl.innerHTML = "Your payment is being processed. If features don’t appear unlocked within a minute, click <strong>Sync with Stripe</strong> in the editor’s account menu.";
+    msgEl.innerHTML = "Your payment is taking a moment to confirm. Click <strong>Sync now</strong> to check again, this links your payment immediately.";
+    const sb = document.getElementById('sync-btn');
+    if (sb) sb.style.display = '';
   }
 })();
+
+// Actively reconcile with Stripe (no dependency on the editor's account menu,
+// which is hidden until the plan is recognized).
+async function syncNow(){
+  const btn = document.getElementById('sync-btn');
+  const msgEl = document.getElementById('msg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  try {
+    if (typeof syncWithStripe === 'function') await syncWithStripe(false);
+    else await loadCurrentUser();
+  } catch (_) {}
+  await loadCurrentUser();
+  if (CURRENT_USER && CURRENT_USER.isPaid) {
+    const planName = CURRENT_USER.plan === 'lifetime' ? 'Lifetime' : 'Premium';
+    document.getElementById('title').textContent = planName + ' is active ✓';
+    msgEl.innerHTML = 'Your <strong>' + planName + '</strong> plan is confirmed. Head to the editor to get started.';
+    if (btn) btn.style.display = 'none';
+  } else {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sync now'; }
+    msgEl.innerHTML = "Still processing. Give it another few seconds and click <strong>Sync now</strong> again, or email support@appliohq.com if it persists.";
+  }
+}
 </script>
 <style>
   @keyframes pulse {

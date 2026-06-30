@@ -315,9 +315,9 @@ function _aiStepScript(message) {
   return AI_STEPS._default;
 }
 function _clearAiTimers(el) {
-  if (!el || !el._aiTimers) return;
-  el._aiTimers.forEach(t => { clearInterval(t); clearTimeout(t); cancelAnimationFrame(t); });
-  el._aiTimers = null;
+  if (!el) return;
+  if (el._aiTimers) { el._aiTimers.forEach(t => { clearInterval(t); clearTimeout(t); }); el._aiTimers = null; }
+  if (el._raf) { cancelAnimationFrame(el._raf); el._raf = null; }
 }
 
 window.aiLoading = function (message) {
@@ -411,7 +411,7 @@ window.aiLoading = function (message) {
     const dt = performance.now() - t0;
     const pct = 92 * (1 - Math.exp(-dt / 2600));   // fast at first, asymptotic to 92%
     fill.style.width = pct.toFixed(1) + '%';
-    el._aiTimers.push(requestAnimationFrame(grow));
+    el._raf = requestAnimationFrame(grow);          // track only the latest frame id
   })();
 
   // Slow-state reassurance: if it's still running after a while, stop rotating

@@ -2354,16 +2354,20 @@ async function aiATS() {
     const ta = document.getElementById('ats-jd'); if (ta) ta.focus();
     return;
   }
-  aiLoading('Scoring your resume against the job description…');
+  const host = document.getElementById('ats-result');
+  const prev = host ? host.innerHTML : null;
+  if (host) host.innerHTML = _atsSkeleton();
   try {
     const r = await ai('ats', { jobDescription: jd, resume });
-    _renderATSResult(r);
+    _renderATSResult(r);   // replaces #ats-result with the real result
     // Cache for the health-score badge (read locally, never re-fetched).
     AI_RESULTS.ats = { score: r.score, ts: Date.now() };
     try { localStorage.setItem('hf_ai_results', JSON.stringify(AI_RESULTS)); } catch {}
     if (window.renderHealthBadge) window.renderHealthBadge();
-  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
-  finally { aiLoadingDone(); }
+  } catch(e) {
+    if (host && prev != null) host.innerHTML = prev;   // restore (paywall throws before any repaint)
+    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
+  }
 }
 
 // True if a string looks like a (possibly fenced) JSON object rather than prose.
@@ -2573,16 +2577,56 @@ function _analysisPanel(r) {
     </div>`;
 }
 
+// Shimmer skeleton shaped like the real analysis result, shown inline while the
+// AI runs (an optimistic, "premium" feel instead of a blocking overlay).
+function _skLine(w) { return `<div class="sk" style="height:12px;width:${w};border-radius:6px;margin:8px 0;"></div>`; }
+function _skBlock(n) {
+  return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;">
+    <div class="sk" style="height:13px;width:120px;border-radius:6px;margin-bottom:6px;"></div>
+    ${Array.from({ length: n }).map(() => _skLine('100%')).join('')}
+  </div>`;
+}
+function _analysisSkeleton() {
+  return `
+    <div class="ai-result-panel">
+      <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('sparkle')}</span><h4>Analyzing your resume…</h4></div>
+      <div style="padding:16px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin:4px 0 18px;">
+          <div class="sk" style="width:100px;height:100px;border-radius:50%;"></div>
+          <div class="sk" style="width:90px;height:14px;border-radius:6px;"></div>
+        </div>
+        ${_skLine('100%')}${_skLine('94%')}${_skLine('72%')}
+        ${_skBlock(2)}${_skBlock(2)}${_skBlock(1)}
+      </div>
+    </div>`;
+}
+function _atsSkeleton() {
+  const bar = () => `<div style="display:flex;align-items:center;gap:12px;margin:11px 0;">
+    <div class="sk" style="width:84px;height:10px;border-radius:6px;"></div>
+    <div class="sk" style="flex:1;height:8px;border-radius:999px;"></div></div>`;
+  const chip = () => `<div class="sk" style="width:64px;height:24px;border-radius:8px;"></div>`;
+  return `
+    <div class="ats-result-card" style="display:flex;flex-direction:column;align-items:center;">
+      <div class="sk" style="width:120px;height:120px;border-radius:50%;"></div>
+      <div class="sk" style="width:110px;height:16px;border-radius:6px;margin:14px 0 8px;"></div>
+      <div style="width:100%;max-width:340px;">${bar()}${bar()}${bar()}${bar()}</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:14px;">${chip()}${chip()}${chip()}${chip()}</div>
+    </div>`;
+}
+
 async function aiAnalyze() {
-  aiLoading('Analyzing your resume with AI…');
+  const host = document.getElementById('analysis-result');
+  const prev = host ? host.innerHTML : null;
+  if (host) host.innerHTML = _analysisSkeleton();
   try {
     const r = await ai('analyze', { resume });
     resume.analysis = r;            // persist so it's restored when revisiting the section
     save();
-    const el = document.getElementById('analysis-result');
-    if (el) el.innerHTML = _analysisPanel(r);
-  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
-  finally { aiLoadingDone(); }
+    if (host) host.innerHTML = _analysisPanel(r);
+  } catch(e) {
+    if (host && prev != null) host.innerHTML = prev;   // restore (paywall throws before any repaint)
+    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
+  }
 }
 
 function openModal(id) {

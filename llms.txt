@@ -3,7 +3,7 @@
 > Applio is a free, AI-powered resume builder that helps job seekers create ATS-optimized resumes that pass automated applicant-tracking filters and land more interviews.
 
 ## What Applio does
-- Build resumes from 11 professional, fully customizable templates (fonts, colors, spacing, sections).
+- Build resumes from 13 professional, fully customizable templates (fonts, colors, spacing, sections).
 - AI Tailoring: paste any job description and Applio rewrites your bullets and summary to match the role — grounded only in your real experience, never fabricated.
 - ATS Score: scores your resume against a job description and lists concrete fixes.
 - AI Resume Analysis: strengths, weaknesses, and the highest-impact changes.
@@ -20,5 +20,5 @@
 - Privacy: passwords hashed (PBKDF2-SHA256); resume data encrypted in transit and at rest; payments handled by Stripe.
 
 ## Links
-- Homepage: https://applio.ai/
-- Pricing: https://applio.ai/pricing.html
+- Homepage: https://appliohq.com/
+- Pricing: https://appliohq.com/pricing.html

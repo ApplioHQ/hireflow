@@ -24,4 +24,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://applio.ai/sitemap.xml
+Sitemap: https://appliohq.com/sitemap.xml

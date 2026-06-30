@@ -1,4 +1,4 @@
-// Client-side ATS résumé checker — pure logic, runs entirely in the browser
+// Client-side ATS résumé checker, pure logic, runs entirely in the browser
 // (no network, no auth, no AI). Powers the public ats-checker.html tool. Scores
 // raw résumé text against a job description: keyword coverage, formatting,
 // quantified impact, and completeness. Node-testable via globalThis.AtsEngine.
@@ -29,7 +29,7 @@
 
   function bulletLines(text) {
     return String(text || '').split(/\n+/)
-      .map(l => l.replace(/^[\s•*\-▪◦·–—>]+/, '').trim())
+      .map(l => l.replace(/^[\s•*\-▪◦·–, >]+/, '').trim())
       .filter(l => l.length > 0);
   }
 
@@ -79,13 +79,13 @@
     if (hasEmail && hasPhone) wins.push(`Contact details are clear and easy for an ATS to read`);
     if (compScore >= 80) wins.push(`All the core résumé sections are present`);
     if (hasJD && missing.length) issues.push(`Add these terms from the posting where they truly apply: ${missing.slice(0, 8).join(', ')}`);
-    if (quantRatio < 0.4) issues.push(`Only ${Math.round(quantRatio * 100)}% of lines include numbers — add metrics like %, $, time saved, or scale`);
+    if (quantRatio < 0.4) issues.push(`Only ${Math.round(quantRatio * 100)}% of lines include numbers, add metrics like %, $, time saved, or scale`);
     if (actionRatio < 0.5) issues.push(`Start more bullet points with strong action verbs (Led, Built, Improved…)`);
-    if (!hasEmail || !hasPhone) issues.push(`Add clear contact info — email and phone — near the top`);
+    if (!hasEmail || !hasPhone) issues.push(`Add clear contact info, email and phone, near the top`);
     if (!hasSummary) issues.push(`Add a short professional summary at the top`);
-    if (!lenOk) issues.push(wordCount < 150 ? `Your résumé looks short — add more detail to your experience` : `Your résumé is long — trim to your most relevant, recent experience`);
+    if (!lenOk) issues.push(wordCount < 150 ? `Your résumé looks short, add more detail to your experience` : `Your résumé is long, trim to your most relevant, recent experience`);
     if (!wins.length) wins.push(`You have a solid base to build on`);
-    if (!issues.length) issues.push(`Looking strong — polish the wording and keep it concise`);
+    if (!issues.length) issues.push(`Looking strong, polish the wording and keep it concise`);
 
     return {
       score: overall, hasJD,

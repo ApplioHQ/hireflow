@@ -100,7 +100,8 @@
       "Bash(sed -n '/^function _extractJSON/,/^}/p' js/editor.js)",
       "Bash(sed -n '/^function _renderAnalysis/,/^  const cards/p' js/editor.js)",
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('index.html','utf8'\\);const b=[...h.matchAll\\(/<script type=\\\\\"application\\\\/ld\\\\+json\\\\\">\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\)];b.forEach\\(\\(m,i\\)=>{try{const o=JSON.parse\\(m[1]\\);console.log\\('LD block '+\\(i+1\\)+' valid: @type='+o['@type']\\);}catch\\(e\\){console.log\\('LD block '+\\(i+1\\)+' INVALID: '+e.message\\);}}\\);console.log\\('total blocks:',b.length\\)\")",
-      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('urlset ok:',s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\)\\);console.log\\('locs:',\\(s.match\\(/<loc>/g\\)||[]\\).length,'| applio.ai left:',\\(s.match\\(/applio\\\\.ai/g\\)||[]\\).length\\)\")"
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('urlset ok:',s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\)\\);console.log\\('locs:',\\(s.match\\(/<loc>/g\\)||[]\\).length,'| applio.ai left:',\\(s.match\\(/applio\\\\.ai/g\\)||[]\\).length\\)\")",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('sitemap well-formed:',s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\),'| indexable URLs:',\\(s.match\\(/<loc>/g\\)||[]\\).length\\)\")"
     ]
   }
 }

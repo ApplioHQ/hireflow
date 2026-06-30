@@ -96,7 +96,9 @@
       "Bash(sed -n '/function removeItem/p' js/editor.js)",
       "Bash(node verify-autosave.mjs)",
       "Bash(sed -n '/^function _analysisPanel/,/^}/p' js/editor.js)",
-      "Bash(sed -n '/^async function aiAnalyze/,/^}/p' js/editor.js)"
+      "Bash(sed -n '/^async function aiAnalyze/,/^}/p' js/editor.js)",
+      "Bash(sed -n '/^function _extractJSON/,/^}/p' js/editor.js)",
+      "Bash(sed -n '/^function _renderAnalysis/,/^  const cards/p' js/editor.js)"
     ]
   }
 }

@@ -429,6 +429,7 @@ window.aiLoadingDone = function () {
   const el = document.getElementById('ai-loading-overlay');
   if (!el) return;
   if (el._siriCleanup) { try { el._siriCleanup(); } catch (e) {} el._siriCleanup = null; }
+  _clearAiTimers(el);
   el.style.animation = 'aiOverlayIn .15s ease reverse both';
   setTimeout(() => el.remove(), 150);
 };

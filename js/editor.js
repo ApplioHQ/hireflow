@@ -1418,11 +1418,6 @@ function renderCustomize() {
   const c = resume.customize;
   return `
     <div class="section-card">
-      <style>
-        .sec-move { background:var(--bg-2); border:1px solid var(--border); color:var(--muted); border-radius:4px; width:22px; height:13px; font-size:8px; line-height:1; padding:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-        .sec-move:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
-        .sec-move:disabled { opacity:.3; cursor:default; }
-      </style>
       <div class="section-head"><h3>${ICON('settings')} Customize Template</h3></div>
       <div style="margin-bottom:18px;">
         <label style="font-size:13px; color:var(--muted);">Accent Color</label>

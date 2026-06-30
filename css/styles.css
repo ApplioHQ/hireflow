@@ -465,6 +465,15 @@ input, textarea, select { font-family: inherit; }
 .drag-handle:hover { color: var(--muted); opacity: 1; }
 .drag-handle svg { width: 16px; height: 16px; }
 
+/* Resume Sections drag-and-drop reorder */
+.sec-drag-item { transition: opacity .15s, background .15s; }
+.sec-drag-item.dragging { opacity: .4; }
+.sec-drag-item.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; border-radius: 8px; background: rgba(99,102,241,.06); }
+.sec-drag-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+.sec-grip { display: inline-flex; align-items: center; color: var(--border); cursor: grab; }
+.sec-grip:hover { color: var(--muted); }
+.sec-drag-item.dragging .sec-grip { cursor: grabbing; }
+
 /* ===== Item cards (experience, education, etc.) ===== */
 .item-card {
   flex: 1; background: var(--bg-2); border: 1px solid var(--border);

@@ -102,7 +102,10 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('index.html','utf8'\\);const b=[...h.matchAll\\(/<script type=\\\\\"application\\\\/ld\\\\+json\\\\\">\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\)];b.forEach\\(\\(m,i\\)=>{try{const o=JSON.parse\\(m[1]\\);console.log\\('LD block '+\\(i+1\\)+' valid: @type='+o['@type']\\);}catch\\(e\\){console.log\\('LD block '+\\(i+1\\)+' INVALID: '+e.message\\);}}\\);console.log\\('total blocks:',b.length\\)\")",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('urlset ok:',s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\)\\);console.log\\('locs:',\\(s.match\\(/<loc>/g\\)||[]\\).length,'| applio.ai left:',\\(s.match\\(/applio\\\\.ai/g\\)||[]\\).length\\)\")",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('sitemap well-formed:',s.includes\\('<urlset'\\)&&s.includes\\('</urlset>'\\),'| indexable URLs:',\\(s.match\\(/<loc>/g\\)||[]\\).length\\)\")",
-      "Bash(node --check js/ats-engine.js)"
+      "Bash(node --check js/ats-engine.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('ats-checker.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,b=[];while\\(\\(m=re.exec\\(h\\)\\)\\)b.push\\(m[1]\\);fs.writeFileSync\\('/tmp/c.js',b.join\\('\\\\n;\\\\n'\\)\\);\")",
+      "Bash(node -e \"const h=require\\('fs'\\).readFileSync\\('ats-checker.html','utf8'\\);const b=[...h.matchAll\\(/<script type=\\\\\"application\\\\/ld\\\\+json\\\\\">\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\)];b.forEach\\(\\(m,i\\)=>{try{console.log\\('block '+\\(i+1\\)+':',JSON.parse\\(m[1]\\)['@type']\\);}catch\\(e\\){console.log\\('block '+\\(i+1\\)+' INVALID',e.message\\);}}\\)\")",
+      "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('ok:',s.includes\\('</urlset>'\\),'urls:',\\(s.match\\(/<loc>/g\\)||[]\\).length,'has ats-checker:',s.includes\\('ats-checker'\\)\\)\")"
     ]
   }
 }

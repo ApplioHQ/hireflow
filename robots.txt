@@ -7,6 +7,9 @@ Disallow: /jobs.html
 Disallow: /interview.html
 Disallow: /feedback.html
 Disallow: /admin.html
+Disallow: /login.html
+Disallow: /success.html
+Disallow: /match.html
 
 # Allow AI / generative-engine crawlers (GEO)
 User-agent: GPTBot

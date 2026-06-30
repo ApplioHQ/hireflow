@@ -94,7 +94,9 @@
       "Bash(grep -nE \"experience.length\\\\?\\\\`<h2>Experience|experience.length\\\\?\\\\`<h3>Experience|<h2>Experience|<h3>Experience|grid-template-columns\" js/templates.js)",
       "Bash(sed -n '/^function save\\(\\)/,/^}/p;/^let _saveStatusTimer/,/^}/p' js/editor.js)",
       "Bash(sed -n '/function removeItem/p' js/editor.js)",
-      "Bash(node verify-autosave.mjs)"
+      "Bash(node verify-autosave.mjs)",
+      "Bash(sed -n '/^function _analysisPanel/,/^}/p' js/editor.js)",
+      "Bash(sed -n '/^async function aiAnalyze/,/^}/p' js/editor.js)"
     ]
   }
 }

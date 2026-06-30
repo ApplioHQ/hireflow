@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free ATS Resume Checker — Scan Your Resume Against Any Job | Applio</title>
+<meta name="description" content="Free ATS resume checker. Paste your résumé and a job description to get an instant ATS score, matched and missing keywords, and specific fixes. No sign-up — runs right in your browser.">
+<link rel="canonical" href="https://appliohq.com/ats-checker.html">
+<meta property="og:title" content="Free ATS Resume Checker | Applio">
+<meta property="og:description" content="Get an instant ATS score for your résumé against any job description — matched & missing keywords plus concrete fixes. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/ats-checker.html">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio ATS Resume Checker",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/ats-checker.html",
+  "description": "A free tool that scores your résumé against a job description like an Applicant Tracking System, showing matched and missing keywords and specific improvements.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is an ATS resume checker?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS (Applicant Tracking System) resume checker scores your résumé the way the software recruiters use does — by matching keywords from the job description, checking that your résumé is structured and parseable, and rewarding quantified, action-driven bullet points. Applio's checker gives you a 0–100 score plus the exact keywords you're missing." } },
+    { "@type": "Question", "name": "Is the ATS checker free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The ATS checker is completely free and requires no sign-up. It runs entirely in your browser, so your résumé text never leaves your device." } },
+    { "@type": "Question", "name": "How do I make my resume ATS-friendly?", "acceptedAnswer": { "@type": "Answer", "text": "Mirror the keywords in the job description, use standard section headings (Experience, Education, Skills), start bullet points with action verbs, quantify your impact with numbers, and keep formatting simple. Applio's checker shows you exactly which of these you're missing." } },
+    { "@type": "Question", "name": "Why do resumes get rejected by ATS?", "acceptedAnswer": { "@type": "Answer", "text": "Around 70% of résumés are filtered out before a human sees them — usually for missing the keywords the role asks for, unparseable formatting, or vague bullet points with no measurable results. The checker flags each of these." } }
+  ]
+}
+</script>
+<style>
+  .ac-wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+  .ac-hero { text-align: center; margin-bottom: 28px; }
+  .ac-hero h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .ac-hero p { color: var(--muted); font-size: 16px; max-width: 580px; margin: 0 auto; line-height: 1.55; }
+  .ac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .ac-grid { grid-template-columns: 1fr; } }
+  .ac-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .ac-field .hint { color: var(--muted); font-weight: 400; }
+  .ac-ta { width: 100%; box-sizing: border-box; min-height: 220px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; line-height: 1.55; resize: vertical; font-family: inherit; }
+  .ac-score-num { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ac-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 18px 0 4px; }
+  @media (max-width: 560px) { .ac-bars { grid-template-columns: 1fr; } }
+  .ac-bar-track { height: 7px; background: var(--bg); border-radius: 5px; overflow: hidden; margin-top: 5px; }
+  .ac-bar-fill { height: 100%; border-radius: 5px; transition: width .6s ease; }
+  .ac-chip { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin: 3px 5px 0 0; }
+  .ac-chip-ok { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+  .ac-chip-no { background: rgba(148,163,184,.14); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
+  .ac-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; margin-bottom: 6px; }
+  .ac-seo { margin-top: 56px; }
+  .ac-seo h2 { font-size: 24px; font-weight: 800; margin: 36px 0 12px; }
+  .ac-seo h3 { font-size: 17px; font-weight: 700; margin: 22px 0 6px; }
+  .ac-seo p { color: var(--muted); line-height: 1.7; font-size: 15px; margin-bottom: 10px; }
+  .ac-seo ul { color: var(--muted); line-height: 1.7; font-size: 15px; padding-left: 20px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="index.html" class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="login.html">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="login.html?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="ac-wrap">
+  <div class="ac-hero">
+    <h1>Free ATS Resume Checker</h1>
+    <p>Paste your résumé and a job description to see your ATS score, the keywords you're matching and missing, and exactly what to fix. No sign-up — it runs right in your browser.</p>
+  </div>
+
+  <div class="section-card">
+    <div class="ac-grid">
+      <div class="ac-field">
+        <label>Your résumé <span class="hint">(paste the full text)</span></label>
+        <textarea id="ac-resume" class="ac-ta" placeholder="Paste your résumé text here…"></textarea>
+      </div>
+      <div class="ac-field">
+        <label>Job description <span class="hint">(optional, for keyword matching)</span></label>
+        <textarea id="ac-jd" class="ac-ta" placeholder="Paste the job posting here for a targeted score…"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="ac-run" style="margin-top:14px;">Check my résumé →</button>
+    <p id="ac-priv" style="text-align:center; color:var(--muted); font-size:12px; margin-top:10px;">🔒 Private — your résumé never leaves your browser.</p>
+  </div>
+
+  <div id="ac-results" style="margin-top:18px;"></div>
+
+  <!-- Indexable content for SEO + AI engines -->
+  <section class="ac-seo">
+    <h2>What is an ATS, and why does your résumé score matter?</h2>
+    <p>An <strong>Applicant Tracking System (ATS)</strong> is the software almost every company uses to collect and filter résumés before a recruiter ever reads them. Studies suggest that roughly <strong>70% of résumés are screened out at this stage</strong> — not because the candidate isn't qualified, but because the résumé doesn't match the job's keywords, isn't structured in a way the software can parse, or lists duties instead of measurable results.</p>
+    <p>This free checker scores your résumé the way an ATS would, across four dimensions:</p>
+    <h3>1. Keyword match</h3>
+    <p>The single biggest factor. The tool extracts the important skills and terms from the job description and checks which ones appear in your résumé, then lists the exact keywords you're missing so you can add the ones that genuinely apply to you.</p>
+    <h3>2. Formatting &amp; parseability</h3>
+    <p>ATS software needs clear contact details, standard section headings, and simple bullet points. The checker verifies your résumé is easy for the software to read.</p>
+    <h3>3. Quantified impact</h3>
+    <p>Strong résumés lead with action verbs and back up claims with numbers (percentages, dollars, time saved, scale). The checker measures how many of your bullet points include real, measurable results.</p>
+    <h3>4. Completeness</h3>
+    <p>It confirms your résumé has the core sections recruiters and ATS systems expect: summary, experience, education, and skills.</p>
+
+    <h2>How to make your résumé ATS-friendly</h2>
+    <ul>
+      <li>Mirror the language of the job description — use the exact keywords where they truly apply.</li>
+      <li>Use standard headings: <em>Experience</em>, <em>Education</em>, <em>Skills</em>.</li>
+      <li>Start every bullet point with a strong action verb (Led, Built, Improved, Drove).</li>
+      <li>Quantify your impact: "cut load time 40%," "managed a $2M budget," "grew signups 3×."</li>
+      <li>Keep formatting simple — no tables, text boxes, or images in the body.</li>
+      <li>Include a clear email and phone number at the top.</li>
+    </ul>
+    <p style="margin-top:20px;"><strong>Want Applio to fix all of this for you automatically?</strong> The full résumé builder tailors your bullets to any job, scores your ATS match, and exports a recruiter-ready PDF — free to start.</p>
+    <a href="login.html?mode=signup" class="btn btn-primary btn-lg" style="margin-top:8px;">Build my résumé free →</a>
+  </section>
+</main>
+
+<script src="js/ats-engine.js"></script>
+<script>
+  (function () {
+    var runBtn = document.getElementById('ac-run');
+    var out = document.getElementById('ac-results');
+    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];});}
+    function color(s){ return s == null ? 'var(--muted)' : s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
+    function verdict(s){ return s >= 80 ? 'Strong match' : s >= 65 ? 'Solid — a few tweaks away' : s >= 45 ? 'Needs work' : 'Major gaps'; }
+
+    function render(r) {
+      var c = color(r.score);
+      var bd = r.breakdown;
+      var bars = [['keywords','Keyword match'],['impact','Quantified impact'],['formatting','Formatting'],['completeness','Completeness']]
+        .map(function (p) {
+          var v = bd[p[0]] || 0, bc = color(v);
+          return '<div><div style="display:flex;justify-content:space-between;font-size:12.5px;"><span style="color:var(--muted);">' + p[1] + '</span><span style="font-weight:700;">' + v + '</span></div>'
+            + '<div class="ac-bar-track"><div class="ac-bar-fill" style="width:' + Math.max(0, Math.min(100, v)) + '%;background:' + bc + ';"></div></div></div>';
+        }).join('');
+      var matched = r.matchedKeywords.length ? r.matchedKeywords.map(function (k){ return '<span class="ac-chip ac-chip-ok">' + esc(k) + '</span>'; }).join('') : '<span style="color:var(--muted);font-size:13px;">—</span>';
+      var missing = r.missingKeywords.length ? r.missingKeywords.map(function (k){ return '<span class="ac-chip ac-chip-no">' + esc(k) + '</span>'; }).join('') : '<span style="color:var(--muted);font-size:13px;">None — great coverage!</span>';
+      var wins = r.wins.map(function (x){ return '<li><span style="color:#22c55e;">✓</span><span>' + esc(x) + '</span></li>'; }).join('');
+      var issues = r.issues.map(function (x){ return '<li><span style="color:#f59e0b;">→</span><span>' + esc(x) + '</span></li>'; }).join('');
+      out.innerHTML =
+        '<div class="section-card">'
+        + '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">'
+        +   '<div style="text-align:center;min-width:120px;"><div class="ac-score-num" style="color:' + c + ';">' + r.score + '</div><div style="color:var(--muted);font-size:12px;">out of 100</div></div>'
+        +   '<div style="flex:1;min-width:200px;"><div style="font-size:18px;font-weight:800;color:' + c + ';">' + verdict(r.score) + '</div>'
+        +   '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + (r.hasJD ? 'Scored against the job description you pasted.' : 'Scored against general résumé best practices. Paste a job description for a targeted keyword match.') + '</div></div>'
+        + '</div>'
+        + '<div class="ac-bars">' + bars + '</div>'
+        + (r.hasJD ? ('<div style="margin-top:16px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">Matched keywords</div>' + matched
+            + '<div style="font-weight:700;font-size:13px;margin:14px 0 4px;">Missing keywords <span style="color:var(--muted);font-weight:400;">(add the ones that apply to you)</span></div>' + missing + '</div>') : '')
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;">'
+        +   '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;">What\'s working</div><ul class="ac-list">' + wins + '</ul></div>'
+        +   '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;">What to fix</div><ul class="ac-list">' + issues + '</ul></div>'
+        + '</div>'
+        + '<a href="login.html?mode=signup" class="btn btn-primary btn-block" style="margin-top:18px;">Fix these automatically — build your résumé free →</a>'
+        + '</div>';
+      out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    runBtn.addEventListener('click', function () {
+      var resume = document.getElementById('ac-resume').value;
+      var jd = document.getElementById('ac-jd').value;
+      if (resume.trim().length < 60) {
+        out.innerHTML = '<div class="section-card" style="color:var(--warning,#f59e0b);">Paste a bit more of your résumé to get an accurate score.</div>';
+        return;
+      }
+      render(window.AtsEngine.score(resume, jd));
+    });
+  })();
+</script>
+</body>
+</html>

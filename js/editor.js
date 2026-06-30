@@ -178,6 +178,7 @@ function renderMain() {
   if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
   // Wire drag-to-reorder
   setTimeout(_bindDragReorder, 0);
+  setTimeout(_bindSectionDrag, 0);
   // Update sidebar completion indicators
   document.querySelectorAll('.sidebar-item').forEach(function(el) {
     var sec = el.dataset.section;
@@ -1443,15 +1444,13 @@ function renderCustomize() {
       </div>
       <div style="margin-top:18px;">
         <strong>Resume Sections</strong>
-        <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Use ↑ ↓ to reorder sections, and the switch to show or hide each one.</p>
-        <div>
-          ${_sectionOrder().map((k,i,arr)=>`
-            <div class="toggle-row">
-              <span style="display:flex; align-items:center; gap:8px;">
-                <span style="display:inline-flex; flex-direction:column; gap:2px;">
-                  <button class="sec-move" title="Move up" onclick="moveSection('${k}',-1)" ${i===0?'disabled':''}>▲</button>
-                  <button class="sec-move" title="Move down" onclick="moveSection('${k}',1)" ${i===arr.length-1?'disabled':''}>▼</button>
-                </span>
+        <p style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Drag to reorder (or focus a row and press ↑ ↓), and use the switch to show or hide each one.</p>
+        <div role="list">
+          ${_sectionOrder().map(k=>`
+            <div class="toggle-row sec-drag-item" draggable="true" data-sec="${k}" tabindex="0" role="listitem"
+                 aria-label="${k} section. Drag, or press arrow up or down, to reorder.">
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="sec-grip" aria-hidden="true" title="Drag to reorder"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/><circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/><circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/></svg></span>
                 <span style="text-transform:capitalize;${c.sections[k]?'':'opacity:.5;'}">${k}</span>
               </span>
               <div class="toggle ${c.sections[k]?'on':''}" role="switch" tabindex="0" aria-checked="${!!c.sections[k]}" aria-label="Show ${k} section" onclick="toggleSection('${k}')"></div>
@@ -1476,6 +1475,50 @@ function moveSection(k, dir) {
   order[i] = order[j]; order[j] = k;
   resume.customize.sectionOrder = order;
   save(); renderMain();
+}
+// Move a section so it lands at another section's position (drag & drop).
+function _reorderSection(fromKey, toKey) {
+  const order = _sectionOrder();
+  const from = order.indexOf(fromKey), to = order.indexOf(toKey);
+  if (from < 0 || to < 0 || from === to) return;
+  const moved = order.splice(from, 1)[0];
+  order.splice(to, 0, moved);
+  resume.customize.sectionOrder = order;
+  save(); renderMain();
+}
+// Wire drag-and-drop for the Resume Sections list (separate from the entry-list
+// reorder, since this reorders the customize.sectionOrder string array).
+function _bindSectionDrag() {
+  const items = document.querySelectorAll('.sec-drag-item');
+  let src = null;
+  items.forEach(function (item) {
+    item.addEventListener('dragstart', function (e) {
+      src = item; setTimeout(function () { item.classList.add('dragging'); }, 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', function () {
+      item.classList.remove('dragging');
+      items.forEach(function (i) { i.classList.remove('drag-over'); });
+      src = null;
+    });
+    item.addEventListener('dragover', function (e) {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      if (item !== src) {
+        items.forEach(function (i) { i.classList.remove('drag-over'); });
+        item.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('drop', function (e) {
+      e.preventDefault();
+      if (!src || src === item) return;
+      _reorderSection(src.dataset.sec, item.dataset.sec);
+    });
+    // Keyboard reorder for accessibility (drag-only would exclude keyboard users).
+    item.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp') { e.preventDefault(); moveSection(item.dataset.sec, -1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); moveSection(item.dataset.sec, 1); }
+    });
+  });
 }
 function setCustom(k,v) { resume.customize[k]=v; save(); renderMain(); }
 function toggleSection(k){ resume.customize.sections[k]=!resume.customize.sections[k]; save(); renderMain(); }

@@ -291,13 +291,43 @@ function mountSiriWave(canvas, opts) {
 // aiLoadingDone(), removes it
 // Both are safe to call multiple times; only one overlay exists at a time.
 
+// Task-specific "thinking" steps, inferred from the message so callers need no
+// changes. Rotating these makes the wait feel intentional and shorter.
+const AI_STEPS = {
+  analyze: ['Reading your experience…', 'Checking clarity and impact…', 'Scoring each section…', 'Writing actionable feedback…'],
+  ats:     ['Parsing the job description…', 'Matching keywords to your resume…', 'Checking ATS formatting…', 'Calculating your match score…'],
+  tailor:  ['Studying the role…', 'Aligning the keywords that matter…', 'Rewriting your bullets…', 'Reframing your summary…'],
+  improve: ['Reading your draft…', 'Finding stronger verbs…', 'Adding measurable impact…', 'Polishing the wording…'],
+  skills:  ['Scanning your experience…', 'Identifying relevant skills…', 'Grouping them by category…'],
+  parse:   ['Reading your file…', 'Extracting each section…', 'Structuring your resume…'],
+  interview: ['Studying the role…', 'Drafting tailored questions…', 'Adding answer tips…'],
+  _default: ['Working on it…', 'Crunching the details…', 'Almost there…'],
+};
+function _aiStepScript(message) {
+  const m = (message || '').toLowerCase();
+  if (/analy/.test(m)) return AI_STEPS.analyze;
+  if (/scor|ats/.test(m)) return AI_STEPS.ats;
+  if (/tailor/.test(m)) return AI_STEPS.tailor;
+  if (/improv/.test(m)) return AI_STEPS.improve;
+  if (/skill/.test(m)) return AI_STEPS.skills;
+  if (/pars|import/.test(m)) return AI_STEPS.parse;
+  if (/interview/.test(m)) return AI_STEPS.interview;
+  return AI_STEPS._default;
+}
+function _clearAiTimers(el) {
+  if (!el || !el._aiTimers) return;
+  el._aiTimers.forEach(t => { clearInterval(t); clearTimeout(t); cancelAnimationFrame(t); });
+  el._aiTimers = null;
+}
+
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)
   const existing = document.getElementById('ai-loading-overlay');
-  if (existing) { if (existing._siriCleanup) existing._siriCleanup(); existing.remove(); }
+  if (existing) { if (existing._siriCleanup) existing._siriCleanup(); _clearAiTimers(existing); existing.remove(); }
 
   const el = document.createElement('div');
   el.id = 'ai-loading-overlay';
+  el._aiTimers = [];
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
   el.style.cssText = [
@@ -313,6 +343,7 @@ window.aiLoading = function (message) {
       @keyframes aiOverlayIn { from { opacity:0 } to { opacity:1 } }
       @keyframes aiSpinRing  { to { transform: rotate(360deg) } }
       @keyframes aiPulseText { 0%,100% { opacity:.6 } 50% { opacity:1 } }
+      @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
     </style>`;
 
   // Primary visual: Siri-style WebGL wave. Falls back to an SVG spinner when
@@ -341,9 +372,55 @@ window.aiLoading = function (message) {
 
   const msg = document.createElement('div');
   msg.id = 'ai-loading-msg';
-  msg.style.cssText = 'font-size:14px;font-weight:500;color:#e6e9f5;letter-spacing:.01em;animation:aiPulseText 1.8s ease-in-out infinite;max-width:260px;text-align:center;line-height:1.5;';
+  msg.style.cssText = 'font-size:14px;font-weight:600;color:#e6e9f5;letter-spacing:.01em;max-width:280px;text-align:center;line-height:1.5;';
   msg.textContent = message || 'AI is thinking…';
   el.appendChild(msg);
+
+  if (reduce) {
+    // Reduced motion: static message only, no rotation/progress animation.
+    document.body.appendChild(el);
+    return;
+  }
+
+  // Rotating step detail under the headline.
+  const steps = _aiStepScript(message);
+  const step = document.createElement('div');
+  step.style.cssText = 'font-size:12.5px;color:#9aa3c7;min-height:18px;text-align:center;max-width:300px;';
+  step.textContent = steps[0];
+  el.appendChild(step);
+  let si = 0;
+  const rotId = setInterval(() => {
+    si = (si + 1) % steps.length;
+    step.style.animation = 'none';
+    void step.offsetWidth;            // restart the fade
+    step.textContent = steps[si];
+    step.style.animation = 'aiStepIn .35s ease both';
+  }, 1700);
+  el._aiTimers.push(rotId);
+
+  // Eased indeterminate progress bar (creeps toward ~92%, never "completes"
+  // until the result arrives and the overlay is removed).
+  const track = document.createElement('div');
+  track.style.cssText = 'width:200px;height:4px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden;margin-top:2px;';
+  const fill = document.createElement('div');
+  fill.style.cssText = 'height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width .25s linear;';
+  track.appendChild(fill);
+  el.appendChild(track);
+  const t0 = performance.now();
+  (function grow() {
+    const dt = performance.now() - t0;
+    const pct = 92 * (1 - Math.exp(-dt / 2600));   // fast at first, asymptotic to 92%
+    fill.style.width = pct.toFixed(1) + '%';
+    el._aiTimers.push(requestAnimationFrame(grow));
+  })();
+
+  // Slow-state reassurance: if it's still running after a while, stop rotating
+  // and hold a reassuring line.
+  el._aiTimers.push(setTimeout(() => {
+    clearInterval(rotId);
+    step.textContent = 'Taking a little longer than usual, hang tight…';
+    step.style.animation = 'aiStepIn .35s ease both';
+  }, 12000));
 
   document.body.appendChild(el);
 };

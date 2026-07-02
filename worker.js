@@ -18,10 +18,11 @@ const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 // Last-resort model that is always tried if the others error or come back empty.
 const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 
-// AI endpoints that require Premium/Lifetime
-// Note: "parse" (Resume Import) is intentionally NOT here, import is free for all users.
-// Interview prep (questions + answer feedback) is free for everyone, like parse.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "skills", "improve"]);
+// AI endpoints that require Premium/Lifetime after the free-trial allowance.
+// "parse" (Resume Import) gives free users 2 free imports (FREE_AI_TRIALS), then
+// paywalls, same trial system as the other AI features.
+// Interview prep (questions + answer feedback) stays free for everyone.
+const PRO_AI = new Set(["tailor", "ats", "analyze", "skills", "improve", "parse"]);
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).

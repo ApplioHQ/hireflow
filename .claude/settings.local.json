@@ -106,7 +106,8 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('ats-checker.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,b=[];while\\(\\(m=re.exec\\(h\\)\\)\\)b.push\\(m[1]\\);fs.writeFileSync\\('/tmp/c.js',b.join\\('\\\\n;\\\\n'\\)\\);\")",
       "Bash(node -e \"const h=require\\('fs'\\).readFileSync\\('ats-checker.html','utf8'\\);const b=[...h.matchAll\\(/<script type=\\\\\"application\\\\/ld\\\\+json\\\\\">\\([\\\\s\\\\S]*?\\)<\\\\/script>/g\\)];b.forEach\\(\\(m,i\\)=>{try{console.log\\('block '+\\(i+1\\)+':',JSON.parse\\(m[1]\\)['@type']\\);}catch\\(e\\){console.log\\('block '+\\(i+1\\)+' INVALID',e.message\\);}}\\)\")",
       "Bash(node -e \"const s=require\\('fs'\\).readFileSync\\('sitemap.xml','utf8'\\);console.log\\('ok:',s.includes\\('</urlset>'\\),'urls:',\\(s.match\\(/<loc>/g\\)||[]\\).length,'has ats-checker:',s.includes\\('ats-checker'\\)\\)\")",
-      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('editor.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,b=[];while\\(\\(m=re.exec\\(h\\)\\)\\)b.push\\(m[1]\\);fs.writeFileSync\\('/tmp/c.js',b.join\\('\\\\n;\\\\n'\\)\\);\")"
+      "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('editor.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,b=[];while\\(\\(m=re.exec\\(h\\)\\)\\)b.push\\(m[1]\\);fs.writeFileSync\\('/tmp/c.js',b.join\\('\\\\n;\\\\n'\\)\\);\")",
+      "Bash(ls lib.mjs test.mjs)"
     ]
   }
 }

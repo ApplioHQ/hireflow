@@ -640,7 +640,7 @@ async function ai(req, env, action) {
   // Free users get a limited number of free trials per AI feature, then it paywalls.
   let trial = null;
   if (PRO_AI.has(action) && !isPaidPlan(user)) {
-    const limit = parseInt(env.FREE_AI_TRIALS || "2", 10);
+    const limit = FREE_TRIAL_LIMITS[action] != null ? FREE_TRIAL_LIMITS[action] : parseInt(env.FREE_AI_TRIALS || "2", 10);
     const used = (user.aiTrials && user.aiTrials[action]) || 0;
     if (used >= limit) {
       throw err(402, "You've used your free trials for this feature. Upgrade to Premium for unlimited.");

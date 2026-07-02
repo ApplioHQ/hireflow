@@ -23,6 +23,9 @@ const FALLBACK_MODEL = "@cf/meta/llama-3.1-8b-instruct";
 // paywalls, same trial system as the other AI features.
 // Interview prep (questions + answer feedback) stays free for everyone.
 const PRO_AI = new Set(["tailor", "ats", "analyze", "skills", "improve", "parse"]);
+// Per-feature free-trial overrides (default is FREE_AI_TRIALS). Resume import
+// gives 1 free use; the rest use the default.
+const FREE_TRIAL_LIMITS = { parse: 1 };
 
 // Shared grounding rule prepended to every generative prompt. Keeps the model
 // honest (no fabricated facts) and terse (lower output token cost).

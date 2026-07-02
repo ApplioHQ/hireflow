@@ -429,6 +429,7 @@ function showUpgradeModal(reason, context) {
   const reasons = {
     ai: { title: 'AI features are Premium', body: 'Tailoring, ATS scoring, AI Improve, interview prep and resume analysis are part of Premium. Upgrade to unlock everything.' },
     interview: { title: 'Interview Prep is Premium', body: 'Generate practice questions tailored to any role with AI. Upgrade to unlock.' },
+    import: { title: "You've used your free imports", body: 'Free accounts get 2 AI resume imports. Upgrade to Premium to import unlimited resumes.' },
     optimize: { title: 'Optimize is Premium', body: 'Tailor to Job, ATS Check, and AI Analysis are part of Premium. Upgrade to unlock.' },
     downloads: { title: 'Download limit reached', body: `You've used all 10 free downloads for this month. Upgrade to Premium or Lifetime for unlimited downloads.` }
   };

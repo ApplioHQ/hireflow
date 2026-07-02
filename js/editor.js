@@ -2105,8 +2105,8 @@ async function ai(endpoint, body) {
   // ENFORCED BY THE BACKEND (per-feature, default 2). We only pre-check the
   // server-tracked count to show the upgrade modal without a wasted request,   // and we never consume a local counter here, so a network/error/402 can't
   // burn a trial (the backend consumes only on a real, successful result).
-  if (endpoint !== 'parse' && isFree() && !canUseAi(endpoint)) {
-    showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
+  if (isFree() && !canUseAi(endpoint)) {
+    showUpgradeModal(endpoint === 'parse' ? 'import' : 'ai', endpoint === 'analyze' ? 'analysis' : endpoint);
     throw new Error('Premium required');
   }
   const r = await fetch(API + '/ai/' + endpoint, {
@@ -2123,7 +2123,7 @@ async function ai(endpoint, body) {
       CURRENT_USER.aiTrials[endpoint] = (typeof _trialLimit === 'function' ? _trialLimit() : ((CURRENT_USER && CURRENT_USER.freeAiTrials) || 2));
       _refreshTrialUI();
     }
-    showUpgradeModal('ai'); throw new Error('Premium required');
+    showUpgradeModal(endpoint === 'parse' ? 'import' : 'ai'); throw new Error('Premium required');
   }
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));

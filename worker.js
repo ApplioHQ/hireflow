@@ -1150,6 +1150,8 @@ OUTPUT FORMAT:
     `Resume text:\n${text.slice(0, 8000)}`,
     { model: SMART_MODEL, max_tokens: 3500, temperature: 0.1 });
   const j = safeJSON(raw);
+  // Don't spend a free import if we couldn't actually parse anything out.
+  if (!j) return { resume: null, _noCharge: true };
   return { resume: j };
 }
 

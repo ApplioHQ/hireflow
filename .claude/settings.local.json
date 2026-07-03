@@ -123,7 +123,8 @@
       "Bash(perl -0pi -e \"s/    \\\\['Best resume for the role'.*?\\\\n//s; s/    \\\\['No prompting needed'.*?\\\\n//s\" index.html)",
       "Bash(sed -n '/var ROWS = \\\\[/,/\\\\];/p' index.html)",
       "Bash(sed -i '' '644,647d' index.html)",
-      "Bash(awk '/<div class=\"faq\">/,/<\\\\/div>\\\\s*<\\\\/div>\\\\s*<\\\\/section>/' index.html)"
+      "Bash(awk '/<div class=\"faq\">/,/<\\\\/div>\\\\s*<\\\\/div>\\\\s*<\\\\/section>/' index.html)",
+      "Bash(awk -F: '$1<358')"
     ]
   }
 }

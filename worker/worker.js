@@ -43,6 +43,7 @@ export default {
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
+      if (path === "/admin/analytics")         return json(await adminAnalytics(req, env), 200, cors);
       if (path === "/admin/users")             return json(await adminListUsers(req, env), 200, cors);
       if (path === "/admin/users/delete")      return json(await adminDeleteUser(req, env), 200, cors);
       if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);

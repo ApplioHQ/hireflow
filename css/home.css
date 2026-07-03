@@ -1075,12 +1075,6 @@ section[id] { scroll-margin-top: 80px; }
 .dcard-ico { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); }
 .dcard-title { font-size: 17px; font-weight: 700; color: var(--accent); line-height: 1.25; }
-.dcard-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 800; letter-spacing: .02em; color: #92400e;
-  background: linear-gradient(90deg, #fde68a, #fbbf24);
-  border: 1px solid rgba(217,119,6,.45); border-radius: 20px; padding: 3px 9px 3px 7px; white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(217,119,6,.25); }
-.dcard-badge svg { color: #b45309; }
 .dcard-desc { font-size: 16px; font-weight: 600; color: #1e293b; line-height: 1.45; }
 .dcard-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .dcard-metric { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700;

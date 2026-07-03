@@ -118,7 +118,8 @@
       "Bash(cp index.html /tmp/index.bak.html)",
       "Bash(sed -i '' '357,444d' index.html)",
       "Bash(awk 'NR>=453 && /WHY APPLIO/{print NR\": \"$0; exit}' index.html)",
-      "Bash(perl -0pi -e 's/href=\"#how\"/href=\"#spotlights\"/g; s/href=\"#features\">Features</href=\"#templates\">Templates</g' index.html)"
+      "Bash(perl -0pi -e 's/href=\"#how\"/href=\"#spotlights\"/g; s/href=\"#features\">Features</href=\"#templates\">Templates</g' index.html)",
+      "Bash(perl -0pi -e 's/\\\\s*<a href=\"login\\\\.html\\\\?mode=signup\" class=\"spot-cta\">[^<]*<\\\\/a>//g' index.html)"
     ]
   }
 }

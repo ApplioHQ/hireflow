@@ -1123,20 +1123,23 @@ section[id] { scroll-margin-top: 80px; }
 }
 /* Long, finely-eased "scrim" fades for a very gradual blend. Padding (130px)
    keeps them clear of the content so they never wash the text. */
-.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:170px; z-index:0; pointer-events:none;
-  /* ease-out fade: alpha drops from the very top edge (no bright plateau),
-     then tails off smoothly into the navy — one continuous ramp, no band. */
+.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:190px; z-index:0; pointer-events:none;
+  /* Smooth ease-out fade with a soft top knee: gentle at the very edge so it
+     melts into the light section above, no bright plateau/bar, then a long low
+     tail into the navy. Fine stops keep the ramp continuous (no visible band). */
   background: linear-gradient(180deg,
-    #f7f8fc 0%, rgba(247,248,252,.87) 9%, rgba(247,248,252,.74) 18%, rgba(247,248,252,.62) 27%,
-    rgba(247,248,252,.50) 36%, rgba(247,248,252,.40) 45%, rgba(247,248,252,.30) 54%,
-    rgba(247,248,252,.21) 63%, rgba(247,248,252,.14) 72%, rgba(247,248,252,.07) 81%,
-    rgba(247,248,252,.03) 90%, rgba(247,248,252,0) 100%); }
-.spotlights::after { content:''; position:absolute; bottom:0; left:0; right:0; height:170px; z-index:0; pointer-events:none;
+    #f7f8fc 0%, rgba(247,248,252,.94) 7%, rgba(247,248,252,.85) 14%, rgba(247,248,252,.74) 21%,
+    rgba(247,248,252,.62) 28%, rgba(247,248,252,.51) 35%, rgba(247,248,252,.41) 42%,
+    rgba(247,248,252,.32) 49%, rgba(247,248,252,.24) 56%, rgba(247,248,252,.17) 63%,
+    rgba(247,248,252,.12) 70%, rgba(247,248,252,.07) 77%, rgba(247,248,252,.04) 84%,
+    rgba(247,248,252,.015) 91%, rgba(247,248,252,0) 100%); }
+.spotlights::after { content:''; position:absolute; bottom:0; left:0; right:0; height:190px; z-index:0; pointer-events:none;
   background: linear-gradient(0deg,
-    #fff 0%, rgba(255,255,255,.87) 9%, rgba(255,255,255,.74) 18%, rgba(255,255,255,.62) 27%,
-    rgba(255,255,255,.50) 36%, rgba(255,255,255,.40) 45%, rgba(255,255,255,.30) 54%,
-    rgba(255,255,255,.21) 63%, rgba(255,255,255,.14) 72%, rgba(255,255,255,.07) 81%,
-    rgba(255,255,255,.03) 90%, rgba(255,255,255,0) 100%); }
+    #fff 0%, rgba(255,255,255,.94) 7%, rgba(255,255,255,.85) 14%, rgba(255,255,255,.74) 21%,
+    rgba(255,255,255,.62) 28%, rgba(255,255,255,.51) 35%, rgba(255,255,255,.41) 42%,
+    rgba(255,255,255,.32) 49%, rgba(255,255,255,.24) 56%, rgba(255,255,255,.17) 63%,
+    rgba(255,255,255,.12) 70%, rgba(255,255,255,.07) 77%, rgba(255,255,255,.04) 84%,
+    rgba(255,255,255,.015) 91%, rgba(255,255,255,0) 100%); }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
   align-items: center; padding: 34px 0; }
 .spotlight + .spotlight { border-top: 1px solid transparent;

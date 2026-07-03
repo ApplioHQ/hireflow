@@ -2521,20 +2521,18 @@ function _extractJSON(text) {
   // Salvage TRUNCATED JSON (model hit its token limit mid-object): walk the text,
   // then close any still-open string, array, and object so it parses. We can then
   // render whatever fields completed instead of dumping raw JSON.
-  let inStr = false, escp = false, obj = 0, arr = 0, out = '';
+  let inStr = false, escp = false, stack = [], out = '';
   for (let i = 0; i < s.length; i++) {
     const c = s[i]; out += c;
     if (inStr) { if (escp) escp = false; else if (c === '\\') escp = true; else if (c === '"') inStr = false; continue; }
     if (c === '"') inStr = true;
-    else if (c === '{') obj++;
-    else if (c === '}') obj--;
-    else if (c === '[') arr++;
-    else if (c === ']') arr--;
+    else if (c === '{') stack.push('}');
+    else if (c === '[') stack.push(']');
+    else if (c === '}' || c === ']') stack.pop();
   }
   if (inStr) out += '"';
   out = out.replace(/,\s*"[^"]*"\s*:?\s*$/, '').replace(/,\s*$/, '');  // drop a dangling trailing key/comma
-  while (arr-- > 0) out += ']';
-  while (obj-- > 0) out += '}';
+  for (let i = stack.length - 1; i >= 0; i--) out += stack[i];         // close in correct nesting order
   cands.push(out, stripCommas(out));
   for (const cand of cands) { try { return JSON.parse(cand); } catch {} }
   return null;

@@ -288,6 +288,50 @@ async function adminListUsers(req, env) {
   return { users, total: users.length };
 }
 
+// Aggregate user stats for the admin dashboard. Available to admin + super.
+async function adminAnalytics(req, env) {
+  await requireAdmin(req, env);
+  const now = Date.now();
+  const DAY = 86400000;
+
+  const plans = { free: 0, premium: 0, lifetime: 0 };
+  let total = 0, totalDownloads = 0, last7Signups = 0, last30Signups = 0;
+
+  // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
+  const signupsByDay = {};
+  for (let i = 29; i >= 0; i--) {
+    signupsByDay[new Date(now - i * DAY).toISOString().slice(0, 10)] = 0;
+  }
+
+  // Iterate every user key (paginated — list() caps at 1000 per page).
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor });
+    for (const key of page.keys) {
+      const raw = await env.HIREFLOW_KV.get(key.name);
+      if (!raw) continue;
+      let u; try { u = JSON.parse(raw); } catch { continue; }
+      total++;
+      const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
+      plans[plan]++;
+      totalDownloads += Number(u.downloadsUsed) || 0;
+      const created = Number(u.createdAt) || 0;
+      if (created) {
+        if (now - created <= 7 * DAY)  last7Signups++;
+        if (now - created <= 30 * DAY) last30Signups++;
+        const day = new Date(created).toISOString().slice(0, 10);
+        if (day in signupsByDay) signupsByDay[day]++;
+      }
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  const paid = plans.premium + plans.lifetime;
+  const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
+
+  return { total, plans, conversionRate, totalDownloads, last7Signups, last30Signups, signupsByDay };
+}
+
 async function adminDeleteUser(req, env) {
   await requireAdmin(req, env, true);
   const { email } = await req.json();

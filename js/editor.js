@@ -2509,16 +2509,18 @@ function _renderATSResult(r) {
 function _extractJSON(text) {
   if (!text) return null;
   let s = String(text).replace(/```(?:json)?/gi, '').trim();
-  try { return JSON.parse(s); } catch {}
   const a = s.indexOf('{');
   if (a === -1) return null;
   s = s.slice(a);
-  try { return JSON.parse(s); } catch {}
+  // Kill trailing commas before } or ] — the most common thing that makes an
+  // otherwise-valid LLM JSON fail JSON.parse (e.g. ["a","b",]).
+  const stripCommas = str => str.replace(/,(\s*[}\]])/g, '$1');
+  const cands = [s, stripCommas(s)];
   const b = s.lastIndexOf('}');
-  if (b > 0) { try { return JSON.parse(s.slice(0, b + 1)); } catch {} }
-  // Salvage TRUNCATED JSON (the model hit its token limit mid-object): walk the
-  // text, then close any still-open string, array, and object so it parses, and
-  // we can still render whatever fields completed instead of dumping raw JSON.
+  if (b > 0) { const t = s.slice(0, b + 1); cands.push(t, stripCommas(t)); }
+  // Salvage TRUNCATED JSON (model hit its token limit mid-object): walk the text,
+  // then close any still-open string, array, and object so it parses. We can then
+  // render whatever fields completed instead of dumping raw JSON.
   let inStr = false, escp = false, obj = 0, arr = 0, out = '';
   for (let i = 0; i < s.length; i++) {
     const c = s[i]; out += c;
@@ -2533,7 +2535,8 @@ function _extractJSON(text) {
   out = out.replace(/,\s*"[^"]*"\s*:?\s*$/, '').replace(/,\s*$/, '');  // drop a dangling trailing key/comma
   while (arr-- > 0) out += ']';
   while (obj-- > 0) out += '}';
-  try { return JSON.parse(out); } catch {}
+  cands.push(out, stripCommas(out));
+  for (const cand of cands) { try { return JSON.parse(cand); } catch {} }
   return null;
 }
 
@@ -2544,11 +2547,14 @@ function _renderAnalysis(r) {
     // Never dump raw JSON at the user. If the leftover text looks like JSON we
     // couldn't parse, ask for a re-run; otherwise show it as readable prose.
     const raw = String((r && r.text) || (typeof r === 'string' ? r : '')).trim();
-    if (/^\s*(```)?\s*\{/.test(raw)) {
+    // Strip any code fence first, then decide: JSON-looking → friendly retry (never
+    // dump braces at the user); real prose → render as-is.
+    const rawClean = raw.replace(/```(?:json)?/gi, '').trim();
+    if (/^[\{\[]/.test(rawClean)) {
       return `<div class="ai-body" style="text-align:center;color:var(--muted);padding:8px 4px;">
         The analysis came back in an unexpected format. Please run it again, this is usually a one-off.</div>`;
     }
-    return `<div class="ai-body">${_renderAiBody(raw)}</div>`;
+    return `<div class="ai-body">${_renderAiBody(rawClean || raw)}</div>`;
   }
   const cards = (arr, ico) => `<ul class="ai-rec-list">${(arr || []).map(t =>
     `<li class="ai-rec"><span class="ai-rec-ico">${ICON(ico,'ico ico-sm')}</span><span>${esc(_deName(t))}</span></li>`).join('')}</ul>`;

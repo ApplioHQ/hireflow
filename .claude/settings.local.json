@@ -109,7 +109,11 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const h=fs.readFileSync\\('editor.html','utf8'\\);const re=/<script>\\([\\\\s\\\\S]*?\\)<\\\\/script>/g;let m,b=[];while\\(\\(m=re.exec\\(h\\)\\)\\)b.push\\(m[1]\\);fs.writeFileSync\\('/tmp/c.js',b.join\\('\\\\n;\\\\n'\\)\\);\")",
       "Bash(ls lib.mjs test.mjs)",
       "Bash(node verify-import.mjs)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(git credential *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)')",
+      "Bash(curl -s \"https://appliohq.com/?cb=$\\(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)'\\)\" -H \"Cache-Control: no-cache\")"
     ]
   }
 }

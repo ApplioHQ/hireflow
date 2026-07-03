@@ -114,7 +114,10 @@
       "Bash(python3 -c ' *)",
       "Bash(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)')",
       "Bash(curl -s \"https://appliohq.com/?cb=$\\(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)'\\)\" -H \"Cache-Control: no-cache\")",
-      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('private' if d.get\\('private'\\) else 'PUBLIC','| visibility:',d.get\\('visibility'\\)\\)\")"
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('private' if d.get\\('private'\\) else 'PUBLIC','| visibility:',d.get\\('visibility'\\)\\)\")",
+      "Bash(cp index.html /tmp/index.bak.html)",
+      "Bash(sed -i '' '357,444d' index.html)",
+      "Bash(awk 'NR>=453 && /WHY APPLIO/{print NR\": \"$0; exit}' index.html)"
     ]
   }
 }

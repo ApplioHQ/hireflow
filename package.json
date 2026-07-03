@@ -1,0 +1,16 @@
+{
+  "name": "appliohq",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Applio (appliohq.com) — static front-end (GitHub Pages) + Cloudflare Worker API (in ./worker).",
+  "scripts": {
+    "deploy": "cd worker && npx wrangler deploy",
+    "deploy:staging": "cd worker && npx wrangler deploy --env staging",
+    "dev": "cd worker && npx wrangler dev",
+    "dev:staging": "cd worker && npx wrangler dev --env staging",
+    "tail": "cd worker && npx wrangler tail",
+    "backup": "bash scripts/backup-kv.sh",
+    "secrets:list": "cd worker && npx wrangler secret list",
+    "predeploy": "echo '>> Deploying PRODUCTION worker from ./worker (KV 84f236c3). Ctrl-C to abort.' && sleep 3"
+  }
+}

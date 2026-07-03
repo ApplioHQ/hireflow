@@ -136,7 +136,9 @@
       "Bash(python3 -c \"import sys,json;[print\\(' -',s['name']\\) for s in json.load\\(sys.stdin\\)]\")",
       "Bash(pkill -f auto-git-commit.sh)",
       "Bash(awk '{print \"  \"$5\" \"$NF}')",
-      "Bash(node --check worker/worker.js)"
+      "Bash(node --check worker/worker.js)",
+      "Bash(git pull *)",
+      "Bash(git push *)"
     ]
   }
 }

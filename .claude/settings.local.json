@@ -130,7 +130,8 @@
       "Bash(awk 'NR>=358 && /<\\\\/section>/{print NR\": \"$0; c++} NR>=358 && /<section/{print NR\": \"$0} c>=1 && NR>358{if\\(/<section/\\){exit}}' index.html)",
       "Bash(awk 'NR>500 && NR<720 && /<section/{print NR\": \"$0}' index.html)",
       "Bash(awk -F: '$1>=358 && $1<=720')",
-      "Bash(curl -s \"https://appliohq.com/css/home.css?cb=$\\(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)'\\)\" -H \"Cache-Control: no-cache\")"
+      "Bash(curl -s \"https://appliohq.com/css/home.css?cb=$\\(python3 -c 'import time;print\\(int\\(time.time\\(\\)\\)\\)'\\)\" -H \"Cache-Control: no-cache\")",
+      "Bash(export CI=1)"
     ]
   }
 }

@@ -117,7 +117,8 @@
       "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('private' if d.get\\('private'\\) else 'PUBLIC','| visibility:',d.get\\('visibility'\\)\\)\")",
       "Bash(cp index.html /tmp/index.bak.html)",
       "Bash(sed -i '' '357,444d' index.html)",
-      "Bash(awk 'NR>=453 && /WHY APPLIO/{print NR\": \"$0; exit}' index.html)"
+      "Bash(awk 'NR>=453 && /WHY APPLIO/{print NR\": \"$0; exit}' index.html)",
+      "Bash(perl -0pi -e 's/href=\"#how\"/href=\"#spotlights\"/g; s/href=\"#features\">Features</href=\"#templates\">Templates</g' index.html)"
     ]
   }
 }

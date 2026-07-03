@@ -138,7 +138,9 @@
       "Bash(awk '{print \"  \"$5\" \"$NF}')",
       "Bash(node --check worker/worker.js)",
       "Bash(git pull *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(ls MEMORY.md)",
+      "Bash(grep -q \"applio-deploy-architecture\" MEMORY.md)"
     ]
   }
 }

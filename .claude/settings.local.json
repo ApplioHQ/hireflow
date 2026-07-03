@@ -121,7 +121,9 @@
       "Bash(perl -0pi -e 's/href=\"#how\"/href=\"#spotlights\"/g; s/href=\"#features\">Features</href=\"#templates\">Templates</g' index.html)",
       "Bash(perl -0pi -e 's/\\\\s*<a href=\"login\\\\.html\\\\?mode=signup\" class=\"spot-cta\">[^<]*<\\\\/a>//g' index.html)",
       "Bash(perl -0pi -e \"s/    \\\\['Best resume for the role'.*?\\\\n//s; s/    \\\\['No prompting needed'.*?\\\\n//s\" index.html)",
-      "Bash(sed -n '/var ROWS = \\\\[/,/\\\\];/p' index.html)"
+      "Bash(sed -n '/var ROWS = \\\\[/,/\\\\];/p' index.html)",
+      "Bash(sed -i '' '644,647d' index.html)",
+      "Bash(awk '/<div class=\"faq\">/,/<\\\\/div>\\\\s*<\\\\/div>\\\\s*<\\\\/section>/' index.html)"
     ]
   }
 }

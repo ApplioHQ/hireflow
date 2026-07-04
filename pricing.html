@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pricing, Applio AI Resume Builder</title>
 <meta name="description" content="Applio pricing: a free forever plan with all 13 resume templates, Premium at $9.99/mo, and Lifetime at $39.99 once. Unlimited downloads and all AI resume features.">
-<link rel="canonical" href="https://appliohq.com/pricing.html">
+<link rel="canonical" href="https://appliohq.com/pricing">
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
@@ -85,7 +85,7 @@
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
-  <a href="index.html" class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <a href="/" class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></a>
   <div class="topbar-right" id="topbar-actions">
     <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
   </div>
@@ -225,16 +225,16 @@ renderList('lifetime-list', LIFETIME_FEATURES);
   const tb = document.getElementById('topbar-actions');
   const token = localStorage.getItem('hf_token');
   if (!token) {
-    tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="login.html">Sign in</a><a class="btn btn-primary btn-sm" href="login.html?mode=signup">Sign up</a>`;
+    tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="login">Sign in</a><a class="btn btn-primary btn-sm" href="login?mode=signup">Sign up</a>`;
     document.getElementById('free-btn').textContent = 'Get started, free';
-    document.getElementById('free-btn').onclick = () => location.href = 'login.html?mode=signup';
+    document.getElementById('free-btn').onclick = () => location.href = 'login?mode=signup';
     document.getElementById('premium-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Upgrade to Premium</span>`;
     document.getElementById('lifetime-btn').innerHTML = `${ICON('sparkle','ico ico-sm')} <span>Buy Lifetime</span>`;
     return;
   }
   await loadCurrentUser();
   const plan = CURRENT_USER?.plan || 'free';
-  tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="editor.html">Back to app</a>`;
+  tb.innerHTML = `<a class="btn btn-ghost btn-sm" href="editor">Back to app</a>`;
 
   // Free button
   const fb = document.getElementById('free-btn');

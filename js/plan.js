@@ -81,13 +81,13 @@ function renderOfflineScreen() {
 // Auto-redirect admin users to admin console if they land elsewhere by mistake
 function redirectIfAdmin() {
   if (!CURRENT_USER || !isAdmin()) return false;
-  const here = location.pathname.split('/').pop() || 'index.html';
-  if (here !== 'admin.html' && here !== 'index.html' && here !== 'login.html') {
+  const here = location.pathname.split('/').pop() || '/';
+  if (here !== 'admin' && here !== '/' && here !== 'login') {
     // Don't force-redirect on every page, let them browse, but show the link prominently
     return false;
   }
-  if (here === 'index.html' || here === '' || here === 'login.html') {
-    location.href = 'admin.html';
+  if (here === '/' || here === '' || here === 'login') {
+    location.href = 'admin';
     return true;
   }
   return false;
@@ -141,7 +141,7 @@ function downloadsLeft() {
 
 async function startCheckout(plan) {
   const token = localStorage.getItem('hf_token');
-  if (!token) { location.href = 'login.html'; return; }
+  if (!token) { location.href = 'login'; return; }
   try {
     const r = await fetch(API_BASE + '/stripe/checkout', {
       method: 'POST',
@@ -209,7 +209,7 @@ async function openBillingPortal() {
 
   // Make sure user data is current
   if (!CURRENT_USER) await loadCurrentUser();
-  if (!CURRENT_USER) { location.href = 'login.html'; return; }
+  if (!CURRENT_USER) { location.href = 'login'; return; }
 
   const u = CURRENT_USER;
   const plan = u.plan || 'free';
@@ -238,13 +238,13 @@ async function openBillingPortal() {
   const buttons = [];
   // Admin-only: a link to the feedback inbox (only the ADMIN_EMAIL account sees this).
   if (u.isAdmin) {
-    buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback.html'">📥 View user feedback</button>`);
+    buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">📥 View user feedback</button>`);
   }
   if (u.hasStripeCustomer) {
     buttons.push(`<button class="btn btn-primary" onclick="_openStripePortal()">Manage Billing &amp; Cancel</button>`);
   }
   buttons.push(`<button class="btn btn-secondary" onclick="syncWithStripe()">Sync with Stripe</button>`);
-  if (plan === 'free') buttons.push(`<button class="btn btn-primary" onclick="location.href='pricing.html'">Upgrade</button>`);
+  if (plan === 'free') buttons.push(`<button class="btn btn-primary" onclick="location.href='pricing'">Upgrade</button>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); openFeedbackModal({context:'account_menu'})">Send Feedback</button>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); signOutFromMenu()">Sign out</button>`);
 
@@ -262,7 +262,7 @@ async function openBillingPortal() {
 
 function signOutFromMenu() {
   ['hf_token','hf_email','hf_resume','hf_jobs','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
-  location.href = 'index.html';
+  location.href = '/';
 }
 
 // ============ Feedback ============
@@ -400,19 +400,19 @@ async function setAdminAccess(enabled) {
 // 2) Then run status check, admins bypass the offline screen.
 // 3) Inject ADMIN CONSOLE link into topbar if admin.
 async function _applioPageBoot() {
-  // Skip on login.html so admins can log in even during maintenance.
-  const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  const isLogin = here === 'login.html';
+  // Skip on login so admins can log in even during maintenance.
+  const here = (location.pathname.split('/').pop() || '/').toLowerCase();
+  const isLogin = here === 'login';
 
   if (localStorage.getItem('hf_token')) await loadCurrentUser();
   if (!isLogin) await checkSiteStatus();
 
   const tabs = document.querySelector('.topbar-tabs');
   if (tabs && isAdmin() && !document.getElementById('admin-console-link')
-      && !here.endsWith('admin.html')) {
+      && !here.endsWith('admin')) {
     const link = document.createElement('a');
     link.id = 'admin-console-link';
-    link.href = 'admin.html';
+    link.href = 'admin';
     link.className = 'topbar-tab';
     link.style.cssText = 'background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(139,92,246,.18)); border:1px solid rgba(239,68,68,.35); color:#fca5a5; font-weight:600;';
     link.innerHTML = '⚡ ADMIN CONSOLE';
@@ -465,7 +465,7 @@ function showUpgradeModal(reason, context) {
         </button>
       </div>
       <div style="text-align:center; margin-top:14px;">
-        <a href="pricing.html" style="font-size:12px; color:var(--muted);">See full comparison →</a>
+        <a href="pricing" style="font-size:12px; color:var(--muted);">See full comparison →</a>
       </div>
     </div>
   `;

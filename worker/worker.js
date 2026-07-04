@@ -447,8 +447,8 @@ async function createCheckout(req, env) {
 
   const params = {
     "mode": isLifetime ? "payment" : "subscription",
-    "success_url": `${site}/success.html?plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
-    "cancel_url": `${site}/pricing.html`,
+    "success_url": `${site}/success?plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
+    "cancel_url": `${site}/pricing`,
     "client_reference_id": user.email,
     "metadata[email]": user.email,
     "metadata[plan]": plan,
@@ -533,7 +533,7 @@ async function createPortal(req, env) {
   const site = env.SITE_URL || "https://appliohq.com";
   const session = await stripeCall(env, "POST", "/v1/billing_portal/sessions", {
     "customer": user.stripeCustomerId,
-    "return_url": `${site}/editor.html`,
+    "return_url": `${site}/editor`,
   });
   return { url: session.url };
 }

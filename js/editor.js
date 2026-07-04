@@ -2,7 +2,7 @@
 const API = window.HIREFLOW_CONFIG.API_URL;
 
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 
 // ---- Default state ----
 const DEFAULT_RESUME = {
@@ -106,7 +106,7 @@ function hydrate() {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     if (obadge) obadge.innerHTML = '';
   } else {
-    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
     if (obadge) obadge.innerHTML = ` <span class="sidebar-pro-badge">Pro</span>`;
   }
 
@@ -134,7 +134,7 @@ function hydrate() {
     const b = document.getElementById('welcome-banner');
     b.style.display = '';
     b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to ${welcome === 'lifetime' ? 'Lifetime' : 'Premium'}! All features are now unlocked.</span>`;
-    setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor.html'); }, 6000);
+    setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor'); }, 6000);
   }
 }
 
@@ -1373,7 +1373,7 @@ function renderDashboard() {
       ${_renderSubCard()}
       <div class="action-row">
         <button class="btn btn-secondary" onclick="nextSection('analysis')">${ICON('arrowLeft')} Back</button>
-        <a href="export.html" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
+        <a href="export" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
       </div>
     </div>`;
 }
@@ -1385,7 +1385,7 @@ function _renderSubCard() {
   if (!isPaid()) {
     return `<div class="dash-card dash-sub-card">
       <div><strong>Free plan</strong><div class="dash-sub-meta">Unlock AI tailoring, ATS scoring, unlimited exports and more.</div></div>
-      <a class="btn btn-primary btn-sm" href="pricing.html">${ICON('sparkle', 'ico ico-sm')} <span>Upgrade</span></a>
+      <a class="btn btn-primary btn-sm" href="pricing">${ICON('sparkle', 'ico ico-sm')} <span>Upgrade</span></a>
     </div>`;
   }
   const plan = (u && u.plan) || 'premium';
@@ -1907,7 +1907,7 @@ function _buildFullOverlay() {
     '<button id="fz-out" style="' + btn + '">−</button>' +
     '<span id="full-zoom-label" style="color:#fff; font-size:13px; min-width:46px; text-align:center;">100%</span>' +
     '<button id="fz-in" style="' + btn + '">+</button>' +
-    '<a href="export.html" style="' + btn + ' text-decoration:none;">Export →</a>' +
+    '<a href="export" style="' + btn + ' text-decoration:none;">Export →</a>' +
     '<button id="fz-close" style="' + btn + '">✕ Close</button>';
 
   const scroll = document.createElement('div');
@@ -2068,7 +2068,7 @@ document.addEventListener('keydown', function (e) {
 
 function signOut() {
   ['hf_token','hf_email','hf_resume','hf_jobs','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
-  location.href = 'index.html';
+  location.href = '/';
 }
 
 // ---- Account center dropdown ----
@@ -2683,7 +2683,7 @@ function _updateImportHint(){
   if (isPaid()) { el.textContent = ''; return; }
   const left = trialsLeft('parse');
   if (left > 0) { el.innerHTML = `✨ <strong style="color:var(--accent);">${left} free ${left===1?'import':'imports'}</strong> left, then it's Premium.`; }
-  else { el.innerHTML = `You've used your free imports. <a href="pricing.html" style="color:var(--accent);">Upgrade</a> to import unlimited resumes.`; }
+  else { el.innerHTML = `You've used your free imports. <a href="pricing" style="color:var(--accent);">Upgrade</a> to import unlimited resumes.`; }
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 

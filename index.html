@@ -73,22 +73,22 @@
 
 <a href="#main-content" class="skip-link">Skip to content</a>
 <div id="scroll-progress" aria-hidden="true"></div>
-<a href="login.html?mode=signup" id="sticky-cta" class="btn btn-primary">Build My Resume Free →</a>
+<a href="login?mode=signup" id="sticky-cta" class="btn btn-primary">Build My Resume Free →</a>
 
 <!-- ============ NAV ============ -->
 <nav class="home-nav" id="home-nav">
   <a href="#top" class="home-brand"><img src="logo.jpeg" alt="Applio"><span>Applio</span></a>
   <div class="home-nav-links" id="nav-links">
     <a href="#templates">Templates</a>
-    <a href="ats-checker.html">ATS Checker</a>
+    <a href="ats-checker">ATS Checker</a>
     <a href="#pricing">Pricing</a>
     <a href="#spotlights">How It Works</a>
     <a href="#faq">FAQ</a>
-    <a href="login.html" class="nav-signin-m">Sign in</a>
+    <a href="login" class="nav-signin-m">Sign in</a>
   </div>
   <div class="nav-actions">
-    <a href="login.html" class="btn btn-ghost btn-sm">Sign in</a>
-    <a href="login.html?mode=signup" class="btn btn-primary btn-sm">Try It Free</a>
+    <a href="login" class="btn btn-ghost btn-sm">Sign in</a>
+    <a href="login?mode=signup" class="btn btn-primary btn-sm">Try It Free</a>
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -103,10 +103,10 @@
     if (actions) {
       var ghost = actions.querySelector('.btn-ghost'); if (ghost) ghost.remove();
       var primary = actions.querySelector('.btn-primary');
-      if (primary) { primary.textContent = 'Open editor →'; primary.href = 'editor.html'; }
+      if (primary) { primary.textContent = 'Open editor →'; primary.href = 'editor'; }
     }
     var sticky = document.getElementById('sticky-cta');
-    if (sticky) { sticky.textContent = 'Open editor →'; sticky.href = 'editor.html'; }
+    if (sticky) { sticky.textContent = 'Open editor →'; sticky.href = 'editor'; }
   })();
 </script>
 
@@ -124,7 +124,7 @@
       </h1>
       <p class="hero-sub">Applio is a free AI resume builder that optimizes your resume for ATS filters, tailors it to any job in seconds, and helps you land more interviews.</p>
       <div class="hero-ctas">
-        <a href="login.html?mode=signup" class="liquid-btn">
+        <a href="login?mode=signup" class="liquid-btn">
           <span class="liquid-btn-shadow" aria-hidden="true"></span>
           <span class="liquid-btn-blur" aria-hidden="true"></span>
           <span class="liquid-btn-label">Build My Resume Free →</span>
@@ -489,7 +489,7 @@
     </div>
 
     <div style="text-align:center; margin-top:36px;">
-      <a href="login.html?mode=signup" class="btn btn-primary btn-lg">Build my resume the smart way →</a>
+      <a href="login?mode=signup" class="btn btn-primary btn-lg">Build my resume the smart way →</a>
       <p style="color:#9ca3af; font-size:13px; margin-top:14px;">Free to start · No credit card · 2-minute setup</p>
     </div>
   </div>
@@ -590,7 +590,7 @@
           <li>✓ AI Interview Prep</li>
           <li class="muted">✕ No resume AI (tailor, ATS, analysis)</li>
         </ul>
-        <a href="login.html?mode=signup" class="btn btn-outline btn-block">Get Started Free</a>
+        <a href="login?mode=signup" class="btn btn-outline btn-block">Get Started Free</a>
       </div>
 
       <div class="price-card featured">
@@ -610,7 +610,7 @@
           <li>✓ AI Resume Analysis</li>
           <li>✓ Resume Import (AI parse)</li>
         </ul>
-        <a href="pricing.html" class="btn btn-primary btn-block" id="paid-cta">Go Premium</a>
+        <a href="pricing" class="btn btn-primary btn-block" id="paid-cta">Go Premium</a>
       </div>
     </div>
     <p class="price-foot">Cancel anytime · No questions asked · Secure payments by Stripe</p>
@@ -668,7 +668,7 @@
     </div>
     <h2 class="section-title light">Ready to land more interviews?</h2>
     <p class="section-sub light">Build your AI-optimized resume in minutes. Free forever, no credit card needed.</p>
-    <a href="login.html?mode=signup" class="liquid-btn">
+    <a href="login?mode=signup" class="liquid-btn">
       <span class="liquid-btn-shadow" aria-hidden="true"></span>
       <span class="liquid-btn-blur" aria-hidden="true"></span>
       <span class="liquid-btn-label">Build My Resume Free →</span>
@@ -715,9 +715,9 @@
         </div>
       </div>
       <div class="footer-cols">
-        <div><h4>Product</h4><a href="#templates">Templates</a><a href="ats-checker.html">Free ATS Checker</a><a href="#pricing">Pricing</a><a href="#spotlights">How It Works</a></div>
-        <div><h4>Account</h4><a href="login.html">Sign in</a><a href="login.html?mode=signup">Sign up free</a><a href="pricing.html">Upgrade</a></div>
-        <div><h4>Legal</h4><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><span class="footer-status"><span class="status-dot"></span>All systems operational</span></div>
+        <div><h4>Product</h4><a href="#templates">Templates</a><a href="ats-checker">Free ATS Checker</a><a href="#pricing">Pricing</a><a href="#spotlights">How It Works</a></div>
+        <div><h4>Account</h4><a href="login">Sign in</a><a href="login?mode=signup">Sign up free</a><a href="pricing">Upgrade</a></div>
+        <div><h4>Legal</h4><a href="privacy">Privacy</a><a href="terms">Terms</a><span class="footer-status"><span class="status-dot"></span>All systems operational</span></div>
       </div>
     </div>
     <div class="footer-bot">© 2026 Applio · All rights reserved · Built for job seekers everywhere</div>

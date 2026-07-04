@@ -1,5 +1,5 @@
 // ============ Resume Health Score Badge ============
-// Self-contained: works on editor.html (where `resume`, countFilled() and
+// Self-contained: works on editor (where `resume`, countFilled() and
 // _scoreBullet() exist) AND on jobs/interview (reads localStorage only).
 // NEVER makes network requests, it only reads already-cached/local data.
 (function () {
@@ -113,7 +113,7 @@
       _miniBar('Completeness', d.completeness) +
       _miniBar('Bullet Quality', d.bulletQuality, d.bulletQuality === null ? 'Add experience bullets to score this' : '') +
       _miniBar('ATS Match', d.ats, d.ats === null ? 'Not checked yet, run a check' : '') +
-      `<a href="editor.html#dashboard" style="display:block;text-align:center;margin-top:8px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;">View Dashboard →</a>`;
+      `<a href="editor#dashboard" style="display:block;text-align:center;margin-top:8px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;">View Dashboard →</a>`;
     badge.appendChild(pop);
     setTimeout(() => document.addEventListener('click', _outside, true), 0);
   }

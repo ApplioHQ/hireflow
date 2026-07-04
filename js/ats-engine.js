@@ -1,5 +1,5 @@
 // Client-side ATS résumé checker, pure logic, runs entirely in the browser
-// (no network, no auth, no AI). Powers the public ats-checker.html tool. Scores
+// (no network, no auth, no AI). Powers the public ats-checker tool. Scores
 // raw résumé text against a job description: keyword coverage, formatting,
 // quantified impact, and completeness. Node-testable via globalThis.AtsEngine.
 (function (g) {

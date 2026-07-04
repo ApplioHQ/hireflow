@@ -20,10 +20,10 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab" href="editor.html">Resume Builder</a>
-    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
-    <a class="topbar-tab active" href="interview.html">Interview Prep</a>
-    <a class="topbar-tab" href="match.html">Best Match</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab active" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="match">Best Match</a>
   </nav>
   <div class="topbar-right">
     <span id="health-badge"></span>
@@ -63,7 +63,7 @@ function hideAILoading() { aiLoadingDone(); }
 
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function generate() {
@@ -238,7 +238,7 @@ function _renderPracticeQuestion() {
 }
 
 
-function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 
 (async () => {
   await loadCurrentUser();
@@ -246,7 +246,7 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='index.ht
   document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
   // Interview Prep is free for everyone, no trial banner or paywall.
   if (isFree()) {
     const note = document.createElement('p');

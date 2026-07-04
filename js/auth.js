@@ -48,7 +48,7 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     // Admin / super-admin → admin console; regular users → editor
-    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin.html' : 'editor.html';
+    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin' : 'editor';
   } catch (err) {
     setMsg('signin','error', err.message);
   }
@@ -70,7 +70,7 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen
-    location.href = 'editor.html';
+    location.href = 'editor';
   } catch (err) {
     setMsg('signup','error', err.message);
   }

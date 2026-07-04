@@ -23,7 +23,7 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab" href="editor.html" id="back-link"></a>
+    <a class="topbar-tab" href="editor" id="back-link"></a>
   </nav>
   <div class="topbar-right">
     <span id="download-pill"></span>
@@ -74,7 +74,7 @@
 <script src="js/templates.js"></script>
 <script>
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 const resume = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
   catch { return {}; }  // corrupt storage must not white-screen the export page
@@ -370,7 +370,7 @@ function download(blob, name) {
   const a = document.createElement('a'); a.href = url; a.download = name; a.click();
   URL.revokeObjectURL(url);
 }
-function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 
 
 function updatePills() {
@@ -382,13 +382,13 @@ function updatePills() {
     dlPill.style.display = 'none';
     info.textContent = 'Unlimited downloads on your plan';
   } else {
-    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
     const left = downloadsLeft();
     const used = CURRENT_USER?.downloadsUsed || 0;
     const lim = CURRENT_USER?.downloadLimit || 10;
     dlPill.style.display = '';
     dlPill.innerHTML = `<span class="pill" style="background:var(--bg-2);color:var(--muted);border:1px solid var(--border);">${ICON('download','ico ico-sm')} ${used} of ${lim} free downloads used</span>`;
-    info.innerHTML = `${left} of ${lim} downloads left this month on Free plan. <a href="pricing.html" style="color:var(--accent);">Go unlimited →</a>`;
+    info.innerHTML = `${left} of ${lim} downloads left this month on Free plan. <a href="pricing" style="color:var(--accent);">Go unlimited →</a>`;
   }
 }
 

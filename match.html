@@ -38,10 +38,10 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab" href="editor.html">Resume Builder</a>
-    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
-    <a class="topbar-tab" href="interview.html">Interview Prep</a>
-    <a class="topbar-tab active" href="match.html">Best Match</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab active" href="match">Best Match</a>
   </nav>
   <div class="topbar-right">
     <span id="health-badge"></span>
@@ -84,9 +84,9 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function signOut(){ localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href='index.html'; }
+function signOut(){ localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href='/'; }
 
 // ── Candidate list state ──
 let _candidates = [ { label:'Resume 1', content:'', type:'text' }, { label:'Resume 2', content:'', type:'text' } ];
@@ -206,7 +206,7 @@ function _renderResults(scored, paywalled, attempted){
     html += `<div class="section-card" style="text-align:center;">
       <p style="font-size:14px; margin-bottom:6px;"><strong>Scored ${ok.length} of ${attempted} resumes.</strong></p>
       <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You’ve used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
-      <a href="pricing.html" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
+      <a href="pricing" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
     </div>`;
   }
   res.innerHTML = html;
@@ -259,7 +259,7 @@ function _rowHTML(s, idx, isBest){
 
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing.html">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
 
   _renderCandidates();
 
@@ -267,7 +267,7 @@ function _rowHTML(s, idx, isBest){
   if (isFree()) {
     const left = trialsLeft('ats');
     if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials, matching needs <a href="pricing.html" style="color:var(--accent);">Premium</a>.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials, matching needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
     } else {
       banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'score':'scores'}</strong> left, each resume scored uses one. Then it’s Premium.</p>`;
     }

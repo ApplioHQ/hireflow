@@ -25,9 +25,9 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab" href="editor.html">Resume Builder</a>
-    <a class="topbar-tab" href="jobs.html">Job Tracker</a>
-    <a class="topbar-tab" href="interview.html">Interview Prep</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
   </nav>
   <div class="topbar-right">
     <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
@@ -64,9 +64,9 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 
 let FEEDBACK = [];
 let filter = 'all';

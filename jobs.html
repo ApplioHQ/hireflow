@@ -43,10 +43,10 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab" href="editor.html">Resume Builder</a>
-    <a class="topbar-tab active" href="jobs.html">Job Tracker</a>
-    <a class="topbar-tab" href="interview.html">Interview Prep</a>
-    <a class="topbar-tab" href="match.html">Best Match</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab active" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="match">Best Match</a>
   </nav>
   <div class="topbar-right">
     <span id="health-badge"></span>
@@ -120,7 +120,7 @@
 <script src="js/health-badge.js"></script>
 <script>
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 let jobs = (function () {
   try { const j = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); return Array.isArray(j) ? j : []; }
   catch { return []; }  // corrupt storage must not white-screen the tracker
@@ -312,7 +312,7 @@ function _openEmailDialog(subject, body){
   };
 }
 
-function signOut(){ localStorage.removeItem('hf_token'); location.href='index.html'; }
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 
 document.getElementById('jt-title').innerHTML = `${ICON('briefcase','ico ico-lg')} <span>Job Tracker</span>`;
 document.getElementById('add-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Job</span>`;

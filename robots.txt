@@ -1,15 +1,15 @@
 User-agent: *
 Allow: /
 # App pages live behind auth — no value indexing them
-Disallow: /editor.html
-Disallow: /export.html
-Disallow: /jobs.html
-Disallow: /interview.html
-Disallow: /feedback.html
-Disallow: /admin.html
-Disallow: /login.html
-Disallow: /success.html
-Disallow: /match.html
+Disallow: /editor
+Disallow: /export
+Disallow: /jobs
+Disallow: /interview
+Disallow: /feedback
+Disallow: /admin
+Disallow: /login
+Disallow: /success
+Disallow: /match
 
 # Allow AI / generative-engine crawlers (GEO)
 User-agent: GPTBot

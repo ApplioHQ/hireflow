@@ -55,9 +55,9 @@
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
-    <a class="topbar-tab active" href="admin.html">Admin Console</a>
+    <a class="topbar-tab active" href="admin">Admin Console</a>
     <a class="topbar-tab" href="#" onclick="showAnalytics();return false;">Analytics</a>
-    <a class="topbar-tab" href="editor.html">Resume Builder</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
   </nav>
   <div class="topbar-right">
     <span id="role-pill"></span>
@@ -158,7 +158,7 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login.html';
+if (!TOKEN) location.href = 'login';
 let ALL_USERS = [];
 let ROLE = null;
 
@@ -190,10 +190,10 @@ async function init() {
   // Check role from /me
   let me;
   try { me = await apiGet('/me'); }
-  catch { localStorage.removeItem('hf_token'); location.href = 'login.html'; return; }
+  catch { localStorage.removeItem('hf_token'); location.href = 'login'; return; }
   ROLE = me.role;
   if (ROLE !== 'admin' && ROLE !== 'super') {
-    document.body.innerHTML = '<div style="padding:60px 24px; max-width:480px; margin:0 auto; text-align:center;"><h1>Access denied</h1><p style="color:var(--muted); margin-top:8px;">This page is only available to admin accounts.</p><p style="margin-top:20px;"><a href="editor.html" class="btn btn-primary">Back to Editor</a></p></div>';
+    document.body.innerHTML = '<div style="padding:60px 24px; max-width:480px; margin:0 auto; text-align:center;"><h1>Access denied</h1><p style="color:var(--muted); margin-top:8px;">This page is only available to admin accounts.</p><p style="margin-top:20px;"><a href="editor" class="btn btn-primary">Back to Editor</a></p></div>';
     return;
   }
   document.getElementById('role-pill').innerHTML =
@@ -333,7 +333,7 @@ async function setMaint(minutesOverride) {
 function signOut() {
   localStorage.removeItem('hf_token');
   localStorage.removeItem('hf_email');
-  location.href = 'index.html';
+  location.href = '/';
 }
 
 async function showAnalytics() {

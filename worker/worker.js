@@ -19,7 +19,7 @@ const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve", "assistant"]);
 
 export default {
   async fetch(req, env) {
@@ -676,6 +676,7 @@ async function aiDispatch(env, action, body) {
     case "analyze":   return aiAnalyze(env, body);
     case "parse":     return aiParse(env, body);
     case "interview": return aiInterview(env, body);
+    case "assistant": return aiAssistant(env, body);
     default: throw err(404, "Unknown AI action");
   }
 }

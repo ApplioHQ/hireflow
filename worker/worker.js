@@ -682,27 +682,40 @@ async function runAI(env, system, user, opts = {}) {
   // Try the requested (or default) model; if it errors, fall back to the fast model.
   const wanted = opts.model || FAST_MODEL;
   const chain = wanted === FAST_MODEL ? [FAST_MODEL] : [wanted, FAST_MODEL];
+  const payload = {
+    messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    max_tokens: opts.max_tokens || 800,
+    temperature: opts.temperature ?? 0.3,
+  };
+  // Only route through AI Gateway when a REAL gateway id is configured. The
+  // placeholder "default" usually does NOT correspond to an existing gateway, and
+  // a missing/broken gateway makes EVERY AI call fail. Calling Workers AI directly
+  // is strictly safer (you only lose gateway caching/analytics), so we skip it.
+  const gwId = env.AI_GATEWAY_ID && env.AI_GATEWAY_ID !== "default" ? env.AI_GATEWAY_ID : null;
   let lastErr;
   for (const model of chain) {
-    try {
-      const res = await env.AI.run(model, {
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        max_tokens: opts.max_tokens || 800,
-        temperature: opts.temperature ?? 0.3,
-      }, {
-        // Route through AI Gateway for caching, analytics, rate limiting, and retries.
-        // Gateway id must match the one created in the Cloudflare dashboard (AI > AI Gateway).
-        gateway: { id: env.AI_GATEWAY_ID || "default" },
-      });
-      const out = (res.response || "").trim();
-      if (out) return out;
-      lastErr = new Error(`${model} returned empty response`);
-    } catch (e) {
-      lastErr = e;
-      console.error(`AI model ${model} failed:`, e.message || e);
+    // If a gateway is configured, try via the gateway first, then retry the same
+    // model DIRECTLY, so a gateway outage can never take down all AI.
+    const attempts = gwId ? [{ gateway: { id: gwId } }, {}] : [{}];
+    for (const runOpts of attempts) {
+      try {
+        const res = await env.AI.run(model, payload, runOpts);
+        const out = (res.response || "").trim();
+        if (out) return out;
+        lastErr = new Error(`${model} returned empty response`);
+      } catch (e) {
+        lastErr = e;
+        console.error(`AI model ${model} failed${runOpts.gateway ? " (via gateway)" : " (direct)"}:`, e.message || e);
+      }
     }
   }
-  throw err(502, `AI model error: ${lastErr?.message || "unknown"}`);
+  // 429 / quota / neuron / limit → the account's Workers AI allowance is exhausted;
+  // surface that distinctly so the UI can say "limit reached", not "busy, try again".
+  const msg = (lastErr && (lastErr.message || String(lastErr))) || "unknown";
+  if (/429|quota|neuron|limit|exceeded|too many/i.test(msg)) {
+    throw err(429, `AI usage limit reached: ${msg}`);
+  }
+  throw err(502, `AI model error: ${msg}`);
 }
 
 // ============ Improve writing ============

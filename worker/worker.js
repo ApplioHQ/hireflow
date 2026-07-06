@@ -831,9 +831,9 @@ Analyze the job description and the candidate's resume, then output STRICT JSON 
     "<another note>"
   ],
   "bulletSuggestions": [
-    "<a rewritten bullet from their experience that better matches the JD>",
-    "<another>",
-    "<another>"
+    {"before": "<the candidate's original bullet, close to as written>", "after": "<the rewritten, JD-aligned version at the Strong bar>"},
+    {"before": "...", "after": "..."},
+    {"before": "...", "after": "..."}
   ]
 }
 

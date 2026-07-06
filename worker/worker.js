@@ -680,6 +680,28 @@ async function aiDispatch(env, action, body) {
   }
 }
 
+// Extract the generated text from a Workers AI response, robust to model shape.
+// Older Llama models returned { response: "text" }; newer ones (e.g. Llama 4 Scout)
+// can return response as an object/array or use OpenAI-style choices. Never assume
+// it's a string, calling .trim() on a non-string was what broke every AI call.
+function _aiText(res) {
+  if (res == null) return "";
+  if (typeof res === "string") return res;
+  const asText = (v) => {
+    if (typeof v === "string") return v;
+    if (Array.isArray(v)) return v.map((p) => (typeof p === "string" ? p : (p && (p.text || p.content)) || "")).join("");
+    if (v && typeof v === "object") return v.text || v.content || v.response || "";
+    return "";
+  };
+  // Common Workers AI fields, then OpenAI-compatible shape.
+  let t = asText(res.response) || asText(res.result && res.result.response) || asText(res.result) || asText(res.output_text);
+  if (!t && Array.isArray(res.choices) && res.choices[0]) {
+    const c = res.choices[0].message ? res.choices[0].message.content : res.choices[0].text;
+    t = asText(c);
+  }
+  return typeof t === "string" ? t : "";
+}
+
 async function runAI(env, system, user, opts = {}) {
   // Try the requested (or default) model; if it errors, fall back to the fast model.
   const wanted = opts.model || FAST_MODEL;
@@ -707,6 +729,8 @@ async function runAI(env, system, user, opts = {}) {
         const res = await env.AI.run(model, payload, runOpts);
         const out = _aiText(res).trim();
         if (out) return out;
+        // Empty: log the shape once so an unexpected response format is diagnosable.
+        try { console.error(`${model} empty/unknown response shape:`, JSON.stringify(res).slice(0, 300)); } catch (_) {}
         lastErr = new Error(`${model} returned empty response`);
       } catch (e) {
         lastErr = e;

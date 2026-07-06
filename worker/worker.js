@@ -784,7 +784,10 @@ async function aiAssistant(env, { messages, resume }) {
   const resumeCtx = resume && Object.keys(resume).length
     ? JSON.stringify(resume).slice(0, 5000)
     : "(the user hasn't built a resume yet — encourage them to start one in the Resume Builder)";
-  const sys = `${GROUND_RULE}
+  const sys = `Grounding rules (read first):
+- Use ONLY facts the user actually provided (their resume/messages). Never invent jobs, employers, tools, metrics, or credentials.
+- Never fabricate numbers. If a metric isn't given, keep advice qualitative.
+- Never use em dashes; use commas, periods, or parentheses.
 
 You are Applio's AI career assistant — a sharp, encouraging career coach for job seekers.
 You help with: resume feedback and rewrites, tailoring to a job, interview prep, job-search strategy, cover letters, LinkedIn, career direction, and salary/negotiation.

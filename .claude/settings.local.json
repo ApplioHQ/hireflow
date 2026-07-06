@@ -143,7 +143,10 @@
       "Bash(grep -q \"applio-deploy-architecture\" MEMORY.md)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(pkill -f \"http.server 8099\")"
+      "Bash(pkill -f \"http.server 8099\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' https://hireflow-api.pritamavuthu7.workers.dev/admin/analytics)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' https://hireflow-api.pritamavuthu7.workers.dev/status)",
+      "Bash(curl -s -X POST https://hireflow-api.pritamavuthu7.workers.dev/stripe/webhook -d '{}')"
     ]
   }
 }

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Career Coach, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .ca-wrap { max-width: 820px; margin: 0 auto; padding: 24px 20px 0; display: flex; flex-direction: column; height: calc(100vh - 62px); box-sizing: border-box; }
+  .ca-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .ca-head h2 { font-size: 20px; margin: 0; display: flex; align-items: center; gap: 9px; }
+  .ca-sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .ca-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 16px; }
+  .ca-msg { display: flex; gap: 10px; max-width: 88%; }
+  .ca-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .ca-avatar { flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .ca-msg.assistant .ca-avatar { background: var(--gradient, #6366f1); color: #fff; }
+  .ca-msg.user .ca-avatar { background: var(--bg-3); color: var(--text); }
+  .ca-bubble { padding: 11px 14px; border-radius: 13px; font-size: 14px; line-height: 1.55; }
+  .ca-msg.assistant .ca-bubble { background: var(--bg-2); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 4px; }
+  .ca-msg.user .ca-bubble { background: var(--accent); color: #fff; border-top-right-radius: 4px; }
+  .ca-bubble p { margin: 0 0 8px; } .ca-bubble p:last-child { margin-bottom: 0; }
+  .ca-bubble ul { margin: 6px 0; padding-left: 18px; } .ca-bubble li { margin: 2px 0; }
+  .ca-bubble strong { font-weight: 700; }
+  .ca-typing span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: var(--muted); animation: caBlink 1.2s infinite both; }
+  .ca-typing span:nth-child(2) { animation-delay: .2s; } .ca-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes caBlink { 0%,80%,100% { opacity: .3; } 40% { opacity: 1; } }
+  .ca-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .ca-chip { font-size: 13px; padding: 7px 13px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+  .ca-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .ca-input-row { display: flex; gap: 10px; align-items: flex-end; padding: 12px 0 18px; border-top: 1px solid var(--border); }
+  .ca-input { flex: 1; resize: none; max-height: 160px; padding: 11px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; font-family: inherit; line-height: 1.5; }
+  .ca-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+  .ca-send { flex-shrink: 0; height: 44px; width: 44px; border-radius: 12px; border: 0; background: var(--accent); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .ca-send:disabled { opacity: .5; cursor: default; }
+  .ca-empty { text-align: center; color: var(--muted); margin: auto 0; }
+  .ca-empty svg { width: 46px; height: 46px; color: var(--accent); margin-bottom: 12px; }
+  .ca-clear { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; margin-left: auto; }
+  .ca-clear:hover { color: var(--text); }
+</style>
+</head>
+<body class="app-body">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="match">Best Match</a>
+    <a class="topbar-tab active" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="health-badge"></span>
+    <span id="plan-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<div class="ca-wrap">
+  <div class="ca-head">
+    <h2 id="ca-title"></h2>
+    <button class="ca-clear" id="ca-clear" onclick="clearChat()" style="display:none;">Clear chat</button>
+  </div>
+  <p class="ca-sub">Your AI career coach. It knows your resume and can help with rewrites, tailoring, interviews, job strategy, cover letters, and more.</p>
+
+  <div class="ca-thread" id="ca-thread"></div>
+
+  <div class="ca-chips" id="ca-chips">
+    <button class="ca-chip" onclick="askChip(this)">Review my resume and tell me what to fix</button>
+    <button class="ca-chip" onclick="askChip(this)">Write me a cover letter opening</button>
+    <button class="ca-chip" onclick="askChip(this)">What roles am I a good fit for?</button>
+    <button class="ca-chip" onclick="askChip(this)">Prep me for a behavioral interview</button>
+  </div>
+
+  <div class="ca-input-row">
+    <textarea class="ca-input" id="ca-input" rows="1" placeholder="Ask your career coach anything…" oninput="autogrow(this)" onkeydown="onKey(event)"></textarea>
+    <button class="ca-send" id="ca-send" onclick="send()" aria-label="Send" title="Send"></button>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/health-badge.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login';
+const STORE = 'hf_assistant_chat';
+
+let messages = (function () {
+  try { const m = JSON.parse(localStorage.getItem(STORE) || '[]'); return Array.isArray(m) ? m : []; }
+  catch { return []; }
+})();
+let busy = false;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function signOut(){ localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href='index'; }
+function _resume(){ try { return JSON.parse(localStorage.getItem('hf_resume') || '{}') || {}; } catch { return {}; } }
+
+// Light markdown → HTML: paragraphs, bullet lists, **bold**. (Input is escaped first.)
+function fmt(text){
+  const lines = esc(text).split('\n');
+  let html = '', inUl = false;
+  const closeUl = () => { if (inUl) { html += '</ul>'; inUl = false; } };
+  for (let raw of lines) {
+    const line = raw.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const m = line.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/);
+    if (m) { if (!inUl) { html += '<ul>'; inUl = true; } html += '<li>' + m[1] + '</li>'; }
+    else if (line.trim() === '') { closeUl(); }
+    else { closeUl(); html += '<p>' + line + '</p>'; }
+  }
+  closeUl();
+  return html || '<p></p>';
+}
+
+function render(){
+  const thread = document.getElementById('ca-thread');
+  const hasMsgs = messages.length > 0;
+  document.getElementById('ca-chips').style.display = hasMsgs ? 'none' : 'flex';
+  document.getElementById('ca-clear').style.display = hasMsgs ? '' : 'none';
+  if (!hasMsgs) {
+    thread.innerHTML = `<div class="ca-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <div style="font-weight:600;color:var(--text);font-size:15px;">How can I help with your job search?</div>
+      <div style="font-size:13px;margin-top:4px;">Pick a starter below or type your own question.</div>
+    </div>`;
+    return;
+  }
+  thread.innerHTML = messages.map(m => `
+    <div class="ca-msg ${m.role}">
+      <div class="ca-avatar">${m.role === 'user' ? 'You' : '✦'}</div>
+      <div class="ca-bubble">${m.role === 'user' ? '<p>' + esc(m.content).replace(/\n/g,'<br>') + '</p>' : fmt(m.content)}</div>
+    </div>`).join('') + (busy ? `
+    <div class="ca-msg assistant"><div class="ca-avatar">✦</div>
+      <div class="ca-bubble ca-typing"><span></span><span></span><span></span></div></div>` : '');
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function _save(){ try { localStorage.setItem(STORE, JSON.stringify(messages.slice(-30))); } catch(e){} }
+function clearChat(){ messages = []; _save(); render(); }
+function autogrow(el){ el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }
+function onKey(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+function askChip(btn){ document.getElementById('ca-input').value = btn.textContent; send(); }
+
+async function send(){
+  const input = document.getElementById('ca-input');
+  const text = (input.value || '').trim();
+  if (!text || busy) return;
+  messages.push({ role: 'user', content: text });
+  input.value = ''; autogrow(input);
+  busy = true; _save(); render();
+  document.getElementById('ca-send').disabled = true;
+  try {
+    const r = await fetch(API + '/ai/assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+      body: JSON.stringify({ messages: messages, resume: _resume() })
+    });
+    if (r.status === 402) {
+      busy = false; render();
+      if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', 'assistant');
+      else toast('Career Coach is a Premium feature.', { type: 'warn' });
+      return;
+    }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || ('Request failed (' + r.status + ')'));
+    messages.push({ role: 'assistant', content: data.reply || 'Sorry, I could not generate a response, please try again.' });
+  } catch (e) {
+    const m = (e && e.message) || '';
+    const friendly = /usage limit|limit reached|quota|neuron|429/i.test(m)
+      ? 'The daily AI limit was reached. It resets shortly, please try again later.'
+      : 'The AI is busy right now, give it a few seconds and try again.';
+    messages.push({ role: 'assistant', content: friendly });
+  } finally {
+    busy = false; _save(); render();
+    document.getElementById('ca-send').disabled = false;
+    document.getElementById('ca-input').focus();
+  }
+}
+
+document.getElementById('ca-title').innerHTML = `${ICON('sparkle','ico ico-lg')} <span>Career Coach</span>`;
+document.getElementById('ca-send').innerHTML = ICON('arrowRight');
+(async () => { if (typeof loadCurrentUser === 'function') { await loadCurrentUser(); if (window.renderPlanPill) renderPlanPill(); } })();
+render();
+</script>
+</body>
+</html>

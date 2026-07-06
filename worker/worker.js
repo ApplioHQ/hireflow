@@ -705,7 +705,7 @@ async function runAI(env, system, user, opts = {}) {
     for (const runOpts of attempts) {
       try {
         const res = await env.AI.run(model, payload, runOpts);
-        const out = (res.response || "").trim();
+        const out = _aiText(res).trim();
         if (out) return out;
         lastErr = new Error(`${model} returned empty response`);
       } catch (e) {

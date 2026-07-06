@@ -2206,6 +2206,9 @@ function _titleCase(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperC
 // Turn raw backend/model errors into a calm, human message.
 function _aiErrMsg(e) {
   const m = (e && e.message) || '';
+  if (/usage limit|limit reached|quota|neuron|429|too many/i.test(m)) {
+    return 'The daily AI limit was reached. It resets shortly, please try again later.';
+  }
   if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
     return 'The AI is busy right now, give it a few seconds and try again.';
   }

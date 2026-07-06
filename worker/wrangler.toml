@@ -38,9 +38,11 @@ SITE_URL = "https://appliohq.com"
 PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
 LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
 FREE_DOWNLOAD_LIMIT = "10"
-# AI Gateway id — created under Cloudflare dashboard > AI > AI Gateway.
-# Routes all Workers AI calls through the gateway for caching, analytics, and rate limiting.
-AI_GATEWAY_ID = "default"
+# AI Gateway id — routes Workers AI calls through the gateway for caching/analytics.
+# OPT-IN: leave empty to call Workers AI directly (safe default). Only set this to
+# the id of a gateway you actually created (Dashboard > AI > AI Gateway); a wrong/
+# missing id makes EVERY AI call fail. "" and "default" both mean "no gateway".
+AI_GATEWAY_ID = ""
 
 # ---------------------------------------------------------------------------
 # Staging — `wrangler deploy --env staging`  (worker: hireflow-api-staging)
@@ -64,4 +66,4 @@ SITE_URL = "https://hireflow-api-staging.pritamavuthu7.workers.dev"
 PREMIUM_PRICE_ID = "price_TEST_premium"
 LIFETIME_PRICE_ID = "price_TEST_lifetime"
 FREE_DOWNLOAD_LIMIT = "10"
-AI_GATEWAY_ID = "default"
+AI_GATEWAY_ID = ""

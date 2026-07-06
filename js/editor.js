@@ -1061,6 +1061,37 @@ function _parseTailorBlocks(text) {
 }
 
 // Lay out the parsed blocks: matched/missing keyword pills + emphasis/bullet cards.
+// Structured tailoring result: keyword chips + before→after bullet diffs + emphasis.
+function _renderTailorStructured(r) {
+  const chip = (k, cls) => `<span class="ats-kw-pill ats-kw-${cls}">${esc(k)}</span>`;
+  const matched = Array.isArray(r.matchedKeywords) ? r.matchedKeywords : [];
+  const missing = Array.isArray(r.missingKeywords) ? r.missingKeywords : [];
+  const bullets = Array.isArray(r.bulletSuggestions) ? r.bulletSuggestions : [];
+  const emph = Array.isArray(r.emphasize) ? r.emphasize : [];
+  let html = '';
+  if (matched.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Matched keywords<span class="tailor-count">${matched.length}</span></div><div class="tailor-pills">${matched.map(k => chip(k, 'matched')).join('')}</div></div>`;
+  if (missing.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Add these if true<span class="tailor-count">${missing.length}</span></div><div class="tailor-pills">${missing.map(k => chip(k, 'missing')).join('')}</div></div>`;
+  if (bullets.length) {
+    html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Bullet rewrites</div>` +
+      bullets.map(b => `
+        <div class="td-diff">
+          ${b.before ? `<div class="td-row td-before"><span class="td-tag td-tag-before">Before</span><span>${esc(_deName(b.before))}</span></div>` : ''}
+          <div class="td-row td-after"><span class="td-tag td-tag-after">After</span><span>${esc(_deName(b.after))}</span>
+            <button class="td-copy" title="Copy rewrite" onclick="_copyTailorBullet(this)" data-t="${esc(b.after)}">${ICON('doc','ico ico-sm')} Copy</button>
+          </div>
+        </div>`).join('') + `</div>`;
+  }
+  if (emph.length) html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">What to emphasize</div><ul class="ai-rec-list">${emph.map(e => `<li class="ai-rec"><span class="ai-rec-ico">${ICON('sparkle', 'ico ico-sm')}</span><span>${esc(_deName(e))}</span></li>`).join('')}</ul></div>`;
+  return `<div class="tailor-result">${html || '<p class="ai-para">Tailoring complete — no changes suggested.</p>'}</div>`;
+}
+function _copyTailorBullet(btn) {
+  const t = btn.getAttribute('data-t') || '';
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(
+    () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; setTimeout(() => { btn.innerHTML = o; }, 1400); },
+    () => toast('Copy failed', { type: 'warn' })
+  );
+}
+
 function _renderTailorResult(text) {
   const blocks = _parseTailorBlocks(text);
   if (!blocks.length) {

@@ -19,7 +19,9 @@ const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve", "assistant"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
+// Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
+const FREE_ASSISTANT_MESSAGES = 5;
 
 export default {
   async fetch(req, env) {

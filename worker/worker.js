@@ -11,10 +11,12 @@
 //            POST /stripe/webhook                                      (Stripe → us)
 //   Usage:   POST /downloads/increment                                  → { ok, downloadsUsed, allowed }
 
-// Smaller, faster: free-form writing tasks
-const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct";
-// Larger, better at structured output + reasoning: parse, analyze, tailor, ats
-const SMART_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+// Smaller, faster: free-form writing tasks.
+// NOTE: the old "@cf/meta/llama-3.1-8b-instruct" was DEPRECATED by Cloudflare on
+// 2026-05-30 (error 5028), which broke every AI call. Use the current model ids.
+const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
+// Larger, better at structured output + reasoning: parse, analyze, tailor, ats.
+const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
@@ -681,7 +683,10 @@ async function aiDispatch(env, action, body) {
 async function runAI(env, system, user, opts = {}) {
   // Try the requested (or default) model; if it errors, fall back to the fast model.
   const wanted = opts.model || FAST_MODEL;
-  const chain = wanted === FAST_MODEL ? [FAST_MODEL] : [wanted, FAST_MODEL];
+  // Always try the other model as a fallback too, so a single deprecated/failing
+  // model id can never take down every AI feature (as the 2026-05-30 deprecation did).
+  const other = wanted === FAST_MODEL ? SMART_MODEL : FAST_MODEL;
+  const chain = [wanted, other];
   const payload = {
     messages: [{ role: "system", content: system }, { role: "user", content: user }],
     max_tokens: opts.max_tokens || 800,

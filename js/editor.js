@@ -2206,6 +2206,9 @@ function _titleCase(s) { return String(s || '').replace(/\b\w/g, c => c.toUpperC
 // Turn raw backend/model errors into a calm, human message.
 function _aiErrMsg(e) {
   const m = (e && e.message) || '';
+  // Log the RAW backend reason so it's diagnosable from the browser console
+  // (the toast shows a friendly message; this shows the real cause).
+  try { console.warn('[Applio AI] request failed:', m); } catch (_) {}
   if (/usage limit|limit reached|quota|neuron|429|too many/i.test(m)) {
     return 'The daily AI limit was reached. It resets shortly, please try again later.';
   }

@@ -1135,13 +1135,13 @@ function renderTailor() {
             style="font-size:13px;line-height:1.6;"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
-        ${resume.tailor.tailoredSummary ? `
+        ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
           <div class="ai-result-box ai-result-indigo">
             <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
               <span>✦ Tailoring Results</span>
               <button class="btn btn-ghost btn-xs" onclick="saveTailorToTracker()" style="white-space:nowrap;">${ICON('briefcase','ico ico-sm')} Save to Job Tracker</button>
             </div>
-            <div style="padding:14px;">${_renderTailorResult(resume.tailor.tailoredSummary)}</div>
+            <div style="padding:14px;">${resume.tailor.result ? _renderTailorStructured(resume.tailor.result) : _renderTailorResult(resume.tailor.tailoredSummary)}</div>
           </div>` : _tailorEmptyState()}
         ${navRow('publications','ats')}
       </div>
@@ -2323,7 +2323,9 @@ async function aiTailor() {
   aiLoading('Tailoring your resume to the job description…');
   try {
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
-    resume.tailor.tailoredSummary = r.text;
+    // Prefer the structured result (keyword chips + before→after bullet diffs).
+    resume.tailor.result = (r && (r.bulletSuggestions || r.matchedKeywords || r.emphasize)) ? r : null;
+    resume.tailor.tailoredSummary = r.text || '';   // legacy fallback text
     if (r.summary) resume.personal.summary = r.summary;
     save(); renderMain();
     toast('Resume tailored', { type: 'success' });

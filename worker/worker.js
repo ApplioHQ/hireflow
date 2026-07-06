@@ -773,6 +773,10 @@ OUTPUT: Only the rewritten summary. Nothing else.`
 - If the input lacks numbers, make conservative inferences from context (e.g. "led 5-person team" if they mention managing engineers); never invent specific company-private metrics
 - Plain text only — no markdown bold, no headers
 
+Match this quality bar:
+  Input:  "Responsible for the website and worked on making it faster."
+  Output: "• Rebuilt the marketing site in Next.js, cutting page load time 40% and lifting conversions 18%."
+
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
   const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, { max_tokens: 500, temperature: 0.5 });
   // Strip common AI preambles
@@ -833,17 +837,22 @@ Analyze the job description and the candidate's resume, then output STRICT JSON 
   ]
 }
 
+Calibrate bulletSuggestions to THIS quality bar (rewrite the candidate's own bullets this way):
+  Weak:   "Responsible for managing the deployment process and helping the team."
+  Strong: "Owned CI/CD for 12 services, cutting deploy time 45% and incidents 30%."
+Every strong bullet: past-tense action verb + specific scope + a quantified result, mirroring the JD's language, using ONLY facts the candidate actually stated.
+
 Rules:
 - matchedKeywords: 6-10 entries the JD asks for that the resume already shows
-- missingKeywords: 3-6 important JD keywords the resume is missing
+- missingKeywords: 3-6 important JD keywords the resume is missing (exact JD terminology)
 - emphasize: 3 short coaching notes, each one sentence
-- bulletSuggestions: 3 specific bullet rewrites grounded in the candidate's actual experience
-- Never invent experience or credentials they don't have
+- bulletSuggestions: 3 specific bullet rewrites grounded in the candidate's actual experience, at the "Strong" bar above
+- Never invent experience, employers, tools, or metrics they don't have. If a bullet has no number, keep it qualitative rather than fabricating one.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
   const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '').slice(0, 3000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+    `Job Description:\n${(jobDescription || '').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
+    { model: SMART_MODEL, max_tokens: 1400, temperature: 0.3 });
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
 

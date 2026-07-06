@@ -146,7 +146,9 @@
       "Bash(pkill -f \"http.server 8099\")",
       "Bash(curl -s -o /dev/null -w '%{http_code}' https://hireflow-api.pritamavuthu7.workers.dev/admin/analytics)",
       "Bash(curl -s -o /dev/null -w '%{http_code}' https://hireflow-api.pritamavuthu7.workers.dev/status)",
-      "Bash(curl -s -X POST https://hireflow-api.pritamavuthu7.workers.dev/stripe/webhook -d '{}')"
+      "Bash(curl -s -X POST https://hireflow-api.pritamavuthu7.workers.dev/stripe/webhook -d '{}')",
+      "Bash(curl -s -m 15 \"https://hireflow-api.pritamavuthu7.workers.dev/health\")",
+      "Bash(curl -s -m 15 -X POST \"https://hireflow-api.pritamavuthu7.workers.dev/ai/analyze\" -H \"Content-Type: application/json\" -d '{}')"
     ]
   }
 }

@@ -856,13 +856,22 @@ Rules:
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
 
-  // Build human-readable notes blob
+  const matchedKeywords = Array.isArray(j.matchedKeywords) ? j.matchedKeywords : [];
+  const missingKeywords = Array.isArray(j.missingKeywords) ? j.missingKeywords : [];
+  const emphasize = Array.isArray(j.emphasize) ? j.emphasize : [];
+  // Normalize bullets to {before, after}; tolerate the model returning plain strings.
+  const bulletSuggestions = (Array.isArray(j.bulletSuggestions) ? j.bulletSuggestions : [])
+    .map(b => typeof b === "string" ? { before: "", after: b } : { before: b.before || "", after: b.after || "" })
+    .filter(b => b.after);
+
+  // Legacy text blob so an older frontend still renders something sensible.
   const lines = [];
-  if (j.matchedKeywords?.length) lines.push(`Matched keywords:\n${j.matchedKeywords.map(k => `  ✓ ${k}`).join("\n")}`);
-  if (j.missingKeywords?.length) lines.push(`\nMissing keywords (add these if true):\n${j.missingKeywords.map(k => `  ✗ ${k}`).join("\n")}`);
-  if (j.emphasize?.length) lines.push(`\nWhat to emphasize:\n${j.emphasize.map(e => `  • ${e}`).join("\n")}`);
-  if (j.bulletSuggestions?.length) lines.push(`\nSuggested bullet rewrites:\n${j.bulletSuggestions.map(b => `  → ${b}`).join("\n")}`);
-  return { text: lines.join("\n"), summary: j.summary };
+  if (matchedKeywords.length) lines.push(`Matched keywords:\n${matchedKeywords.map(k => `  ✓ ${k}`).join("\n")}`);
+  if (missingKeywords.length) lines.push(`\nMissing keywords (add these if true):\n${missingKeywords.map(k => `  ✗ ${k}`).join("\n")}`);
+  if (emphasize.length) lines.push(`\nWhat to emphasize:\n${emphasize.map(e => `  • ${e}`).join("\n")}`);
+  if (bulletSuggestions.length) lines.push(`\nSuggested bullet rewrites:\n${bulletSuggestions.map(b => `  → ${b.after}`).join("\n")}`);
+
+  return { text: lines.join("\n"), summary: j.summary || null, matchedKeywords, missingKeywords, emphasize, bulletSuggestions };
 }
 
 // ============ ATS check ============

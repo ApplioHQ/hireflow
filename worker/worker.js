@@ -748,6 +748,63 @@ async function runAI(env, system, user, opts = {}) {
   throw err(502, `AI model error: ${msg}`);
 }
 
+// Multi-turn variant of runAI: takes a full messages array (system + conversation).
+async function runAIChat(env, messages, opts = {}) {
+  const wanted = opts.model || FAST_MODEL;
+  const other = wanted === FAST_MODEL ? SMART_MODEL : FAST_MODEL;
+  const chain = [wanted, other];
+  const payload = { messages, max_tokens: opts.max_tokens || 700, temperature: opts.temperature ?? 0.4 };
+  const gwId = env.AI_GATEWAY_ID && env.AI_GATEWAY_ID !== "default" ? env.AI_GATEWAY_ID : null;
+  let lastErr;
+  for (const model of chain) {
+    const attempts = gwId ? [{ gateway: { id: gwId } }, {}] : [{}];
+    for (const runOpts of attempts) {
+      try {
+        const res = await env.AI.run(model, payload, runOpts);
+        const out = _aiText(res).trim();
+        if (out) return out;
+        lastErr = new Error(`${model} returned empty response`);
+      } catch (e) { lastErr = e; console.error(`AI chat ${model} failed:`, e.message || e); }
+    }
+  }
+  const msg = (lastErr && (lastErr.message || String(lastErr))) || "unknown";
+  if (/429|quota|neuron|limit|exceeded|too many/i.test(msg)) throw err(429, `AI usage limit reached: ${msg}`);
+  throw err(502, `AI model error: ${msg}`);
+}
+
+// ============ Career assistant (conversational copilot) ============
+async function aiAssistant(env, { messages, resume }) {
+  const history = (Array.isArray(messages) ? messages : [])
+    .filter(m => m && (m.role === "user" || m.role === "assistant") && m.content)
+    .slice(-12)
+    .map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
+  if (!history.length || history[history.length - 1].role !== "user") {
+    throw err(400, "Send a message to the assistant.");
+  }
+  const resumeCtx = resume && Object.keys(resume).length
+    ? JSON.stringify(resume).slice(0, 5000)
+    : "(the user hasn't built a resume yet — encourage them to start one in the Resume Builder)";
+  const sys = `${GROUND_RULE}
+
+You are Applio's AI career assistant — a sharp, encouraging career coach for job seekers.
+You help with: resume feedback and rewrites, tailoring to a job, interview prep, job-search strategy, cover letters, LinkedIn, career direction, and salary/negotiation.
+
+Style:
+- Concise and direct. Short paragraphs and bullet points, never walls of text.
+- Warm and motivating, but honest. No fluff, no restating the question.
+- Ground every answer in the user's actual resume below; reference their real roles/skills.
+- If asked to write or rewrite something, output the finished text.
+- If a question needs info you don't have, ask ONE focused follow-up.
+- If a question is unrelated to careers/jobs, gently steer back.
+- Point users to Applio's tools when relevant (Resume Builder, AI Tailor, ATS Check, Analysis, Interview Prep, Best Match, Job Tracker).
+
+The user's current resume (JSON):
+${resumeCtx}`;
+  const reply = await runAIChat(env, [{ role: "system", content: sys }, ...history],
+    { model: SMART_MODEL, max_tokens: 700, temperature: 0.45 });
+  return { reply };
+}
+
 // ============ Improve writing ============
 async function aiImprove(env, { target, text }) {
   if (!text || !text.trim()) {

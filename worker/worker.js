@@ -930,35 +930,34 @@ Output STRICT JSON:
     "<another>"
   ],
   "topFixes": [
-    {"action": "<one concrete change>", "where": "<which section>", "impact": "<why it matters>"},
-    {"action": "...", "where": "...", "impact": "..."},
-    {"action": "...", "where": "...", "impact": "..."}
+    {"action": "<one concrete change>", "where": "<which section>", "impact": "<why it matters>", "priority": "high|medium|low", "example": "<a concrete rewritten line the candidate can paste in>"},
+    {"action": "...", "where": "...", "impact": "...", "priority": "...", "example": "..."},
+    {"action": "...", "where": "...", "impact": "...", "priority": "...", "example": "..."}
   ],
   "missingSections": ["<section the resume is missing that would help, e.g. 'Skills', 'Projects'>"]
 }
 
 Rules:
 - Be specific, not generic. Always cite the actual section/role you're critiquing.
-- topFixes should be the 3 highest-leverage changes, ordered by impact.
+- topFixes should be the 3 highest-leverage changes, ordered by impact. Set "priority" and give an "example" rewrite for each.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
     `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
     { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const j = safeJSON(raw);
+  // Return the STRUCTURED object so the frontend renders the polished score ring +
+  // Strengths / Weaknesses / Top Fixes cards. If the model didn't return valid JSON,
+  // hand back the raw text and let the frontend's tolerant parser recover it.
   if (!j) return { text: raw };
-
-  const parts = [];
-  if (j.overallScore != null) parts.push(`Overall Resume Score: ${j.overallScore}/100\n`);
-  if (j.summary) parts.push(j.summary);
-  if (j.strengths?.length) parts.push(`\nStrengths:\n${j.strengths.map(s => `  ✓ ${s}`).join("\n")}`);
-  if (j.weaknesses?.length) parts.push(`\nWeaknesses:\n${j.weaknesses.map(w => `  ✗ ${w}`).join("\n")}`);
-  if (j.topFixes?.length) {
-    parts.push(`\nTop 3 fixes:`);
-    j.topFixes.forEach((f, i) => parts.push(`  ${i+1}. ${f.action}\n     Where: ${f.where}\n     Why: ${f.impact}`));
-  }
-  if (j.missingSections?.length) parts.push(`\nConsider adding:\n${j.missingSections.map(s => `  + ${s}`).join("\n")}`);
-  return { text: parts.join("\n") };
+  return {
+    overallScore: j.overallScore,
+    summary: j.summary,
+    strengths: Array.isArray(j.strengths) ? j.strengths : [],
+    weaknesses: Array.isArray(j.weaknesses) ? j.weaknesses : [],
+    topFixes: Array.isArray(j.topFixes) ? j.topFixes : [],
+    missingSections: Array.isArray(j.missingSections) ? j.missingSections : [],
+  };
 }
 
 // ============ Parse (resume import — most important!) ============

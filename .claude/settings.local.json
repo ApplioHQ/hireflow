@@ -142,7 +142,8 @@
       "Bash(ls MEMORY.md)",
       "Bash(grep -q \"applio-deploy-architecture\" MEMORY.md)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(pkill -f \"http.server 8099\")"
     ]
   }
 }

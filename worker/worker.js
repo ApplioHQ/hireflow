@@ -876,21 +876,24 @@ Score the candidate's resume against the job description (or generic best practi
   "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
 }
 
-Scoring rubric:
-- 90-100: strong match, ready to submit
-- 70-89: solid, needs minor tweaks
-- 50-69: relevant but needs significant work
-- below 50: major gaps
+Scoring rubric — compute each sub-score 0-100, then score = the WEIGHTED sum:
+- keywords (30%): exact-match coverage of the JD's required skills/titles/tools. A missing must-have keyword is a hard penalty.
+- experience (30%): does the described experience actually match the role's level and responsibilities?
+- formatting (20%): ATS-safe structure (standard section headers, no tables/columns/images, real dates, parseable).
+- completeness (20%): contact info, all core sections present, quantified bullets.
+Band check: 90-100 ready to submit · 70-89 minor tweaks · 50-69 significant work · <50 major gaps.
+Be strict and consistent: the SAME resume must always get the SAME score.
 
 Rules:
-- score is the weighted overall (not just the average)
-- wins/issues should reference specific resume content, not generic advice
-- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, completeness)
+- score is the weighted overall from the rubric above (not a plain average)
+- wins/issues must reference specific resume content, not generic advice
+- missingKeywords: list the exact JD terms absent from the resume, most important first
+- If no JD provided, score against general resume best practices (action verbs, quantification, brevity, ATS-safe formatting, completeness)
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 2500)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 4000)}`,
-    { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
+    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
+    { model: SMART_MODEL, max_tokens: 1100, temperature: 0 });
   const j = safeJSON(raw);
   if (!j) return { score: 50, feedback: raw };
 
@@ -937,14 +940,22 @@ Output STRICT JSON:
   "missingSections": ["<section the resume is missing that would help, e.g. 'Skills', 'Projects'>"]
 }
 
+Score with this rubric (compute each 0-100, then overallScore = the weighted sum):
+- Impact & metrics (35%): do bullets quantify results (%, $, scale, time), or are they duty lists?
+- Relevance & keywords (25%): does it target real roles with the right terminology?
+- Clarity & writing (20%): strong action verbs, concise, no filler ("responsible for", "worked on").
+- Completeness & structure (20%): all key sections present, logical order, no gaps.
+Be a tough but fair reviewer: a generic duties-based resume scores 40-60, not 80.
+
 Rules:
-- Be specific, not generic. Always cite the actual section/role you're critiquing.
+- Be specific, not generic. Always cite the actual section/role you're critiquing (name the company/bullet).
 - topFixes should be the 3 highest-leverage changes, ordered by impact. Set "priority" and give an "example" rewrite for each.
+- Example rewrites must be paste-ready and grounded in the candidate's real content, never invented facts/metrics.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
   const raw = await runAI(env, sys,
-    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 5000)}`,
-    { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 9000)}`,
+    { model: SMART_MODEL, max_tokens: 2000, temperature: 0.1 });
   const j = safeJSON(raw);
   // Return the STRUCTURED object so the frontend renders the polished score ring +
   // Strengths / Weaknesses / Top Fixes cards. If the model didn't return valid JSON,

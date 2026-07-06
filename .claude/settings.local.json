@@ -149,7 +149,8 @@
       "Bash(curl -s -X POST https://hireflow-api.pritamavuthu7.workers.dev/stripe/webhook -d '{}')",
       "Bash(curl -s -m 15 \"https://hireflow-api.pritamavuthu7.workers.dev/health\")",
       "Bash(curl -s -m 15 -X POST \"https://hireflow-api.pritamavuthu7.workers.dev/ai/analyze\" -H \"Content-Type: application/json\" -d '{}')",
-      "WebSearch"
+      "WebSearch",
+      "Bash(awk '/^async function aiAnalyze/{f=1} f{print} /^}/{if\\(f\\)c++; if\\(c==1 && f\\)exit}' worker/worker.js)"
     ]
   }
 }

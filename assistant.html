@@ -40,6 +40,15 @@
   .ca-empty svg { width: 46px; height: 46px; color: var(--accent); margin-bottom: 12px; }
   .ca-clear { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; margin-left: auto; }
   .ca-clear:hover { color: var(--text); }
+  /* Sleek scrollbars */
+  .ca-thread, .ca-input { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,.35) transparent; }
+  .ca-thread::-webkit-scrollbar, .ca-input::-webkit-scrollbar { width: 8px; }
+  .ca-thread::-webkit-scrollbar-track, .ca-input::-webkit-scrollbar-track { background: transparent; }
+  .ca-thread::-webkit-scrollbar-thumb, .ca-input::-webkit-scrollbar-thumb {
+    background: rgba(148,163,184,.28); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box;
+  }
+  .ca-thread:hover::-webkit-scrollbar-thumb, .ca-input:hover::-webkit-scrollbar-thumb { background: rgba(148,163,184,.5); background-clip: padding-box; }
+  .ca-thread::-webkit-scrollbar-thumb:hover, .ca-input::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,.7); background-clip: padding-box; }
 </style>
 </head>
 <body class="app-body">

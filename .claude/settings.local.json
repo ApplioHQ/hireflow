@@ -165,7 +165,8 @@
       "Bash(curl -s -m 40 -X POST __TRACKED_VAR__/ai/improve -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"text\":\"Managed team\",\"context\":\"summary\"}')",
       "Bash(sort -t: -k2 -n)",
       "Bash(awk 'NR>=272 && NR<=322' index.html)",
-      "Bash(awk 'NR>=470 && NR<=500 && /\\\\{/{print NR\": \"$0}' css/styles.css)"
+      "Bash(awk 'NR>=470 && NR<=500 && /\\\\{/{print NR\": \"$0}' css/styles.css)",
+      "Bash(awk '/application\\\\/ld\\\\+json/{p=1} p{print} /<\\\\/script>/{if\\(p\\)c++; if\\(c>=1 && p && /<\\\\/script>/\\){p=0}}' index.html)"
     ]
   }
 }

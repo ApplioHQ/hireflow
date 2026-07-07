@@ -1,0 +1,16 @@
+{
+  "name": "Applio — AI Career Copilot",
+  "short_name": "Applio",
+  "description": "Build ATS-optimized resumes, tailor them to any job with AI, prep for interviews, and track applications. Free forever plan.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07091a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    { "src": "/logo.jpeg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "/logo.jpeg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

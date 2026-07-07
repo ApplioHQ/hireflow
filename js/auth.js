@@ -57,9 +57,6 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
 document.getElementById('form-signup').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
-  if (f.get('password') !== f.get('confirm')) {
-    return setMsg('signup','error','Passwords do not match');
-  }
   try {
     setMsg('signup','success','Creating account…');
     const data = await apiPost('/auth/signup', {

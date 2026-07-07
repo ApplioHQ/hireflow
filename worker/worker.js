@@ -1010,20 +1010,21 @@ Rules:
   const j = safeJSON(raw);
   if (!j) return { score: 50, feedback: raw };
 
-  // Build readable feedback string from structured output
-  const parts = [];
-  if (j.feedback) parts.push(j.feedback);
-  if (j.breakdown) {
-    parts.push(`\nBreakdown:`);
-    parts.push(`  Keywords: ${j.breakdown.keywords}/100`);
-    parts.push(`  Experience match: ${j.breakdown.experience}/100`);
-    parts.push(`  Formatting: ${j.breakdown.formatting}/100`);
-    parts.push(`  Completeness: ${j.breakdown.completeness}/100`);
-  }
-  if (j.wins?.length) parts.push(`\nWhat's working:\n${j.wins.map(w => `  ✓ ${w}`).join("\n")}`);
-  if (j.issues?.length) parts.push(`\nWhat to fix:\n${j.issues.map(i => `  ✗ ${i}`).join("\n")}`);
-  if (j.missingKeywords?.length) parts.push(`\nMissing keywords:\n${j.missingKeywords.map(k => `  → ${k}`).join("\n")}`);
-  return { score: j.score ?? 50, feedback: parts.join("\n") };
+  // Return STRUCTURED output so the frontend can render bars, cards, and chips
+  // instead of a flat text blob. `feedback` stays as the short prose summary only.
+  return {
+    score: j.score ?? 50,
+    breakdown: (j.breakdown && typeof j.breakdown === "object") ? {
+      keywords: j.breakdown.keywords,
+      experience: j.breakdown.experience,
+      formatting: j.breakdown.formatting,
+      completeness: j.breakdown.completeness,
+    } : null,
+    feedback: typeof j.feedback === "string" ? j.feedback : "",
+    wins: Array.isArray(j.wins) ? j.wins.slice(0, 6) : [],
+    issues: Array.isArray(j.issues) ? j.issues.slice(0, 6) : [],
+    missingKeywords: Array.isArray(j.missingKeywords) ? j.missingKeywords.slice(0, 12) : [],
+  };
 }
 
 // ============ Analyze ============

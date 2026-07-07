@@ -844,7 +844,7 @@ Style:
 The user's current resume (JSON):
 ${resumeCtx}`;
   const reply = await runAIChat(env, [{ role: "system", content: sys }, ...history],
-    { model: SMART_MODEL, max_tokens: 700, temperature: 0.45 });
+    { model: SMART_MODEL, max_tokens: 700, temperature: 0.35 });
   return { reply };
 }
 
@@ -1207,7 +1207,7 @@ CRITICAL RULES:
 3. Dates: keep the original format. If you see "May 2022 - Present", set start="May 2022", end="Present".
 4. Name + contact: usually the first 1-5 lines of the resume.
 5. Skills: extract every listed skill, comma/pipe/bullet separated. Put all under one category "All" unless the resume explicitly groups them.
-6. Don't hallucinate. If a field isn't in the text, leave it empty.
+6. NEVER hallucinate or embellish. Copy the candidate's wording; do not rewrite, improve, or invent. If a field is not clearly in the text, leave it empty ("") — never guess a value, date, title, company, or metric.
 7. Don't truncate descriptions — keep all bullet content.
 
 OUTPUT FORMAT:

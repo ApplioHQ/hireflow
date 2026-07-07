@@ -181,7 +181,8 @@
       "Bash(curl -sI -m 20 https://appliohq.com/llms.txt)",
       "Bash(curl -sI -m 20 https://www.appliohq.com/)",
       "Bash(node --check scripts/indexnow.js)",
-      "Bash(curl -sI -m 15 https://appliohq.com/12f89dd0b9309d2d9aef4f5ab897ded6.txt)"
+      "Bash(curl -sI -m 15 https://appliohq.com/12f89dd0b9309d2d9aef4f5ab897ded6.txt)",
+      "Bash(echo \"  /admin/analytics -> HTTP $\\(curl -s -o /dev/null -w '%{http_code}' https://hireflow-api.pritamavuthu7.workers.dev/admin/analytics\\)\")"
     ]
   }
 }

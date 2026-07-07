@@ -158,7 +158,8 @@
       "Bash(awk -F: '$1<686')",
       "Bash(awk '/function countFilled/,/^}/' js/editor.js)",
       "Bash(awk '/function _scoreBullet/,/^}/' js/editor.js)",
-      "Bash(curl -s -m 40 -X POST __TRACKED_VAR__/ai/improve -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"text\":\"Managed a team and did sales work.\",\"context\":\"summary\"}')"
+      "Bash(curl -s -m 40 -X POST __TRACKED_VAR__/ai/improve -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"text\":\"Managed a team and did sales work.\",\"context\":\"summary\"}')",
+      "Bash(curl -s -m 60 -X POST __TRACKED_VAR__/ai/assistant -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"content\":\"Give me one quick resume tip.\"}]}')"
     ]
   }
 }

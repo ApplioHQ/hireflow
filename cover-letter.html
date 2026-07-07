@@ -211,11 +211,11 @@ document.addEventListener('click', function(e){
 
 (async () => {
   await loadCurrentUser();
-  document.getElementById('cl-title').innerHTML = ICON('mail') + ' <span>Cover Letter Maker</span>';
+  document.getElementById('cl-title').innerHTML = ICON('doc') + ' <span>Cover Letter Maker</span>';
   document.getElementById('cl-gen').innerHTML = ICON('sparkle') + ' <span>Generate cover letter</span>';
-  document.getElementById('cl-copy').innerHTML = ICON('copy','ico ico-sm') + ' <span>Copy</span>';
+  document.getElementById('cl-copy').innerHTML = ICON('check','ico ico-sm') + ' <span>Copy</span>';
   document.getElementById('cl-download').innerHTML = ICON('download','ico ico-sm') + ' <span>Download</span>';
-  document.getElementById('cl-regen').innerHTML = ICON('refresh','ico ico-sm') + ' <span>Regenerate</span>';
+  document.getElementById('cl-regen').innerHTML = ICON('bolt','ico ico-sm') + ' <span>Regenerate</span>';
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
   else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;

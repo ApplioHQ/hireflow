@@ -155,7 +155,9 @@
       "Bash(sed -n '/^async function aiDispatch/,/^}/p' worker/worker.js)",
       "Bash(awk '/id=\"templates\"/{s=NR} s && /<\\\\/section>/{print \"section: lines \"s\"-\"NR; exit}' index.html)",
       "Bash(awk -F: '$1>670 && $1<710')",
-      "Bash(awk -F: '$1<686')"
+      "Bash(awk -F: '$1<686')",
+      "Bash(awk '/function countFilled/,/^}/' js/editor.js)",
+      "Bash(awk '/function _scoreBullet/,/^}/' js/editor.js)"
     ]
   }
 }

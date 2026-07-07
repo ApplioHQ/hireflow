@@ -164,7 +164,8 @@
       "Bash(curl -s -m 60 -X POST __TRACKED_VAR__/ai/assistant -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"content\":\"Rewrite: I did sales.\"}]}')",
       "Bash(curl -s -m 40 -X POST __TRACKED_VAR__/ai/improve -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"text\":\"Managed team\",\"context\":\"summary\"}')",
       "Bash(sort -t: -k2 -n)",
-      "Bash(awk 'NR>=272 && NR<=322' index.html)"
+      "Bash(awk 'NR>=272 && NR<=322' index.html)",
+      "Bash(awk 'NR>=470 && NR<=500 && /\\\\{/{print NR\": \"$0}' css/styles.css)"
     ]
   }
 }

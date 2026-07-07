@@ -74,6 +74,7 @@
   <div class="cl-head">
     <h1 id="cl-title"></h1>
     <p>Generate a tailored, ready-to-send cover letter from your resume and the job you're applying to.</p>
+    <p class="cl-free" id="cl-free" style="display:none; font-size:12.5px; color:var(--muted); margin-top:8px;"></p>
   </div>
 
   <div class="cl-grid">
@@ -141,11 +142,23 @@ function _gate(){
   document.getElementById('cl-actions').style.display = 'none';
   document.getElementById('cl-body').innerHTML =
     '<div class="cl-gate">'
-    + '<span class="badge">Premium feature</span>'
-    + '<h4>Unlock the Cover Letter Maker</h4>'
-    + '<p>Generate unlimited tailored cover letters, grounded in your resume, with Applio Premium or Lifetime.</p>'
+    + '<span class="badge">Free letters used</span>'
+    + '<h4>Unlock unlimited cover letters</h4>'
+    + '<p>You\'ve used your free cover letters. Upgrade to Premium or Lifetime for unlimited tailored letters, grounded in your resume.</p>'
     + '<a class="btn btn-primary" href="pricing">' + ICON('sparkle','ico ico-sm') + ' See plans</a>'
     + '</div>';
+  _showFreeRemaining(0);
+}
+
+// Free-tier taste: show how many free cover letters remain (paid = hidden).
+function _showFreeRemaining(n){
+  const el = document.getElementById('cl-free');
+  if (!el) return;
+  if (typeof n !== 'number' || (typeof isPaid === 'function' && isPaid())) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = n > 0
+    ? `${n} free cover letter${n === 1 ? '' : 's'} left. <a href="pricing" style="color:var(--accent);font-weight:600;">Go unlimited →</a>`
+    : `That was your last free cover letter. <a href="pricing" style="color:var(--accent);font-weight:600;">Upgrade to keep going →</a>`;
 }
 
 function _renderLetter(text){
@@ -220,6 +233,11 @@ document.addEventListener('click', function(e){
   const planPill = document.getElementById('plan-pill');
   if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
   else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  // Free users: show how many free cover letters remain (2 total).
+  if (!isPaid()) {
+    const used = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER && CURRENT_USER.coverLettersUsed) || 0;
+    _showFreeRemaining(Math.max(0, 2 - used));
+  }
   _emptyState();
 })();
 </script>

@@ -19,9 +19,10 @@ const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve", "cover-letter"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
 // Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
 const FREE_ASSISTANT_MESSAGES = 5;
+const FREE_COVER_LETTERS = 2;
 
 export default {
   async fetch(req, env) {
@@ -680,6 +681,19 @@ async function ai(req, env, action) {
     user.assistantUsed = used + 1;
     await putUser(env, user);
     return { ...result, freeRemaining: Math.max(0, FREE_ASSISTANT_MESSAGES - user.assistantUsed) };
+  }
+
+  // Cover Letter Maker: free users get a couple of letters as a taste, then must
+  // upgrade. Counted only on a SUCCESSFUL generation. Paid users are unlimited.
+  if (action === "cover-letter" && !paid) {
+    const used = user.coverLettersUsed || 0;
+    if (used >= FREE_COVER_LETTERS) {
+      throw err(402, "You've used your free cover letters. Upgrade to Premium for unlimited cover letters.");
+    }
+    const result = await aiDispatch(env, action, body);
+    user.coverLettersUsed = used + 1;
+    await putUser(env, user);
+    return { ...result, freeRemaining: Math.max(0, FREE_COVER_LETTERS - user.coverLettersUsed) };
   }
 
   return await aiDispatch(env, action, body);

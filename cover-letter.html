@@ -177,6 +177,7 @@ async function generate(){
     const text = (data.text || '').trim();
     if (!text) throw new Error('empty');
     _renderLetter(text);
+    if (typeof data.freeRemaining === 'number') _showFreeRemaining(data.freeRemaining);
   } catch(e){
     document.getElementById('cl-body').innerHTML =
       '<div class="cl-empty" style="color:var(--danger);"><h4 style="color:var(--danger);">Something went wrong</h4><p>We couldn\'t generate that cover letter. Please try again.</p></div>';

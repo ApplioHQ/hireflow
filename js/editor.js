@@ -2972,8 +2972,11 @@ function _maybeShowWelcome() {
       <div class="wel-logo"><img src="logo.svg" alt="Applio"></div>
       <div class="wel-eyebrow">Welcome to Applio</div>
       <h1 class="wel-title">Let's land you<br>more interviews.</h1>
-      <p class="wel-sub">Your AI resume workspace is ready, build it, optimize it for ATS, and export a recruiter-ready PDF, all in one place.</p>
-      <button class="wel-btn" type="button" onclick="_closeWelcome()">Start building →</button>
+      <p class="wel-sub">Already have a resume? Paste it and AI fills in every section in seconds. Starting fresh? Jump right in.</p>
+      <div class="wel-actions" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+        <button class="wel-btn" type="button" onclick="_welImport()">✨ Paste my existing resume</button>
+        <button type="button" onclick="_closeWelcome()" style="background:none; border:0; color:rgba(255,255,255,.8); font-size:14px; font-weight:600; cursor:pointer; padding:4px 8px;">Start from scratch →</button>
+      </div>
     </div>`;
   document.body.appendChild(bd);
   document.body.style.overflow = 'hidden';
@@ -2987,6 +2990,12 @@ function _closeWelcome() {
   b.classList.add('wel-out');
   document.body.style.overflow = '';
   setTimeout(() => b.remove(), 420);
+}
+// Import-first onboarding: from the welcome screen, jump straight into the paste-your-
+// resume flow so new users never face a blank editor (the #1 cause of abandonment).
+function _welImport() {
+  _closeWelcome();
+  setTimeout(() => { if (typeof openModal === 'function') openModal('import'); }, 180);
 }
 
 // One-time cloud hydrate: on a fresh device or after cleared storage, the local

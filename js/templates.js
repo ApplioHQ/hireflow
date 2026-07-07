@@ -3,20 +3,29 @@
 // mini=true returns compact preview, mini=false returns full export view.
 // Customize options (font, spacing, margins, section toggles) all apply.
 
+// `cat` groups templates in the picker: Students, Business, Technology, Creative.
+const TEMPLATE_CATEGORIES = ['Students', 'Business', 'Technology', 'Creative'];
 const TEMPLATE_DEFS = [
-  { id: 'consulting',   name: 'Consulting' },
-  { id: 'faang',        name: 'FAANG' },
-  { id: 'modern',       name: 'Modern' },
-  { id: 'classic',      name: 'Classic' },
-  { id: 'creative',     name: 'Creative' },
-  { id: 'minimal',      name: 'Minimal' },
-  { id: 'professional', name: 'Professional' },
-  { id: 'tech',         name: 'Tech' },
-  { id: 'executive',    name: 'Executive' },
-  { id: 'compact',      name: 'Compact' },
-  { id: 'elegant',      name: 'Elegant' },
-  { id: 'onyx',         name: 'Onyx' },
-  { id: 'slate',        name: 'Slate' },
+  // Students
+  { id: 'harvard',      name: 'Harvard',        cat: 'Students' },
+  { id: 'stanford',     name: 'Stanford',       cat: 'Students' },
+  { id: 'modern',       name: 'Modern',         cat: 'Students' },
+  { id: 'minimal',      name: 'Minimal',        cat: 'Students' },
+  // Business
+  { id: 'consulting',   name: 'Consulting',     cat: 'Business' },
+  { id: 'executive',    name: 'Executive',      cat: 'Business' },
+  { id: 'professional', name: 'Professional',   cat: 'Business' },
+  { id: 'classic',      name: 'Classic',        cat: 'Business' },
+  { id: 'elegant',      name: 'Elegant',        cat: 'Business' },
+  // Technology
+  { id: 'jake',         name: "Jake's Resume",  cat: 'Technology' },
+  { id: 'faang',        name: 'FAANG',          cat: 'Technology' },
+  { id: 'tech',         name: 'Tech',           cat: 'Technology' },
+  // Creative
+  { id: 'creative',     name: 'Creative',       cat: 'Creative' },
+  { id: 'slate',        name: 'Slate',          cat: 'Creative' },
+  { id: 'onyx',         name: 'Onyx',           cat: 'Creative' },
+  { id: 'compact',      name: 'Compact',        cat: 'Creative' },
 ];
 
 const SAMPLE = {

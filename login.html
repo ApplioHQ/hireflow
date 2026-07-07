@@ -10,17 +10,11 @@
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
 <style>
-  /* Assisted password confirmation, live per-character match feedback. */
-  .pw-match { display:flex; gap:3px; margin:-4px 0 12px; min-height:6px; }
-  .pw-seg { flex:1 1 0; height:6px; border-radius:3px; background:rgba(148,163,184,.25); transition:background .2s ease; }
-  .pw-seg.ok  { background:#10b981; }
-  .pw-seg.bad { background:#ef4444; }
-  input.pw-matched { border-color:#10b981 !important; box-shadow:0 0 0 1px #10b981; }
-  @keyframes pw-shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }
-  .pw-shake { animation:pw-shake .4s ease; }
-  .pw-hint { font-size:12px; margin:-2px 0 12px; min-height:15px; }
-  .pw-hint.ok  { color:#10b981; }
-  .pw-hint.bad { color:#ef4444; }
+  /* Signup reassurance / value props */
+  .auth-perks { list-style:none; margin:18px 0 0; padding:16px 0 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:10px; }
+  .auth-perks li { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text); }
+  .auth-perks li svg { flex:none; color:#10b981; }
+  .auth-socialproof { text-align:center; font-size:12px; color:var(--muted); margin:16px 0 0; }
   /* Show/hide password + Caps Lock warning */
   .pw-wrap { position:relative; }
   .pw-wrap input { padding-right:58px !important; }
@@ -64,26 +58,26 @@
     <!-- Sign up -->
     <div id="view-signup" style="display:none;">
       <a href="#" class="btn btn-ghost btn-xs" onclick="showView('signin');return false;" style="margin-bottom:12px;display:inline-flex;">← Back to sign in</a>
-      <h2>Create your account</h2>
-      <p class="sub">Get started with Applio</p>
+      <h2>Create your free account</h2>
+      <p class="sub">Free forever · No credit card · Takes 30 seconds</p>
       <div id="msg-signup" class="auth-msg"></div>
       <form id="form-signup">
         <div class="form-field">
           <label>Email</label>
-          <input type="email" name="email" placeholder="you@example.com" required>
+          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
         </div>
         <div class="form-field">
           <label>Password</label>
-          <input type="password" name="password" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password" required>
+          <input type="password" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
         </div>
-        <div class="form-field">
-          <label>Confirm Password</label>
-          <input type="password" name="confirm" placeholder="Re-enter password" minlength="8" autocomplete="new-password" required>
-        </div>
-        <div id="pw-match" class="pw-match" aria-hidden="true"></div>
-        <div id="pw-hint" class="pw-hint" role="status" aria-live="polite"></div>
-        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        <button type="submit" class="btn btn-primary btn-block">Create free account →</button>
       </form>
+      <ul class="auth-perks">
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Full resume builder + all 13 templates</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free ATS checker &amp; job tracker</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Upgrade only if you want AI — never required</li>
+      </ul>
+      <p class="auth-socialproof">Join 10,000+ job seekers using Applio</p>
     </div>
   </div>
 
@@ -94,56 +88,6 @@
     // initial view from ?mode=signup
     const params = new URLSearchParams(location.search);
     if (params.get('mode') === 'signup') showView('signup');
-
-    // ---- Assisted password confirmation (vanilla port) ----
-    // Live per-character match feedback between the chosen password and the
-    // confirm field: green/red segments, a shake on a mismatched keystroke, and a
-    // green border once they match. We compare against what the user typed, the
-    // password is never shown in plaintext.
-    (function () {
-      const form = document.getElementById('form-signup');
-      if (!form) return;
-      const pw = form.querySelector('input[name="password"]');
-      const cf = form.querySelector('input[name="confirm"]');
-      const strip = document.getElementById('pw-match');
-      const hint = document.getElementById('pw-hint');
-      if (!pw || !cf || !strip) return;
-      let prevLen = 0;
-
-      function paint(shake) {
-        const p = pw.value, c = cf.value;
-        strip.innerHTML = '';
-        for (let i = 0; i < p.length; i++) {
-          const seg = document.createElement('div');
-          seg.className = 'pw-seg' + (i < c.length ? (c[i] === p[i] ? ' ok' : ' bad') : '');
-          strip.appendChild(seg);
-        }
-        const matched = c.length > 0 && c === p;
-        cf.classList.toggle('pw-matched', matched);
-        if (hint) {
-          if (!c.length) { hint.textContent = ''; hint.className = 'pw-hint'; }
-          else if (matched) { hint.textContent = '✓ Passwords match'; hint.className = 'pw-hint ok'; }
-          else { hint.textContent = 'Keep going, they don’t match yet'; hint.className = 'pw-hint bad'; }
-        }
-        if (shake) { cf.classList.remove('pw-shake'); void cf.offsetWidth; cf.classList.add('pw-shake'); }
-      }
-
-      cf.addEventListener('input', function () {
-        const p = pw.value, c = cf.value;
-        // Shake when the newest character is wrong, or typed past the password length.
-        const typedForward = c.length > prevLen;
-        const lastWrong = c.length <= p.length && c[c.length - 1] !== p[c.length - 1];
-        const overflow = c.length > p.length;
-        prevLen = c.length;
-        paint(typedForward && (lastWrong || overflow));
-      });
-      pw.addEventListener('input', function () { prevLen = cf.value.length; paint(false); });
-      // Browser/password-manager autofill often sets values without an 'input'
-      // event, catch those via 'change' and a deferred initial paint.
-      cf.addEventListener('change', function () { paint(false); });
-      pw.addEventListener('change', function () { prevLen = cf.value.length; paint(false); });
-      setTimeout(function () { prevLen = cf.value.length; paint(false); }, 400);
-    })();
 
     // ---- Show/hide password toggle + Caps Lock warning (all password fields) ----
     (function () {

@@ -18,6 +18,26 @@
   --danger: #ef4444;
   --gradient: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%);
   --gradient-soft: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+
+  /* ---- Design tokens (Tier 1 system) ---- */
+  /* Radius scale */
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-full: 999px;
+  /* Elevation — layered, low-opacity shadows read as more premium */
+  --sh-1: 0 1px 2px rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.16);
+  --sh-2: 0 4px 12px rgba(0,0,0,.28), 0 14px 34px rgba(0,0,0,.22);
+  --sh-3: 0 8px 24px rgba(0,0,0,.34), 0 24px 60px rgba(0,0,0,.30);
+  /* Subtle top highlight for glassy depth on surfaces */
+  --hi: inset 0 1px 0 rgba(255,255,255,.05);
+  /* Spacing scale (8px rhythm) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-8: 48px;
+  /* Type scale */
+  --fs-xs: 12px; --fs-sm: 13px; --fs-base: 14px; --fs-md: 16px; --fs-lg: 18px;
+  --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 36px; --fs-4xl: 44px;
+  /* Motion */
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --dur: .16s;
+  /* Focus ring */
+  --ring: 0 0 0 3px rgba(99,102,241,.35);
 }
 
 /* ===== Light mode ===== */
@@ -30,6 +50,12 @@ html.light-mode {
   --text: #1a1f3c;
   --muted: #5a6080;
   --gradient-soft: linear-gradient(135deg, #e0e4f8 0%, #c8d0f0 100%);
+  /* Softer, cool-gray elevation for light mode */
+  --sh-1: 0 1px 2px rgba(20,30,70,.06), 0 2px 8px rgba(20,30,70,.06);
+  --sh-2: 0 4px 12px rgba(20,30,70,.08), 0 14px 34px rgba(20,30,70,.08);
+  --sh-3: 0 8px 24px rgba(20,30,70,.10), 0 24px 60px rgba(20,30,70,.10);
+  --hi: inset 0 1px 0 rgba(255,255,255,.7);
+  --ring: 0 0 0 3px rgba(99,102,241,.22);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

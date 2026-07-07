@@ -167,7 +167,8 @@
       "Bash(awk 'NR>=272 && NR<=322' index.html)",
       "Bash(awk 'NR>=470 && NR<=500 && /\\\\{/{print NR\": \"$0}' css/styles.css)",
       "Bash(awk '/application\\\\/ld\\\\+json/{p=1} p{print} /<\\\\/script>/{if\\(p\\)c++; if\\(c>=1 && p && /<\\\\/script>/\\){p=0}}' index.html)",
-      "Bash(node /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/8eb52892-6ebe-4167-b99c-ac0fb89d0fa6/scratchpad/gen-template-pages.js)"
+      "Bash(node /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/8eb52892-6ebe-4167-b99c-ac0fb89d0fa6/scratchpad/gen-template-pages.js)",
+      "Bash(node scripts/gen-guides.js)"
     ]
   }
 }

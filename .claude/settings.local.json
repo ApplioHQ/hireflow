@@ -186,7 +186,8 @@
       "Bash(awk '/\\\\.wel-card ?\\\\{/,/\\\\}/' css/styles.css)",
       "Bash(awk '/\\\\.wel-btn ?\\\\{/,/\\\\}/' css/styles.css)",
       "Bash(awk '/\\\\.auth-body ?\\\\{/,/\\\\}/' css/styles.css)",
-      "Bash(awk '/\\\\.auth-card ?\\\\{/,/\\\\}/' css/styles.css)"
+      "Bash(awk '/\\\\.auth-card ?\\\\{/,/\\\\}/' css/styles.css)",
+      "Bash(grep -rniE \"testimonial|—[A-Z][a-z]+ [A-Z]\\\\.|\\\\\"[^\\\\\"]{20,}\\\\\".*<cite|review\" index.html)"
     ]
   }
 }

@@ -268,6 +268,9 @@ input, textarea, select { font-family: inherit; }
 
 /* ===== Templates (compact grid, formal mini-previews) ===== */
 .template-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tpl-cat-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+.tpl-cat-label:first-of-type { margin-top: 4px; }
+.template-grid + .tpl-cat-label { margin-top: 22px; }
 .template-card {
   border: 2px solid var(--border); border-radius: 10px; overflow: hidden;
   cursor: pointer; background: var(--bg-2); transition: all .15s;

@@ -197,18 +197,23 @@ function renderTemplateSection() {
         <h3>${ICON('doc')} Templates</h3>
         <span class="pill">${TEMPLATE_DEFS.length} templates</span>
       </div>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">Choose a style. You can change colors and fonts in Customize.</p>
-      <div class="template-grid">
-        ${TEMPLATE_DEFS.map(t => `
-          <div class="template-card ${resume.template===t.id?'selected':''}" onclick="selectTemplate('${t.id}')">
-            <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}</div>
-            <div class="template-card-foot">
-              <span class="t-name">${t.name}</span>
-              ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">Choose a style, grouped by what you're applying for. Colors and fonts are in Customize.</p>
+      ${(typeof TEMPLATE_CATEGORIES !== 'undefined' ? TEMPLATE_CATEGORIES : [null]).map(cat => {
+        const items = TEMPLATE_DEFS.filter(t => (cat ? t.cat === cat : true));
+        if (!items.length) return '';
+        return `
+        ${cat ? `<div class="tpl-cat-label">${cat}</div>` : ''}
+        <div class="template-grid">
+          ${items.map(t => `
+            <div class="template-card ${resume.template===t.id?'selected':''}" onclick="selectTemplate('${t.id}')">
+              <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}</div>
+              <div class="template-card-foot">
+                <span class="t-name">${t.name}</span>
+                ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : ''}
+              </div>
+            </div>`).join('')}
+        </div>`;
+      }).join('')}
       <div class="action-row">
         <span></span>
         <button class="btn btn-primary" onclick="nextSection('personal')">Continue ${ICON('arrowRight')}</button>
@@ -220,6 +225,41 @@ function selectTemplate(id) { resume.template = id; save(); renderMain(); }
 
 // ── Illustrated template thumbnails ──
 const TEMPLATE_THUMBS = {
+  harvard: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="24" y="10" width="37" height="5" rx="1" fill="#111"/>
+    <rect x="28" y="18" width="29" height="1.8" rx="1" fill="#777"/>
+    <rect x="8" y="29" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="32.4" width="69" height=".9" fill="#111"/>
+    <rect x="8" y="37" width="40" height="1.6" rx=".5" fill="#444"/><rect x="8" y="41" width="63" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="45" width="58" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="55" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="58.4" width="69" height=".9" fill="#111"/>
+    <rect x="8" y="63" width="40" height="1.6" rx=".5" fill="#444"/><rect x="8" y="67" width="61" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="71" width="55" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="81" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="84.4" width="69" height=".9" fill="#111"/>
+    <rect x="8" y="89" width="60" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  stanford: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="10" width="46" height="6.5" rx="1" fill="#111"/>
+    <rect x="8" y="20" width="52" height="1.8" rx="1" fill="#888"/>
+    <rect x="8" y="32" width="18" height="1.8" rx=".5" fill="#111"/>
+    <rect x="8" y="37" width="40" height="1.6" rx=".5" fill="#555"/><rect x="8" y="41" width="64" height="1.3" rx=".5" fill="#d4d4d4"/><rect x="8" y="45" width="58" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="58" width="18" height="1.8" rx=".5" fill="#111"/>
+    <rect x="8" y="63" width="40" height="1.6" rx=".5" fill="#555"/><rect x="8" y="67" width="62" height="1.3" rx=".5" fill="#d4d4d4"/><rect x="8" y="71" width="55" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="84" width="18" height="1.8" rx=".5" fill="#111"/>
+    <rect x="8" y="89" width="60" height="1.3" rx=".5" fill="#d4d4d4"/>
+  </svg>`,
+  jake: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="23" y="10" width="39" height="5.5" rx="1" fill="#111"/>
+    <rect x="20" y="18" width="45" height="1.8" rx="1" fill="#777"/>
+    <rect x="8" y="28" width="28" height="2" rx=".5" fill="#111"/><rect x="8" y="31.6" width="69" height=".8" fill="#333"/>
+    <rect x="8" y="36" width="34" height="1.7" rx=".5" fill="#333"/><rect x="62" y="36" width="15" height="1.7" rx=".5" fill="#999"/>
+    <rect x="8" y="40" width="63" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="44" width="57" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="54" width="28" height="2" rx=".5" fill="#111"/><rect x="8" y="57.6" width="69" height=".8" fill="#333"/>
+    <rect x="8" y="62" width="34" height="1.7" rx=".5" fill="#333"/><rect x="62" y="62" width="15" height="1.7" rx=".5" fill="#999"/>
+    <rect x="8" y="66" width="61" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="70" width="55" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="80" width="28" height="2" rx=".5" fill="#111"/><rect x="8" y="83.6" width="69" height=".8" fill="#333"/>
+    <rect x="8" y="88" width="60" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
   consulting: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>
     <rect x="22" y="9" width="41" height="5" rx="1" fill="#1a1a1a"/>

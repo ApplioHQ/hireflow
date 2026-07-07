@@ -211,28 +211,42 @@ function _renderPracticeQuestion() {
     }
   });
 
+  // Voice recorder (Web Speech API — client-side, no upload)
+  _wireRecorder();
+
   // AI Feedback
   document.getElementById('_psubmit').addEventListener('click', async function() {
     var answer = document.getElementById('_panswer').value.trim();
-    if (!answer) { toast('Type your answer first', {type:'warn'}); return; }
+    if (!answer) { toast('Speak or type your answer first', {type:'warn'}); return; }
     var fb = document.getElementById('_pfeedback');
     fb.innerHTML = '<div style="color:var(--muted);font-size:13px;animation:_pu 1.5s ease-in-out infinite;">Getting AI feedback...</div>';
     try {
       var r = await fetch(API + '/ai/interview-feedback', {
         method: 'POST',
         headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-        body: JSON.stringify({ question: q.question, answer: answer })
+        body: JSON.stringify({ question: q.question, answer: answer, role: (document.getElementById('role') ? document.getElementById('role').value.trim() : '') })
       });
       if (!r.ok) throw new Error('AI failed');
       var data = await r.json();
       if (data._trial) _noteTrial(data._trial);
       var score = data.score || 0;
       var col = score >= 75 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
-      fb.innerHTML = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:10px;overflow:hidden;margin-top:8px;">'
+      var bd = data.breakdown || null;
+      var bars = '';
+      if (bd) {
+        var rows = [['Structure', bd.structure], ['Impact', bd.impact], ['Clarity', bd.clarity]];
+        bars = '<div style="padding:12px 14px 4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'
+          + rows.map(function(rw){ var v = Math.max(0, Math.min(100, rw[1]||0));
+              return '<div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);"><span>' + rw[0] + '</span><span style="font-weight:700;color:var(--text);">' + v + '</span></div>'
+                + '<div class="ip-fb-bar"><i style="width:' + v + '%"></i></div></div>'; }).join('')
+          + '</div>';
+      }
+      fb.innerHTML = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:var(--r-md);overflow:hidden;margin-top:8px;box-shadow:var(--sh-1);">'
         + '<div style="background:rgba(99,102,241,.1);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
         + '<span style="font-size:20px;font-weight:800;color:' + col + ';">' + score + '/100</span>'
         + '<span style="font-size:13px;font-weight:600;color:var(--text);">AI Feedback</span>'
         + '</div>'
+        + bars
         + '<div style="padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);">' + esc(data.feedback||'') + '</div>'
         + '</div>';
     } catch(e) {

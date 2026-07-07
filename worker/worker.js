@@ -18,6 +18,12 @@ const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 // Larger, better at structured output + reasoning: parse, analyze, tailor, ats.
 const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
+// Shared anti-hallucination directive, prepended to every generative AI prompt so the
+// model can never fabricate facts the candidate didn't actually provide. This is the
+// single most important guardrail for output quality/trust.
+const GROUNDING = `GROUNDING — the most important rule, overrides everything else if in conflict:
+Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative — never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.`;
+
 // AI endpoints that require Premium/Lifetime
 const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
 // Career Coach gives free users a few messages as a taste, then upgrades (see ai()).

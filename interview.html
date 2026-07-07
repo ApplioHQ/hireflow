@@ -152,6 +152,8 @@ function _startPracticeMode(questions) {
 }
 
 function _renderPracticeQuestion() {
+  // Stop any in-progress recording before rebuilding the view
+  if (_recActive) { _recActive = false; try { _recog && _recog.stop(); } catch(e){} clearInterval(_recTimer); }
   var q = _practiceQs[_practiceIdx];
   var total = _practiceQs.length;
   var res = document.getElementById('results');
@@ -275,6 +277,72 @@ function _renderPracticeQuestion() {
   });
 }
 
+// ── Voice recorder: live speech-to-text into the answer box (Web Speech API) ──
+var _recog = null, _recActive = false, _recTimer = null, _recStart = 0;
+function _wireRecorder() {
+  var mic = document.getElementById('_pmic');
+  if (!mic) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var hint = document.getElementById('_prec-hint');
+  if (!SR) {
+    // Graceful fallback: hide the mic, invite typing.
+    document.getElementById('_prec-row').style.display = 'none';
+    return;
+  }
+  hint.textContent = 'Tip: speak naturally, we transcribe as you go.';
+  var label = document.getElementById('_pmic-label');
+  var wave = document.getElementById('_pwave');
+  var timeEl = document.getElementById('_prec-time');
+  var ta = document.getElementById('_panswer');
+
+  function stop() {
+    _recActive = false;
+    try { if (_recog) _recog.stop(); } catch(e){}
+    clearInterval(_recTimer);
+    mic.classList.remove('recording');
+    label.textContent = 'Record answer';
+    wave.style.display = 'none';
+    timeEl.style.display = 'none';
+  }
+
+  mic.addEventListener('click', function() {
+    if (_recActive) { stop(); return; }
+    _recog = new SR();
+    _recog.continuous = true;
+    _recog.interimResults = true;
+    _recog.lang = (navigator.language || 'en-US');
+    var baseText = ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '';
+    var finalText = '';
+    _recog.onresult = function(ev) {
+      var interim = '';
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var tr = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalText += tr + ' '; else interim += tr;
+      }
+      ta.value = baseText + finalText + interim;
+    };
+    _recog.onerror = function(ev) {
+      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+        toast('Microphone blocked. Allow mic access, or type your answer.', {type:'warn'});
+      }
+      stop();
+    };
+    _recog.onend = function() { if (_recActive) { try { _recog.start(); } catch(e){ stop(); } } };
+    try { _recog.start(); } catch(e) { toast('Could not start recording.', {type:'warn'}); return; }
+
+    _recActive = true;
+    mic.classList.add('recording');
+    label.textContent = 'Stop recording';
+    wave.style.display = 'flex';
+    timeEl.style.display = '';
+    _recStart = Date.now();
+    clearInterval(_recTimer);
+    _recTimer = setInterval(function() {
+      var s = Math.floor((Date.now() - _recStart)/1000);
+      timeEl.textContent = Math.floor(s/60) + ':' + (s%60<10?'0':'') + (s%60);
+    }, 500);
+  });
+}
 
 function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 

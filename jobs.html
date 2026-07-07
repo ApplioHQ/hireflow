@@ -12,16 +12,17 @@
   .jt-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:20px; }
   .jt-stat {
     display:flex; flex-direction:column; align-items:center; gap:2px;
-    padding:14px 8px; border-radius:12px; cursor:pointer;
+    padding:14px 8px; border-radius:var(--r-md); cursor:pointer;
     background:var(--bg-2); border:1px solid var(--border);
-    border-top:3px solid var(--c); transition:transform .12s, box-shadow .12s, border-color .12s;
+    border-top:3px solid var(--c); box-shadow:var(--sh-1);
+    transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
   }
-  .jt-stat:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.18); }
-  .jt-stat.active { box-shadow:0 0 0 2px var(--c); }
+  .jt-stat:hover { transform:translateY(-2px); box-shadow:var(--sh-2); }
+  .jt-stat.active { box-shadow:0 0 0 2px var(--c), var(--sh-1); }
   .jt-stat-num { font-size:24px; font-weight:800; color:var(--c); line-height:1; }
   .jt-stat-label { font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.02em; }
-  .jt-card { transition:transform .12s, box-shadow .12s; }
-  .jt-card:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.16); }
+  .jt-card { box-shadow:var(--sh-1), var(--hi); transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .jt-card:hover { transform:translateY(-2px); box-shadow:var(--sh-2), var(--hi); }
   .jt-followup {
     margin-top:8px; font-size:12px; font-weight:600; color:#b45309;
     background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.3);

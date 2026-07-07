@@ -627,7 +627,91 @@ function tFaang(r, accent) {
     </div>`;
 }
 
+// ── Harvard: single-column, black & white, serif, centered header. The classic
+// student/academic look, maximally ATS-safe. ──
+function tHarvard(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-harvard { font-family: Georgia, "Times New Roman", serif; color:#111; padding: calc(6% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height:100%; }
+      .t-harvard .h-name { text-align:center; font-size:210%; font-weight:700; letter-spacing:.01em; }
+      .t-harvard .h-contact { text-align:center; font-size:82%; color:#333; margin-top:4px; }
+      .t-harvard .h-contact span:not(:last-child)::after { content:"  \\2022  "; color:#888; }
+      .t-harvard h2 { font-size:98%; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:1.3px solid #111; padding-bottom:2px; margin: calc(4% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); }
+      .t-harvard .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
+      .t-harvard .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:96%; }
+      .t-harvard .t-entry-date { font-weight:400; }
+      .t-harvard .t-entry-sub { font-style:italic; font-size:90%; color:#222; }
+      .t-harvard .t-entry-desc, .t-harvard .summary { font-size:92%; }
+      .t-harvard .t-bullets { font-size:92%; }
+      .t-harvard .t-bullets li::before { color:#111; opacity:1; }
+    </style>
+    <div class="t-harvard" style="${st}">
+      <div class="h-name">${esc(p.fullName)}</div>
+      ${contact.length ? `<div class="h-contact">${contact.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ── Stanford: airy, strong sans typography, minimal, left-aligned. Popular in tech. ──
+function tStanford(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-stanford { font-family: "Helvetica Neue", Arial, var(--app-font), sans-serif; color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); height:100%; }
+      .t-stanford .s-name { font-size:230%; font-weight:800; letter-spacing:-.02em; line-height:1; }
+      .t-stanford .s-contact { font-size:81%; color:#555; margin-top:9px; display:flex; flex-wrap:wrap; gap:2.5%; }
+      .t-stanford h2 { font-size:79%; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:#111; margin: calc(5.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
+      .t-stanford .t-entry { margin-bottom: calc(3.2% * var(--app-space,1)); }
+      .t-stanford .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:97%; }
+      .t-stanford .t-entry-date { font-weight:500; color:#666; }
+      .t-stanford .t-entry-sub { font-size:88%; color:#555; }
+      .t-stanford .t-entry-desc, .t-stanford .summary, .t-stanford .t-bullets { font-size:91%; color:#333; }
+    </style>
+    <div class="t-stanford" style="${st}">
+      <div class="s-name">${esc(p.fullName)}</div>
+      <div class="s-contact">
+        ${[p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean).map(c => `<span>${esc(c)}</span>`).join('')}
+      </div>
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ── Jake's Resume: the famous SWE format. Centered name + pipe-separated contact,
+// ruled section headers, tight clean bullets. Extremely ATS-friendly, no graphics. ──
+function tJake(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.phone, p.email, p.linkedin, p.github, p.website, p.location].filter(Boolean);
+  return `
+    <style>
+      .t-jake { font-family: var(--app-font), "Helvetica Neue", Arial, sans-serif; color:#111; padding: calc(5.5% * var(--app-margin,1)) calc(6.5% * var(--app-margin,1)); height:100%; }
+      .t-jake .j-name { text-align:center; font-size:220%; font-weight:700; letter-spacing:-.01em; }
+      .t-jake .j-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; }
+      .t-jake .j-contact span:not(:last-child)::after { content:"  |  "; color:#aaa; }
+      .t-jake h2 { font-size:96%; font-weight:700; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #333; padding-bottom:2px; margin: calc(4.5% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); }
+      .t-jake .t-entry { margin-bottom: calc(2.4% * var(--app-space,1)); }
+      .t-jake .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:96%; }
+      .t-jake .t-entry-date { font-weight:400; font-style:italic; }
+      .t-jake .t-entry-sub { font-style:italic; font-size:90%; color:#333; }
+      .t-jake .t-entry-desc, .t-jake .summary, .t-jake .t-bullets { font-size:91%; }
+      .t-jake .t-bullets li { margin-bottom:1.5px; }
+    </style>
+    <div class="t-jake" style="${st}">
+      <div class="j-name">${esc(p.fullName)}</div>
+      ${contact.length ? `<div class="j-contact">${contact.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
+  harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
   professional: tProfessional, tech: tTech, executive: tExecutive,

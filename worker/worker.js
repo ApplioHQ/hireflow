@@ -923,23 +923,21 @@ function _tightenBullets(out) {
 
 // ============ Suggest skills ============
 async function aiSkills(env, { experience }) {
-  const sys = `You extract resume-ready skills from work history.
+  const sys = GROUNDING + "\n\n" + `You extract resume-ready skills that are DEMONSTRATED in the candidate's work history.
 
-Given the candidate's experience, return a clean comma-separated list of 12-18 skills they likely have, balanced across:
-- Hard/technical skills (e.g. Python, SQL, AWS, Figma, Salesforce)
-- Methodologies (e.g. Agile, A/B Testing, Customer Discovery)
-- Soft skills (e.g. Cross-functional Collaboration, Stakeholder Management)
+Return a clean comma-separated list of 10-16 skills, each one directly evidenced by the described work — a tool they clearly used, a methodology they clearly applied, or a responsibility they clearly held.
 
 Rules:
-- Infer skills from job titles AND from the described work
-- Use industry-standard naming (e.g. "Project Management", not "managing projects")
-- No duplicates, no generic words like "Teamwork", "Hard worker", "Detail-oriented"
-- No explanations, no numbering, no preamble
+- Only include a skill if the experience gives real evidence for it. Do NOT list skills just because they are common for the job title. When in doubt, leave it out.
+- Use the candidate's own tools/technologies verbatim; never swap in adjacent tools they didn't mention (e.g. don't add "Kubernetes" just because they mention Docker).
+- Use industry-standard naming (e.g. "Project Management", not "managing projects").
+- No duplicates. No generic filler like "Teamwork", "Hard worker", "Detail-oriented".
+- No explanations, no numbering, no preamble.
 
 OUTPUT: Just the comma-separated list. Nothing else.`;
   const raw = await runAI(env, sys,
     `Experience:\n${JSON.stringify(experience).slice(0, 3000)}`,
-    { max_tokens: 250, temperature: 0.4 });
+    { model: SMART_MODEL, max_tokens: 250, temperature: 0.15 });
   // Strip preambles and quotation marks
   const cleaned = raw
     .replace(/^[^a-z]*here[^:]*:\s*/i, "")
@@ -951,7 +949,7 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
 
 // ============ Tailor to job ============
 async function aiTailor(env, { jobDescription, resume }) {
-  const sys = `You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.
+  const sys = GROUNDING + "\n\n" + `You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.
 
 Analyze the job description and the candidate's resume, then output STRICT JSON in exactly this shape:
 
@@ -986,7 +984,7 @@ Rules:
 
   const raw = await runAI(env, sys,
     `Job Description:\n${(jobDescription || '').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
-    { model: SMART_MODEL, max_tokens: 1400, temperature: 0.3 });
+    { model: SMART_MODEL, max_tokens: 1400, temperature: 0.2 });
   const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
 
@@ -1010,7 +1008,7 @@ Rules:
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const sys = `You are an ATS (Applicant Tracking System) and resume scoring expert.
+  const sys = GROUNDING + "\n\n" + `You are an ATS (Applicant Tracking System) and resume scoring expert.
 
 Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
 
@@ -1068,7 +1066,7 @@ Rules:
 
 // ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
-  const sys = `You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique.
+  const sys = GROUNDING + "\n\n" + `You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique.
 
 Output STRICT JSON:
 

@@ -32,7 +32,6 @@
   .ip-fb-bar { height:6px; border-radius:4px; background:var(--bg-2); overflow:hidden; margin-top:5px; }
   .ip-fb-bar > i { display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .6s ease; }
 </style>
-</style>
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -173,8 +172,14 @@ function _renderPracticeQuestion() {
     + '</div>'
     + '<h3 style="font-size:17px;font-weight:600;line-height:1.5;margin-bottom:14px;">' + esc(q.question) + '</h3>'
     + (q.tip ? '<details class="ip-tip"><summary>💡 Coaching tip</summary><p>' + esc(q.tip) + '</p></details>' : '')
-    + '<div class="form-field"><label style="font-size:12px;">Your Answer <span style="color:var(--muted);font-weight:400;">, aim for STAR: Situation · Task · Action · Result</span></label>'
-    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
+    + '<div class="form-field"><label style="font-size:12px;">Your Answer <span style="color:var(--muted);font-weight:400;">, speak it out loud or type, aim for STAR: Situation · Task · Action · Result</span></label>'
+    + '<div class="ip-rec-row" id="_prec-row">'
+    +   '<button type="button" class="ip-mic" id="_pmic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg><span id="_pmic-label">Record answer</span></button>'
+    +   '<div class="ip-wave" id="_pwave" style="display:none;">' + '<span style="animation-delay:0s"></span><span style="animation-delay:.1s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.3s"></span><span style="animation-delay:.15s"></span><span style="animation-delay:.25s"></span><span style="animation-delay:.05s"></span>' + '</div>'
+    +   '<span class="ip-rec-time" id="_prec-time" style="display:none;">0:00</span>'
+    +   '<span class="ip-rec-hint" id="_prec-hint"></span>'
+    + '</div>'
+    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here, or tap Record answer to speak…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
     + '<button class="btn btn-primary btn-sm" id="_psubmit">' + ICON('sparkle','ico ico-sm') + ' Get AI Feedback</button>'
     + (_practiceIdx > 0 ? '<button class="btn btn-ghost btn-sm" id="_pprev">← Previous</button>' : '')

@@ -16,13 +16,20 @@
   .pricing-head .sub { font-size: 17px; color: var(--muted); max-width: 540px; margin: 0 auto; }
   .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
   .tier {
-    background: var(--bg-1); border: 1px solid var(--border); border-radius: 16px;
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg);
     padding: 32px 28px; display: flex; flex-direction: column;
+    box-shadow: var(--sh-1), var(--hi);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
   }
+  .tier:hover { transform: translateY(-4px); box-shadow: var(--sh-2), var(--hi); border-color: var(--accent); }
   .tier.featured {
-    border-color: var(--accent); background: linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-1));
-    position: relative;
+    position: relative; border: 1px solid transparent;
+    /* gradient border via padding-box/border-box double background */
+    background: linear-gradient(180deg, rgba(99,102,241,.10), var(--bg-1)) padding-box,
+                var(--gradient) border-box;
+    box-shadow: var(--sh-2), 0 0 40px rgba(99,102,241,.14);
   }
+  .tier.featured:hover { transform: translateY(-6px); box-shadow: var(--sh-3), 0 0 48px rgba(99,102,241,.20); }
   .tier.featured::before {
     content: "Most popular"; position: absolute; top: -12px; right: 24px;
     background: var(--gradient); color: #fff; font-size: 11px; font-weight: 600;

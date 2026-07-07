@@ -854,7 +854,7 @@ async function aiImprove(env, { target, text }) {
     return { text: "Add some content first, then click AI Improve to refine it." };
   }
   const isSummary = target === "summary" || target === "personal";
-  const sys = isSummary
+  const body = isSummary
     ? `You are an elite resume writer. Rewrite the candidate's professional summary so it:
 - Is 2-3 sentences, 40-60 words MAX — tight, no filler
 - Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…")
@@ -882,10 +882,11 @@ BAD — padded, multi-clause, fluffy (NEVER do this):
   "• Was responsible for rebuilding the company's marketing website using modern technologies such as Next.js, which ultimately resulted in significantly faster load times and a much improved user experience for site visitors."
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
-  // Bullets: use the stronger model (far better at obeying length rules), low temperature,
-  // and a tight token budget so it can't ramble into paragraphs.
+  const sys = GROUNDING + "\n\n" + body;
+  // Both paths use the stronger model + low temperature + tight token budget so the AI
+  // stays accurate and can't ramble into fabricated paragraphs.
   const opts = isSummary
-    ? { max_tokens: 220, temperature: 0.3 }
+    ? { model: SMART_MODEL, max_tokens: 220, temperature: 0.25 }
     : { model: SMART_MODEL, max_tokens: 320, temperature: 0.2 };
   const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, opts);
   // Strip common AI preambles / wrapping quotes

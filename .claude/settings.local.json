@@ -152,7 +152,8 @@
       "WebSearch",
       "Bash(awk '/^async function aiAnalyze/{f=1} f{print} /^}/{if\\(f\\)c++; if\\(c==1 && f\\)exit}' worker/worker.js)",
       "Bash(sed -n '/^async function ai\\(req, env, action\\)/,/^}/p' worker/worker.js)",
-      "Bash(sed -n '/^async function aiDispatch/,/^}/p' worker/worker.js)"
+      "Bash(sed -n '/^async function aiDispatch/,/^}/p' worker/worker.js)",
+      "Bash(awk '/id=\"templates\"/{s=NR} s && /<\\\\/section>/{print \"section: lines \"s\"-\"NR; exit}' index.html)"
     ]
   }
 }

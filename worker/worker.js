@@ -19,7 +19,7 @@ const FAST_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve", "cover-letter"]);
 // Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
 const FREE_ASSISTANT_MESSAGES = 5;
 
@@ -695,6 +695,7 @@ async function aiDispatch(env, action, body) {
     case "parse":     return aiParse(env, body);
     case "interview": return aiInterview(env, body);
     case "interview-feedback": return aiInterviewFeedback(env, body);
+    case "cover-letter": return aiCoverLetter(env, body);
     case "assistant": return aiAssistant(env, body);
     default: throw err(404, "Unknown AI action");
   }
@@ -1272,6 +1273,44 @@ Rules:
   if (j.strengths?.length) parts.push(`\nWhat's working:\n${j.strengths.map(s => `  ✓ ${s}`).join("\n")}`);
   if (j.improvements?.length) parts.push(`\nHow to improve:\n${j.improvements.map(i => `  → ${i}`).join("\n")}`);
   return { score: j.score ?? 50, feedback: parts.join("\n"), breakdown: j.breakdown || null };
+}
+
+// ============ Cover letter generator ============
+async function aiCoverLetter(env, { role, company, jobDescription, tone, highlights, resume }) {
+  const toneMap = {
+    professional: "polished and professional",
+    enthusiastic: "warm and enthusiastic, while staying professional",
+    confident:    "confident and direct, leading with impact",
+    warm:         "warm, personable, and genuine",
+  };
+  const toneDesc = toneMap[tone] || toneMap.professional;
+  const name = (resume && (resume.name || (resume.personal && resume.personal.name))) || "";
+
+  const sys = `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume — never invent employers, titles, degrees, or metrics that aren't supported by the resume.
+
+Requirements:
+- Tone: ${toneDesc}.
+- Length: 250-350 words, 3-4 short paragraphs.
+- Structure: (1) a specific hook that connects the candidate to THIS role/company, (2) 1-2 paragraphs of evidence — concrete achievements and skills from the resume that map to the job's needs, with real numbers where the resume has them, (3) a confident closing with a call to action.
+- Address it to "Dear Hiring Manager," unless a name is clearly provided.
+- Sign off with "Sincerely," followed by the candidate's name${name ? ` (${name})` : ""}.
+- Mirror the most important keywords and priorities from the job description naturally.
+- NO placeholders or brackets like [Company] or [Your achievement] — use the real details provided; if a detail is unknown, write around it gracefully.
+- Plain text only. No markdown, no headings, no preamble like "Here's your cover letter". Output ONLY the letter.`;
+
+  const userMsg = [
+    `Target role: ${role || "(not specified)"}`,
+    `Company: ${company || "(not specified)"}`,
+    highlights ? `Candidate wants to emphasize: ${String(highlights).slice(0, 600)}` : "",
+    `\nJob description:\n${(jobDescription || "(none provided — infer needs from the role title and resume)").slice(0, 3500)}`,
+    `\nCandidate resume (ground everything in this):\n${JSON.stringify(resume || {}).slice(0, 6000)}`,
+  ].filter(Boolean).join("\n");
+
+  const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.55 });
+  const cleaned = out
+    .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
+    .trim();
+  return { text: cleaned };
 }
 
 function safeJSON(s) {

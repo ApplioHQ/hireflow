@@ -172,7 +172,13 @@
       "Bash(awk 'NR>=940 && NR<=1015 && /^\\(async \\)?function /{print NR\": \"$0}' worker/worker.js)",
       "Bash(curl -s -m 30 -X POST __TRACKED_VAR__/ai/interview-feedback -H 'Authorization: Bearer __TRACKED_VAR__' -H 'Content-Type: application/json' -d '{\"question\":\"Tell me about a challenge\",\"answer\":\"I led a team to ship a feature that increased revenue 20%.\"}')",
       "Bash(curl -s -m 40 -X POST __TRACKED_VAR__/ai/interview-feedback -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"question\":\"Tell me about a time you led a project under a tight deadline.\",\"answer\":\"At my last job our checkout was failing during peak traffic. I led a team of 4, set a 2-week plan, rewrote the payment retry logic, and we cut failed transactions by 35%, recovering about $200k in monthly revenue.\",\"role\":\"Software Engineer\"}')",
-      "Bash(curl -s -m 30 -o /tmp/cl.json -w 'HTTP %{http_code}\\\\n' -X POST __TRACKED_VAR__/ai/cover-letter -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"role\":\"Product Manager\",\"company\":\"Stripe\",\"resume\":{\"name\":\"Alex\"}}')"
+      "Bash(curl -s -m 30 -o /tmp/cl.json -w 'HTTP %{http_code}\\\\n' -X POST __TRACKED_VAR__/ai/cover-letter -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"role\":\"Product Manager\",\"company\":\"Stripe\",\"resume\":{\"name\":\"Alex\"}}')",
+      "Bash(curl -sI -m 20 https://appliohq.com/)",
+      "Bash(curl -sI -m 20 -A \"GPTBot\" https://appliohq.com/)",
+      "Bash(curl -s -m 20 https://appliohq.com/)",
+      "Bash(curl -s -m 20 https://appliohq.com/robots.txt)",
+      "Bash(curl -sI -m 20 https://appliohq.com/sitemap.xml)",
+      "Bash(curl -sI -m 20 https://appliohq.com/llms.txt)"
     ]
   }
 }

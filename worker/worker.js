@@ -694,6 +694,7 @@ async function aiDispatch(env, action, body) {
     case "analyze":   return aiAnalyze(env, body);
     case "parse":     return aiParse(env, body);
     case "interview": return aiInterview(env, body);
+    case "interview-feedback": return aiInterviewFeedback(env, body);
     case "assistant": return aiAssistant(env, body);
     default: throw err(404, "Unknown AI action");
   }
@@ -1224,6 +1225,53 @@ Rules:
   return { text: await runAI(env, sys,
     `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
     { max_tokens: 1400, temperature: 0.55 }) };
+}
+
+// ============ Interview answer feedback (scored) ============
+async function aiInterviewFeedback(env, { question, answer, role }) {
+  const sys = `You are a senior interview coach scoring a candidate's practice answer. Be honest, specific, and encouraging. Output STRICT JSON:
+
+{
+  "score": <integer 0-100>,
+  "breakdown": {
+    "structure": <0-100>,
+    "impact": <0-100>,
+    "clarity": <0-100>
+  },
+  "strengths": ["<specific thing the answer did well>", "<another>"],
+  "improvements": ["<specific, actionable fix>", "<another>"],
+  "feedback": "<2-3 sentence overall summary>"
+}
+
+Scoring rubric — compute each sub-score 0-100, then score = the WEIGHTED sum:
+- structure (35%): does it follow STAR (Situation, Task, Action, Result) or otherwise tell a clear, complete story?
+- impact (35%): are there concrete, quantified results and evidence of ownership?
+- clarity (30%): is it concise, specific, and easy to follow (not rambling or vague)?
+Band check: 90-100 excellent · 70-89 strong with minor gaps · 50-69 needs work · <50 major gaps.
+Be strict and consistent: the SAME answer must always get the SAME score.
+
+Rules:
+- strengths/improvements must reference the candidate's ACTUAL words, not generic advice
+- if the answer is empty or off-topic, score low and say why
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+
+  const raw = await runAI(env, sys,
+    `Interview question:\n${String(question || '').slice(0, 800)}\n\nRole: ${String(role || 'the target role').slice(0, 120)}\n\nCandidate's answer:\n${String(answer || '').slice(0, 3000)}`,
+    { model: SMART_MODEL, max_tokens: 700, temperature: 0.1 });
+  const j = safeJSON(raw);
+  if (!j) return { score: 50, feedback: raw };
+
+  const parts = [];
+  if (j.feedback) parts.push(j.feedback);
+  if (j.breakdown) {
+    parts.push(`\nBreakdown:`);
+    parts.push(`  Structure (STAR): ${j.breakdown.structure}/100`);
+    parts.push(`  Impact & results: ${j.breakdown.impact}/100`);
+    parts.push(`  Clarity: ${j.breakdown.clarity}/100`);
+  }
+  if (j.strengths?.length) parts.push(`\nWhat's working:\n${j.strengths.map(s => `  ✓ ${s}`).join("\n")}`);
+  if (j.improvements?.length) parts.push(`\nHow to improve:\n${j.improvements.map(i => `  → ${i}`).join("\n")}`);
+  return { score: j.score ?? 50, feedback: parts.join("\n"), breakdown: j.breakdown || null };
 }
 
 function safeJSON(s) {

@@ -15,6 +15,23 @@
   .ip-tip summary::-webkit-details-marker { display: none; }
   .ip-tip[open] summary { border-bottom: 1px solid var(--border); }
   .ip-tip p { margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+  /* Voice recorder */
+  .ip-rec-row { display:flex; align-items:center; gap:12px; margin:10px 0 4px; flex-wrap:wrap; }
+  .ip-mic { display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:var(--r-full); border:1px solid var(--border); background:var(--bg-2); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; transition:border-color var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .ip-mic:hover { border-color:var(--accent); color:var(--accent); }
+  .ip-mic.recording { border-color:#ef4444; color:#fff; background:#ef4444; }
+  .ip-mic svg { width:16px; height:16px; }
+  .ip-rec-dot { width:9px; height:9px; border-radius:50%; background:#ef4444; animation:ipPulse 1.1s infinite; }
+  @keyframes ipPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.35;transform:scale(.7);} }
+  .ip-wave { display:flex; align-items:center; gap:3px; height:26px; }
+  .ip-wave span { width:3px; border-radius:2px; background:var(--accent); height:6px; animation:ipWave 1s ease-in-out infinite; }
+  @keyframes ipWave { 0%,100%{height:6px;} 50%{height:24px;} }
+  .ip-rec-time { font-size:13px; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .ip-rec-hint { font-size:11.5px; color:var(--muted); }
+  /* Scored feedback breakdown bars */
+  .ip-fb-bar { height:6px; border-radius:4px; background:var(--bg-2); overflow:hidden; margin-top:5px; }
+  .ip-fb-bar > i { display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .6s ease; }
+</style>
 </style>
 </head>
 <body class="app-body-scroll">

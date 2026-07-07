@@ -36,7 +36,9 @@
   }
   .jt-followup-btn:hover { background:#d97706; }
   .jt-mail-field { width:100%; box-sizing:border-box; padding:9px 11px; background:var(--bg-2);
-    border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:inherit; }
+    border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-size:13px; font-family:inherit;
+    transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .jt-mail-field:focus { outline:none; border-color:var(--accent); box-shadow:var(--ring); }
   @media (max-width:640px){ .jt-stats { grid-template-columns:repeat(3,1fr); } }
 </style>
 </head>

@@ -267,7 +267,7 @@ input, textarea, select { font-family: inherit; }
 }
 
 /* ===== Templates (compact grid, formal mini-previews) ===== */
-.template-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .tpl-cat-label {
   display: flex; align-items: center; gap: 10px;
   font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
@@ -448,7 +448,7 @@ input, textarea, select { font-family: inherit; }
 
 /* ===== Template card footer & thumb ===== */
 .template-thumb {
-  position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 4px;
+  position: relative; width: 100%; aspect-ratio: 5 / 4; overflow: hidden; border-radius: 4px;
 }
 .template-thumb svg { width: 100%; height: auto; display: block; }
 /* soft fade so the cropped page bottom looks intentional */
@@ -683,9 +683,6 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .topbar-tabs { display: none; }
   .topbar-right .btn-ghost:last-child { display: none; }
 
-  /* Template grid: 2 columns on mobile */
-  .template-grid { grid-template-columns: repeat(3, 1fr); }
-
   /* grid-2 stacks on mobile */
   .grid-2 { grid-template-columns: 1fr; }
 }
@@ -695,7 +692,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .brand span { display: none; }
   .topbar-right { gap: 6px; }
   .topbar-right #save-status { display: none; }
-  .template-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .template-grid { grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 8px; }
   .main-area { padding: 12px; }
 }
 

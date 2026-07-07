@@ -9,8 +9,9 @@
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
 <style>
-  .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); overflow: hidden; }
-  .ip-tip summary { cursor: pointer; padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: var(--accent); list-style: none; user-select: none; }
+  .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); overflow: hidden; box-shadow: var(--sh-1); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ip-tip:hover { border-color: var(--accent); box-shadow: var(--sh-2); }
+  .ip-tip summary { cursor: pointer; padding: 11px 14px; font-size: 12.5px; font-weight: 600; color: var(--accent); list-style: none; user-select: none; }
   .ip-tip summary::-webkit-details-marker { display: none; }
   .ip-tip[open] summary { border-bottom: 1px solid var(--border); }
   .ip-tip p { margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }

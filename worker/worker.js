@@ -850,36 +850,68 @@ async function aiImprove(env, { target, text }) {
   const isSummary = target === "summary" || target === "personal";
   const sys = isSummary
     ? `You are an elite resume writer. Rewrite the candidate's professional summary so it:
-- Is 2-3 sentences, ~40-60 words
+- Is 2-3 sentences, 40-60 words MAX — tight, no filler
 - Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…")
 - Names 2-3 standout competencies with specifics
 - Ends with a value statement aimed at hiring managers
-- Uses active voice, no buzzwords ("synergy", "dynamic", "passionate")
+- Uses active voice, no buzzwords ("synergy", "dynamic", "passionate", "results-driven")
 - Is in third-person implied (no "I", no "you")
-- Is plain text only — no markdown, no headers, no quotation marks
+- Preserves the candidate's real facts — never invent titles, numbers, or achievements
+- Plain text only — no markdown, no headers, no quotation marks
 
 OUTPUT: Only the rewritten summary. Nothing else.`
-    : `You are an elite resume writer. Rewrite the following ${target} content into achievement-focused bullets. Rules:
-- Each bullet starts with a strong past-tense action verb (Led, Built, Shipped, Reduced, Architected, Drove, Designed, etc. — never repeat a verb)
-- Each bullet shows measurable impact (%, $, time saved, scale, headcount, users)
-- Keep each bullet under ~20 words
-- 3-6 bullets total
-- Use the • character to mark each bullet, one per line
-- If the input lacks numbers, make conservative inferences from context (e.g. "led 5-person team" if they mention managing engineers); never invent specific company-private metrics
-- Plain text only — no markdown bold, no headers
+    : `You are an elite resume writer. Rewrite the following ${target} content into tight, achievement-focused bullets.
 
-Match this quality bar:
-  Input:  "Responsible for the website and worked on making it faster."
-  Output: "• Rebuilt the marketing site in Next.js, cutting page load time 40% and lifting conversions 18%."
+HARD RULES — follow exactly:
+- Output 3-6 bullets, one per line, each starting with "• ".
+- Each bullet is ONE sentence, 10-18 words. NEVER exceed 20 words. No second sentence, no trailing clauses.
+- Start each bullet with a distinct strong past-tense action verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected…). Never reuse a verb.
+- Lead with the result/impact. Include a metric (%, $, time, scale, users) ONLY if it is present in or directly implied by the input. NEVER invent specific numbers.
+- Keep the candidate's real facts. Do NOT add fluff, filler, stacked adjectives, or explanation. Banned phrases: "responsible for", "successfully", "in order to", "which resulted in", "helped to", "various", "leveraged".
+- Plain text only. No markdown, no headers, no preamble, no closing remarks.
+
+GOOD — tight, one sentence, real impact:
+  "• Rebuilt the marketing site in Next.js, cutting page load time 40%."
+BAD — padded, multi-clause, fluffy (NEVER do this):
+  "• Was responsible for rebuilding the company's marketing website using modern technologies such as Next.js, which ultimately resulted in significantly faster load times and a much improved user experience for site visitors."
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
-  const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, { max_tokens: 500, temperature: 0.5 });
-  // Strip common AI preambles
-  const cleaned = out
+  // Bullets: use the stronger model (far better at obeying length rules), low temperature,
+  // and a tight token budget so it can't ramble into paragraphs.
+  const opts = isSummary
+    ? { max_tokens: 220, temperature: 0.3 }
+    : { model: SMART_MODEL, max_tokens: 320, temperature: 0.2 };
+  const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, opts);
+  // Strip common AI preambles / wrapping quotes
+  let cleaned = out
     .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
     .replace(/^["']|["']$/g, "")
     .trim();
+  // For bullets, enforce the length/format rules in CODE so a chatty model can never
+  // slip paragraphs of fluff past us: one tight sentence per bullet, ≤20 words, max 6.
+  if (!isSummary) cleaned = _tightenBullets(cleaned);
   return { text: cleaned };
+}
+
+// Backstop that guarantees concise bullets regardless of model output: strips list
+// markers/markdown, keeps only the first sentence of each bullet (trailing sentences
+// are almost always padding), hard-caps ~20 words, and limits to 6 bullets.
+function _tightenBullets(out) {
+  const lines = out.split("\n").map(l => l.trim()).filter(Boolean);
+  const bullets = [];
+  for (const line of lines) {
+    let s = line.replace(/^\s*(?:[••*\-]+|\d+[.)])\s*/, "").replace(/\*\*/g, "").trim();
+    if (!s) continue;
+    const m = s.match(/^(.*?[.!?])(?:\s+\S[^]*)?$/);      // keep first sentence only
+    if (m) s = m[1].trim();
+    const words = s.split(/\s+/);
+    if (words.length > 20) s = words.slice(0, 20).join(" ").replace(/[,;:]+$/, "") + ".";
+    if (!/[.!?]$/.test(s)) s += ".";
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    bullets.push("• " + s);
+    if (bullets.length >= 6) break;
+  }
+  return bullets.length ? bullets.join("\n") : out;
 }
 
 // ============ Suggest skills ============

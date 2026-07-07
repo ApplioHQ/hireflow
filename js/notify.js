@@ -320,6 +320,50 @@ function _clearAiTimers(el) {
   if (el._raf) { cancelAnimationFrame(el._raf); el._raf = null; }
 }
 
+// Frame script for the AI dot-loader (7x7 grid; each frame lists the lit dot
+// indices). A looping "snake" that travels the grid — ported from the DotLoader.
+const _AI_DOT_FRAMES = [
+  [14, 7, 0, 8, 6, 13, 20], [14, 7, 13, 20, 16, 27, 21], [14, 20, 27, 21, 34, 24, 28],
+  [27, 21, 34, 28, 41, 32, 35], [34, 28, 41, 35, 48, 40, 42], [34, 28, 41, 35, 48, 42, 46],
+  [34, 28, 41, 35, 48, 42, 38], [34, 28, 41, 35, 48, 30, 21], [34, 28, 41, 48, 21, 22, 14],
+  [34, 28, 41, 21, 14, 16, 27], [34, 28, 21, 14, 10, 20, 27], [28, 21, 14, 4, 13, 20, 27],
+  [28, 21, 14, 12, 6, 13, 20], [28, 21, 14, 6, 13, 20, 11], [28, 21, 14, 6, 13, 20, 10],
+  [14, 6, 13, 20, 9, 7, 21],
+];
+
+// Build the 49-dot grid element. Returns { el, start(), stop() }.
+// Active dots glow indigo; inactive dots are faint on the dark overlay.
+function _aiDotLoader(duration) {
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,10px);gap:5px;width:fit-content;';
+  const dots = [];
+  for (let i = 0; i < 49; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = 'width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.12);transition:background .12s ease, box-shadow .12s ease;';
+    grid.appendChild(d);
+    dots.push(d);
+  }
+  let idx = 0, timer = null;
+  const apply = (frameIndex) => {
+    const frame = _AI_DOT_FRAMES[frameIndex]; if (!frame) return;
+    dots.forEach((d, i) => {
+      const on = frame.includes(i);
+      d.style.background = on ? '#a5b4fc' : 'rgba(255,255,255,.12)';
+      d.style.boxShadow = on ? '0 0 8px rgba(129,140,248,.7)' : 'none';
+    });
+  };
+  return {
+    el: grid,
+    start() {
+      apply(0); idx = 1;
+      timer = setInterval(() => { apply(idx); idx = (idx + 1) % _AI_DOT_FRAMES.length; }, duration || 110);
+      return timer;
+    },
+    staticFrame() { apply(0); },
+    stop() { if (timer) clearInterval(timer); },
+  };
+}
+
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)
   const existing = document.getElementById('ai-loading-overlay');
@@ -346,28 +390,16 @@ window.aiLoading = function (message) {
       @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
     </style>`;
 
-  // Primary visual: Siri-style WebGL wave. Falls back to an SVG spinner when
-  // WebGL is unavailable or the user prefers reduced motion.
+  // Primary visual: the animated dot-loader (7x7 grid "snake"). Reduced motion
+  // shows a single static frame instead of animating.
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let cleanup = null;
-  if (!reduce) {
-    const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'width:200px;height:200px;background:transparent;';
-    cleanup = mountSiriWave(canvas, { variant: 'wave', size: 200, renderScale: 0.7 });
-    if (cleanup) { el.appendChild(canvas); el._siriCleanup = cleanup; }
-  }
-  if (!cleanup) {
-    const sp = document.createElement('div');
-    sp.style.cssText = 'width:56px;height:56px;position:relative;display:flex;align-items:center;justify-content:center;';
-    sp.innerHTML = `
-      <svg viewBox="0 0 56 56" style="position:absolute;inset:0;width:100%;height:100%;animation:aiSpinRing 1.1s linear infinite;">
-        <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(99,102,241,.25)" stroke-width="4"/>
-        <circle cx="28" cy="28" r="24" fill="none" stroke="#6366f1" stroke-width="4" stroke-linecap="round" stroke-dasharray="36 113"/>
-      </svg>
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
-      </svg>`;
-    el.appendChild(sp);
+  const dots = _aiDotLoader(110);
+  el.appendChild(dots.el);
+  if (reduce) {
+    dots.staticFrame();
+  } else {
+    const dotTimer = dots.start();
+    el._aiTimers.push(dotTimer);
   }
 
   const msg = document.createElement('div');

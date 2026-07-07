@@ -178,7 +178,8 @@
       "Bash(curl -s -m 20 https://appliohq.com/)",
       "Bash(curl -s -m 20 https://appliohq.com/robots.txt)",
       "Bash(curl -sI -m 20 https://appliohq.com/sitemap.xml)",
-      "Bash(curl -sI -m 20 https://appliohq.com/llms.txt)"
+      "Bash(curl -sI -m 20 https://appliohq.com/llms.txt)",
+      "Bash(curl -sI -m 20 https://www.appliohq.com/)"
     ]
   }
 }

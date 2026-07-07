@@ -1,0 +1,21 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Applio">
+  <defs>
+    <linearGradient id="ap-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="26" fill="url(#ap-g)"/>
+  <!-- A: two legs + crossbar, bold rounded white strokes -->
+  <g fill="none" stroke="#fff" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M50 28 L32 72"/>
+    <path d="M50 28 L68 72"/>
+    <path d="M38.5 58 H61.5"/>
+  </g>
+  <!-- AI sparkle accent, top-right -->
+  <path d="M75 18
+           C75.7 23.4 76.6 24.3 82 25
+           C76.6 25.7 75.7 26.6 75 32
+           C74.3 26.6 73.4 25.7 68 25
+           C73.4 24.3 74.3 23.4 75 18 Z" fill="#fff"/>
+</svg>

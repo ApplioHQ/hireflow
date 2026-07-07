@@ -2966,7 +2966,7 @@ function _maybeShowWelcome() {
   bd.innerHTML = `
     <div class="wel-bg"></div>
     <div class="wel-card">
-      <div class="wel-logo"><img src="logo.jpeg" alt="Applio"></div>
+      <div class="wel-logo"><img src="logo.svg" alt="Applio"></div>
       <div class="wel-eyebrow">Welcome to Applio</div>
       <h1 class="wel-title">Let's land you<br>more interviews.</h1>
       <p class="wel-sub">Your AI resume workspace is ready, build it, optimize it for ATS, and export a recruiter-ready PDF, all in one place.</p>

@@ -1225,7 +1225,7 @@ OUTPUT FORMAT:
 
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
-  const sys = `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
+  const sys = GROUNDING + "\n\n" + `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
 
 Generate 10 high-quality practice interview questions, mixing:
 - 3 behavioral (STAR-friendly: "Tell me about a time you…")
@@ -1277,7 +1277,7 @@ Rules:
 
   return { text: await runAI(env, sys,
     `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
-    { max_tokens: 1400, temperature: 0.55 }) };
+    { model: SMART_MODEL, max_tokens: 1400, temperature: 0.35 }) };
 }
 
 // ============ Interview answer feedback (scored) ============
@@ -1338,7 +1338,7 @@ async function aiCoverLetter(env, { role, company, jobDescription, tone, highlig
   const toneDesc = toneMap[tone] || toneMap.professional;
   const name = (resume && (resume.name || (resume.personal && resume.personal.name))) || "";
 
-  const sys = `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume — never invent employers, titles, degrees, or metrics that aren't supported by the resume.
+  const sys = GROUNDING + "\n\n" + `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume — never invent employers, titles, degrees, or metrics that aren't supported by the resume.
 
 Requirements:
 - Tone: ${toneDesc}.
@@ -1358,7 +1358,7 @@ Requirements:
     `\nCandidate resume (ground everything in this):\n${JSON.stringify(resume || {}).slice(0, 6000)}`,
   ].filter(Boolean).join("\n");
 
-  const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.55 });
+  const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
   const cleaned = out
     .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
     .trim();

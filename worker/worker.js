@@ -659,13 +659,29 @@ async function ai(req, env, action) {
 
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
+  const paid = isPaidPlan(user);
 
-  // Free users get NO AI features
-  if (PRO_AI.has(action) && !isPaidPlan(user)) {
+  // Free users get NO résumé-AI features (tailor/ats/analyze/etc.).
+  if (PRO_AI.has(action) && !paid) {
     throw err(402, "Upgrade to Premium to use AI features");
   }
 
   const body = await req.json();
+
+  // Career Coach: free users get a few messages as a taste, then must upgrade.
+  // Enforced server-side and counted only on a SUCCESSFUL reply (so a failed call
+  // never burns a message). Paid users are unlimited.
+  if (action === "assistant" && !paid) {
+    const used = user.assistantUsed || 0;
+    if (used >= FREE_ASSISTANT_MESSAGES) {
+      throw err(402, "You've used your free Career Coach messages. Upgrade to Premium for unlimited coaching.");
+    }
+    const result = await aiDispatch(env, action, body);
+    user.assistantUsed = used + 1;
+    await putUser(env, user);
+    return { ...result, freeRemaining: Math.max(0, FREE_ASSISTANT_MESSAGES - user.assistantUsed) };
+  }
+
   return await aiDispatch(env, action, body);
 }
 

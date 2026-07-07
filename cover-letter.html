@@ -40,10 +40,22 @@
   .cl-empty svg { width: 46px; height: 46px; color: var(--accent); margin-bottom: 14px; opacity:.9; }
   .cl-empty h4 { color: var(--text); font-size: 16px; font-weight: 700; margin-bottom: 6px; }
   .cl-empty p { font-size: 13.5px; max-width: 340px; line-height: 1.6; }
-  .cl-sk { flex:1; border-radius: var(--r-md); background:
-    linear-gradient(100deg, var(--bg-2) 30%, var(--bg-3) 50%, var(--bg-2) 70%); background-size: 200% 100%;
-    animation: clsk 1.3s infinite; }
-  @keyframes clsk { to { background-position: -200% 0; } }
+  /* Generating / "writing" animation — letter paper with paragraph lines */
+  .cl-writing { flex:1; background:#fbfbfd; border-radius: var(--r-md); padding: 38px 44px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); display:flex; flex-direction:column; }
+  .cl-writing-status { display:flex; align-items:center; gap:9px; color:#5b5bd6; font-size:13px; font-weight:600; margin-bottom:24px; }
+  .cl-writing-spark { width:16px; height:16px; animation: clPulse 1.3s ease-in-out infinite; }
+  @keyframes clPulse { 0%,100%{ transform:scale(1); opacity:1;} 50%{ transform:scale(.82); opacity:.55;} }
+  .cl-dots span { display:inline-block; width:4px; height:4px; margin:0 1px; border-radius:50%; background:#8a8ad6; animation: clBlink 1.2s infinite both; }
+  .cl-dots span:nth-child(2){ animation-delay:.18s; } .cl-dots span:nth-child(3){ animation-delay:.36s; }
+  @keyframes clBlink { 0%,80%,100%{opacity:.3;} 40%{opacity:1;} }
+  .cl-line { height:11px; border-radius:6px; margin-bottom:13px; opacity:0;
+    background:linear-gradient(100deg,#e7e9f1 28%,#f3f4f9 50%,#e7e9f1 72%); background-size:200% 100%;
+    animation: clShimmer 1.25s linear infinite, clReveal .45s ease forwards; }
+  .cl-line.gap { margin-bottom:26px; }
+  @keyframes clShimmer { to { background-position:-200% 0; } }
+  @keyframes clReveal { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:none;} }
+  @media (prefers-reduced-motion: reduce) { .cl-line { opacity:1; animation:none; } .cl-writing-spark { animation:none; } }
   /* Premium gate */
   .cl-gate { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 44px 30px; }
   .cl-gate .badge { font-size: 11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: var(--accent); background: rgba(99,102,241,.14); border:1px solid rgba(99,102,241,.3); border-radius: var(--r-full); padding: 5px 12px; margin-bottom: 16px; }
@@ -161,6 +173,27 @@ function _showFreeRemaining(n){
     : `That was your last free cover letter. <a href="pricing" style="color:var(--accent);font-weight:600;">Upgrade to keep going →</a>`;
 }
 
+function _writingState(){
+  // Paragraph line widths (%) with blank-line gaps between "paragraphs".
+  var groups = [[62], [96,92,88,70], [94,90,97,64], [90,84,40]];
+  var i = 0, lines = '';
+  groups.forEach(function(g){
+    g.forEach(function(w, idx){
+      var gap = idx === g.length - 1 ? ' gap' : '';
+      lines += '<div class="cl-line' + gap + '" style="width:' + w + '%;animation-delay:0s,' + (i * 0.09).toFixed(2) + 's"></div>';
+      i++;
+    });
+  });
+  return '<div class="cl-writing">'
+    + '<div class="cl-writing-status">'
+    +   '<svg class="cl-writing-spark" viewBox="0 0 24 24" fill="none" stroke="#5b5bd6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>'
+    +   '<span>Writing your cover letter</span>'
+    +   '<span class="cl-dots"><span></span><span></span><span></span></span>'
+    + '</div>'
+    + lines
+    + '</div>';
+}
+
 function _renderLetter(text){
   lastLetter = text;
   document.getElementById('cl-actions').style.display = 'flex';
@@ -176,7 +209,7 @@ async function generate(){
   if (!role && !company) { toast('Add a company or role first', {type:'warn'}); return; }
 
   document.getElementById('cl-actions').style.display = 'none';
-  document.getElementById('cl-body').innerHTML = '<div class="cl-sk"></div>';
+  document.getElementById('cl-body').innerHTML = _writingState();
 
   try {
     const r = await fetch(API + '/ai/cover-letter', {

@@ -18,6 +18,8 @@
     } catch {}
     return null;
   }
+  // Fallback MUST stay identical to editor.js `countFilled()` so the health
+  // score matches on every screen (editor vs. match/jobs/interview).
   function _completeness(r) {
     if (typeof countFilled === 'function') { try { return countFilled().score; } catch {} }
     const p = r.personal || {};
@@ -25,24 +27,29 @@
     if (p.fullName && p.email) done++;
     if ((r.experience || []).length) done++;
     if ((r.education || []).length) done++;
-    if (((r.skills && r.skills.categories) || []).some(c => (c.items || []).length)) done++;
+    if (((r.skills && r.skills.categories) || []).length) done++;
     if ((r.projects || []).length) done++;
     return done / 5;
   }
+  // Fallback MUST stay identical to editor.js `_scoreBullet()` so the health
+  // score matches on every screen (editor vs. match/jobs/interview).
   function _bulletScore(text) {
     if (typeof _scoreBullet === 'function') { try { return _scoreBullet(text); } catch {} }
-    // Fallback heuristic mirroring _scoreBullet's shape.
-    const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+    if (!text || !text.trim()) return 0;
+    var lines = text.split('\n').map(function (l) { return l.replace(/^[•\-\*]\s*/, '').trim(); }).filter(Boolean);
     if (!lines.length) return 0;
-    let sum = 0;
-    lines.forEach(l => {
-      let v = 0;
-      if (/\b(led|built|shipped|drove|designed|reduced|grew|managed|created|launched|improved|architected)\b/i.test(l)) v += 30;
-      if (/\d/.test(l)) v += 35;
-      if (l.length >= 40) v += 20; else if (l.length >= 20) v += 10;
-      sum += Math.min(100, v + 15);
-    });
-    return sum / lines.length;
+    var score = 0;
+    var ACTION_VERBS = /^(led|built|created|designed|developed|launched|improved|increased|reduced|managed|delivered|implemented|drove|grew|optimized|architected|deployed|scaled|mentored|negotiated|spearheaded|revamped|authored|engineered|coordinated|established|exceeded|automated|migrated|collaborated|achieved|generated|saved|cut|boosted|accelerated|transformed|streamlined|restructured|recruited|trained|oversaw|pioneered|directed|facilitated)/i;
+    var hasVerb = lines.some(function (l) { return ACTION_VERBS.test(l); });
+    var hasMetric = /\d+\s*(%|x|k\b|\$|million|billion|users|customers|hours|days|weeks|months|years|points|ms\b|seconds)|\$\s*[\d,]+|\d[\d,]{2,}/i.test(text);
+    var totalChars = lines.reduce(function (a, l) { return a + l.length; }, 0);
+    var avgLen = totalChars / lines.length;
+    if (hasVerb) score += 30;
+    if (hasMetric) score += 35;
+    if (avgLen >= 40) score += 20; else if (avgLen >= 20) score += 10;
+    if (lines.length >= 2) score += 10;
+    if (lines.length >= 3) score += 5;
+    return Math.min(100, score);
   }
   function _bulletQuality(r) {
     const texts = [];

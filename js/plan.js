@@ -236,6 +236,10 @@ async function openBillingPortal() {
     rows.push(`<div class="acct-row" style="border:1px solid var(--warning); background:rgba(245,158,11,.08); padding:10px; border-radius:8px;"><span style="font-size:12px; color:#fcd34d; line-height:1.4;">No Stripe billing record is linked yet. If you just paid, click <strong>Sync with Stripe</strong> below.</span></div>`);
 
   const buttons = [];
+  // Admin/super-admin: Admin Console (moved here from the topbar).
+  if (isAdmin()) {
+    buttons.push(`<button class="btn btn-secondary" style="background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(139,92,246,.18));border:1px solid rgba(239,68,68,.35);color:#fca5a5;font-weight:600;" onclick="location.href='admin'">⚡ Admin Console</button>`);
+  }
   // Admin-only: a link to the feedback inbox (only the ADMIN_EMAIL account sees this).
   if (u.isAdmin) {
     buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">📥 View user feedback</button>`);
@@ -407,17 +411,8 @@ async function _applioPageBoot() {
   if (localStorage.getItem('hf_token')) await loadCurrentUser();
   if (!isLogin) await checkSiteStatus();
 
-  const tabs = document.querySelector('.topbar-tabs');
-  if (tabs && isAdmin() && !document.getElementById('admin-console-link')
-      && !here.endsWith('admin')) {
-    const link = document.createElement('a');
-    link.id = 'admin-console-link';
-    link.href = 'admin';
-    link.className = 'topbar-tab';
-    link.style.cssText = 'background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(139,92,246,.18)); border:1px solid rgba(239,68,68,.35); color:#fca5a5; font-weight:600;';
-    link.innerHTML = '⚡ ADMIN CONSOLE';
-    tabs.insertBefore(link, tabs.firstChild);
-  }
+  // Admin Console is now surfaced inside the account menu/dropdown (see the account
+  // dropdown in editor.html and openBillingPortal below), not as a topbar button.
 }
 // Run after DOM is ready
 if (document.readyState === 'loading') {

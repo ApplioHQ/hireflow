@@ -120,6 +120,9 @@ function hydrate() {
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? planLabel() + ' plan' : 'Free plan';
   // Manage / cancel subscription is only relevant to paying users.
   const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
+  // Admin Console: only admins/super-admins (moved here from the topbar button).
+  const adRow = document.getElementById('acct-admin-console');
+  if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';
 
   // Interview Prep is free for everyone, no lock, navigates normally.
   if (ipTab) {

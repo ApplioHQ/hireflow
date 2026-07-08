@@ -837,21 +837,28 @@ function fitDocToOnePage(doc, pageH) {
   // Reset any previous fit so re-renders are idempotent and measurement is honest.
   root.style.fontSize = '';
   root.style.removeProperty('--app-space');
-  const baseSpace = parseFloat(win.getComputedStyle(root).getPropertyValue('--app-space')) || 1;
+  root.style.removeProperty('--app-margin');
+  const cs = win.getComputedStyle(root);
+  const baseSpace = parseFloat(cs.getPropertyValue('--app-space')) || 1;
+  const baseMargin = parseFloat(cs.getPropertyValue('--app-margin')) || 1;
   const measure = () => doc.body.scrollHeight || doc.documentElement.scrollHeight || 0;
   let h = measure();
   if (h <= pageH) return true;                     // already one page, nothing to do
   // Shrink CUMULATIVELY: each pass multiplies the running factor by the ratio still
   // needed. Some height (fixed page padding) doesn't scale, so a linear guess would
-  // overshoot; a few multiplicative passes converge. Clamped to the readability floor.
+  // overshoot; a few multiplicative passes converge. We compress font-size + section
+  // spacing to the readability floor, and squeeze the page margins a little further
+  // (they cost vertical room but don't hurt legibility), clamped to their own floor.
   let factor = 1;
-  for (let i = 0; i < 5 && h > pageH; i++) {
+  for (let i = 0; i < 6 && h > pageH; i++) {
     const prev = factor;
     factor = Math.max(FIT_ONE_PAGE_FLOOR, factor * (pageH - 8) / h);
+    const marginFactor = Math.max(0.72, factor);   // margins can go a touch tighter than text
     root.style.fontSize = (16 * factor).toFixed(2) + 'px';
     root.style.setProperty('--app-space', (baseSpace * factor).toFixed(3));
+    root.style.setProperty('--app-margin', (baseMargin * marginFactor).toFixed(3));
     h = measure();
-    if (factor === prev) break;                    // hit the floor, can't shrink further
+    if (factor === prev && marginFactor === Math.max(0.72, prev)) break;  // fully floored
   }
   return h <= pageH;
 }

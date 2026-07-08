@@ -54,6 +54,8 @@ export default {
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
+      if (path === "/feedback" && req.method === "POST")     return json(await saveFeedback(req, env), 200, cors);
+      if (path === "/feedback/list" && req.method === "GET") return json(await listFeedback(req, env), 200, cors);
       if (path === "/admin/analytics")         return json(await adminAnalytics(req, env), 200, cors);
       if (path === "/admin/users")             return json(await adminListUsers(req, env), 200, cors);
       if (path === "/admin/users/delete")      return json(await adminDeleteUser(req, env), 200, cors);
@@ -658,9 +660,11 @@ async function ai(req, env, action) {
     }
   }
 
+  // Read the request body once (req.json() can only be consumed a single time).
+  const body = await req.json();
+
   // Admin tokens have no user record — let them through
   if (isAdmin) {
-    const body = await req.json();
     return await aiDispatch(env, action, body);
   }
 
@@ -668,12 +672,14 @@ async function ai(req, env, action) {
   if (!user) throw err(404, "User not found");
   const paid = isPaidPlan(user);
 
-  // Free users get NO résumé-AI features (tailor/ats/analyze/etc.).
-  if (PRO_AI.has(action) && !paid) {
+  // Free for everyone (matches the pricing page + in-app copy): resume import
+  // (parse), interview prep, and "AI Improve" on the summary. Every other PRO_AI
+  // action requires Premium.
+  const freeForAll = action === "parse" || action === "interview" ||
+    (action === "improve" && (body.target === "summary" || body.target === "personal"));
+  if (PRO_AI.has(action) && !paid && !freeForAll) {
     throw err(402, "Upgrade to Premium to use AI features");
   }
-
-  const body = await req.json();
 
   // Career Coach: free users get a few messages as a taste, then must upgrade.
   // Enforced server-side and counted only on a SUCCESSFUL reply (so a failed call

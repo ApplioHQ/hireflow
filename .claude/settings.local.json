@@ -194,7 +194,12 @@
       "Bash(sed -i '' 's/Join 10,000+ job seekers using Applio/Join job seekers landing more interviews with Applio/' login.html)",
       "Bash(grep -noE '.{0,40}#9ca3af.{0,30}' index.html)",
       "Bash(grep -nA6 'function openModal' js/editor.js)",
-      "Bash(grep -nA6 \"function sendFeedback\\\\|/feedback'\" js/plan.js)"
+      "Bash(grep -nA6 \"function sendFeedback\\\\|/feedback'\" js/plan.js)",
+      "Bash(perl -CSD -i -pe 's/whole search \\\\x{2014} from/whole search, from/; s/fully customize \\\\x{2014} fonts/fully customize: fonts/; s/to match \\\\x{2014} grounded/to match, grounded/; s/Start free \\\\x{2014} everything/Start free. Everything/' index.html)",
+      "Bash(perl -CSD -i -pe 's/at rest \\\\x{2014} never sold/at rest, never sold/; s/by Stripe \\\\x{2014} we never/by Stripe. We never/; s/forever plan \\\\x{2014} no credit/forever plan, no credit/; s/want AI \\\\x{2014} never required/want AI, never required/' login.html)",
+      "Bash(perl -CSD -i -pe 's/your resume \\\\x{2014} just start/your resume. Just start/' assistant.html)",
+      "Bash(perl -CSD -i -pe 's/Applio \\\\x{2014} Your AI Career Copilot/Applio: Your AI Career Copilot/g' index.html)",
+      "Bash(perl -CSD -i -pe 's/Applio Pricing \\\\x{2014} Free Forever/Applio Pricing: Free Forever/g; s/Applio Pricing \\\\x{2014} Free Forever, Premium \\\\x{2026} Lifetime/Applio Pricing: Free Forever, Premium \\\\x{2026} Lifetime/g' pricing.html)"
     ]
   }
 }

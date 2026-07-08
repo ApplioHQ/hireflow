@@ -239,8 +239,11 @@ async function send(){
 
 document.getElementById('ca-title').innerHTML = `${ICON('sparkle','ico ico-lg')} <span>Career Coach</span>`;
 document.getElementById('ca-send').innerHTML = ICON('arrowRight');
-(async () => { if (typeof loadCurrentUser === 'function') { await loadCurrentUser(); if (window.renderPlanPill) renderPlanPill(); } })();
 render();
+(async () => {
+  if (typeof loadCurrentUser === 'function') { await loadCurrentUser(); if (window.renderPlanPill) renderPlanPill(); }
+  if (_isFreeUser()) _showPremiumGate();
+})();
 </script>
 </body>
 </html>

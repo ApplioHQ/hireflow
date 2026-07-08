@@ -369,10 +369,28 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* ===== Misc ===== */
 .banner-gradient {
-  background: var(--gradient); padding: 10px 14px; border-radius: 8px;
-  font-size: 12px; margin: 0 12px 12px; display: flex; justify-content: space-between; align-items: center;
+  position: relative; overflow: hidden;
+  background: var(--gradient); color: #fff;
+  padding: 11px 13px; border-radius: var(--r-md);
+  font-size: 12.5px; font-weight: 600; letter-spacing: .01em;
+  margin: 0 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  box-shadow: 0 6px 18px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.20);
 }
-.kbd { font-family: monospace; background: rgba(0,0,0,.25); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+/* Soft light sweep so the copilot badge feels alive */
+.banner-gradient::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent);
+  transform: skewX(-20deg); animation: bannerShine 5.5s ease-in-out infinite; pointer-events: none;
+}
+@keyframes bannerShine { 0%, 55% { left: -60%; } 100% { left: 135%; } }
+.banner-gradient > span:first-child { position: relative; z-index: 1; }
+.banner-gradient .ico { filter: drop-shadow(0 0 6px rgba(255,255,255,.55)); }
+.kbd {
+  position: relative; z-index: 1; font-family: ui-monospace, "SF Mono", monospace; font-weight: 700;
+  background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.30);
+  padding: 2px 7px; border-radius: 6px; font-size: 10px; letter-spacing: .08em;
+}
+@media (prefers-reduced-motion: reduce) { .banner-gradient::after { display: none; } }
 .notice {
   background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.3);
   color: #fcd34d; padding: 10px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 12px;

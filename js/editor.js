@@ -1997,22 +1997,33 @@ function _paginate(doc) {
   const flow = _bestFlowRoot(col);
   const units = _breakUnits(flow);
   const step = PAGE_PX + SHEET_GAP;
-  let page = 0;
+  const TAIL = 8;                                          // absorb trailing margins / rounding so a hair of overflow can't spawn a page
+  const isHeading = el => el && el.nodeType === 1 && /^H[1-4]$/.test(el.tagName);
+  let page = 0, prevUnit = null;
   for (const unit of units) {
     if (page >= MAX_SHEETS - 1) break;
-    const colTop = col.getBoundingClientRect().top;       // re-read (spacers shift layout)
     const r = unit.getBoundingClientRect();
+    if (r.height < 1) { prevUnit = unit; continue; }       // skip empty units so they never create a phantom page
+    const colTop = col.getBoundingClientRect().top;        // re-read (spacers shift layout)
     const top = r.top - colTop;
     const bottom = top + r.height;
     const sheetTop = page * step;
     const sheetBottom = sheetTop + PAGE_PX;
-    if (bottom > sheetBottom && top > sheetTop + 1) {
+    if (bottom > sheetBottom + TAIL && top > sheetTop + 1) {
+      // Orphan control: carry a preceding section heading to the next page so a
+      // heading never strands alone at the bottom of a page without its content.
+      let target = unit, targetTop = top;
+      if (isHeading(prevUnit)) {
+        const pTop = prevUnit.getBoundingClientRect().top - colTop;
+        if (pTop > sheetTop + 1) { target = prevUnit; targetTop = pTop; }
+      }
       const sp = doc.createElement('div');
       sp.className = 'hf-pagebreak';
-      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
-      (unit.parentNode || flow).insertBefore(sp, unit);
+      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - targetTop)) + 'px;';
+      (target.parentNode || flow).insertBefore(sp, target);
       page++;
     }
+    prevUnit = unit;
   }
   const totalPages = page + 1;
 

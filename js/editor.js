@@ -2290,7 +2290,12 @@ function _bindPreviewClicks(doc) {
     el.setAttribute('data-hf-sec', sec);
     el.title = label;
     if (isHead) { el.classList.add('hf-sec-head'); el.setAttribute('data-hf-label', label); }
-    el.addEventListener('click', (e) => { e.stopPropagation(); nextSection(sec); });
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      nextSection(sec);
+      // If they clicked from the full-screen lightbox, close it so they land on the editor.
+      if (_fullOverlay && _fullOverlay.style.display === 'flex') closeFullPreview();
+    });
     el.addEventListener('mouseenter', () => { clearTimeout(doc._hfClearT); setActive(sec); });
     el.addEventListener('mouseleave', () => { doc._hfClearT = setTimeout(() => setActive(null), 40); });
   };

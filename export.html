@@ -204,6 +204,11 @@ function _renderClean() {
   const doc = writeResumeFrame(_exportFrame, html, _expPageW());
   try { doc.title = _resumeFilename(''); } catch (_) {}
   _exportFrame.style.transform = 'none';
+  // "Fit to one page": compress font/spacing/margins to one sheet before we
+  // compute breaks, so the exported PDF matches the editor's fit-to-one-page preview.
+  if (resume.customize?.fitOnePage && typeof fitDocToOnePage === 'function') {
+    try { fitDocToOnePage(doc, _expPageH()); } catch (_) {}
+  }
   // WYSIWYG: force the PDF to break at the SAME units the preview shows, rather
   // than relying on the browser's native heuristics (which can disagree by a block
   // near a boundary). Résumé fonts are system fonts, so this fresh doc measures

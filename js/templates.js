@@ -191,14 +191,37 @@ const SECTION_DEF = {
   volunteer:      { title: 'Volunteer',       html: r => r.volunteer.length ? listBlocks(r.volunteer, ['role','org','end']) : '' },
   publications:   { title: 'Publications',    html: r => r.publications.length ? listBlocks(r.publications, ['title','venue','date']) : '' },
 };
+// ---- Custom (user-defined) sections ----
+// Metadata lives in r.customize.customSections = [{ key, title }]; the entries
+// live in r[key] (an array of { heading, subheading, date, description }).
+function _customSectionMetas(r) {
+  return (r && r.customize && Array.isArray(r.customize.customSections)) ? r.customize.customSections : [];
+}
+function _customMeta(r, key) {
+  return _customSectionMetas(r).find(m => m && m.key === key) || null;
+}
+function customBlocks(items) {
+  return (items || []).map(it => `
+    <div class="t-entry">
+      <div class="t-entry-head">
+        <span class="t-entry-title">${esc(it.heading || '')}${it.subheading ? ' · ' + esc(it.subheading) : ''}</span>
+        <span class="t-entry-date">${esc(it.date || '')}</span>
+      </div>
+      ${bulletHTML(it.description)}
+    </div>`).join('');
+}
+
 // Section keys in the user's chosen order: honor customize.sectionOrder, then
-// append any sections it doesn't mention (so new sections still appear), drop
-// unknown keys.
+// append any sections it doesn't mention (so new/custom sections still appear),
+// drop unknown keys.
 function sectionKeysInOrder(r) {
   const saved = (r.customize && Array.isArray(r.customize.sectionOrder)) ? r.customize.sectionOrder : [];
+  const customKeys = _customSectionMetas(r).map(m => m.key);
+  const known = new Set([...BODY_SECTION_ORDER, ...customKeys]);
   const seen = new Set(), out = [];
-  for (const k of saved) if (SECTION_DEF[k] && !seen.has(k)) { out.push(k); seen.add(k); }
+  for (const k of saved) if (known.has(k) && !seen.has(k)) { out.push(k); seen.add(k); }
   for (const k of BODY_SECTION_ORDER) if (!seen.has(k)) out.push(k);
+  for (const k of customKeys) if (!seen.has(k)) out.push(k);
   return out;
 }
 // Render the reorderable sections (each <h2>Title</h2> + content), skipping empties.
@@ -208,11 +231,21 @@ function orderedBody(r, opts) {
   const tag = opts.titleTag || 'h2';
   const titles = opts.titles || {};
   const xform = opts.titleTransform || (s => s);
+  const customKeys = new Set(_customSectionMetas(r).map(m => m.key));
   return sectionKeysInOrder(r)
-    .filter(k => !opts.only || opts.only.includes(k))
+    // Custom sections live in the main column of two-column templates.
+    .filter(k => !opts.only || opts.only.includes(k) || customKeys.has(k))
     .map(k => {
-      const inner = SECTION_DEF[k].html(r, opts.skillsClass);
-      return inner ? `<${tag}>${xform(titles[k] || SECTION_DEF[k].title)}</${tag}>${inner}` : '';
+      const def = SECTION_DEF[k];
+      let inner, title;
+      if (def) { inner = def.html(r, opts.skillsClass); title = def.title; }
+      else {
+        const m = _customMeta(r, k); if (!m) return '';
+        const items = r[k] || [];
+        inner = items.length ? customBlocks(items) : '';
+        title = m.title || 'Section';
+      }
+      return inner ? `<${tag}>${xform(titles[k] || title)}</${tag}>${inner}` : '';
     }).join('');
 }
 

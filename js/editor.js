@@ -1826,8 +1826,16 @@ function _injectPreviewChrome(doc) {
   const st = doc.createElement('style');
   st.id = 'hf-preview-chrome';
   st.textContent =
-    '.preview-jump{cursor:pointer;transition:background .12s;}' +
-    '.preview-jump:hover{background:rgba(99,102,241,.10)!important;outline:2px solid rgba(99,102,241,.35);outline-offset:1px;border-radius:3px;}' +
+    // Google-Docs-style edit affordance: hovering anywhere in a section softly
+    // highlights the WHOLE section (heading + its entries) and floats an "Edit …"
+    // pill on the heading. Clicking anywhere in the section jumps to edit it.
+    '.hf-edit{cursor:pointer;}' +
+    '.hf-sec-hover{background:rgba(99,102,241,.07)!important;border-radius:3px;transition:background .16s ease;}' +
+    '.hf-sec-head{position:relative;}' +
+    '.hf-sec-head.hf-sec-hover{box-shadow:inset 3px 0 0 rgba(99,102,241,.6);}' +
+    '.hf-sec-head.hf-sec-hover::after{content:attr(data-hf-label);position:absolute;top:50%;right:2px;transform:translateY(-50%);' +
+      'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font:700 9px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;' +
+      'letter-spacing:.02em;text-transform:none;padding:4px 10px;border-radius:999px;box-shadow:0 3px 12px rgba(99,102,241,.5);white-space:nowrap;pointer-events:none;z-index:5;}' +
     '.hf-pagebreak{pointer-events:none;}';
   doc.head.appendChild(st);
 }

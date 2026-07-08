@@ -711,6 +711,40 @@ async function ai(req, env, action) {
   return await aiDispatch(env, action, body);
 }
 
+// ============ Feedback ============
+// Stored as feedback:<ts>:<email> so the admin inbox can list newest-first.
+async function saveFeedback(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const user = await getUser(env, payload.email).catch(() => null);
+  const ts = Date.now();
+  const email = (payload.email || "unknown").toLowerCase();
+  const record = {
+    ts,
+    email,
+    plan: (user && user.plan) || "free",
+    rating: body.rating === "up" || body.rating === "down" ? body.rating : "none",
+    message: String(body.message || "").slice(0, 4000),
+    context: String(body.context || "").slice(0, 200),
+    page: String(body.page || "").slice(0, 200),
+  };
+  await env.HIREFLOW_KV.put(`feedback:${ts}:${email}`, JSON.stringify(record));
+  return { ok: true };
+}
+
+async function listFeedback(req, env) {
+  await requireAdmin(req, env);
+  const list = await env.HIREFLOW_KV.list({ prefix: "feedback:", limit: 1000 });
+  const feedback = [];
+  for (const k of list.keys) {
+    const raw = await env.HIREFLOW_KV.get(k.name);
+    if (!raw) continue;
+    try { feedback.push(JSON.parse(raw)); } catch {}
+  }
+  feedback.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  return { feedback };
+}
+
 async function aiDispatch(env, action, body) {
   switch (action) {
     case "improve":   return aiImprove(env, body);

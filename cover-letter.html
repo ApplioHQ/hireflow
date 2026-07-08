@@ -142,11 +142,19 @@ function _resume(){ try { return JSON.parse(localStorage.getItem('hf_resume') ||
 
 function _emptyState(){
   document.getElementById('cl-actions').style.display = 'none';
+  var steps = [
+    ['Grounded in your resume', 'Pulls real achievements and skills, never invents them.'],
+    ['Matched to the job', 'Mirrors the role and job description in your chosen tone.'],
+    ['Ready to send', 'Edit inline, then copy or download, done in seconds.'],
+  ];
   document.getElementById('cl-body').innerHTML =
     '<div class="cl-empty">'
     + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>'
     + '<h4>Ready when you are</h4>'
     + '<p>Add the company and role on the left, pick a tone, and generate a cover letter tailored to your resume.</p>'
+    + '<div class="cl-steps">'
+    +   steps.map(function(s, i){ return '<div class="cl-step"><span class="cl-step-n">' + (i+1) + '</span><div><div class="cl-step-t">' + s[0] + '</div><div class="cl-step-d">' + s[1] + '</div></div></div>'; }).join('')
+    + '</div>'
     + '</div>';
 }
 

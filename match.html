@@ -250,6 +250,8 @@ function _renderResults(scored, paywalled, attempted){
   ok.sort((a,b) => (b.score||0) - (a.score||0));
   const errored = scored.filter(s => typeof s.score !== 'number');
   const res = document.getElementById('bm-results');
+  const intro = document.getElementById('bm-intro');
+  if (intro) intro.style.display = (ok.length || errored.length) ? 'none' : '';
   if (!ok.length && !errored.length) { res.innerHTML = ''; return; }
 
   let html = '';

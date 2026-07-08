@@ -31,6 +31,46 @@
   /* Scored feedback breakdown bars */
   .ip-fb-bar { height:6px; border-radius:4px; background:var(--bg-2); overflow:hidden; margin-top:5px; }
   .ip-fb-bar > i { display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .6s ease; }
+
+  /* ===== Landing layout ===== */
+  .ip-main { position:relative; padding:40px 20px 70px; max-width:1080px; margin:0 auto; }
+  .ip-glow { position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:900px; height:520px; max-width:110vw;
+    background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.18), transparent 62%); filter:blur(14px); pointer-events:none; z-index:0; }
+  #ip-intro { position:relative; z-index:1; }
+  .ip-hero { display:grid; grid-template-columns:1.05fr .95fr; gap:22px; align-items:start; }
+  @media (max-width:860px){ .ip-hero { grid-template-columns:1fr; } .ip-sample { display:none; } }
+  .ip-form-card { margin:0; }
+  /* Role chips */
+  .ip-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .ip-chip { font-size:12.5px; padding:7px 13px; border-radius:var(--r-full); border:1px solid var(--border); background:var(--bg-2); color:var(--text); cursor:pointer; transition:all var(--dur) var(--ease); }
+  .ip-chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+  /* Sample "what you'll get" card */
+  .ip-sample-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
+  .ip-sample-card { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; box-shadow:var(--sh-2), var(--hi); }
+  .ip-sample-q { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .ip-sample-tag { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,.16); border:1px solid rgba(99,102,241,.3); border-radius:var(--r-full); padding:3px 10px; }
+  .ip-sample-rec { font-size:11px; color:#f87171; font-weight:600; }
+  .ip-sample-qtext { font-size:14px; font-weight:600; line-height:1.5; margin-bottom:14px; }
+  .ip-sample-wave { display:flex; align-items:center; gap:2px; height:30px; padding:6px 4px; margin-bottom:14px; background:var(--bg-2); border-radius:var(--r-sm); }
+  .ip-sample-wave span { flex:1; border-radius:2px; background:linear-gradient(180deg,#818cf8,#6366f1); opacity:.8; }
+  .ip-sample-fb { border:1px solid rgba(99,102,241,.3); border-radius:var(--r-md); overflow:hidden; }
+  .ip-sample-fb-head { display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(99,102,241,.10); }
+  .ip-sample-score { font-size:22px; font-weight:800; color:#6ee7b7; }
+  .ip-sample-score small { font-size:12px; font-weight:600; color:var(--muted); }
+  .ip-sample-fb-title { font-size:13px; font-weight:600; }
+  .ip-sample-bars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:14px; }
+  .ip-sample-bl { display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); }
+  .ip-sample-bl span:last-child { color:var(--text); font-weight:700; }
+  .ip-sample-note { padding:0 14px 14px; font-size:12.5px; color:var(--muted); line-height:1.55; }
+  /* How it works */
+  .ip-how { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:24px; }
+  @media (max-width:720px){ .ip-how { grid-template-columns:1fr; } }
+  .ip-step { display:flex; gap:12px; align-items:flex-start; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:16px; box-shadow:var(--sh-1), var(--hi); }
+  .ip-step-ico { width:38px; height:38px; flex-shrink:0; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; }
+  .ip-step-ico svg { width:19px; height:19px; }
+  .ip-step-t { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .ip-step-n { width:18px; height:18px; border-radius:50%; background:var(--bg-3); color:var(--muted); font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+  .ip-step-d { font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:4px; }
 </style>
 </head>
 <body class="app-body-scroll">

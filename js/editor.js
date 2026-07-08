@@ -2313,7 +2313,7 @@ async function ai(endpoint, body) {
       CURRENT_USER.aiTrials[endpoint] = (typeof _trialLimit === 'function' ? _trialLimit() : ((CURRENT_USER && CURRENT_USER.freeAiTrials) || 2));
       _refreshTrialUI();
     }
-    showUpgradeModal(endpoint === 'parse' ? 'import' : 'ai'); throw new Error('Premium required');
+    showUpgradeModal('ai'); throw new Error('Premium required');
   }
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));

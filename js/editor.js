@@ -2874,14 +2874,11 @@ function openModal(id) {
   if(id==='version') renderVersions();
   if(id==='import') _updateImportHint();
 }
-// Show how many free resume imports remain (2 for free users, then Premium).
+// Resume import is free for everyone, no trial counter.
 function _updateImportHint(){
   const el = document.getElementById('import-hint');
   if (!el) return;
-  if (isPaid()) { el.textContent = ''; return; }
-  const left = trialsLeft('parse');
-  if (left > 0) { el.innerHTML = `✨ <strong style="color:var(--accent);">${left} free ${left===1?'import':'imports'}</strong> left, then it's Premium.`; }
-  else { el.innerHTML = `You've used your free imports. <a href="pricing" style="color:var(--accent);">Upgrade</a> to import unlimited resumes.`; }
+  el.innerHTML = `✨ <strong style="color:var(--accent);">Free for everyone</strong>, import as many resumes as you like.`;
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 

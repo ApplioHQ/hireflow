@@ -203,7 +203,8 @@
       "Bash(perl -CSD -i -pe 's/tracking \\\\x{2014} all in one place/tracking, all in one place/g' index.html)",
       "Bash(perl -CSD -i -pe 's/career copilot \\\\x{2014} build/career copilot. Build/g' index.html)",
       "Bash(awk 'NR>=422 && NR<=470' index.html)",
-      "Bash(node --check js/resume-file.js)"
+      "Bash(node --check js/resume-file.js)",
+      "Bash(grep -nE \"hydrate\\\\\\(\\\\\\);|hydrate\\\\\\(\\\\\\)$|init\\\\\\(\\\\\\)|DOMContentLoaded|^ *hydrate\" js/editor.js)"
     ]
   }
 }

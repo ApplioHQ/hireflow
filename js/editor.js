@@ -167,7 +167,10 @@ const SECTIONS = {
 
 function renderMain() {
   const mainEl = document.getElementById('main');
-  mainEl.innerHTML = (SECTIONS[currentSection] || (() => '<p>Section not built yet.</p>'))();
+  const renderer = SECTIONS[currentSection]
+    || (isCustomSection(currentSection) ? () => renderCustomSection(currentSection) : null)
+    || (() => '<p>Section not built yet.</p>');
+  mainEl.innerHTML = renderer();
   // Trigger section fade-in
   const card = mainEl.firstElementChild;
   if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
@@ -3133,6 +3136,8 @@ async function _hydrateFromCloud() {
   _maybeShowWelcome();
   await loadCurrentUser();
   await _hydrateFromCloud();
+  _ensureCustomSections();
   hydrate();
+  renderCustomNav();
   renderMain();
 })();

@@ -221,7 +221,9 @@
       "Bash(CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node ftshot.mjs)",
       "Bash(perl -0pi -e 's#\\(<h2>Skills</h2>\\)#<h2>Leadership</h2><div class=\"entry\"><div class=\"eh\"><span>Team Lead, Ops Guild</span><span>2021 – Present</span></div><ul><li>Ran a 20-person community of practice across three offices.</li><li>Authored the onboarding playbook now used org-wide.</li><li>Hosted monthly workshops on analytics tooling.</li></ul></div><h2>Volunteer</h2><div class=\"entry\"><div class=\"eh\"><span>Mentor</span><span>2019 – Present</span></div><ul><li>Coached eight early-career analysts through job searches.</li></ul></div>\\\\n  $1#' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/fittest.html)",
       "Bash(node verify-fit.js)",
-      "Bash(cat)"
+      "Bash(cat)",
+      "Bash(pkill -f auto-git-commit)",
+      "Bash(git reset *)"
     ]
   }
 }

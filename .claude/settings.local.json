@@ -225,7 +225,9 @@
       "Bash(pkill -f auto-git-commit)",
       "Bash(git reset *)",
       "Bash(node verify-hover.js)",
-      "Bash(node verify-chat.js)"
+      "Bash(node verify-chat.js)",
+      "Bash(sed -i '' \"s|await page.type\\('#ca-input', 'How can I improve my resume?'\\);|await page.evaluate\\(\\(\\) => { document.getElementById\\('ca-input'\\).value = 'How can I improve my resume?'; }\\);|\" verify-chat.js)",
+      "Bash(sed -i '' \"s|await page.click\\('#ca-send'\\);|await page.evaluate\\(\\(\\) => window.send\\(\\)\\);|\" verify-chat.js)"
     ]
   }
 }

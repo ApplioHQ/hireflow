@@ -60,6 +60,13 @@
           <option>Normal</option><option>Narrow</option><option>Wide</option>
         </select>
       </div>
+      <div class="form-field">
+        <label style="display:flex; align-items:center; gap:9px; cursor:pointer; font-weight:600;">
+          <input type="checkbox" id="fit-one-page" onchange="toggleFitOnePage()" style="width:16px; height:16px; accent-color:#6366f1; cursor:pointer;">
+          Fit to one page
+        </label>
+        <div style="font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4;">Compress spacing and text so everything fits on a single page.</div>
+      </div>
       <button class="btn btn-primary btn-block" onclick="tryExport('pdf')" id="btn-pdf"></button>
       <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="tryExport('pdf')">Print</button>
       <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
@@ -349,6 +356,13 @@ function updatePageSize() {
   render();
 }
 
+function toggleFitOnePage() {
+  if (!resume.customize) resume.customize = {};
+  resume.customize.fitOnePage = !!document.getElementById('fit-one-page').checked;
+  try { localStorage.setItem('hf_resume', JSON.stringify(resume)); } catch (_) {}  // sync back to editor
+  render();
+}
+
 // "Jordan_Rivera_Resume.pdf" from the candidate's name (falls back to "resume").
 function _resumeFilename(ext) {
   const name = ((resume.personal && resume.personal.fullName) || '').trim()
@@ -401,6 +415,8 @@ function updatePills() {
   document.getElementById('back-link').innerHTML = `${ICON('arrowLeft')} <span>Back to Editor</span>`;
   document.getElementById('es-title').innerHTML = `${ICON('settings')} <span style="margin-left:6px;">Export Settings</span>`;
   document.getElementById('btn-pdf').innerHTML = `${ICON('download')} <span>Download PDF</span>`;
+  const fitBox = document.getElementById('fit-one-page');
+  if (fitBox) fitBox.checked = !!(resume.customize && resume.customize.fitOnePage);
   render();
   await loadCurrentUser();
   updatePills();

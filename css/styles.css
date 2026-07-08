@@ -824,6 +824,33 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .an-ring-sub { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 1px; }
 .an-ring-verdict { font-size: 15px; font-weight: 700; margin-top: 8px; }
 .an-ring-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+/* ===== Shared AI-result reveal + score animations ===== */
+@keyframes aiReveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes aiRingDraw { from { stroke-dashoffset: var(--ring-c, 264); } }
+@keyframes aiPop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+/* Stagger children of an AI result so blocks cascade in */
+.tailor-result > *, .ai-reveal > * {
+  animation: aiReveal .5s cubic-bezier(.2,.7,.2,1) both;
+}
+.tailor-result > *:nth-child(1), .ai-reveal > *:nth-child(1) { animation-delay: .02s; }
+.tailor-result > *:nth-child(2), .ai-reveal > *:nth-child(2) { animation-delay: .09s; }
+.tailor-result > *:nth-child(3), .ai-reveal > *:nth-child(3) { animation-delay: .16s; }
+.tailor-result > *:nth-child(4), .ai-reveal > *:nth-child(4) { animation-delay: .23s; }
+.tailor-result > *:nth-child(5), .ai-reveal > *:nth-child(5) { animation-delay: .30s; }
+.tailor-result > *:nth-child(n+6), .ai-reveal > *:nth-child(n+6) { animation-delay: .37s; }
+/* Score ring "draws" itself in; number pops */
+.an-ring-svg circle:last-child { animation: aiRingDraw 1.1s cubic-bezier(.3,.8,.3,1) both; }
+.an-ring-num { animation: aiPop .5s cubic-bezier(.2,.9,.3,1.2) both .25s; }
+/* Meter/progress bars grow from 0 — pure CSS (final width stays as the inline value) */
+@keyframes aiBarGrow { from { width: 0 !important; } }
+.ac-bar-fill, .sm-bar-fill, .bm-bar-fill, .bm-sub-bar > div, .ip-fb-bar > i {
+  animation: aiBarGrow .8s cubic-bezier(.3,.8,.3,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tailor-result > *, .ai-reveal > *, .an-ring-svg circle:last-child, .an-ring-num,
+  .ac-bar-fill, .sm-bar-fill, .bm-bar-fill, .bm-sub-bar > div, .ip-fb-bar > i { animation: none !important; }
+}
 /* Loading skeleton: shimmer placeholders shaped like the AI result */
 .sk { position: relative; overflow: hidden; background: var(--border); }
 .sk::after {

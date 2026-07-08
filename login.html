@@ -89,14 +89,14 @@
       <div id="msg-signin" class="auth-msg"></div>
       <form id="form-signin">
         <div class="form-field">
-          <label>Email or username</label>
+          <label for="si-email">Email or username</label>
           <!-- type=text (not email): accounts are looked up by identifier and some
                (e.g. ADMIN) aren't email addresses, so don't force '@' on sign-in. -->
-          <input type="text" name="email" placeholder="you@example.com" autocomplete="username" required>
+          <input id="si-email" type="text" name="email" placeholder="you@example.com" autocomplete="username" required>
         </div>
         <div class="form-field">
-          <label>Password</label>
-          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+          <label for="si-pw">Password</label>
+          <input id="si-pw" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Sign in</button>
       </form>
@@ -114,12 +114,12 @@
       <div id="msg-signup" class="auth-msg"></div>
       <form id="form-signup">
         <div class="form-field">
-          <label>Email</label>
-          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          <label for="su-email">Email</label>
+          <input id="su-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
         </div>
         <div class="form-field">
-          <label>Password</label>
-          <input type="password" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
+          <label for="su-pw">Password</label>
+          <input id="su-pw" type="password" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Create free account →</button>
       </form>

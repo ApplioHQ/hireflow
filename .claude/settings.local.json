@@ -199,7 +199,9 @@
       "Bash(perl -CSD -i -pe 's/at rest \\\\x{2014} never sold/at rest, never sold/; s/by Stripe \\\\x{2014} we never/by Stripe. We never/; s/forever plan \\\\x{2014} no credit/forever plan, no credit/; s/want AI \\\\x{2014} never required/want AI, never required/' login.html)",
       "Bash(perl -CSD -i -pe 's/your resume \\\\x{2014} just start/your resume. Just start/' assistant.html)",
       "Bash(perl -CSD -i -pe 's/Applio \\\\x{2014} Your AI Career Copilot/Applio: Your AI Career Copilot/g' index.html)",
-      "Bash(perl -CSD -i -pe 's/Applio Pricing \\\\x{2014} Free Forever/Applio Pricing: Free Forever/g; s/Applio Pricing \\\\x{2014} Free Forever, Premium \\\\x{2026} Lifetime/Applio Pricing: Free Forever, Premium \\\\x{2026} Lifetime/g' pricing.html)"
+      "Bash(perl -CSD -i -pe 's/Applio Pricing \\\\x{2014} Free Forever/Applio Pricing: Free Forever/g; s/Applio Pricing \\\\x{2014} Free Forever, Premium \\\\x{2026} Lifetime/Applio Pricing: Free Forever, Premium \\\\x{2026} Lifetime/g' pricing.html)",
+      "Bash(perl -CSD -i -pe 's/tracking \\\\x{2014} all in one place/tracking, all in one place/g' index.html)",
+      "Bash(perl -CSD -i -pe 's/career copilot \\\\x{2014} build/career copilot. Build/g' index.html)"
     ]
   }
 }

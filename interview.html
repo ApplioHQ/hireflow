@@ -244,7 +244,7 @@ function _renderPracticeQuestion() {
                 + '<div class="ip-fb-bar"><i style="width:' + v + '%"></i></div></div>'; }).join('')
           + '</div>';
       }
-      fb.innerHTML = '<div style="border:1px solid rgba(99,102,241,.3);border-radius:var(--r-md);overflow:hidden;margin-top:8px;box-shadow:var(--sh-1);">'
+      fb.innerHTML = '<div class="ai-reveal" style="border:1px solid rgba(99,102,241,.3);border-radius:var(--r-md);overflow:hidden;margin-top:8px;box-shadow:var(--sh-1);">'
         + '<div style="background:rgba(99,102,241,.1);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
         + '<span style="font-size:20px;font-weight:800;color:' + col + ';">' + score + '/100</span>'
         + '<span style="font-size:13px;font-weight:600;color:var(--text);">AI Feedback</span>'
@@ -269,7 +269,7 @@ function _renderPracticeQuestion() {
     res2.innerHTML = '<div class="section-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>All Questions</h3>'
       + '<button class="btn btn-ghost btn-xs" onclick="_renderPracticeQuestion()">← Back to practice</button></div>'
       + _practiceQs.map(function(q2, i) {
-          return '<div style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();">'
+          return '<div role="button" tabindex="0" style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
             + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Q' + (i+1) + ' · ' + esc(q2.category || 'General') + '</div>'
             + '<div style="font-size:13px;line-height:1.5;">' + esc(q2.question) + '</div>'
             + '</div>';

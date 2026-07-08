@@ -85,11 +85,11 @@
   <div class="section-card">
     <div class="ac-grid">
       <div class="ac-field">
-        <label>Your résumé <span class="hint">(paste the full text)</span></label>
+        <label for="ac-resume">Your résumé <span class="hint">(paste the full text)</span></label>
         <textarea id="ac-resume" class="ac-ta" placeholder="Paste your résumé text here…"></textarea>
       </div>
       <div class="ac-field">
-        <label>Job description <span class="hint">(optional, for keyword matching)</span></label>
+        <label for="ac-jd">Job description <span class="hint">(optional, for keyword matching)</span></label>
         <textarea id="ac-jd" class="ac-ta" placeholder="Paste the job posting here for a targeted score…"></textarea>
       </div>
     </div>
@@ -145,14 +145,14 @@
           return '<div><div style="display:flex;justify-content:space-between;font-size:12.5px;"><span style="color:var(--muted);">' + p[1] + '</span><span style="font-weight:700;">' + v + '</span></div>'
             + '<div class="ac-bar-track"><div class="ac-bar-fill" style="width:' + Math.max(0, Math.min(100, v)) + '%;background:' + bc + ';"></div></div></div>';
         }).join('');
-      var matched = r.matchedKeywords.length ? r.matchedKeywords.map(function (k){ return '<span class="ac-chip ac-chip-ok">' + esc(k) + '</span>'; }).join('') : '<span style="color:var(--muted);font-size:13px;">, </span>';
+      var matched = r.matchedKeywords.length ? r.matchedKeywords.map(function (k){ return '<span class="ac-chip ac-chip-ok">' + esc(k) + '</span>'; }).join('') : '<span style="color:var(--muted);font-size:13px;">No keyword matches yet. Add a job description above to compare.</span>';
       var missing = r.missingKeywords.length ? r.missingKeywords.map(function (k){ return '<span class="ac-chip ac-chip-no">' + esc(k) + '</span>'; }).join('') : '<span style="color:var(--muted);font-size:13px;">None, great coverage!</span>';
       var wins = r.wins.map(function (x){ return '<li><span style="color:#22c55e;">✓</span><span>' + esc(x) + '</span></li>'; }).join('');
       var issues = r.issues.map(function (x){ return '<li><span style="color:#f59e0b;">→</span><span>' + esc(x) + '</span></li>'; }).join('');
       out.innerHTML =
-        '<div class="section-card">'
+        '<div class="section-card ai-reveal">'
         + '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">'
-        +   '<div style="text-align:center;min-width:120px;"><div class="ac-score-num" style="color:' + c + ';">' + r.score + '</div><div style="color:var(--muted);font-size:12px;">out of 100</div></div>'
+        +   '<div style="text-align:center;min-width:120px;"><div class="ac-score-num" data-countup="' + r.score + '" style="color:' + c + ';">' + r.score + '</div><div style="color:var(--muted);font-size:12px;">out of 100</div></div>'
         +   '<div style="flex:1;min-width:200px;"><div style="font-size:18px;font-weight:800;color:' + c + ';">' + verdict(r.score) + '</div>'
         +   '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + (r.hasJD ? 'Scored against the job description you pasted.' : 'Scored against general résumé best practices. Paste a job description for a targeted keyword match.') + '</div></div>'
         + '</div>'
@@ -165,7 +165,24 @@
         + '</div>'
         + '<a href="login?mode=signup" class="btn btn-primary btn-block" style="margin-top:18px;">Fix these automatically, build your résumé free →</a>'
         + '</div>';
+      _animateResult(out);
       out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Count up score numbers on reveal. The element already shows the final value,
+    // so if animation frames don't run the number is still correct (bars grow via CSS).
+    function _animateResult(scope) {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+      scope.querySelectorAll('[data-countup]').forEach(function (el) {
+        var to = parseInt(el.getAttribute('data-countup'), 10) || 0;
+        var start = performance.now(), dur = 900;
+        (function tick(now) {
+          var p = Math.min(1, (now - start) / dur);
+          el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        })(start);
+      });
     }
 
     runBtn.addEventListener('click', function () {

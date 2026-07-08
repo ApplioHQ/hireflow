@@ -843,6 +843,11 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .an-ring-svg circle:last-child { animation: aiRingDraw 1.1s cubic-bezier(.3,.8,.3,1) both; }
 .an-ring-num { animation: aiPop .5s cubic-bezier(.2,.9,.3,1.2) both .25s; }
 /* Meter/progress bars grow from 0 — pure CSS (final width stays as the inline value) */
+/* ===== Add custom section (sidebar) ===== */
+.sidebar-add { opacity: .8; color: var(--muted); border: 1px dashed var(--border); border-radius: var(--r-sm); margin-top: 4px; }
+.sidebar-add:hover { opacity: 1; color: var(--accent); border-color: var(--accent); background: rgba(99,102,241,.06); }
+.sidebar-add .s-dot, .sidebar-add .s-check { display: none; }
+
 /* ===== Resume file upload / drop zone ===== */
 .rf-upload { border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--bg-2);
   padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;

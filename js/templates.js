@@ -828,7 +828,8 @@ function writeResumeFrame(frame, bodyHTML, pageWidth) {
 // becomes unreadable. Runs on the SAME rendered doc used by the preview and the
 // export, so what you see matches the PDF. Idempotent: always resets first.
 // Returns true if the doc now fits within one page.
-const FIT_ONE_PAGE_FLOOR = 0.8;   // never shrink below 80% (readability + ATS)
+const FIT_ONE_PAGE_FLOOR = 0.72;   // never shrink text below 72% (~11.5px base — print-readable floor)
+const FIT_ONE_PAGE_MARGIN_FLOOR = 0.58;   // margins may go tighter than text; they cost height without hurting legibility
 function fitDocToOnePage(doc, pageH) {
   if (!doc || !doc.body) return false;
   const root = doc.body.firstElementChild;         // the resume's template root (.t-*)
@@ -853,12 +854,12 @@ function fitDocToOnePage(doc, pageH) {
   for (let i = 0; i < 6 && h > pageH; i++) {
     const prev = factor;
     factor = Math.max(FIT_ONE_PAGE_FLOOR, factor * (pageH - 8) / h);
-    const marginFactor = Math.max(0.72, factor);   // margins can go a touch tighter than text
+    const marginFactor = Math.max(FIT_ONE_PAGE_MARGIN_FLOOR, factor);   // margins can go a touch tighter than text
     root.style.fontSize = (16 * factor).toFixed(2) + 'px';
     root.style.setProperty('--app-space', (baseSpace * factor).toFixed(3));
     root.style.setProperty('--app-margin', (baseMargin * marginFactor).toFixed(3));
     h = measure();
-    if (factor === prev && marginFactor === Math.max(0.72, prev)) break;  // fully floored
+    if (factor === prev && marginFactor === Math.max(FIT_ONE_PAGE_MARGIN_FLOOR, prev)) break;  // fully floored
   }
   return h <= pageH;
 }

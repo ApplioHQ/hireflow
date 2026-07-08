@@ -1836,6 +1836,7 @@ function _injectPreviewChrome(doc) {
 function _renderMiniInto(wrap, sizer, frame, doc) {
   _injectPreviewChrome(doc);
   if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
+  _maybeFitOnePage(doc);
   const pages = _paginate(doc);
   _renderFitIndicator(doc._lastRatio, pages);
   _scaleMini(wrap, sizer, frame, doc);
@@ -1960,6 +1961,14 @@ const MAX_SHEETS = 16;     // safety cap so pathological content can't run away 
 // so we can't target a single "root" element.
 function _contentEls(body) {
   return Array.from(body.children).filter(el => el.tagName !== 'STYLE' && !el.classList.contains('hf-sheet'));
+}
+
+// Apply "Fit to one page" (shared compressor from templates.js) before paginating,
+// when the user has enabled it. Runs on the same doc the export uses, so preview = PDF.
+function _maybeFitOnePage(doc) {
+  if (resume && resume.customize && resume.customize.fitOnePage && typeof fitDocToOnePage === 'function') {
+    try { fitDocToOnePage(doc, PAGE_PX); } catch (e) { /* preview is non-critical */ }
+  }
 }
 
 function _paginate(doc) {
@@ -2140,6 +2149,7 @@ function _renderFullPreview() {
   _mountResume(f, false, function (doc) {
     _injectPreviewChrome(doc);
     if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }  // click a heading to jump-edit
+    _maybeFitOnePage(doc);
     const pages = _paginate(doc);
     _fullContentH = doc.documentElement.scrollHeight || doc.body.scrollHeight || 1056;
     f.style.height = _fullContentH + 'px';

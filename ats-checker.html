@@ -79,14 +79,20 @@
 <main class="ac-wrap">
   <div class="ac-hero">
     <h1>Free ATS Resume Checker</h1>
-    <p>Paste your résumé and a job description to see your ATS score, the keywords you're matching and missing, and exactly what to fix. No sign-up, it runs right in your browser.</p>
+    <p>Upload or paste your résumé and a job description to see your ATS score, the keywords you're matching and missing, and exactly what to fix. No sign-up, it runs right in your browser.</p>
   </div>
 
   <div class="section-card">
     <div class="ac-grid">
       <div class="ac-field">
-        <label for="ac-resume">Your résumé <span class="hint">(paste the full text)</span></label>
-        <textarea id="ac-resume" class="ac-ta" placeholder="Paste your résumé text here…"></textarea>
+        <label for="ac-resume">Your résumé <span class="hint">(upload a file or paste the text)</span></label>
+        <div class="rf-upload" id="ac-drop" style="margin-bottom:10px;">
+          <div class="rf-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="rf-upload-txt"><strong>Upload PDF, DOCX, or TXT</strong> or <button type="button" class="rf-pick">browse</button><br><span>Drag &amp; drop, it stays in your browser</span></div>
+          <input type="file" id="ac-file" accept=".pdf,.docx,.txt,.md,application/pdf,text/plain" style="display:none;">
+        </div>
+        <div id="ac-drop-status" class="rf-status" style="margin:-4px 0 8px;"></div>
+        <textarea id="ac-resume" class="ac-ta" placeholder="…or paste your résumé text here"></textarea>
       </div>
       <div class="ac-field">
         <label for="ac-jd">Job description <span class="hint">(optional, for keyword matching)</span></label>
@@ -128,6 +134,7 @@
 </main>
 
 <script src="js/ats-engine.js"></script>
+<script src="js/resume-file.js"></script>
 <script>
   (function () {
     var runBtn = document.getElementById('ac-run');
@@ -182,6 +189,19 @@
           el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
           if (p < 1) requestAnimationFrame(tick);
         })(start);
+      });
+    }
+
+    // File upload → fills the résumé textarea with extracted text.
+    if (window.initResumeDrop) {
+      window.initResumeDrop({
+        zone: document.getElementById('ac-drop'),
+        input: document.getElementById('ac-file'),
+        onExtract: function (text) { document.getElementById('ac-resume').value = text; },
+        onStatus: function (msg, isErr) {
+          var el = document.getElementById('ac-drop-status');
+          if (el) { el.textContent = msg; el.className = 'rf-status ' + (isErr ? 'err' : 'ok'); }
+        },
       });
     }
 

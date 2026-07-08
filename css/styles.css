@@ -843,6 +843,25 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .an-ring-svg circle:last-child { animation: aiRingDraw 1.1s cubic-bezier(.3,.8,.3,1) both; }
 .an-ring-num { animation: aiPop .5s cubic-bezier(.2,.9,.3,1.2) both .25s; }
 /* Meter/progress bars grow from 0 — pure CSS (final width stays as the inline value) */
+/* ===== Resume file upload / drop zone ===== */
+.rf-upload { border: 1px dashed var(--border); border-radius: var(--r-md); background: var(--bg-2);
+  padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+.rf-upload:hover { border-color: var(--accent); }
+.rf-upload.rf-dragover { border-color: var(--accent); background: rgba(99,102,241,.08); }
+.rf-upload-ico { width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: rgba(99,102,241,.14); color: var(--accent); }
+.rf-upload-ico svg { width: 18px; height: 18px; }
+.rf-upload-txt { font-size: 13px; line-height: 1.4; }
+.rf-upload-txt strong { color: var(--text); font-weight: 650; }
+.rf-upload-txt span { color: var(--muted); }
+.rf-upload .rf-pick { color: var(--accent); font-weight: 650; text-decoration: underline; background: none; padding: 0; }
+.rf-status { font-size: 12px; margin-top: 8px; min-height: 15px; }
+.rf-status.err { color: var(--danger); }
+.rf-status.ok { color: var(--muted); }
+.rf-or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin: 12px 0; }
+.rf-or::before, .rf-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
 @keyframes aiBarGrow { from { width: 0 !important; } }
 .ac-bar-fill, .sm-bar-fill, .bm-bar-fill, .bm-sub-bar > div, .ip-fb-bar > i {
   animation: aiBarGrow .8s cubic-bezier(.3,.8,.3,1) both;

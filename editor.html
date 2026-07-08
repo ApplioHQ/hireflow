@@ -129,8 +129,15 @@
   <div class="modal">
     <button class="modal-close" onclick="closeModal('import')">×</button>
     <h3 id="modal-import-title">Import Your Resume</h3>
-    <p style="color:var(--muted); font-size:13px; margin-bottom:6px;">Paste your resume text and AI will parse it and fill in your sections.</p>
-    <div id="import-hint" style="font-size:12px; margin-bottom:14px; min-height:16px;"></div>
+    <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Upload your resume file or paste the text, and AI will parse it and fill in your sections.</p>
+    <div class="rf-upload" id="import-drop">
+      <div class="rf-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div class="rf-upload-txt"><strong>Upload a file</strong> or <button type="button" class="rf-pick">browse</button><br><span>PDF, DOCX, or TXT · or drag &amp; drop here</span></div>
+      <input type="file" id="import-file" accept=".pdf,.docx,.txt,.md,application/pdf,text/plain" style="display:none;">
+    </div>
+    <div id="import-drop-status" class="rf-status"></div>
+    <div class="rf-or">or paste text</div>
+    <div id="import-hint" style="font-size:12px; margin-bottom:10px; min-height:16px;"></div>
     <textarea id="import-text" rows="6" placeholder="Paste your resume text here…" style="width:100%; padding:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text);"></textarea>
     <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="importResume()" id="btn-import-go"></button>
   </div>
@@ -149,9 +156,28 @@
 <script src="js/icons.js"></script>
 <script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
+<script src="js/resume-file.js"></script>
 <script src="js/templates.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/health-badge.js"></script>
+<script>
+  // Wire the import-modal file upload → fills the paste box with extracted text.
+  (function () {
+    if (!window.initResumeDrop) return;
+    window.initResumeDrop({
+      zone: document.getElementById('import-drop'),
+      input: document.getElementById('import-file'),
+      onExtract: function (text) {
+        var ta = document.getElementById('import-text');
+        if (ta) { ta.value = text; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+      },
+      onStatus: function (msg, isErr) {
+        var el = document.getElementById('import-drop-status');
+        if (el) { el.textContent = msg; el.className = 'rf-status ' + (isErr ? 'err' : 'ok'); }
+      },
+    });
+  })();
+</script>
 
 <!-- Mobile nav -->
 <div class="mobile-nav" id="mobile-nav">

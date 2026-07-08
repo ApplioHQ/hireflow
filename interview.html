@@ -129,7 +129,7 @@
             <span class="ip-sample-rec">● Recording</span>
           </div>
           <div class="ip-sample-qtext">"Tell me about a product you built and the impact it had."</div>
-          <div class="ip-sample-wave">${Array.from({length:34}).map((_,i)=>`<span style="height:${6+Math.round(Math.abs(Math.sin(i*0.7))*22)}px"></span>`).join('')}</div>
+          <div class="ip-sample-wave" id="ip-sample-wave"></div>
           <div class="ip-sample-fb">
             <div class="ip-sample-fb-head">
               <span class="ip-sample-score">92<small>/100</small></span>
@@ -181,11 +181,14 @@ const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
+function pickRole(btn){ var r = document.getElementById('role'); r.value = btn.textContent; r.focus(); }
+
 async function generate() {
   const role = document.getElementById('role').value.trim();
   const jd = document.getElementById('jd').value.trim();
   if (!role) return toast('Enter a role first', { type: 'warn' });
   let resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch { resume = {}; }
+  var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
   document.getElementById('results').innerHTML = '';
   showAILoading('Generating your interview questions…');
   try {

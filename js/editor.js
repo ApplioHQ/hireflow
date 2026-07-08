@@ -2174,6 +2174,11 @@ function _buildFullOverlay() {
     '#full-preview-overlay .fp-nav button:not(:disabled):hover{background:rgba(255,255,255,.16);}' +
     '#full-preview-overlay .fp-nav button:disabled{opacity:.32;cursor:default;}' +
     '#full-preview-overlay .fp-pageno{font-size:12px;color:#c7cbe0;min-width:62px;text-align:center;white-space:nowrap;}' +
+    '#full-preview-overlay .fp-fit1{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#c7cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 13px;cursor:pointer;transition:background .12s,color .12s,border-color .12s,box-shadow .12s;white-space:nowrap;}' +
+    '#full-preview-overlay .fp-fit1:hover{background:rgba(255,255,255,.13);}' +
+    '#full-preview-overlay .fp-fit1 .dot{width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;box-sizing:border-box;transition:background .12s;}' +
+    '#full-preview-overlay .fp-fit1.on{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.35);}' +
+    '#full-preview-overlay .fp-fit1.on .dot{background:#fff;}' +
     '#full-preview-overlay .fp-zoom{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:3px;}' +
     '#full-preview-overlay .fp-zbtn{width:32px;height:30px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#fff;border-radius:8px;cursor:pointer;font-size:17px;line-height:1;transition:background .12s;}' +
     '#full-preview-overlay .fp-zbtn:hover{background:rgba(255,255,255,.14);}' +
@@ -2198,7 +2203,8 @@ function _buildFullOverlay() {
       '<div class="fp-left"><span class="fp-brand"><img src="logo.jpeg" width="22" height="22" alt="">Preview</span>' +
         '<span class="fp-nav" id="fp-nav"><button id="fp-prev" title="Previous page" aria-label="Previous page">‹</button>' +
         '<span class="fp-pageno" id="fp-pageno">1 page</span>' +
-        '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span></div>' +
+        '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span>' +
+        '<button class="fp-fit1" id="fp-fit1" title="Compress the résumé to fit exactly one page"><span class="dot"></span>Fit to 1 page</button></div>' +
       '<div class="fp-zoom">' +
         '<button class="fp-zbtn" id="fz-out" title="Zoom out (−)" aria-label="Zoom out">−</button>' +
         '<span class="fp-zlabel" id="full-zoom-label" title="Fit to width (press 0)">100%</span>' +
@@ -2221,6 +2227,7 @@ function _buildFullOverlay() {
   q('#fz-close').onclick = closeFullPreview;
   q('#fp-prev').onclick = () => _fpGoto(-1);
   q('#fp-next').onclick = () => _fpGoto(1);
+  q('#fp-fit1').onclick = _toggleFitOnePage;
   const scroll = q('#full-scroll');
   scroll.addEventListener('scroll', () => {
     if (scroll._navRaf) return;

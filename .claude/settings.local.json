@@ -187,7 +187,11 @@
       "Bash(awk '/\\\\.wel-btn ?\\\\{/,/\\\\}/' css/styles.css)",
       "Bash(awk '/\\\\.auth-body ?\\\\{/,/\\\\}/' css/styles.css)",
       "Bash(awk '/\\\\.auth-card ?\\\\{/,/\\\\}/' css/styles.css)",
-      "Bash(grep -rniE \"testimonial|—[A-Z][a-z]+ [A-Z]\\\\.|\\\\\"[^\\\\\"]{20,}\\\\\".*<cite|review\" index.html)"
+      "Bash(grep -rniE \"testimonial|—[A-Z][a-z]+ [A-Z]\\\\.|\\\\\"[^\\\\\"]{20,}\\\\\".*<cite|review\" index.html)",
+      "Bash(sed -i '' 's/10k+ resumes created/Recruiter-tested templates/' index.html)",
+      "Bash(sed -i '' 's/95% pass rate/ATS-optimized/' index.html)",
+      "Bash(sed -i '' 's/10,000+ ATS-optimized, recruiter-tested resumes created/ATS-optimized, recruiter-tested resume templates/' login.html)",
+      "Bash(sed -i '' 's/Join 10,000+ job seekers using Applio/Join job seekers landing more interviews with Applio/' login.html)"
     ]
   }
 }

@@ -841,14 +841,17 @@ function fitDocToOnePage(doc, pageH) {
   const measure = () => doc.body.scrollHeight || doc.documentElement.scrollHeight || 0;
   let h = measure();
   if (h <= pageH) return true;                     // already one page, nothing to do
-  // A couple of measured passes converge (line-height/wrapping are non-linear).
-  for (let i = 0; i < 3; i++) {
-    const factor = Math.max(FIT_ONE_PAGE_FLOOR, Math.min(1, (pageH - 8) / h));
+  // Shrink CUMULATIVELY: each pass multiplies the running factor by the ratio still
+  // needed. Some height (fixed page padding) doesn't scale, so a linear guess would
+  // overshoot; a few multiplicative passes converge. Clamped to the readability floor.
+  let factor = 1;
+  for (let i = 0; i < 5 && h > pageH; i++) {
+    const prev = factor;
+    factor = Math.max(FIT_ONE_PAGE_FLOOR, factor * (pageH - 8) / h);
     root.style.fontSize = (16 * factor).toFixed(2) + 'px';
     root.style.setProperty('--app-space', (baseSpace * factor).toFixed(3));
-    const nh = measure();
-    if (nh <= pageH || nh === h) { h = nh; break; }
-    h = nh;
+    h = measure();
+    if (factor === prev) break;                    // hit the floor, can't shrink further
   }
   return h <= pageH;
 }

@@ -223,7 +223,8 @@
       "Bash(node verify-fit.js)",
       "Bash(cat)",
       "Bash(pkill -f auto-git-commit)",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Bash(node verify-hover.js)"
     ]
   }
 }

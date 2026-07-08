@@ -2158,6 +2158,11 @@ function _buildFullOverlay() {
     '#full-preview-overlay .fp-brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:14px;white-space:nowrap;}' +
     '#full-preview-overlay .fp-brand img{width:22px;height:22px;border-radius:5px;}' +
     '#full-preview-overlay .fp-pages{font-size:12px;color:#c7cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:4px 11px;white-space:nowrap;}' +
+    '#full-preview-overlay .fp-nav{display:flex;align-items:center;gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:2px;}' +
+    '#full-preview-overlay .fp-nav button{width:26px;height:26px;border:0;background:transparent;color:#fff;border-radius:999px;cursor:pointer;font-size:16px;line-height:1;transition:background .12s;}' +
+    '#full-preview-overlay .fp-nav button:not(:disabled):hover{background:rgba(255,255,255,.16);}' +
+    '#full-preview-overlay .fp-nav button:disabled{opacity:.32;cursor:default;}' +
+    '#full-preview-overlay .fp-pageno{font-size:12px;color:#c7cbe0;min-width:62px;text-align:center;white-space:nowrap;}' +
     '#full-preview-overlay .fp-zoom{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:3px;}' +
     '#full-preview-overlay .fp-zbtn{width:32px;height:30px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#fff;border-radius:8px;cursor:pointer;font-size:17px;line-height:1;transition:background .12s;}' +
     '#full-preview-overlay .fp-zbtn:hover{background:rgba(255,255,255,.14);}' +
@@ -2180,7 +2185,9 @@ function _buildFullOverlay() {
   _fullOverlay.innerHTML =
     '<div class="fp-bar">' +
       '<div class="fp-left"><span class="fp-brand"><img src="logo.jpeg" width="22" height="22" alt="">Preview</span>' +
-        '<span class="fp-pages" id="fp-pages"></span></div>' +
+        '<span class="fp-nav" id="fp-nav"><button id="fp-prev" title="Previous page" aria-label="Previous page">‹</button>' +
+        '<span class="fp-pageno" id="fp-pageno">1 page</span>' +
+        '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span></div>' +
       '<div class="fp-zoom">' +
         '<button class="fp-zbtn" id="fz-out" title="Zoom out (−)" aria-label="Zoom out">−</button>' +
         '<span class="fp-zlabel" id="full-zoom-label" title="Fit to width (press 0)">100%</span>' +

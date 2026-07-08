@@ -32,13 +32,7 @@
     { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
     { "@type": "Offer", "name": "Premium", "price": "9.99", "priceCurrency": "USD" },
     { "@type": "Offer", "name": "Lifetime", "price": "39.99", "priceCurrency": "USD" }
-  ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "ratingCount": "200",
-    "bestRating": "5"
-  }
+  ]
 }
 </script>
 <script type="application/ld+json">
@@ -141,7 +135,7 @@
       <div class="hero-trust-icons">
         <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> No credit card</span>
         <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg> Free forever plan</span>
-        <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 10k+ resumes created</span>
+        <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Recruiter-tested templates</span>
       </div>
     </div>
 
@@ -290,6 +284,28 @@
   #templates .tpl-more { display:block; text-align:center; color:#6b7280; font-size:14px; margin-top:32px; }
   @media (max-width:900px){ #templates .tpl-grid{ grid-template-columns:repeat(2,1fr); } }
   @media (max-width:560px){ #templates .tpl-grid{ grid-template-columns:1fr 1fr; gap:16px; } }
+
+  /* ===== Glowing border effect (vanilla port of Aceternity GlowingEffect) =====
+     Conic-gradient border, masked to a slice around --start, that follows the cursor.
+     --start/--active are driven by the pointermove handler near </body>. */
+  #templates .tpl-card { position:relative; border-radius:16px; }
+  #templates .tpl-card .glow {
+    position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:0;
+    --start:0; --active:0; --spread:40; --gw:2px;
+    --gradient:repeating-conic-gradient(from 236.84deg at 50% 50%,
+      #6366f1 0%, #8b5cf6 25%, #a78bfa 50%, #8b5cf6 75%, #6366f1 100%);
+  }
+  #templates .tpl-card .glow::after {
+    content:""; position:absolute; inset:calc(-1 * var(--gw)); border-radius:inherit;
+    border:var(--gw) solid transparent;
+    background:var(--gradient); background-attachment:fixed;
+    opacity:var(--active); transition:opacity .3s;
+    mask-clip:padding-box, border-box; -webkit-mask-clip:padding-box, border-box;
+    mask-composite:intersect; -webkit-mask-composite:source-in;
+    mask-image:linear-gradient(#0000, #0000), conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), #00000000 0deg, #fff, #00000000 calc(var(--spread) * 2deg));
+    -webkit-mask-image:linear-gradient(#0000, #0000), conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), #00000000 0deg, #fff, #00000000 calc(var(--spread) * 2deg));
+  }
+  @media (prefers-reduced-motion: reduce) { #templates .tpl-card .glow::after { transition:none; } }
 </style>
 <section class="section-light" id="templates">
   <div class="container">
@@ -299,7 +315,7 @@
     <div class="tpl-grid">
 
       <!-- Modern -->
-      <div class="tpl-card"><div class="tpl-thumb" style="--tc:#6366f1;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb" style="--tc:#6366f1;">
         <div class="tpl-grp">
           <div class="tpl-head"></div>
           <div class="tpl-name-line w50" style="margin-top:2px"></div><div class="tl w70" style="height:4px"></div>
@@ -310,7 +326,7 @@
       </div><span class="tpl-name">Modern</span></div>
 
       <!-- Bold -->
-      <div class="tpl-card"><div class="tpl-thumb" style="--tc:#ec4899;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb" style="--tc:#ec4899;">
         <div class="tpl-head-block">
           <div class="tl w60" style="height:8px;background:rgba(255,255,255,.95)"></div>
           <div class="tl w40" style="height:4px;background:rgba(255,255,255,.6)"></div>
@@ -321,7 +337,7 @@
       </div><span class="tpl-name">Bold</span></div>
 
       <!-- Tech (sidebar) -->
-      <div class="tpl-card"><div class="tpl-thumb tpl-thumb-row" style="--tc:#10b981;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb tpl-thumb-row" style="--tc:#10b981;">
         <div class="tpl-side">
           <div class="tpl-avatar"></div>
           <div class="tl w80" style="background:rgba(255,255,255,.9)"></div>
@@ -338,7 +354,7 @@
       </div><span class="tpl-name">Tech</span></div>
 
       <!-- Classic (centered) -->
-      <div class="tpl-card"><div class="tpl-thumb" style="--tc:#334155;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb" style="--tc:#334155;">
         <div class="tpl-grp" style="align-items:center">
           <div class="tpl-name-line" style="width:55%;margin-top:2px"></div><div class="tl w70" style="height:4px"></div>
           <div class="tpl-rule"></div>
@@ -349,7 +365,7 @@
       </div><span class="tpl-name">Classic</span></div>
 
       <!-- Minimal -->
-      <div class="tpl-card"><div class="tpl-thumb" style="--tc:#8b5cf6;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb" style="--tc:#8b5cf6;">
         <div class="tpl-grp">
           <div class="tpl-name-line w40"></div><div class="tl tacc w25" style="height:3px"></div>
         </div>
@@ -359,7 +375,7 @@
       </div><span class="tpl-name">Minimal</span></div>
 
       <!-- Professional (two-column) -->
-      <div class="tpl-card"><div class="tpl-thumb" style="--tc:#3b82f6;">
+      <div class="tpl-card"><span class="glow" aria-hidden="true"></span><div class="tpl-thumb" style="--tc:#3b82f6;">
         <div class="tpl-grp">
           <div class="tpl-head" style="height:20px"></div>
           <div class="tpl-name-line w50" style="margin-top:2px"></div><div class="tl w70" style="height:4px"></div>
@@ -461,7 +477,7 @@
         <h2 class="spot-title">Pass the filter<br>before a human sees it.</h2>
         <p class="spot-desc">Get an instant 0–100 ATS score with the exact keyword and formatting fixes that get you past the automated screens roughly 70% of resumes never survive.</p>
         <div class="spot-actions">
-          <span class="spot-metric">95% pass rate</span>
+          <span class="spot-metric">ATS-optimized</span>
         </div>
       </div>
       <div class="spot-mock">
@@ -667,18 +683,13 @@
 <!-- ============ TESTIMONIALS ============ -->
 <section class="section-light">
   <div class="container">
-    <div class="rating-headline">
-      <div class="rating-stars">★★★★★</div>
-      <div class="rating-score">4.9 / 5</div>
-      <div class="rating-count">from 200+ users</div>
-    </div>
     <h2 class="section-title">Built to beat the bots and land interviews</h2>
     <p class="section-sub">Rewrite, score against any job, and ship an ATS-ready resume in minutes.</p>
 
     <div class="stats-row">
-      <div class="stat"><div class="stat-num" data-count="30" data-suffix="s">30s</div><div class="stat-label">Average build time</div></div>
-      <div class="stat"><div class="stat-num" data-count="95" data-suffix="%">95%</div><div class="stat-label">ATS pass rate</div></div>
-      <div class="stat"><div class="stat-num" data-count="10" data-suffix="k+">10k+</div><div class="stat-label">Resumes created</div></div>
+      <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Free forever, no credit card</div></div>
+      <div class="stat"><div class="stat-num">ATS</div><div class="stat-label">Optimized to beat the filters</div></div>
+      <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Tailoring, ATS check &amp; interview prep</div></div>
     </div>
   </div>
 </section>
@@ -784,7 +795,7 @@
         <div class="final-avatar" style="background:#ec4899;">PS</div>
         <div class="final-avatar" style="background:#3b82f6;">DP</div>
       </div>
-      <span>Join <strong>10,000+</strong> job seekers already using Applio</span>
+      <span>Land more interviews with your AI career copilot</span>
     </div>
     <h2 class="section-title light">Ready to land more interviews?</h2>
     <p class="section-sub light">Build your AI-optimized resume in minutes. Free forever, no credit card needed.</p>
@@ -850,5 +861,31 @@
 <script src="js/plan.js"></script>
 <script src="js/waves.js"></script>
 <script src="js/home.js"></script>
+<script>
+// ===== Glowing border effect driver (vanilla port of Aceternity GlowingEffect) =====
+// Each template card's border highlight points toward the cursor and fades in when the
+// cursor is near it. rAF-throttled; skipped on touch devices; no dependencies.
+(function () {
+  var glows = Array.prototype.slice.call(document.querySelectorAll('#templates .tpl-card .glow'));
+  if (!glows.length || !window.matchMedia || matchMedia('(pointer: coarse)').matches) return;
+  var PROXIMITY = 80, INACTIVE_ZONE = 0.01, raf = 0;
+  function onMove(e) {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () {
+      glows.forEach(function (g) {
+        var r = g.parentElement.getBoundingClientRect();
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        var dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+        if (dist < 0.5 * Math.min(r.width, r.height) * INACTIVE_ZONE) { g.style.setProperty('--active', '0'); return; }
+        var active = e.clientX > r.left - PROXIMITY && e.clientX < r.right + PROXIMITY &&
+                     e.clientY > r.top - PROXIMITY && e.clientY < r.bottom + PROXIMITY;
+        g.style.setProperty('--active', active ? '1' : '0');
+        if (active) g.style.setProperty('--start', String(180 * Math.atan2(e.clientY - cy, e.clientX - cx) / Math.PI + 90));
+      });
+    });
+  }
+  document.body.addEventListener('pointermove', onMove, { passive: true });
+})();
+</script>
 </body>
 </html>

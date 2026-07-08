@@ -26,7 +26,7 @@ Use ONLY facts explicitly present in the candidate's input. Never invent, assume
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant"]);
 // Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
 const FREE_ASSISTANT_MESSAGES = 5;
 const FREE_COVER_LETTERS = 2;
@@ -682,19 +682,7 @@ async function ai(req, env, action) {
     throw err(402, "Upgrade to Premium to use AI features");
   }
 
-  // Career Coach: free users get a few messages as a taste, then must upgrade.
-  // Enforced server-side and counted only on a SUCCESSFUL reply (so a failed call
-  // never burns a message). Paid users are unlimited.
-  if (action === "assistant" && !paid) {
-    const used = user.assistantUsed || 0;
-    if (used >= FREE_ASSISTANT_MESSAGES) {
-      throw err(402, "You've used your free Career Coach messages. Upgrade to Premium for unlimited coaching.");
-    }
-    const result = await aiDispatch(env, action, body);
-    user.assistantUsed = used + 1;
-    await putUser(env, user);
-    return { ...result, freeRemaining: Math.max(0, FREE_ASSISTANT_MESSAGES - user.assistantUsed) };
-  }
+  // Career Coach (assistant) is Premium-only — enforced by the PRO_AI gate above.
 
   // Cover Letter Maker: free users get a couple of letters as a taste, then must
   // upgrade. Counted only on a SUCCESSFUL generation. Paid users are unlimited.

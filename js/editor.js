@@ -2155,8 +2155,26 @@ function _renderFullPreview() {
     f.style.height = _fullContentH + 'px';
     _fpTotal = pages;
     _fpUpdateNav();
+    _updateFit1Btn();
     if (_fullFit) _fitFullPreview(); else _applyFullZoom();
   });
+}
+
+// "Fit to one page" toggle — lives on the full-preview toolbar. Persists to
+// resume.customize so the mini preview AND the PDF export stay identical.
+function _updateFit1Btn() {
+  if (!_fullOverlay) return;
+  const b = _fullOverlay.querySelector('#fp-fit1');
+  if (b) b.classList.toggle('on', !!(resume && resume.customize && resume.customize.fitOnePage));
+}
+
+function _toggleFitOnePage() {
+  if (!resume.customize) resume.customize = {};
+  resume.customize.fitOnePage = !resume.customize.fitOnePage;
+  if (typeof save === 'function') save();      // persist so export.html matches
+  _updateFit1Btn();
+  if (typeof renderPreview === 'function') renderPreview();  // refresh mini
+  _renderFullPreview();                         // refresh full
 }
 
 function _buildFullOverlay() {

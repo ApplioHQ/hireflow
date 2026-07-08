@@ -1843,7 +1843,7 @@ function _injectPreviewChrome(doc) {
 // Idempotent: paint chrome, bind jumps once, compute fit, paginate, scale.
 function _renderMiniInto(wrap, sizer, frame, doc) {
   _injectPreviewChrome(doc);
-  if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }
+  _bindPreviewClicks(doc);   // re-tag every render: doc.write() recreated the elements
   _maybeFitOnePage(doc);
   const pages = _paginate(doc);
   _renderFitIndicator(doc._lastRatio, pages);
@@ -2156,7 +2156,7 @@ function _renderFullPreview() {
   if (!f) return;
   _mountResume(f, false, function (doc) {
     _injectPreviewChrome(doc);
-    if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }  // click a heading to jump-edit
+    _bindPreviewClicks(doc);   // click anywhere in a section to jump-edit it
     _maybeFitOnePage(doc);
     const pages = _paginate(doc);
     _fullContentH = doc.documentElement.scrollHeight || doc.body.scrollHeight || 1056;
@@ -2264,7 +2264,7 @@ function _buildFullOverlay() {
 }
 
 function _bindPreviewClicks(doc) {
-  if (!doc) return;
+  if (!doc || !doc.body) return;
   const SECTION_MAP = {
     'experience': 'experience', 'education': 'education', 'skills': 'skills',
     'projects': 'projects', 'certifications': 'certifications', 'awards': 'awards',
@@ -2272,23 +2272,44 @@ function _bindPreviewClicks(doc) {
     'summary': 'personal', 'profile': 'personal', 'objective': 'personal',
     'workexperience': 'experience', 'professionalexperience': 'experience',
   };
-  // Make section headings clickable (handlers added from the parent context, so
-  // the same-origin iframe can call back into nextSection()).
+  // doc.write() recreates every element on each render, so we (re)tag + (re)bind
+  // fresh elements every time — no listener accumulation, no stale classes.
+  const titleCase = s => s.replace(/\s+/g, ' ').trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  const setActive = (sec) => {
+    if (doc._hfActive === sec) return;
+    if (doc._hfActive) doc.querySelectorAll('.hf-sec-hover').forEach(x => x.classList.remove('hf-sec-hover'));
+    doc._hfActive = sec;
+    if (sec) doc.querySelectorAll('[data-hf-sec="' + sec + '"]').forEach(x => x.classList.add('hf-sec-hover'));
+  };
+  doc._hfActive = null;
+  // Bind one element into a section group: click jumps to edit; hovering any
+  // member lights the whole group (with a short leave-delay to avoid flicker
+  // when the pointer crosses between entries of the same section).
+  const bind = (el, sec, label, isHead) => {
+    el.classList.add('hf-edit');
+    el.setAttribute('data-hf-sec', sec);
+    el.title = label;
+    if (isHead) { el.classList.add('hf-sec-head'); el.setAttribute('data-hf-label', label); }
+    el.addEventListener('click', (e) => { e.stopPropagation(); nextSection(sec); });
+    el.addEventListener('mouseenter', () => { clearTimeout(doc._hfClearT); setActive(sec); });
+    el.addEventListener('mouseleave', () => { doc._hfClearT = setTimeout(() => setActive(null), 40); });
+  };
+  // Each section = an <h2> heading + every sibling up to the next <h2>.
   doc.querySelectorAll('h2').forEach(h2 => {
     const key = h2.textContent.toLowerCase().replace(/[^a-z]/g, '');
     const section = SECTION_MAP[key] || Object.keys(SECTION_MAP).reduce((found, k) => found || (key.includes(k) ? SECTION_MAP[k] : null), null);
     if (!section) return;
-    h2.classList.add('preview-jump');
-    h2.title = 'Click to edit ' + section;
-    h2.addEventListener('click', () => nextSection(section));
+    const label = 'Edit ' + titleCase(h2.textContent);
+    bind(h2, section, label, true);
+    let el = h2.nextElementSibling;
+    while (el && el.tagName !== 'H2') {
+      if (!el.classList.contains('hf-pagebreak') && !el.classList.contains('hf-sheet')) bind(el, section, label, false);
+      el = el.nextElementSibling;
+    }
   });
-  // Make header/name area jump to personal
+  // Header / name block edits contact info.
   const header = doc.querySelector('[class*="header"], [class*="name"]');
-  if (header) {
-    header.classList.add('preview-jump');
-    header.title = 'Click to edit Personal Info';
-    header.addEventListener('click', () => nextSection('personal'));
-  }
+  if (header) bind(header, 'personal', 'Edit Contact Info', true);
 }
 
 // ============ Helpers ============

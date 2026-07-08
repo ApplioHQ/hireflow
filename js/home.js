@@ -251,32 +251,6 @@ document.querySelectorAll('.faq details').forEach(detail => {
   });
 });
 
-// ----- Live activity ticker -----
-const TICKER_MSGS = [
-  'Sarah from Austin just built her resume in 28 seconds 🎉',
-  'Alex got an interview at Google after using Applio 🚀',
-  'Priya\'s ATS score jumped from 54 → 91 just now ✨',
-  'James landed 3 offers in 6 weeks using AI tailoring 🏆',
-  '127 resumes built in the last hour ⚡',
-  'Maria just downloaded her polished PDF in 1 click 📄',
-  'David\'s resume is now optimized for Product Manager roles 🎯',
-  'Aisha went from 0 callbacks to 4 interviews this week 🙌',
-];
-let tickerIdx = 0;
-const tickerEl = document.getElementById('ticker-msg');
-if (tickerEl) {
-  setInterval(() => {
-    tickerIdx = (tickerIdx + 1) % TICKER_MSGS.length;
-    tickerEl.classList.add('ticker-exit');
-    setTimeout(() => {
-      tickerEl.textContent = TICKER_MSGS[tickerIdx];
-      tickerEl.classList.remove('ticker-exit');
-      tickerEl.classList.add('ticker-enter');
-      void tickerEl.offsetWidth;
-      tickerEl.classList.remove('ticker-enter');
-    }, 230);
-  }, 5000);
-}
 
 // =========================================================
 // ANIMATIONS & INTERACTIONS

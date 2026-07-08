@@ -244,14 +244,38 @@ var _practiceQs = [];
 var _practiceIdx = 0;
 var _practiceTimer = null;
 var _practiceStart = null;
+var _practiceAnswers = {};   // idx -> typed/spoken answer (kept across navigation)
+var _practiceFeedback = {};  // idx -> scored feedback HTML
+var _PRACTICE_KEY = 'hf_interview_session';
+
+// Persist the whole practice session so it survives navigating away and back.
+function _persistPractice() {
+  try {
+    localStorage.setItem(_PRACTICE_KEY, JSON.stringify({
+      qs: _practiceQs, answers: _practiceAnswers, feedback: _practiceFeedback, idx: _practiceIdx
+    }));
+  } catch (e) {}
+}
+// Capture whatever is currently in the answer box (tagged with its own index).
+function _saveCurrentAnswer() {
+  var ta = document.getElementById('_panswer');
+  if (!ta) return;
+  var pi = ta.getAttribute('data-idx');
+  if (pi != null) { _practiceAnswers[pi] = ta.value; _persistPractice(); }
+}
 
 function _startPracticeMode(questions) {
   _practiceQs = questions;
   _practiceIdx = 0;
+  _practiceAnswers = {};
+  _practiceFeedback = {};
+  _persistPractice();
   _renderPracticeQuestion();
 }
 
 function _renderPracticeQuestion() {
+  // Save the answer currently on screen (previous question) before rebuilding.
+  _saveCurrentAnswer();
   // Stop any in-progress recording before rebuilding the view
   if (_recActive) { _recActive = false; try { _recog && _recog.stop(); } catch(e){} clearInterval(_recTimer); }
   var q = _practiceQs[_practiceIdx];

@@ -224,7 +224,8 @@
       "Bash(cat)",
       "Bash(pkill -f auto-git-commit)",
       "Bash(git reset *)",
-      "Bash(node verify-hover.js)"
+      "Bash(node verify-hover.js)",
+      "Bash(node verify-chat.js)"
     ]
   }
 }

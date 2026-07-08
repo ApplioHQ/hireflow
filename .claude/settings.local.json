@@ -204,7 +204,8 @@
       "Bash(perl -CSD -i -pe 's/career copilot \\\\x{2014} build/career copilot. Build/g' index.html)",
       "Bash(awk 'NR>=422 && NR<=470' index.html)",
       "Bash(node --check js/resume-file.js)",
-      "Bash(grep -nE \"hydrate\\\\\\(\\\\\\);|hydrate\\\\\\(\\\\\\)$|init\\\\\\(\\\\\\)|DOMContentLoaded|^ *hydrate\" js/editor.js)"
+      "Bash(grep -nE \"hydrate\\\\\\(\\\\\\);|hydrate\\\\\\(\\\\\\)$|init\\\\\\(\\\\\\)|DOMContentLoaded|^ *hydrate\" js/editor.js)",
+      "Bash(grep -rnE \"Page .*of|paginate|pageOf|page-break|of \\\\$\\\\{|numPages|pageCount|PAGE_H|pxPerPage|A4|letter|11in|792|1056\" js/editor.js js/templates.js export.html)"
     ]
   }
 }

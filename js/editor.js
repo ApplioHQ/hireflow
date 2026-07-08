@@ -2131,6 +2131,7 @@ function _applyFullZoom() {
   sizer.style.height = Math.round(_fullContentH * _fullZoom) + 'px';
   const lbl = document.getElementById('full-zoom-label');
   if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
+  _fpUpdateNav();
 }
 
 function _renderFullPreview() {
@@ -2142,8 +2143,8 @@ function _renderFullPreview() {
     const pages = _paginate(doc);
     _fullContentH = doc.documentElement.scrollHeight || doc.body.scrollHeight || 1056;
     f.style.height = _fullContentH + 'px';
-    const pl = document.getElementById('fp-pages');
-    if (pl) pl.textContent = pages + (pages === 1 ? ' page' : ' pages');
+    _fpTotal = pages;
+    _fpUpdateNav();
     if (_fullFit) _fitFullPreview(); else _applyFullZoom();
   });
 }
@@ -2208,7 +2209,13 @@ function _buildFullOverlay() {
   q('#fz-fit').onclick = _fitFullPreview;
   q('#full-zoom-label').onclick = _fitFullPreview;
   q('#fz-close').onclick = closeFullPreview;
+  q('#fp-prev').onclick = () => _fpGoto(-1);
+  q('#fp-next').onclick = () => _fpGoto(1);
   const scroll = q('#full-scroll');
+  scroll.addEventListener('scroll', () => {
+    if (scroll._navRaf) return;
+    scroll._navRaf = requestAnimationFrame(() => { scroll._navRaf = 0; _fpUpdateNav(); });
+  }, { passive: true });
   _fullOverlay.addEventListener('click', (e) => { if (e.target === _fullOverlay || e.target === scroll) closeFullPreview(); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (_fullFit && _fullOverlay.style.display === 'flex') _fitFullPreview(); }).observe(scroll);
 }

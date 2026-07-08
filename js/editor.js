@@ -2053,14 +2053,17 @@ function _paginate(doc) {
   return totalPages;
 }
 
-// ============ Fix 2: full-screen preview lightbox ============
+// ============ Full-screen preview lightbox (industrial-grade) ============
 let _fullOverlay = null;
 let _fullZoom = 1;
+let _fullFit = true;          // auto-fit the page to the viewport width until the user zooms
+let _fullContentH = 1056;     // measured content height (unscaled) for the sizer
 
 function openFullPreview() {
   if (!_fullOverlay) _buildFullOverlay();
   _fullOverlay.style.display = 'flex';
-  requestAnimationFrame(() => { _fullOverlay.style.opacity = '1'; });
+  document.body.style.overflow = 'hidden';   // lock background scroll while open
+  requestAnimationFrame(() => { _fullOverlay.style.opacity = '1'; _fullOverlay.classList.add('hf-fp-in'); });
   document.addEventListener('keydown', _fullKeyHandler);
   _renderFullPreview();
 }
@@ -2068,19 +2071,40 @@ function openFullPreview() {
 function closeFullPreview() {
   if (!_fullOverlay) return;
   _fullOverlay.style.opacity = '0';
-  setTimeout(() => { _fullOverlay.style.display = 'none'; }, 200);
+  _fullOverlay.classList.remove('hf-fp-in');
+  document.body.style.overflow = '';
+  setTimeout(() => { if (_fullOverlay) _fullOverlay.style.display = 'none'; }, 220);
   document.removeEventListener('keydown', _fullKeyHandler);
 }
 
-function _fullKeyHandler(e) { if (e.key === 'Escape') closeFullPreview(); }
+function _fullKeyHandler(e) {
+  if (e.key === 'Escape') return closeFullPreview();
+  if (e.key === '+' || e.key === '=') { e.preventDefault(); setFullZoom(0.1); }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); setFullZoom(-0.1); }
+  else if (e.key === '0') { e.preventDefault(); _fitFullPreview(); }
+}
 
+function _fitScale() {
+  const scroll = document.getElementById('full-scroll');
+  if (!scroll || !scroll.clientWidth) return 1;
+  return Math.max(0.4, Math.min(1.4, (scroll.clientWidth - 56) / PAGE_W));
+}
+function _fitFullPreview() { _fullFit = true; _fullZoom = _fitScale(); _applyFullZoom(); }
 function setFullZoom(delta) {
-  _fullZoom = Math.min(1.5, Math.max(0.4, +(_fullZoom + delta).toFixed(2)));
+  _fullFit = false;
+  _fullZoom = Math.min(2, Math.max(0.4, +(_fullZoom + delta).toFixed(2)));
   _applyFullZoom();
 }
+// Scale the iframe and reserve the SCALED footprint on a sizer, so the page stays
+// centered and scrolls correctly at any zoom (mirrors the mini-preview approach).
 function _applyFullZoom() {
   const f = document.getElementById('full-frame');
-  if (f) { f.style.transform = 'scale(' + _fullZoom + ')'; }
+  const sizer = document.getElementById('full-sizer');
+  if (!f || !sizer) return;
+  f.style.transformOrigin = 'top left';
+  f.style.transform = 'scale(' + _fullZoom + ')';
+  sizer.style.width = Math.round(PAGE_W * _fullZoom) + 'px';
+  sizer.style.height = Math.round(_fullContentH * _fullZoom) + 'px';
   const lbl = document.getElementById('full-zoom-label');
   if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
 }
@@ -2090,48 +2114,72 @@ function _renderFullPreview() {
   if (!f) return;
   _mountResume(f, false, function (doc) {
     _injectPreviewChrome(doc);
-    _paginate(doc);
-    f.style.height = (doc.documentElement.scrollHeight) + 'px';
-    _applyFullZoom();
+    if (!doc._jbound) { _bindPreviewClicks(doc); doc._jbound = true; }  // click a heading to jump-edit
+    const pages = _paginate(doc);
+    _fullContentH = doc.documentElement.scrollHeight || doc.body.scrollHeight || 1056;
+    f.style.height = _fullContentH + 'px';
+    const pl = document.getElementById('fp-pages');
+    if (pl) pl.textContent = pages + (pages === 1 ? ' page' : ' pages');
+    if (_fullFit) _fitFullPreview(); else _applyFullZoom();
   });
 }
 
 function _buildFullOverlay() {
+  const st = document.createElement('style');
+  st.textContent =
+    '#full-preview-overlay{position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;background:radial-gradient(130% 100% at 50% -10%,#171b3d,#0a0c1b 68%);opacity:0;transition:opacity .22s ease;}' +
+    '#full-preview-overlay .fp-bar{display:flex;align-items:center;gap:16px;padding:11px 18px;flex-shrink:0;background:rgba(13,16,38,.75);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);}' +
+    '#full-preview-overlay .fp-left,#full-preview-overlay .fp-right{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}' +
+    '#full-preview-overlay .fp-right{justify-content:flex-end;}' +
+    '#full-preview-overlay .fp-brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:14px;white-space:nowrap;}' +
+    '#full-preview-overlay .fp-brand img{width:22px;height:22px;border-radius:5px;}' +
+    '#full-preview-overlay .fp-pages{font-size:12px;color:#c7cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:4px 11px;white-space:nowrap;}' +
+    '#full-preview-overlay .fp-zoom{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:3px;}' +
+    '#full-preview-overlay .fp-zbtn{width:32px;height:30px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#fff;border-radius:8px;cursor:pointer;font-size:17px;line-height:1;transition:background .12s;}' +
+    '#full-preview-overlay .fp-zbtn:hover{background:rgba(255,255,255,.14);}' +
+    '#full-preview-overlay .fp-zlabel{min-width:52px;text-align:center;font-size:13px;font-weight:600;color:#fff;cursor:pointer;user-select:none;}' +
+    '#full-preview-overlay .fp-export{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:0 6px 18px rgba(99,102,241,.35);transition:transform .12s,box-shadow .12s;}' +
+    '#full-preview-overlay .fp-export:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.45);}' +
+    '#full-preview-overlay .fp-close{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 13px;font-size:13px;cursor:pointer;transition:background .12s;}' +
+    '#full-preview-overlay .fp-close:hover{background:rgba(255,255,255,.16);}' +
+    '#full-preview-overlay .fp-close kbd{font:600 10px ui-monospace,monospace;background:rgba(255,255,255,.14);border-radius:4px;padding:1px 5px;}' +
+    '#full-preview-overlay .fp-scroll{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:34px 24px 90px;}' +
+    '#full-preview-overlay .fp-sizer{position:relative;flex:none;margin:0 auto;}' +
+    '#full-preview-overlay #full-frame{position:absolute;top:0;left:0;width:816px;border:0;background:#fff;border-radius:3px;box-shadow:0 30px 90px rgba(0,0,0,.6);}' +
+    '#full-preview-overlay.hf-fp-in .fp-sizer{animation:fpRise .3s cubic-bezier(.2,.7,.2,1) both;}' +
+    '@keyframes fpRise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}' +
+    '@media (max-width:640px){#full-preview-overlay .fp-brand span,#full-preview-overlay .fp-pages{display:none;}}';
+  document.head.appendChild(st);
+
   _fullOverlay = document.createElement('div');
   _fullOverlay.id = 'full-preview-overlay';
-  _fullOverlay.style.cssText = 'position:fixed; inset:0; z-index:1000; display:none; flex-direction:column; background:rgba(8,10,25,.88); backdrop-filter:blur(4px); opacity:0; transition:opacity .2s ease;';
-
-  const btn = 'background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:8px 14px; font-size:14px; cursor:pointer; line-height:1;';
-  const bar = document.createElement('div');
-  bar.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:12px; padding:14px; flex-shrink:0;';
-  bar.innerHTML =
-    '<button id="fz-out" style="' + btn + '">−</button>' +
-    '<span id="full-zoom-label" style="color:#fff; font-size:13px; min-width:46px; text-align:center;">100%</span>' +
-    '<button id="fz-in" style="' + btn + '">+</button>' +
-    '<a href="export" style="' + btn + ' text-decoration:none;">Export →</a>' +
-    '<button id="fz-close" style="' + btn + '">✕ Close</button>';
-
-  const scroll = document.createElement('div');
-  scroll.id = 'full-scroll';
-  scroll.style.cssText = 'flex:1; overflow:auto; display:flex; justify-content:center; align-items:flex-start; padding:20px 20px 80px;';
-
-  const frame = document.createElement('iframe');
-  frame.id = 'full-frame';
-  frame.title = 'Full resume preview';
-  frame.style.cssText = 'width:816px; flex:none; border:0; background:#fff; border-radius:4px; box-shadow:0 12px 60px rgba(0,0,0,.55); transform-origin:top center;';
-  scroll.appendChild(frame);
-
-  _fullOverlay.appendChild(bar);
-  _fullOverlay.appendChild(scroll);
+  _fullOverlay.innerHTML =
+    '<div class="fp-bar">' +
+      '<div class="fp-left"><span class="fp-brand"><img src="logo.jpeg" width="22" height="22" alt="">Preview</span>' +
+        '<span class="fp-pages" id="fp-pages"></span></div>' +
+      '<div class="fp-zoom">' +
+        '<button class="fp-zbtn" id="fz-out" title="Zoom out (−)" aria-label="Zoom out">−</button>' +
+        '<span class="fp-zlabel" id="full-zoom-label" title="Fit to width (press 0)">100%</span>' +
+        '<button class="fp-zbtn" id="fz-in" title="Zoom in (+)" aria-label="Zoom in">+</button>' +
+        '<button class="fp-zbtn" id="fz-fit" title="Fit width" aria-label="Fit width">⤡</button>' +
+      '</div>' +
+      '<div class="fp-right">' +
+        '<a class="fp-export" href="export">Export PDF →</a>' +
+        '<button class="fp-close" id="fz-close" aria-label="Close preview">Close <kbd>Esc</kbd></button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="fp-scroll" id="full-scroll"><div class="fp-sizer" id="full-sizer"><iframe id="full-frame" title="Full resume preview" scrolling="no"></iframe></div></div>';
   document.body.appendChild(_fullOverlay);
 
-  bar.querySelector('#fz-out').onclick = () => setFullZoom(-0.1);
-  bar.querySelector('#fz-in').onclick = () => setFullZoom(0.1);
-  bar.querySelector('#fz-close').onclick = closeFullPreview;
-  // Close on backdrop click (overlay or scroll area, not the frame/toolbar).
-  _fullOverlay.addEventListener('click', (e) => {
-    if (e.target === _fullOverlay || e.target === scroll) closeFullPreview();
-  });
+  const q = s => _fullOverlay.querySelector(s);
+  q('#fz-out').onclick = () => setFullZoom(-0.1);
+  q('#fz-in').onclick = () => setFullZoom(0.1);
+  q('#fz-fit').onclick = _fitFullPreview;
+  q('#full-zoom-label').onclick = _fitFullPreview;
+  q('#fz-close').onclick = closeFullPreview;
+  const scroll = q('#full-scroll');
+  _fullOverlay.addEventListener('click', (e) => { if (e.target === _fullOverlay || e.target === scroll) closeFullPreview(); });
+  if (window.ResizeObserver) new ResizeObserver(() => { if (_fullFit && _fullOverlay.style.display === 'flex') _fitFullPreview(); }).observe(scroll);
 }
 
 function _bindPreviewClicks(doc) {

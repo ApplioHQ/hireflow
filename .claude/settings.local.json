@@ -218,7 +218,8 @@
       "Bash(mv pagetest-before.png pagetest-fixed.png)",
       "Bash(command -v fswatch)",
       "Bash(perl -0pi -e 's#\\(<h2>Education</h2>\\)#<div class=\"entry\"><div class=\"eh\"><span>Junior Analyst</span><span>2016 – 2018</span></div><div class=\"es\">Globex Corp</div><ul><li>Produced weekly performance reports for regional leadership.</li><li>Built an inventory tracker that cut stockouts by 22 percent.</li><li>Supported month-end close and variance analysis.</li></ul></div>\\\\n<h2>Certifications</h2><div class=\"entry\"><div class=\"eh\"><span>Google Data Analytics Certificate</span></div></div><div class=\"entry\"><div class=\"eh\"><span>Lean Six Sigma Green Belt</span></div></div>\\\\n  $1#' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/fittest.html)",
-      "Bash(CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node ftshot.mjs)"
+      "Bash(CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node ftshot.mjs)",
+      "Bash(perl -0pi -e 's#\\(<h2>Skills</h2>\\)#<h2>Leadership</h2><div class=\"entry\"><div class=\"eh\"><span>Team Lead, Ops Guild</span><span>2021 – Present</span></div><ul><li>Ran a 20-person community of practice across three offices.</li><li>Authored the onboarding playbook now used org-wide.</li><li>Hosted monthly workshops on analytics tooling.</li></ul></div><h2>Volunteer</h2><div class=\"entry\"><div class=\"eh\"><span>Mentor</span><span>2019 – Present</span></div><ul><li>Coached eight early-career analysts through job searches.</li></ul></div>\\\\n  $1#' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/fittest.html)"
     ]
   }
 }

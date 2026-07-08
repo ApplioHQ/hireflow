@@ -549,6 +549,119 @@ function renderPersonal() {
     </div>`;
 }
 
+// ============ Custom (user-defined) sections ============
+// Metadata: resume.customize.customSections = [{ key, title }]; entries live in
+// resume[key] (array), so all the generic editing machinery works unchanged.
+function _customSections() {
+  resume.customize = resume.customize || {};
+  if (!Array.isArray(resume.customize.customSections)) resume.customize.customSections = [];
+  return resume.customize.customSections;
+}
+function _ensureCustomSections() {
+  _customSections().forEach(function (m) { if (!Array.isArray(resume[m.key])) resume[m.key] = []; });
+}
+function isCustomSection(key) { return _customSections().some(function (m) { return m.key === key; }); }
+function _customTitle(key) { var m = _customSections().find(function (x) { return x.key === key; }); return m ? m.title : 'Section'; }
+
+function addCustomSection() {
+  _ensureCustomSections();
+  var key = 'custom_' + Date.now().toString(36);
+  resume[key] = [];
+  _customSections().push({ key: key, title: 'New Section' });
+  resume.customize.sections = resume.customize.sections || {};
+  resume.customize.sections[key] = true;
+  resume.customize.sectionOrder = Array.isArray(resume.customize.sectionOrder) ? resume.customize.sectionOrder : [];
+  resume.customize.sectionOrder.push(key);
+  save();
+  renderCustomNav();
+  currentSection = key;
+  document.querySelectorAll('.sidebar-item').forEach(function (i) { i.classList.toggle('active', i.dataset.section === key); });
+  renderMain();
+  setTimeout(function () { var t = document.getElementById('custom-title-input'); if (t) { t.focus(); t.select(); } }, 40);
+}
+
+function deleteCustomSection(key) {
+  var metas = _customSections();
+  var idx = metas.findIndex(function (m) { return m.key === key; });
+  if (idx === -1) return;
+  metas.splice(idx, 1);
+  delete resume[key];
+  if (resume.customize.sections) delete resume.customize.sections[key];
+  if (Array.isArray(resume.customize.sectionOrder)) resume.customize.sectionOrder = resume.customize.sectionOrder.filter(function (k) { return k !== key; });
+  save();
+  renderCustomNav();
+  currentSection = 'template';
+  document.querySelectorAll('.sidebar-item').forEach(function (i) { i.classList.toggle('active', i.dataset.section === 'template'); });
+  renderMain();
+  toast('Section deleted', { type: 'info' });
+}
+
+function renameCustomSection(key, title) {
+  var m = _customSections().find(function (x) { return x.key === key; });
+  if (!m) return;
+  m.title = title || 'Section';
+  save();
+  renderCustomNav();
+  schedulePreview();
+}
+
+// Build the sidebar nav items for custom sections + wire the "Add section" button.
+function renderCustomNav() {
+  var slot = document.getElementById('custom-nav');
+  if (slot) {
+    slot.innerHTML = _customSections().map(function (m) {
+      var active = currentSection === m.key ? ' active' : '';
+      var done = Array.isArray(resume[m.key]) && resume[m.key].length ? ' has-content' : '';
+      return '<div class="sidebar-item' + active + done + '" data-section="' + m.key + '">'
+        + ICON('doc') + '<span>' + esc(m.title || 'Section') + '</span>'
+        + (resume[m.key] && resume[m.key].length
+            ? '<span class="s-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg></span>'
+            : '<span class="s-dot"></span>')
+        + '</div>';
+    }).join('');
+    slot.querySelectorAll('.sidebar-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        document.querySelectorAll('.sidebar-item').forEach(function (i) { i.classList.remove('active'); });
+        item.classList.add('active');
+        currentSection = item.dataset.section;
+        renderMain();
+      });
+    });
+  }
+  var addBtn = document.getElementById('sidebar-add-section');
+  if (addBtn && !addBtn._wired) {
+    addBtn._wired = true;
+    addBtn.innerHTML = ICON('plus') + '<span>Add section</span>';
+    addBtn.addEventListener('click', addCustomSection);
+  }
+}
+
+// Editor panel for one custom section: rename, delete, plus the generic entry list.
+function renderCustomSection(key) {
+  _ensureCustomSections();
+  if (!Array.isArray(resume[key])) resume[key] = [];
+  var title = _customTitle(key);
+  var fields = [['Heading', 'heading'], ['Subheading', 'subheading'], ['Date', 'date']];
+  var list = resume[key];
+  return `
+    <div class="section-card">
+      <div class="section-head">
+        <h3>${ICON('doc')} <input id="custom-title-input" value="${esc(title)}" placeholder="Section title"
+          oninput="renameCustomSection('${key}', this.value)"
+          style="font-size:16px;font-weight:600;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);padding:2px 2px 4px;min-width:180px;"></h3>
+        <button class="ai-btn" onclick="aiImprove('${key}')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
+      </div>
+      <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 14px;">A section you control, add anything: languages, patents, interests, references, and more.</p>
+      ${list.length === 0 ? `<div class="empty-state">No entries yet. Add your first one below.</div>`
+        : `<div class="drag-list">${list.map((it, i) => itemCard(key, i, fields.map(f => [f[0], f[1], it[f[1]]]), 'description', it.description)).join('')}</div>`}
+      <button class="add-btn" onclick='addItem("${key}",${JSON.stringify(blank(fields, 'description'))})'>${ICON('plus','ico ico-sm')} Add entry</button>
+      <div class="action-row" style="margin-top:16px;">
+        <button class="btn btn-ghost btn-sm" onclick="deleteCustomSection('${key}')" style="color:var(--danger);">${ICON('trash','ico ico-sm')} Delete section</button>
+        <button class="btn btn-primary btn-sm" onclick="nextSection('customize')">Done ${ICON('arrowRight')}</button>
+      </div>
+    </div>`;
+}
+
 // ============ Experience / list-style sections ============
 function renderExperience() {
   return `

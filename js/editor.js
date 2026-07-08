@@ -2058,6 +2058,30 @@ let _fullOverlay = null;
 let _fullZoom = 1;
 let _fullFit = true;          // auto-fit the page to the viewport width until the user zooms
 let _fullContentH = 1056;     // measured content height (unscaled) for the sizer
+let _fpTotal = 1;             // total pages in the current render (for the page navigator)
+
+// ----- Page navigator (jump between pages, track the current one on scroll) -----
+function _fpStep() { return (PAGE_PX + SHEET_GAP) * _fullZoom; }
+function _fpCurrentPage() {
+  const scroll = document.getElementById('full-scroll');
+  if (!scroll) return 1;
+  return Math.min(_fpTotal, Math.max(1, Math.round(scroll.scrollTop / _fpStep()) + 1));
+}
+function _fpUpdateNav() {
+  const no = document.getElementById('fp-pageno');
+  if (!no) return;
+  const cur = _fpCurrentPage();
+  no.textContent = _fpTotal <= 1 ? '1 page' : (cur + ' / ' + _fpTotal);
+  const prev = document.getElementById('fp-prev'), next = document.getElementById('fp-next');
+  if (prev) prev.disabled = _fpTotal <= 1 || cur <= 1;
+  if (next) next.disabled = _fpTotal <= 1 || cur >= _fpTotal;
+}
+function _fpGoto(dir) {
+  const scroll = document.getElementById('full-scroll');
+  if (!scroll) return;
+  const target = Math.min(_fpTotal - 1, Math.max(0, _fpCurrentPage() - 1 + dir));
+  scroll.scrollTo({ top: Math.round(target * _fpStep()), behavior: 'smooth' });
+}
 
 function openFullPreview() {
   if (!_fullOverlay) _buildFullOverlay();

@@ -181,7 +181,26 @@ function autogrow(el){ el.style.height = 'auto'; el.style.height = Math.min(el.s
 function onKey(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 function askChip(btn){ document.getElementById('ca-input').value = btn.textContent; send(); }
 
+function _isFreeUser(){ return typeof isFree === 'function' ? isFree() : false; }
+
+// Career Coach is Premium-only: show a gate and lock the composer for free users.
+function _showPremiumGate(){
+  const chips = document.getElementById('ca-chips'); if (chips) chips.style.display = 'none';
+  const free = document.getElementById('ca-free'); if (free) free.style.display = 'none';
+  const thread = document.getElementById('ca-thread');
+  if (thread) thread.innerHTML =
+    '<div class="ca-empty">'
+    + '<div class="ca-hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 5 5-7 5 7 4-5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>'
+    + '<h1>Career Coach is Premium</h1>'
+    + '<div class="ca-hero-sub" style="max-width:420px;margin:8px auto 18px;">Your personal AI coach that knows your resume and helps with rewrites, tailoring, interviews, and job strategy, unlimited, on Premium or Lifetime.</div>'
+    + '<a class="btn btn-primary" href="pricing">' + ICON('sparkle','ico ico-sm') + ' See plans</a>'
+    + '</div>';
+  const row = document.querySelector('.ca-input-row');
+  if (row) row.style.display = 'none';
+}
+
 async function send(){
+  if (_isFreeUser()) { _showPremiumGate(); return; }
   const input = document.getElementById('ca-input');
   const text = (input.value || '').trim();
   if (!text || busy) return;

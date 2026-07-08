@@ -383,6 +383,10 @@ function _renderPracticeQuestion() {
         + bars
         + '<div style="padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);">' + esc(data.feedback||'') + '</div>'
         + '</div>';
+      // Remember this answer + its feedback so they survive navigation.
+      _practiceAnswers[_practiceIdx] = answer;
+      _practiceFeedback[_practiceIdx] = fb.innerHTML;
+      _persistPractice();
     } catch(e) {
       fb.innerHTML = '<div style="color:var(--danger);font-size:13px;">We couldn\'t score that answer right now. Please try again.</div>';
     }

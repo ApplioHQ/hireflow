@@ -1141,7 +1141,7 @@ section[id] { scroll-margin-top: 80px; }
     rgba(255,255,255,.32) 49%, rgba(255,255,255,.24) 56%, rgba(255,255,255,.17) 63%,
     rgba(255,255,255,.12) 70%, rgba(255,255,255,.07) 77%, rgba(255,255,255,.04) 84%,
     rgba(255,255,255,.015) 91%, rgba(255,255,255,0) 100%); }
-.spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
+.spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
   align-items: center; padding: 34px 0; }
 .spotlight + .spotlight { border-top: 1px solid transparent;
   border-image: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 22%, rgba(255,255,255,.12) 78%, transparent) 1; }
@@ -1155,7 +1155,8 @@ section[id] { scroll-margin-top: 80px; }
 .spot-link:hover { color: #fff; }
 
 /* stacked mockup cards */
-.spot-mock { position: relative; min-height: 290px; display: flex; align-items: center; justify-content: center; }
+.spot-mock { position: relative; min-height: 290px; display: flex; align-items: center; justify-content: flex-start; }
+.spotlight.reverse .spot-mock { justify-content: flex-end; }
 .spot-card-bg { position: absolute; width: 78%; height: 80%; border-radius: 28px; background: #11152e;
   box-shadow: 0 30px 80px rgba(0,0,0,.5); filter: blur(1px); }
 .spotlight:not(.reverse) .spot-card-bg { top: 4%; left: -6%; transform: rotate(-3deg); }
@@ -1298,6 +1299,9 @@ section[id] { scroll-margin-top: 80px; }
   font-size:13px; font-weight:700; color:var(--spot); background:rgba(var(--spot-rgb),.14); border:1px solid rgba(var(--spot-rgb),.35); }
 
 /* CTA + metric chip */
+.spot-benefits { list-style:none; margin:22px 0 0; padding:0; display:flex; flex-direction:column; gap:11px; max-width:480px; }
+.spot-benefits li { display:flex; align-items:flex-start; gap:10px; font-size:14.5px; line-height:1.45; color:#c7cbe0; }
+.spot-benefits li svg { flex:none; margin-top:2px; color:var(--spot); }
 .spot-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; }
 .spot-cta { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:#fff; text-decoration:none;
   padding:10px 16px; border-radius:10px; background:rgba(var(--spot-rgb),.18); border:1px solid rgba(var(--spot-rgb),.4); transition:background .2s, transform .2s; }

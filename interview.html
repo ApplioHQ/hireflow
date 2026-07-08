@@ -504,6 +504,20 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
     note.innerHTML = `✨ Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.`;
     document.querySelector('main .section-card').appendChild(note);
   }
+
+  // Restore an in-progress practice session (questions + answers + feedback) if the
+  // user left and came back, so nothing they did is lost.
+  try {
+    const saved = JSON.parse(localStorage.getItem(_PRACTICE_KEY) || 'null');
+    if (saved && Array.isArray(saved.qs) && saved.qs.length) {
+      _practiceQs = saved.qs;
+      _practiceAnswers = saved.answers || {};
+      _practiceFeedback = saved.feedback || {};
+      _practiceIdx = Math.min(saved.idx || 0, saved.qs.length - 1);
+      const intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
+      _renderPracticeQuestion();
+    }
+  } catch (e) {}
 })();
 </script>
 </body>

@@ -305,7 +305,7 @@ function _renderPracticeQuestion() {
     +   '<span class="ip-rec-time" id="_prec-time" style="display:none;">0:00</span>'
     +   '<span class="ip-rec-hint" id="_prec-hint"></span>'
     + '</div>'
-    + '<textarea id="_panswer" rows="6" placeholder="Type your answer here, or tap Record answer to speak…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;line-height:1.6;resize:vertical;"></textarea></div>'
+    + '<textarea id="_panswer" data-idx="' + _practiceIdx + '" rows="6" placeholder="Type your answer here, or tap Record answer to speak…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;line-height:1.6;resize:vertical;">' + esc(_practiceAnswers[_practiceIdx] || '') + '</textarea></div>'
     + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
     + '<button class="btn btn-primary btn-sm" id="_psubmit">' + ICON('sparkle','ico ico-sm') + ' Get AI Feedback</button>'
     + (_practiceIdx > 0 ? '<button class="btn btn-ghost btn-sm" id="_pprev">← Previous</button>' : '')
@@ -314,6 +314,14 @@ function _renderPracticeQuestion() {
     + '</div>'
     + '<div id="_pfeedback" style="margin-top:16px;"></div>'
     + '</div>';
+
+  // Persist the answer as the user types, and restore any saved feedback for this question.
+  var answerEl = document.getElementById('_panswer');
+  if (answerEl) answerEl.addEventListener('input', function () { _practiceAnswers[_practiceIdx] = answerEl.value; _persistPractice(); });
+  if (_practiceFeedback[_practiceIdx]) {
+    var fbEl = document.getElementById('_pfeedback');
+    if (fbEl) fbEl.innerHTML = _practiceFeedback[_practiceIdx];
+  }
 
   // Timer
   var timerEl = document.getElementById('_ptimer');

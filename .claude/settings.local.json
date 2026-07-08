@@ -216,7 +216,9 @@
       "Bash(perl -0pi -e 's#\\(<h2>Certifications</h2>\\)#<h2>Awards</h2><div class=\"entry\"><div class=\"entry-head\"><span>Employee of the Year</span><span>2022</span></div><div class=\"entry-sub\">Recognized for leading the platform migration.</div></div><div class=\"entry\"><div class=\"entry-head\"><span>Hackathon Winner</span><span>2020</span></div><div class=\"entry-sub\">First place among 40 teams for an accessibility tool.</div></div>\\\\n  $1#' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/pagetest.html)",
       "Bash(python3 -)",
       "Bash(mv pagetest-before.png pagetest-fixed.png)",
-      "Bash(command -v fswatch)"
+      "Bash(command -v fswatch)",
+      "Bash(perl -0pi -e 's#\\(<h2>Education</h2>\\)#<div class=\"entry\"><div class=\"eh\"><span>Junior Analyst</span><span>2016 – 2018</span></div><div class=\"es\">Globex Corp</div><ul><li>Produced weekly performance reports for regional leadership.</li><li>Built an inventory tracker that cut stockouts by 22 percent.</li><li>Supported month-end close and variance analysis.</li></ul></div>\\\\n<h2>Certifications</h2><div class=\"entry\"><div class=\"eh\"><span>Google Data Analytics Certificate</span></div></div><div class=\"entry\"><div class=\"eh\"><span>Lean Six Sigma Green Belt</span></div></div>\\\\n  $1#' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/fittest.html)",
+      "Bash(CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node ftshot.mjs)"
     ]
   }
 }

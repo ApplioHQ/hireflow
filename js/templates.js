@@ -821,3 +821,35 @@ function writeResumeFrame(frame, bodyHTML, pageWidth) {
   doc.close();
   return doc;
 }
+
+// "Fit to one page": if the résumé is only slightly over a page, shrink the base
+// font-size and the --app-space spacing multiplier together (both scale content
+// height ~proportionally) until it fits, clamped to a readable floor so it never
+// becomes unreadable. Runs on the SAME rendered doc used by the preview and the
+// export, so what you see matches the PDF. Idempotent: always resets first.
+// Returns true if the doc now fits within one page.
+const FIT_ONE_PAGE_FLOOR = 0.8;   // never shrink below 80% (readability + ATS)
+function fitDocToOnePage(doc, pageH) {
+  if (!doc || !doc.body) return false;
+  const root = doc.body.firstElementChild;         // the resume's template root (.t-*)
+  if (!root) return false;
+  const win = doc.defaultView || window;
+  // Reset any previous fit so re-renders are idempotent and measurement is honest.
+  root.style.fontSize = '';
+  root.style.removeProperty('--app-space');
+  const baseSpace = parseFloat(win.getComputedStyle(root).getPropertyValue('--app-space')) || 1;
+  const measure = () => doc.body.scrollHeight || doc.documentElement.scrollHeight || 0;
+  let h = measure();
+  if (h <= pageH) return true;                     // already one page, nothing to do
+  // A couple of measured passes converge (line-height/wrapping are non-linear).
+  for (let i = 0; i < 3; i++) {
+    const factor = Math.max(FIT_ONE_PAGE_FLOOR, Math.min(1, (pageH - 8) / h));
+    root.style.fontSize = (16 * factor).toFixed(2) + 'px';
+    root.style.setProperty('--app-space', (baseSpace * factor).toFixed(3));
+    const nh = measure();
+    if (nh <= pageH || nh === h) { h = nh; break; }
+    h = nh;
+  }
+  return h <= pageH;
+}
+if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;

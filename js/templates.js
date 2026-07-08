@@ -105,6 +105,9 @@ function withFallback(resume, mini, marginsKey) {
     template: r.template || 'modern',
     _marginsKey: marginsKey
   };
+  // Carry over user-defined custom sections (their arrays live on dynamic keys).
+  const _metas = (safe.customize && Array.isArray(safe.customize.customSections)) ? safe.customize.customSections : [];
+  _metas.forEach(function (m) { if (m && m.key) safe[m.key] = Array.isArray(r[m.key]) ? r[m.key] : []; });
   if (mini) {
     if (!safe.personal.fullName) safe.personal = Object.assign({}, SAMPLE.personal);
     if (!safe.experience.length)  safe.experience  = SAMPLE.experience;

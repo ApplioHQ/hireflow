@@ -25,7 +25,8 @@ const GROUNDING = `GROUNDING — the most important rule, overrides everything e
 Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative — never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.`;
 
 // AI endpoints that require Premium/Lifetime
-const PRO_AI = new Set(["tailor", "ats", "analyze", "parse", "interview", "skills", "improve"]);
+// Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve"]);
 // Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
 const FREE_ASSISTANT_MESSAGES = 5;
 const FREE_COVER_LETTERS = 2;

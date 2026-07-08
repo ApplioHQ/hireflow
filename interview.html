@@ -446,6 +446,14 @@ function _wireRecorder() {
 
 function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 
+// Build the sample waveform bars in the "what you'll get" preview.
+(function(){
+  var w = document.getElementById('ip-sample-wave'); if (!w) return;
+  var html = '';
+  for (var i = 0; i < 34; i++) { html += '<span style="height:' + (6 + Math.round(Math.abs(Math.sin(i * 0.7)) * 22)) + 'px"></span>'; }
+  w.innerHTML = html;
+})();
+
 (async () => {
   await loadCurrentUser();
   document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;

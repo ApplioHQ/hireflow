@@ -842,6 +842,42 @@ async function runAIChat(env, messages, opts = {}) {
   throw err(502, `AI model error: ${msg}`);
 }
 
+// runAI + JSON parse, with ONE stricter retry if the first reply doesn't parse
+// (covers prose wrappers, code fences, and truncation). Returns { obj, raw };
+// obj is null only if both attempts fail, so callers keep their existing fallback.
+async function runAIJSON(env, system, user, opts = {}) {
+  const raw = await runAI(env, system, user, opts);
+  let obj = safeJSON(raw);
+  if (obj != null) return { obj, raw };
+  const strictSys = system + `\n\nCRITICAL: Respond with ONLY the JSON value — no prose, no explanation, no markdown code fences. Start with { or [ and return complete, valid JSON. Do not stop early.`;
+  const raw2 = await runAI(env, strictSys, user, {
+    ...opts,
+    max_tokens: Math.min(4096, Math.round((opts.max_tokens || 800) * 1.35)),
+    temperature: Math.min(opts.temperature ?? 0.2, 0.1),
+  });
+  obj = safeJSON(raw2);
+  return obj != null ? { obj, raw: raw2 } : { obj: null, raw };
+}
+
+// Response cache for deterministic, expensive AI calls (same input → same output).
+// Keyed by SHA-256 of (namespace + input), stored in KV with a short TTL. Fail-open:
+// any KV hiccup just falls through to a live AI call, never an error.
+async function _aiCacheKey(ns, input) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ns + " " + input));
+  return "aicache:" + ns + ":" + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
+}
+async function aiCached(env, ns, input, producer, ttl = 3600) {
+  let key = null;
+  try {
+    key = await _aiCacheKey(ns, input);
+    const hit = await env.HIREFLOW_KV.get(key);
+    if (hit) return JSON.parse(hit);
+  } catch (_) { /* fall through to a live call */ }
+  const out = await producer();
+  try { if (key && out != null) await env.HIREFLOW_KV.put(key, JSON.stringify(out), { expirationTtl: ttl }); } catch (_) {}
+  return out;
+}
+
 // ============ Career assistant (conversational copilot) ============
 async function aiAssistant(env, { messages, resume }) {
   const history = (Array.isArray(messages) ? messages : [])
@@ -854,12 +890,9 @@ async function aiAssistant(env, { messages, resume }) {
   const resumeCtx = resume && Object.keys(resume).length
     ? JSON.stringify(resume).slice(0, 5000)
     : "(the user hasn't built a resume yet — encourage them to start one in the Resume Builder)";
-  const sys = `Grounding rules (read first):
-- Use ONLY facts the user actually provided (their resume/messages). Never invent jobs, employers, tools, metrics, or credentials.
-- Never fabricate numbers. If a metric isn't given, keep advice qualitative.
-- Never use em dashes; use commas, periods, or parentheses.
+  const sys = `${GROUNDING}
 
-You are Applio's AI career assistant — a sharp, encouraging career coach for job seekers.
+You are Applio's AI career assistant, a sharp, encouraging career coach for job seekers.
 You help with: resume feedback and rewrites, tailoring to a job, interview prep, job-search strategy, cover letters, LinkedIn, career direction, and salary/negotiation.
 
 Style:

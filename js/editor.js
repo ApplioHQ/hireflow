@@ -1930,16 +1930,25 @@ function _renderFitIndicator(ratio, pages) {
 // block is oversized this returns exactly flow.children, i.e. today's behavior.
 function _breakUnits(root) {
   const units = [];
-  for (const child of Array.from(root.children)) {
-    if (child.classList && child.classList.contains('hf-pagebreak')) continue;
-    const tooTall = child.getBoundingClientRect().height > PAGE_PX;
-    const kids = child.children ? Array.from(child.children) : [];
-    if (tooTall && kids.length > 1) {
-      for (const gc of kids) units.push(gc);
+  const MAX_DEPTH = 5;   // descend at most this deep so recursion always terminates
+  // Recursively descend into any block taller than a page (with >1 child to break
+  // between) so even a huge single entry — or a giant bullet list — is split at a
+  // real child boundary instead of slicing across the page gutter. Blocks that fit,
+  // or that can't be subdivided (a single oversized paragraph/bullet), stay whole
+  // and are handled as atomic oversized units by the paginator.
+  function collect(el, depth) {
+    if (el.classList && el.classList.contains('hf-pagebreak')) return;
+    const kids = el.children
+      ? Array.from(el.children).filter(c => !(c.classList && c.classList.contains('hf-pagebreak')))
+      : [];
+    const tooTall = el.getBoundingClientRect().height > PAGE_PX;
+    if (tooTall && kids.length > 1 && depth < MAX_DEPTH) {
+      for (const gc of kids) collect(gc, depth + 1);
     } else {
-      units.push(child);
+      units.push(el);
     }
   }
+  for (const child of Array.from(root.children)) collect(child, 0);
   return units;
 }
 

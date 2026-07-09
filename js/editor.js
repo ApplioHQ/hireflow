@@ -2753,9 +2753,19 @@ async function aiTailor() {
     // Prefer the structured result (keyword chips + before→after bullet diffs).
     resume.tailor.result = (r && (r.bulletSuggestions || r.matchedKeywords || r.emphasize)) ? r : null;
     resume.tailor.tailoredSummary = r.text || '';   // legacy fallback text
-    if (r.summary) resume.personal.summary = r.summary;
+    const summaryChanged = r.summary && r.summary !== resume.personal.summary;
+    if (summaryChanged) {
+      // Tailoring rewrites the summary in place. Snapshot the current résumé first so
+      // the user's original summary is always recoverable from version history.
+      if ((resume.personal.summary || '').trim()) {
+        resume.versions = resume.versions || [];
+        resume.versions.unshift({ ts: Date.now(), label: 'Before AI tailor', data: JSON.parse(JSON.stringify(resume)) });
+        if (resume.versions.length > 25) resume.versions.length = 25;
+      }
+      resume.personal.summary = r.summary;
+    }
     save(); renderMain();
-    toast('Resume tailored', { type: 'success' });
+    toast(summaryChanged ? 'Resume tailored, summary updated (restore the original in version history if needed)' : 'Resume tailored', { type: 'success', duration: summaryChanged ? 5000 : 3000 });
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }

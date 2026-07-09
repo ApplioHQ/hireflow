@@ -382,7 +382,9 @@
       "Bash(awk '/application\\\\/ld\\\\+json/{f=1} f{print} /<\\\\/script>/{if\\(f\\)c++; if\\(c>=4\\)exit}' guides/how-to-pass-ats.html)",
       "Bash(grep -nE \"^#{1,3} |^- \" llms-full.txt)",
       "Bash(node scripts/geo-speakable.js)",
-      "Bash(awk '/gd-steps/{f=1} f{print} /<\\\\/ol>/{if\\(f\\)exit}' guides/how-to-write-resume-summary.html)"
+      "Bash(awk '/gd-steps/{f=1} f{print} /<\\\\/ol>/{if\\(f\\)exit}' guides/how-to-write-resume-summary.html)",
+      "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('sitemap.xml'\\); print\\('VALID, URLs:', open\\('sitemap.xml'\\).read\\(\\).count\\('<loc>'\\)\\)\")",
+      "Bash(grep -nA20 \"## Guides\" llms-full.txt)"
     ]
   }
 }

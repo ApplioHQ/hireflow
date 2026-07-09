@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-# App pages live behind auth — no value indexing them
+# App pages live behind auth, no value indexing them
 Disallow: /editor
 Disallow: /export
 Disallow: /jobs
@@ -10,6 +10,10 @@ Disallow: /admin
 Disallow: /login
 Disallow: /success
 Disallow: /match
+Disallow: /assistant
+Disallow: /cover-letter
+# Operational data, never for crawlers
+Disallow: /backups/
 
 # Allow AI / generative-engine crawlers (GEO)
 User-agent: GPTBot

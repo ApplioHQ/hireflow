@@ -279,7 +279,11 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('roles.json','utf8'\\)\\)\")",
       "Bash(break)",
       "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles.json','utf8'\\)\\); console.log\\('roles:', r.length, '| slugs:', r.map\\(x=>x.slug\\).join\\(','\\)\\)\")",
-      "Bash(node gen-roles.js)"
+      "Bash(node gen-roles.js)",
+      "Bash(/usr/bin/grep -nE \"FREE_DOWNLOAD|downloadLimit|downloadsLimit|10|_downloadLimit|freeDownloads\" worker/worker.js)",
+      "Bash(/usr/bin/grep -iE \"download|limit\")",
+      "Bash(/usr/bin/grep -niE \"per month|monthly|10 \\(free \\)?\\(pdf \\)?download|downloads per\" pricing.html index.html js/plan.js)",
+      "Bash(/usr/bin/grep -nE \"PRO_AI|freeForAll\" worker/worker.js)"
     ]
   }
 }

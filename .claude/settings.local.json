@@ -242,7 +242,8 @@
       "Bash(/usr/bin/grep -oE \"<lastmod>[^<]+</lastmod>\" sitemap.xml)",
       "Bash(/usr/bin/grep -oE \"\\\\\"user:[^\\\\\"]+\\\\\"\" backups/kv-backup-20260703-132226.json)",
       "Bash(git rm *)",
-      "Bash(/usr/bin/grep -n \"backup\" .gitignore)"
+      "Bash(/usr/bin/grep -n \"backup\" .gitignore)",
+      "Bash(/usr/bin/grep -rhoE \"[a-zA-Z0-9._%+-]+@\\(appliohq\\\\.com|gmail\\\\.com|applio\\\\.[a-z]+\\)\" *.html)"
     ]
   }
 }

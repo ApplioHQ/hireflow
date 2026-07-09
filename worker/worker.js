@@ -866,16 +866,13 @@ async function _aiCacheKey(ns, input) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ns + " " + input));
   return "aicache:" + ns + ":" + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
-async function aiCached(env, ns, input, producer, ttl = 3600) {
-  let key = null;
-  try {
-    key = await _aiCacheKey(ns, input);
-    const hit = await env.HIREFLOW_KV.get(key);
-    if (hit) return JSON.parse(hit);
-  } catch (_) { /* fall through to a live call */ }
-  const out = await producer();
-  try { if (key && out != null) await env.HIREFLOW_KV.put(key, JSON.stringify(out), { expirationTtl: ttl }); } catch (_) {}
-  return out;
+async function aiCacheGet(env, ns, input) {
+  try { const hit = await env.HIREFLOW_KV.get(await _aiCacheKey(ns, input)); return hit ? JSON.parse(hit) : null; }
+  catch (_) { return null; }
+}
+async function aiCachePut(env, ns, input, out, ttl = 3600) {
+  try { if (out != null) await env.HIREFLOW_KV.put(await _aiCacheKey(ns, input), JSON.stringify(out), { expirationTtl: ttl }); }
+  catch (_) {}
 }
 
 // ============ Career assistant (conversational copilot) ============
@@ -1045,10 +1042,9 @@ Rules:
 - Never invent experience, employers, tools, or metrics they don't have. If a bullet has no number, keep it qualitative rather than fabricating one.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences, no preamble.`;
 
-  const raw = await runAI(env, sys,
+  const { obj: j, raw } = await runAIJSON(env, sys,
     `Job Description:\n${(jobDescription || '').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
     { model: SMART_MODEL, max_tokens: 1400, temperature: 0.2 });
-  const j = safeJSON(raw);
   if (!j) return { text: raw, summary: null };
 
   const matchedKeywords = Array.isArray(j.matchedKeywords) ? j.matchedKeywords : [];
@@ -1104,10 +1100,9 @@ Rules:
 - If no JD provided, score against general resume best practices (action verbs, quantification, brevity, ATS-safe formatting, completeness)
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
-  const raw = await runAI(env, sys,
-    `Job Description:\n${(jobDescription || '(no JD provided — score against general best practices)').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
+  const { obj: j, raw } = await runAIJSON(env, sys,
+    `Job Description:\n${(jobDescription || '(no JD provided, score against general best practices)').slice(0, 4000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 7000)}`,
     { model: SMART_MODEL, max_tokens: 1100, temperature: 0 });
-  const j = safeJSON(raw);
   if (!j) return { score: 50, feedback: raw };
 
   // Return STRUCTURED output so the frontend can render bars, cards, and chips
@@ -1167,10 +1162,9 @@ Rules:
 - Example rewrites must be paste-ready and grounded in the candidate's real content, never invented facts/metrics.
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
-  const raw = await runAI(env, sys,
+  const { obj: j, raw } = await runAIJSON(env, sys,
     `Candidate Resume:\n${JSON.stringify(resume).slice(0, 9000)}`,
     { model: SMART_MODEL, max_tokens: 2000, temperature: 0.1 });
-  const j = safeJSON(raw);
   // Return the STRUCTURED object so the frontend renders the polished score ring +
   // Strengths / Weaknesses / Top Fixes cards. If the model didn't return valid JSON,
   // hand back the raw text and let the frontend's tolerant parser recover it.

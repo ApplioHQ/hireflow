@@ -284,7 +284,11 @@
       "Bash(/usr/bin/grep -iE \"download|limit\")",
       "Bash(/usr/bin/grep -niE \"per month|monthly|10 \\(free \\)?\\(pdf \\)?download|downloads per\" pricing.html index.html js/plan.js)",
       "Bash(/usr/bin/grep -nE \"PRO_AI|freeForAll\" worker/worker.js)",
-      "Bash(/usr/bin/grep -nE \"push|git remote|credential|@github|ssh\" ~/scripts/auto-git-commit.sh)"
+      "Bash(/usr/bin/grep -nE \"push|git remote|credential|@github|ssh\" ~/scripts/auto-git-commit.sh)",
+      "Bash(/usr/bin/grep -nE \"signOut|Sign out|topbar-right|account|plan-pill|download-pill\" export.html)",
+      "Bash(/usr/bin/grep -nE \"rotate|perspective|transform|export-preview|resume-preview|exp-sizer|resume-frame\" export.html)",
+      "Bash(/usr/bin/grep -nE \"export-preview-container|rotate|perspective\" css/styles.css)",
+      "Bash(/usr/bin/grep -nE \"function renderAccount|account-menu|accountMenu|renderPlanPill|account-dropdown|openAccountModal|renderAccountMenu\" js/plan.js)"
     ]
   }
 }

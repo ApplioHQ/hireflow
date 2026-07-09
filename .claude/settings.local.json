@@ -283,7 +283,8 @@
       "Bash(/usr/bin/grep -nE \"FREE_DOWNLOAD|downloadLimit|downloadsLimit|10|_downloadLimit|freeDownloads\" worker/worker.js)",
       "Bash(/usr/bin/grep -iE \"download|limit\")",
       "Bash(/usr/bin/grep -niE \"per month|monthly|10 \\(free \\)?\\(pdf \\)?download|downloads per\" pricing.html index.html js/plan.js)",
-      "Bash(/usr/bin/grep -nE \"PRO_AI|freeForAll\" worker/worker.js)"
+      "Bash(/usr/bin/grep -nE \"PRO_AI|freeForAll\" worker/worker.js)",
+      "Bash(/usr/bin/grep -nE \"push|git remote|credential|@github|ssh\" ~/scripts/auto-git-commit.sh)"
     ]
   }
 }

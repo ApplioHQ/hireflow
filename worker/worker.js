@@ -1042,6 +1042,9 @@ function _tightenBullets(out) {
 
 // ============ Suggest skills ============
 async function aiSkills(env, { experience }) {
+  const cacheKey = JSON.stringify(experience || {}).slice(0, 3000);
+  const cached = await aiCacheGet(env, "skills", cacheKey);
+  if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You extract resume-ready skills that are DEMONSTRATED in the candidate's work history.
 
 Return a clean comma-separated list of 10-16 skills, each one directly evidenced by the described work — a tool they clearly used, a methodology they clearly applied, or a responsibility they clearly held.
@@ -1063,7 +1066,9 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
     .replace(/^["']|["']$/g, "")
     .split("\n")[0]
     .trim();
-  return { skills: cleaned };
+  const out = { skills: cleaned };
+  await aiCachePut(env, "skills", cacheKey, cleaned ? out : null, 86400);
+  return out;
 }
 
 // ============ Tailor to job ============
@@ -1182,7 +1187,7 @@ Rules:
     issues: Array.isArray(j.issues) ? j.issues.slice(0, 6) : [],
     missingKeywords: Array.isArray(j.missingKeywords) ? j.missingKeywords.slice(0, 12) : [],
   };
-  await aiCachePut(env, "ats", cacheKey, out);
+  await aiCachePut(env, "ats", cacheKey, out, 86400);
   return out;
 }
 
@@ -1244,7 +1249,7 @@ Rules:
     topFixes: Array.isArray(j.topFixes) ? j.topFixes : [],
     missingSections: Array.isArray(j.missingSections) ? j.missingSections : [],
   };
-  await aiCachePut(env, "analyze", cacheKey, out);
+  await aiCachePut(env, "analyze", cacheKey, out, 86400);
   return out;
 }
 
@@ -1348,7 +1353,9 @@ OUTPUT FORMAT:
     `Resume text:\n${text.slice(0, 8000)}`,
     { model: SMART_MODEL, max_tokens: 3500, temperature: 0.1 });
   const out = { resume: j };
-  await aiCachePut(env, "parse", text.slice(0, 8000), j ? out : null);
+  // Parsing is deterministic (temp 0.1): the same pasted text always yields the same
+  // structure, so cache for a week to eliminate repeat imports of the same resume.
+  await aiCachePut(env, "parse", text.slice(0, 8000), j ? out : null, 604800);
   return out;
 }
 

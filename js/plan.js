@@ -143,6 +143,7 @@ function consumeFreeAiUse(feature) {
 }
 function planLabel() {
   if (!CURRENT_USER) return 'Free';
+  if (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super') return 'Admin';
   if (CURRENT_USER.plan === 'lifetime') return 'Lifetime';
   if (CURRENT_USER.plan === 'premium') return 'Premium';
   return 'Free';

@@ -336,7 +336,10 @@
       "Bash(python3 -c \"import json;d=json.load\\(open\\('guides.json'\\)\\);print\\('valid, count:',len\\(d\\)\\);[print\\(g['slug'],'| sections:',len\\(g['sections']\\),'| faq:',len\\(g['faq']\\),'| related:',len\\(g['related']\\),'| title len:',len\\(g['title']\\)\\) for g in d]\")",
       "Bash(node gen-guides.js)",
       "Bash(/usr/bin/grep -nE \"import|parse|hf_pending|hf_import|openModal\\\\\\('import|/ai/parse|ai\\\\\\('parse'|importText|pasteText\" js/editor.js)",
-      "Bash(/usr/bin/grep -nE \"Fix these|ac-resume|ac-jd|login\\\\?mode=signup|value|localStorage\" ats-checker.html)"
+      "Bash(/usr/bin/grep -nE \"Fix these|ac-resume|ac-jd|login\\\\?mode=signup|value|localStorage\" ats-checker.html)",
+      "Bash(/usr/bin/grep -nE \"modal-import|import-text|btn-import-go|id=\\\\\"import|textarea\" editor.html)",
+      "Bash(/usr/bin/grep -nE \"btn-import-go|function doImport|function runImport|import-text|onclick.*[Ii]mport|openModal\\\\\\('import'\\\\\\)\" js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"welcome|_maybeShowWelcome|URLSearchParams|params.get\" js/editor.js)"
     ]
   }
 }

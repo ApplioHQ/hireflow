@@ -370,7 +370,8 @@
       "Bash(/usr/bin/grep -nE \"\\\\?\\\\.|\\\\?\\\\?|#[a-zA-Z]|await [a-z]\" js/resume-file.js)",
       "Bash(grep -E \"\\\\*.sqlite|\\\\.env$\")",
       "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('sitemap.xml'\\); print\\('sitemap XML valid'\\)\")",
-      "Bash(echo \"exit:$?\")"
+      "Bash(echo \"exit:$?\")",
+      "Bash(LC_ALL=C perl -ne 'print \"L$.: \", \\($_ =~ tr/\\\\x00//\\), \" NUL\\(s\\) :: \", \\(my $c=$_\\)=~s/[^\\\\x20-\\\\x7e]/./gr' -e 'if \\(/\\\\x00/\\)' /Users/pritamavuthu/hireflow-main/worker/worker.js)"
     ]
   }
 }

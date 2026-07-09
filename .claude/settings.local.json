@@ -328,7 +328,9 @@
       "Bash(/usr/bin/grep -nE \"<main|<h1|class=\\\\\"g-|gd-final|section-card|More resume|Related\" guides/index.html)",
       "Bash(/usr/bin/sed -n '100,118p' guides/index.html)",
       "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles2.json','utf8'\\)\\); if\\(r.length<8\\)process.exit\\(1\\)\")",
-      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles2.json','utf8'\\)\\); console.log\\('ready:', r.length, 'roles |', r.map\\(x=>x.slug\\).join\\(','\\)\\)\")"
+      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles2.json','utf8'\\)\\); console.log\\('ready:', r.length, 'roles |', r.map\\(x=>x.slug\\).join\\(','\\)\\)\")",
+      "Bash(/usr/bin/grep -nE \"fetch\\\\\\(|API_URL|/ai/|workers.dev|localCheck|function check|scoreResume|analyze|computeScore\" ats-checker.html)",
+      "Bash(/usr/bin/grep -niE \"fetch|api|worker|score|keyword|checkResume|onclick=\\\\\"check|function [a-z]*check\" ats-checker.html)"
     ]
   }
 }

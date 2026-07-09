@@ -364,7 +364,11 @@
       "Bash(pip show *)",
       "Bash(/usr/bin/head -c 30 js/resume-file.js)",
       "Bash(/usr/bin/sed -n '1p' js/resume-file.js)",
-      "Bash(/usr/bin/awk 'NR<=3{print NR\": \"$0}' js/resume-file.js)"
+      "Bash(/usr/bin/awk 'NR<=3{print NR\": \"$0}' js/resume-file.js)",
+      "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --version)",
+      "Bash(/usr/bin/grep -nP \"[^\\\\x00-\\\\x7F]\" js/resume-file.js)",
+      "Bash(/usr/bin/grep -nE \"\\\\?\\\\.|\\\\?\\\\?|#[a-zA-Z]|await [a-z]\" js/resume-file.js)",
+      "Bash(grep -E \"\\\\*.sqlite|\\\\.env$\")"
     ]
   }
 }

@@ -493,6 +493,14 @@ function updatePills() {
   const planPill = document.getElementById('plan-pill');
   const dlPill = document.getElementById('download-pill');
   const info = document.getElementById('download-info');
+  // Account center identity
+  const acctEmail = (CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
+  const initials = acctEmail ? acctEmail.trim().charAt(0).toUpperCase() : 'A';
+  ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) { const el = document.getElementById(id); if (el) el.textContent = initials; });
+  const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
+  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? (planLabel() + ' plan') : 'Free plan';
+  const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
+  const adRow = document.getElementById('acct-admin-console'); if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';
   if (isPaid()) {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     dlPill.style.display = 'none';

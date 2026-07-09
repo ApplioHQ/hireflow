@@ -334,7 +334,9 @@
       "Bash(node -e \"const g=JSON.parse\\(require\\('fs'\\).readFileSync\\('guides.json','utf8'\\)\\); if\\(!Array.isArray\\(g\\)||g.length<6\\)process.exit\\(1\\)\")",
       "Bash(node -e \"try{const g=JSON.parse\\(require\\('fs'\\).readFileSync\\('guides.json','utf8'\\)\\);console.log\\('guides:',g.length,'|',g.map\\(x=>x.slug\\).join\\(','\\)\\)}catch\\(e\\){console.log\\('invalid/partial'\\)}\")",
       "Bash(python3 -c \"import json;d=json.load\\(open\\('guides.json'\\)\\);print\\('valid, count:',len\\(d\\)\\);[print\\(g['slug'],'| sections:',len\\(g['sections']\\),'| faq:',len\\(g['faq']\\),'| related:',len\\(g['related']\\),'| title len:',len\\(g['title']\\)\\) for g in d]\")",
-      "Bash(node gen-guides.js)"
+      "Bash(node gen-guides.js)",
+      "Bash(/usr/bin/grep -nE \"import|parse|hf_pending|hf_import|openModal\\\\\\('import|/ai/parse|ai\\\\\\('parse'|importText|pasteText\" js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"Fix these|ac-resume|ac-jd|login\\\\?mode=signup|value|localStorage\" ats-checker.html)"
     ]
   }
 }

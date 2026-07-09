@@ -779,7 +779,10 @@ const SHARED_TEMPLATE_CSS = `<style>
 function renderTemplate(templateId, resume, mini, accent, marginsKey) {
   const fn = TEMPLATE_RENDERERS[templateId] || tModern;
   const data = withFallback(resume, mini, marginsKey);
-  return SHARED_TEMPLATE_CSS + fn(data, accent);
+  // Accent is interpolated into template <style> blocks; force it to a valid hex so
+  // tampered stored/cloud JSON can't inject CSS (or break out of the <style>).
+  const safeAccent = /^#[0-9a-fA-F]{3,8}$/.test(accent || "") ? accent : "#4f46e5";
+  return SHARED_TEMPLATE_CSS + fn(data, safeAccent);
 }
 
 // ============ Isolated iframe rendering ============

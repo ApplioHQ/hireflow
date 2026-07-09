@@ -3323,6 +3323,22 @@ function _welImport() {
   setTimeout(() => { if (typeof openModal === 'function') openModal('import'); }, 180);
 }
 
+// Funnel from the free ATS checker: it stashes the résumé the visitor pasted, so on
+// their first editor load we pre-fill the import box and run the free AI import
+// automatically. They land on a résumé already built from what they pasted, instead
+// of a blank editor, the single highest-intent onboarding path.
+function _maybePendingImport() {
+  let pending = '';
+  try { pending = localStorage.getItem('hf_pending_import') || ''; } catch (e) {}
+  if (!pending.trim()) return;
+  try { localStorage.removeItem('hf_pending_import'); localStorage.removeItem('hf_pending_jd'); } catch (e) {}
+  const ta = document.getElementById('import-text');
+  if (!ta) return;
+  ta.value = pending;
+  if (typeof openModal === 'function') openModal('import');
+  setTimeout(function () { if (typeof importResume === 'function') importResume(); }, 350);
+}
+
 // One-time cloud hydrate: on a fresh device or after cleared storage, the local
 // working copy is empty even though a saved resume exists in the cloud. Pull it
 // so the user doesn't see a blank editor and overwrite their real resume. We only
@@ -3349,4 +3365,5 @@ async function _hydrateFromCloud() {
   hydrate();
   renderCustomNav();
   renderMain();
+  _maybePendingImport();
 })();

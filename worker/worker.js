@@ -310,7 +310,10 @@ async function adminAnalytics(req, env) {
   const DAY = 86400000;
 
   const plans = { free: 0, premium: 0, lifetime: 0 };
-  let total = 0, totalDownloads = 0, last7Signups = 0, last30Signups = 0;
+  let total = 0, totalDownloads = 0;
+  let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
+  let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
+  const todayStr = new Date(now).toISOString().slice(0, 10);
 
   // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
   const signupsByDay = {};
@@ -329,22 +332,42 @@ async function adminAnalytics(req, env) {
       total++;
       const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
       plans[plan]++;
-      totalDownloads += Number(u.downloadsUsed) || 0;
+      const dl = Number(u.downloadsUsed) || 0;
+      totalDownloads += dl;
+      if (dl > 0) everDownloaded++;
+      if (u.stripeCustomerId) stripeLinked++;
+      // Active paid: lifetime never expires; premium counts if its period end is in the future.
+      if (plan === "lifetime") activeSubs++;
+      else if (plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now) activeSubs++;
       const created = Number(u.createdAt) || 0;
       if (created) {
-        if (now - created <= 7 * DAY)  last7Signups++;
-        if (now - created <= 30 * DAY) last30Signups++;
+        const age = now - created;
+        if (new Date(created).toISOString().slice(0, 10) === todayStr) signupsToday++;
+        if (age <= 7 * DAY)  last7Signups++;
+        else if (age <= 14 * DAY) prev7Signups++;
+        if (age <= 30 * DAY) last30Signups++;
         const day = new Date(created).toISOString().slice(0, 10);
         if (day in signupsByDay) signupsByDay[day]++;
       }
+      // Dormant: joined more than 7 days ago and never downloaded anything.
+      if (created && now - created > 7 * DAY && dl === 0) dormant++;
     }
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
 
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
+  const avgDownloads = total ? Math.round((totalDownloads / total) * 10) / 10 : 0;
+  const activationRate = total ? Math.round((everDownloaded / total) * 1000) / 10 : 0;
+  // Week-over-week signup momentum (last 7d vs the 7 days before that).
+  const signupTrend = prev7Signups ? Math.round(((last7Signups - prev7Signups) / prev7Signups) * 100) : (last7Signups ? 100 : 0);
 
-  return { total, plans, conversionRate, totalDownloads, last7Signups, last30Signups, signupsByDay };
+  return {
+    total, plans, conversionRate, totalDownloads, avgDownloads,
+    signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
+    activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
+    signupsByDay,
+  };
 }
 
 async function adminDeleteUser(req, env) {

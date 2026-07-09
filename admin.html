@@ -79,6 +79,17 @@
     </div>
   </div>
 
+  <!-- Analytics: always visible at the top of the console -->
+  <section id="analytics-section" style="margin-bottom:22px;">
+    <div class="ctrl-card" style="padding:18px 20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0;">📊 Site Analytics</h3>
+        <span id="analytics-updated" style="font-size:11px; color:var(--muted);"></span>
+      </div>
+      <div id="analytics-body" style="font-size:13px; line-height:1.7; color:var(--muted);">Loading…</div>
+    </div>
+  </section>
+
   <div class="admin-grid" id="admin-grid">
     <!-- Users panel -->
     <div>
@@ -141,14 +152,26 @@
       </div>
     </div>
 
-    <!-- Analytics panel (ADMIN + SUPERADMIN) -->
-    <div id="analytics-panel">
-      <div class="ctrl-card" id="analytics-card" style="display:none;">
-        <h3>Site Analytics</h3>
-        <div id="analytics-body" style="font-size:13px; line-height:1.8; color:var(--muted);">Loading...</div>
-      </div>
-    </div>
   </div>
+
+  <!-- User feedback: always visible -->
+  <section id="feedback-section" style="margin-top:22px;">
+    <div class="ctrl-card" style="padding:0; overflow:hidden;">
+      <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0;">💬 User Feedback</h3>
+          <p style="margin:4px 0 0;" id="fb-count">Loading…</p>
+        </div>
+        <div id="fb-filters" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="pill success" data-f="all" onclick="setFbFilter('all')">All</button>
+          <button class="pill" data-f="up" onclick="setFbFilter('up')">👍 Positive</button>
+          <button class="pill" data-f="down" onclick="setFbFilter('down')">👎 Negative</button>
+          <button class="pill" data-f="msg" onclick="setFbFilter('msg')">✍ With message</button>
+        </div>
+      </div>
+      <div id="fb-body" style="padding:16px 18px; max-height:70vh; overflow-y:auto;">Loading…</div>
+    </div>
+  </section>
 </main>
 
 <script src="js/config.js"></script>

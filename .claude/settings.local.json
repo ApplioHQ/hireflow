@@ -319,7 +319,9 @@
       "Bash(awk '{print $NF, $5\\\\\" bytes\\\\\"}')",
       "Bash(/usr/bin/grep -oE \"https://[a-z0-9.-]+workers\\\\.dev\" js/config.js)",
       "WebFetch(domain:appliohq.com)",
-      "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)"
+      "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)",
+      "Bash(curl -sS -D - -o /dev/null --max-time 15 https://hireflow-api.pritamavuthu7.workers.dev/status)",
+      "Bash(/usr/bin/grep -iE \"^HTTP|x-content-type-options|referrer-policy|x-frame-options|cache-control\")"
     ]
   }
 }

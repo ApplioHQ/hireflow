@@ -347,7 +347,8 @@
       "Bash(/usr/bin/grep -nE \"gd-answer|gd-section gd-cards|Pick your role|gd-final\" resume-examples/index.html)",
       "Bash(/usr/bin/grep -nE \"function esc|const esc|esc *=\" js/plan.js)",
       "Bash(/usr/bin/sed -n '253,262p' js/plan.js)",
-      "Bash(/usr/bin/grep -nE \"^function save\\\\\\(\\\\\\)|^  function save\\\\\\(\\\\\\)|function save \\\\\\(|function _cloudSaveNow|localStorage.setItem\\\\\\('hf_resume'\" js/editor.js)"
+      "Bash(/usr/bin/grep -nE \"^function save\\\\\\(\\\\\\)|^  function save\\\\\\(\\\\\\)|function save \\\\\\(|function _cloudSaveNow|localStorage.setItem\\\\\\('hf_resume'\" js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"r.summary\\\\\\) resume.personal.summary|resume.personal.summary = |versions.unshift|function _snapshot|Manual save|function restoreVersion\" js/editor.js)"
     ]
   }
 }

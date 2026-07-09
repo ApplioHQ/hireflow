@@ -3284,6 +3284,9 @@ function _closeMobileDrawers() {
 // ============ Boot ============
 // ---- First-signup welcome screen (plays once) ----
 function _maybeShowWelcome() {
+  // Arrived from the free ATS checker with a résumé to import? Skip the generic
+  // welcome and go straight to importing their résumé (handled after first render).
+  if ((localStorage.getItem('hf_pending_import') || '').trim()) { localStorage.removeItem('hf_welcome'); return; }
   if (localStorage.getItem('hf_welcome') !== '1') return;
   localStorage.removeItem('hf_welcome');
   const bd = document.createElement('div');

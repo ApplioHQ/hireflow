@@ -275,7 +275,11 @@
       "Bash(/usr/bin/grep -n \"guides/what-is-an-ats\\\\|class=\\\\\"\" guides/index.html)",
       "Bash(/usr/bin/sed -n '26,32p' sitemap.xml)",
       "Bash(/usr/bin/grep -n 'href=\"/guides/' guides/index.html)",
-      "Bash(/usr/bin/grep -lc \"gd-answer\" guides/*.html)"
+      "Bash(/usr/bin/grep -lc \"gd-answer\" guides/*.html)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('roles.json','utf8'\\)\\)\")",
+      "Bash(break)",
+      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles.json','utf8'\\)\\); console.log\\('roles:', r.length, '| slugs:', r.map\\(x=>x.slug\\).join\\(','\\)\\)\")",
+      "Bash(node gen-roles.js)"
     ]
   }
 }

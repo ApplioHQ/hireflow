@@ -143,6 +143,34 @@
     function color(s){ return s == null ? 'var(--muted)' : s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
     function verdict(s){ return s >= 80 ? 'Strong match' : s >= 65 ? 'Solid, a few tweaks away' : s >= 45 ? 'Needs work' : 'Major gaps'; }
 
+    // Score-aware conversion block shown under the results. The checker gives the full
+    // diagnosis for free (keeps the "no sign-up" SEO value); this turns the *fixes* into
+    // the reason to open the builder, with concrete things the checker itself can't do.
+    function ctaBlock(score) {
+      var head = score >= 80
+        ? "You're interview-ready — now tailor it to every job you apply to."
+        : score >= 65
+        ? "You're close. Applio can close the last gaps automatically."
+        : score >= 45
+        ? "Your résumé has fixable gaps. Applio fixes them for you."
+        : "Your résumé is losing you interviews. Let's fix that.";
+      var perks = [
+        'Auto-rewrites every bullet to the ATS "Strong" bar — with your real numbers',
+        'One-click tailoring to any job description, plus a live ATS score as you edit',
+        'Exports a clean, recruiter-ready, ATS-safe PDF',
+      ];
+      var list = perks.map(function (p) {
+        return '<li style="display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;margin-bottom:5px;">'
+          + '<span style="color:var(--accent);flex-shrink:0;">✓</span><span>' + esc(p) + '</span></li>';
+      }).join('');
+      return '<div style="margin-top:20px;padding:16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-2);">'
+        + '<div style="font-weight:800;font-size:15px;margin-bottom:10px;">' + esc(head) + '</div>'
+        + '<ul style="list-style:none;padding:0;margin:0 0 14px;">' + list + '</ul>'
+        + '<a href="login?mode=signup" class="btn btn-primary btn-block">Fix my résumé free — it imports what you pasted →</a>'
+        + '<div style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:7px;">Free to start · no credit card · your résumé carries over</div>'
+        + '</div>';
+    }
+
     function render(r) {
       var c = color(r.score);
       var bd = r.breakdown;
@@ -170,7 +198,7 @@
         +   '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;">What\'s working</div><ul class="ac-list">' + wins + '</ul></div>'
         +   '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;">What to fix</div><ul class="ac-list">' + issues + '</ul></div>'
         + '</div>'
-        + '<a href="login?mode=signup" class="btn btn-primary btn-block" style="margin-top:18px;">Fix these automatically, build your résumé free →</a>'
+        + ctaBlock(r.score)
         + '</div>';
       _animateResult(out);
       out.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -10,10 +10,16 @@
 <script src="js/theme.js"></script>
 <style>
   /* ===== Layout + ambient animated aurora ===== */
-  .ca-wrap { position: relative; max-width: 860px; margin: 0 auto; padding: 24px 20px 0; display: flex; flex-direction: column; height: calc(100vh - 62px); box-sizing: border-box; }
-  .ca-wrap::before, .ca-wrap::after { content: ""; position: fixed; z-index: -1; border-radius: 50%; filter: blur(72px); pointer-events: none; opacity: .55; }
-  .ca-wrap::before { width: 520px; height: 520px; top: -150px; left: -90px; background: radial-gradient(circle, rgba(99,102,241,.32), transparent 70%); animation: caDrift1 19s ease-in-out infinite; }
-  .ca-wrap::after  { width: 460px; height: 460px; bottom: -130px; right: -70px; background: radial-gradient(circle, rgba(139,92,246,.28), transparent 70%); animation: caDrift2 23s ease-in-out infinite; }
+  html, body.app-body { overflow-x: hidden; }   /* fixed aurora / wide topbar can never push the chat off-screen */
+  .ca-wrap { position: relative; width: 100%; max-width: 860px; margin: 0 auto; padding: 24px 20px 0; display: flex; flex-direction: column; height: calc(100vh - 62px); box-sizing: border-box; }
+  /* Ambient aurora lives in its OWN fixed, viewport-clipped layer. Because the
+     layer is inset:0 + overflow:hidden, its blurred blobs (with negative offsets)
+     are clipped to the viewport and can never widen the document or shift content
+     — the earlier ::before/::after on .ca-wrap could leak overflow in some browsers. */
+  .ca-aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .ca-aurora i { position: absolute; display: block; border-radius: 50%; filter: blur(72px); opacity: .55; }
+  .ca-aurora i:first-child { width: 520px; height: 520px; top: -150px; left: -90px; background: radial-gradient(circle, rgba(99,102,241,.32), transparent 70%); animation: caDrift1 19s ease-in-out infinite; }
+  .ca-aurora i:last-child  { width: 460px; height: 460px; bottom: -130px; right: -70px; background: radial-gradient(circle, rgba(139,92,246,.28), transparent 70%); animation: caDrift2 23s ease-in-out infinite; }
   @keyframes caDrift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(64px,44px); } }
   @keyframes caDrift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-54px,-34px); } }
 
@@ -96,13 +102,14 @@
 
   /* ===== Respect reduced-motion ===== */
   @media (prefers-reduced-motion: reduce) {
-    .ca-wrap::before, .ca-wrap::after, .ca-in, .ca-chip, .ca-hero-badge, .ca-hero-badge::before,
+    .ca-aurora i, .ca-in, .ca-chip, .ca-hero-badge, .ca-hero-badge::before,
     .ca-avatar-live::after, .ca-typing span, .ca-live::before, .ca-typing-caret p:last-child::after { animation: none !important; }
     .ca-thread { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body class="app-body">
+<div class="ca-aurora" aria-hidden="true"><i></i><i></i></div>
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">

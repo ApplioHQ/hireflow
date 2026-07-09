@@ -214,6 +214,22 @@
       }
       render(window.AtsEngine.score(resume, jd));
     });
+
+    // Funnel: before any "build free / fix these automatically" link sends the visitor
+    // to sign-up, stash the résumé (and job description) they pasted so the editor
+    // auto-imports it. They land on a résumé already built, not a blank editor.
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href*="mode=signup"]');
+      if (!a) return;
+      try {
+        var r = (document.getElementById('ac-resume') || {}).value || '';
+        var jd = (document.getElementById('ac-jd') || {}).value || '';
+        if (r.trim()) localStorage.setItem('hf_pending_import', r.slice(0, 20000));
+        else localStorage.removeItem('hf_pending_import');
+        if (jd.trim()) localStorage.setItem('hf_pending_jd', jd.slice(0, 8000));
+        else localStorage.removeItem('hf_pending_jd');
+      } catch (err) {}
+    });
   })();
 </script>
 </body>

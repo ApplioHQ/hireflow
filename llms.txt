@@ -20,7 +20,8 @@
 - Lifetime ($39.99 one-time): all Premium features, paid once and used forever.
 
 ## Key facts
-- What ATS means: an Applicant Tracking System filters resumes before a human reads them, and many resumes are rejected at this stage on formatting or keyword gaps. Applio scores a resume against the ATS rubric and lists specific fixes.
+- What ATS means: an Applicant Tracking System collects, parses, and ranks resumes before a recruiter reviews them. It does not auto-reject applications (most are still reviewed by a person), but resumes that miss a job's keywords or use formatting the software can't parse rank lower and are less likely to be seen. Applio scores a resume against the ATS rubric and lists specific fixes.
+- Myth check: the widely repeated "75% of resumes are auto-rejected by ATS" claim is not supported by evidence; it traces to a 2012 sales pitch from a company that shut down in 2013. Applio's guidance reflects how ATS actually works.
 - Free to start; no credit card required.
 - Privacy: passwords hashed (PBKDF2-SHA256); resume data encrypted in transit and at rest; payments handled by Stripe.
 

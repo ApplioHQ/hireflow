@@ -305,7 +305,10 @@
       "Bash(git remote *)",
       "Bash(sed -E 's#\\(https://\\)[^@]*@#\\\\1***@#')",
       "Bash(git config *)",
-      "Bash(/usr/bin/grep -iE \"credential|url|user\\\\.\")"
+      "Bash(/usr/bin/grep -iE \"credential|url|user\\\\.\")",
+      "Bash(/usr/bin/grep -nE \"CURRENT_USER *=\" js/plan.js)",
+      "Bash(/usr/bin/sed -n '177,196p' js/plan.js)",
+      "Bash(/usr/bin/sed -n '96,135p' js/plan.js)"
     ]
   }
 }

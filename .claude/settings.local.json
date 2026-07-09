@@ -375,7 +375,9 @@
       "Bash(awk 'NR>=/./ && /^async function ai\\\\\\(req/{p=1} p{print NR\": \"$0} p&&/^}/{c++; if\\(c>=1 && /^}$/\\){exit}}' /Users/pritamavuthu/hireflow-main/worker/worker.js)",
       "Bash(curl -s -o /dev/null -w \"status endpoint: HTTP %{http_code}\\\\n\" https://hireflow-api.pritamavuthu7.workers.dev/status)",
       "Bash(curl -s https://hireflow-api.pritamavuthu7.workers.dev/status)",
-      "Bash(node --check js/dashboard.js)"
+      "Bash(node --check js/dashboard.js)",
+      "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' editor.html)",
+      "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' jobs.html)"
     ]
   }
 }

@@ -292,7 +292,9 @@
       "Bash(/usr/bin/grep -rnEi \"rotate[XYZ]?\\\\\\(|skew|perspective|tilt|mousemove\" export.html css/styles.css js/*.js)",
       "Bash(/usr/bin/grep -viE \"chevron|spin|counter|arrow|an-pre|360deg\")",
       "Bash(/usr/bin/sed -n '11,20p' export.html)",
-      "Bash(/usr/bin/grep -nE \"export-grid|resume-preview|export-side\" export.html css/styles.css)"
+      "Bash(/usr/bin/grep -nE \"export-grid|resume-preview|export-side\" export.html css/styles.css)",
+      "Bash(/usr/bin/grep -nE \"acct-center|account-menu|renderAccount|openAccountMenu|id=\\\\\"account|topbar-right\" editor.html jobs.html)",
+      "Bash(/usr/bin/grep -nE \"function .*[Aa]ccount|acct-center|account-menu-bd|renderPlanPill|function renderAccount\" js/plan.js)"
     ]
   }
 }

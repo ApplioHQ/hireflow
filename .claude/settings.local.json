@@ -265,7 +265,9 @@
       "Bash(/usr/bin/grep -nA3 \"function renderTemplate\" js/templates.js)",
       "Bash(/usr/bin/grep -n \"firstElementChild\\\\|const root =\" js/templates.js)",
       "Bash(/usr/bin/grep -nE \"function esc|const esc *=\" js/templates.js)",
-      "Bash(/usr/bin/grep -nA2 \"function esc\" js/templates.js)"
+      "Bash(/usr/bin/grep -nA2 \"function esc\" js/templates.js)",
+      "Bash(/usr/bin/grep -nE \"<script src=|<link rel=\\\\\"stylesheet\\\\\"|<img \" index.html)",
+      "Bash(/usr/bin/grep -n \"application/ld+json\\\\|</script>\" index.html)"
     ]
   }
 }

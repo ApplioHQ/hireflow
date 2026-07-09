@@ -1273,11 +1273,12 @@ OUTPUT FORMAT:
 - NO preamble like "Here's the parsed JSON".
 - Start directly with {.`;
 
-  const raw = await runAI(env, sys,
+  const { obj: j } = await runAIJSON(env, sys,
     `Resume text:\n${text.slice(0, 8000)}`,
     { model: SMART_MODEL, max_tokens: 3500, temperature: 0.1 });
-  const j = safeJSON(raw);
-  return { resume: j };
+  const out = { resume: j };
+  await aiCachePut(env, "parse", text.slice(0, 8000), j ? out : null);
+  return out;
 }
 
 // ============ Interview prep ============
@@ -1365,10 +1366,9 @@ Rules:
 - if the answer is empty or off-topic, score low and say why
 - OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
 
-  const raw = await runAI(env, sys,
+  const { obj: j, raw } = await runAIJSON(env, sys,
     `Interview question:\n${String(question || '').slice(0, 800)}\n\nRole: ${String(role || 'the target role').slice(0, 120)}\n\nCandidate's answer:\n${String(answer || '').slice(0, 3000)}`,
     { model: SMART_MODEL, max_tokens: 700, temperature: 0.1 });
-  const j = safeJSON(raw);
   if (!j) return { score: 50, feedback: raw };
 
   const parts = [];

@@ -109,11 +109,22 @@ function withFallback(resume, mini, marginsKey) {
   const _metas = (safe.customize && Array.isArray(safe.customize.customSections)) ? safe.customize.customSections : [];
   _metas.forEach(function (m) { if (m && m.key) safe[m.key] = Array.isArray(r[m.key]) ? r[m.key] : []; });
   if (mini) {
-    if (!safe.personal.fullName) safe.personal = Object.assign({}, SAMPLE.personal);
-    if (!safe.experience.length)  safe.experience  = SAMPLE.experience;
-    if (!safe.education.length)   safe.education   = SAMPLE.education;
-    if (!safe.skills.categories.length) safe.skills = SAMPLE.skills;
-    if (!safe.projects.length)    safe.projects    = SAMPLE.projects;
+    // Show the sample resume ONLY when the resume is essentially empty (brand new),
+    // so a blank editor isn't a blank page. Never sprinkle sample data into a resume
+    // that already has real content — that was leaking a fake "Project Name" project
+    // (and similar) into resumes whose owner simply hadn't filled that one section.
+    const hasContent = !!(safe.personal.fullName || safe.personal.summary
+      || safe.experience.length || safe.education.length
+      || (safe.skills.categories && safe.skills.categories.length)
+      || safe.projects.length || safe.certifications.length || safe.awards.length
+      || safe.leadership.length || safe.volunteer.length || safe.publications.length);
+    if (!hasContent) {
+      safe.personal   = Object.assign({}, SAMPLE.personal);
+      safe.experience = SAMPLE.experience;
+      safe.education  = SAMPLE.education;
+      safe.skills     = SAMPLE.skills;
+      safe.projects   = SAMPLE.projects;
+    }
   }
   return applySectionToggles(safe);
 }

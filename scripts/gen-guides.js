@@ -242,6 +242,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
     <a class="btn btn-primary" href="/login?mode=signup">Start free — no credit card</a>
   </div>
 </main>
+<script src="/js/footer.js"></script>
 </body>
 </html>`;
 }
@@ -305,6 +306,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
     ${G.map(g=>`<a href="/guides/${g.slug}"><div class="t">${esc(g.title)}</div><div class="d">${esc(g.metaDesc)}</div></a>`).join('\n    ')}
   </div>
 </main>
+<script src="/js/footer.js"></script>
 </body>
 </html>`;
 }

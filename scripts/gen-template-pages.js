@@ -241,6 +241,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
     } catch(e){ document.getElementById('tp-preview').style.display='none'; }
   })();
 </script>
+<script src="/js/footer.js"></script>
 </body>
 </html>`;
 }
@@ -334,6 +335,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
     });
   })();
 </script>
+<script src="/js/footer.js"></script>
 </body>
 </html>`;
 }

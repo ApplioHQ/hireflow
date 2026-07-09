@@ -228,7 +228,8 @@
       "Bash(node verify-chat.js)",
       "Bash(sed -i '' \"s|await page.type\\('#ca-input', 'How can I improve my resume?'\\);|await page.evaluate\\(\\(\\) => { document.getElementById\\('ca-input'\\).value = 'How can I improve my resume?'; }\\);|\" verify-chat.js)",
       "Bash(sed -i '' \"s|await page.click\\('#ca-send'\\);|await page.evaluate\\(\\(\\) => window.send\\(\\)\\);|\" verify-chat.js)",
-      "Bash(rm -f verify-chat.js.light)"
+      "Bash(rm -f verify-chat.js.light)",
+      "Bash(node verify-interview.js)"
     ]
   }
 }

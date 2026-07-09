@@ -1967,7 +1967,7 @@ const PAGE_W = 816;        // page width (US-Letter at 96dpi)
 const SHEET_GAP = 24;      // gray gap between page sheets (true px)
 const CANVAS_PAD = 40;     // gray canvas margin around the page column (true px)
 const CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins
-const MAX_SHEETS = 16;     // safety cap so pathological content can't run away (covers long CVs)
+const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
 // Google-Docs-style pagination: lay the résumé out as discrete white page sheets
 // on a gray canvas. When a block won't fit on the current sheet, a spacer pushes
@@ -2025,12 +2025,15 @@ function _paginate(doc) {
   const step = PAGE_PX + SHEET_GAP;
   const TAIL = 8;                                          // absorb trailing margins / rounding so a hair of overflow can't spawn a page
   const isHeading = el => el && el.nodeType === 1 && /^H[1-4]$/.test(el.tagName);
+  // col's top offset is stable while we insert spacers *inside* it (the column is
+  // centered in the body and only grows downward), so read it once — this avoids a
+  // forced reflow per unit and keeps pagination fast on very long resumes.
+  const colTop = col.getBoundingClientRect().top;
   let page = 0, prevUnit = null;
   for (const unit of units) {
     if (page >= MAX_SHEETS - 1) break;
     const r = unit.getBoundingClientRect();
     if (r.height < 1) { prevUnit = unit; continue; }       // skip empty units so they never create a phantom page
-    const colTop = col.getBoundingClientRect().top;        // re-read (spacers shift layout)
     const top = r.top - colTop;
     const bottom = top + r.height;
     const sheetTop = page * step;
@@ -2049,9 +2052,15 @@ function _paginate(doc) {
       (target.parentNode || flow).insertBefore(sp, target);
       page++;
     }
+    // Atomic block taller than a full page (an unsplittable giant paragraph/bullet):
+    // reserve the extra sheets it spans so everything after it stays page-aligned
+    // instead of cascading over the gutters. Rare, but keeps long resumes flawless.
+    if (r.height > PAGE_PX + TAIL) {
+      page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((r.height - TAIL) / PAGE_PX) - 1);
+    }
     prevUnit = unit;
   }
-  const totalPages = page + 1;
+  const totalPages = Math.min(MAX_SHEETS, page + 1);
 
   // --- Raise the content above the sheets (within the column). ---
   Array.from(col.children).forEach(el => {

@@ -35,9 +35,43 @@
   </nav>
   <div class="topbar-right">
     <span id="download-pill"></span>
-    <span id="plan-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
-    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+    <div class="acct-center" id="acct-center">
+      <button class="acct-trigger" id="acct-trigger" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Account center" title="Account">
+        <span class="acct-avatar" id="acct-avatar">A</span>
+        <svg class="acct-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="acct-menu" id="acct-menu" role="menu" hidden>
+        <div class="acct-head">
+          <div class="acct-avatar acct-avatar-lg" id="acct-avatar-lg">A</div>
+          <div class="acct-head-text">
+            <div class="acct-email" id="acct-email">Account</div>
+            <div class="acct-plan" id="acct-plan-label"></div>
+          </div>
+        </div>
+        <div class="acct-sep"></div>
+        <div class="acct-row acct-row-static" id="acct-plan-row">
+          <span class="acct-row-label">Plan</span>
+          <span id="plan-pill"></span>
+        </div>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()">
+          <span class="acct-row-label">Appearance</span>
+          <span class="acct-row-val theme-toggle"></span>
+        </button>
+        <button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href='admin';">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Admin Console</span>
+        </button>
+        <button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); openBillingPortal();">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>Manage / cancel subscription</span>
+        </button>
+        <div class="acct-sep"></div>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="openFeedbackModal({context:'export'}); closeAcctMenu();">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Feedback</span>
+        </button>
+        <button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Sign out</span>
+        </button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -429,6 +463,30 @@ function download(blob, name) {
   URL.revokeObjectURL(url);
 }
 function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+
+// Account dropdown (ported from the editor so export shares the same account center).
+function toggleAcctMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('acct-menu');
+  if (!menu) return;
+  if (menu.hasAttribute('hidden')) {
+    menu.removeAttribute('hidden');
+    const t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'true');
+    document.getElementById('acct-center').classList.add('open');
+  } else { closeAcctMenu(); }
+}
+function closeAcctMenu() {
+  const menu = document.getElementById('acct-menu');
+  if (!menu || menu.hasAttribute('hidden')) return;
+  menu.setAttribute('hidden', '');
+  const t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'false');
+  const c = document.getElementById('acct-center'); if (c) c.classList.remove('open');
+}
+document.addEventListener('click', function (e) {
+  const c = document.getElementById('acct-center');
+  if (c && !c.contains(e.target)) closeAcctMenu();
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAcctMenu(); });
 
 
 function updatePills() {

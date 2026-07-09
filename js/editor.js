@@ -19,11 +19,27 @@ const DEFAULT_RESUME = {
   versions: []
 };
 
-// Whether the browser already had a saved resume, drives the one-time cloud
-// hydrate below (fresh device / cleared storage should pull the cloud copy).
+// Deep-merge any loaded resume against the default shape so a valid-but-partial or
+// legacy record (missing customize / personal / skills.categories / tailor) can never
+// white-screen the editor (renderPreview reads resume.customize.accent on every render).
+function _normalizeResume(raw) {
+  const base = structuredClone(DEFAULT_RESUME);
+  if (!raw || typeof raw !== 'object') return base;
+  for (const k of Object.keys(base)) {
+    if (raw[k] == null) continue;
+    if (Array.isArray(base[k])) { if (Array.isArray(raw[k])) base[k] = raw[k]; }
+    else if (base[k] && typeof base[k] === 'object') { if (typeof raw[k] === 'object') base[k] = Object.assign({}, base[k], raw[k]); }
+    else base[k] = raw[k];
+  }
+  for (const k of Object.keys(raw)) { if (!(k in base)) base[k] = raw[k]; }   // keep custom-section arrays
+  if (!base.skills || !Array.isArray(base.skills.categories)) base.skills = { categories: [] };
+  return base;
+}
+
+// Whether the browser already had a saved resume, drives the cloud hydrate below.
 const HAD_LOCAL_RESUME = !!localStorage.getItem('hf_resume');
 let resume = (function () {
-  try { return JSON.parse(localStorage.getItem('hf_resume') || 'null') || structuredClone(DEFAULT_RESUME); }
+  try { return _normalizeResume(JSON.parse(localStorage.getItem('hf_resume') || 'null')); }
   catch { return structuredClone(DEFAULT_RESUME); }  // corrupt storage must not white-screen the editor
 })();
 let currentSection = 'template';

@@ -267,7 +267,8 @@
       "Bash(/usr/bin/grep -nE \"function esc|const esc *=\" js/templates.js)",
       "Bash(/usr/bin/grep -nA2 \"function esc\" js/templates.js)",
       "Bash(/usr/bin/grep -nE \"<script src=|<link rel=\\\\\"stylesheet\\\\\"|<img \" index.html)",
-      "Bash(/usr/bin/grep -n \"application/ld+json\\\\|</script>\" index.html)"
+      "Bash(/usr/bin/grep -n \"application/ld+json\\\\|</script>\" index.html)",
+      "Bash(/usr/bin/grep -rniE \"70%|75%|never \\(make it|pass|reach|see\\)|resumes are rejected|thrown out\" index.html ats-checker.html guides/*.html llms.txt)"
     ]
   }
 }

@@ -47,8 +47,11 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
     _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
-    // Admin / super-admin → admin console; regular users → editor
-    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin' : 'editor';
+    // Admin / super-admin → admin console; regular users → the Career Home dashboard.
+    // A pending import (from the ATS checker funnel) must land in the editor, which
+    // is where that import gets consumed.
+    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin'
+      : (localStorage.getItem('hf_pending_import') ? 'editor' : 'dashboard');
   } catch (err) {
     setMsg('signin','error', err.message);
   }

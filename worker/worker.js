@@ -22,7 +22,8 @@ const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 // model can never fabricate facts the candidate didn't actually provide. This is the
 // single most important guardrail for output quality/trust.
 const GROUNDING = `GROUNDING — the most important rule, overrides everything else if in conflict:
-Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative — never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.`;
+Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative, never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
+Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
@@ -1394,8 +1395,33 @@ Requirements:
   return { text: cleaned };
 }
 
+// Robustly pull a JSON value out of a model reply. Handles: clean JSON, ```json
+// fences, prose wrappers, arrays as well as objects, and trailing-comma / truncation
+// damage. Returns null only if nothing salvageable parses.
 function safeJSON(s) {
-  try { return JSON.parse(s); } catch {}
-  const m = s.match(/\{[\s\S]*\}/); if (m) try { return JSON.parse(m[0]); } catch {}
+  if (typeof s !== "string" || !s.trim()) return null;
+  let t = s.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);   // strip a code fence if present
+  if (fence) t = fence[1].trim();
+  try { return JSON.parse(t); } catch {}
+  // Locate the first JSON value (object or array) and depth-scan to its match.
+  const oi = t.indexOf("{"), ai = t.indexOf("[");
+  const start = oi < 0 ? ai : (ai < 0 ? oi : Math.min(oi, ai));
+  if (start < 0) return null;
+  const open = t[start], close = open === "{" ? "}" : "]";
+  let depth = 0, inStr = false, esc = false, end = -1;
+  for (let i = start; i < t.length; i++) {
+    const c = t[i];
+    if (inStr) { if (esc) esc = false; else if (c === "\\") esc = true; else if (c === '"') inStr = false; continue; }
+    if (c === '"') inStr = true;
+    else if (c === open) depth++;
+    else if (c === close) { depth--; if (depth === 0) { end = i; break; } }
+  }
+  const cand = end > start ? t.slice(start, end + 1) : t.slice(start);   // truncated → keep the rest
+  const tryParse = (x) => { try { return JSON.parse(x); } catch { return undefined; } };
+  let v = tryParse(cand);
+  if (v !== undefined) return v;
+  v = tryParse(cand.replace(/,\s*([}\]])/g, "$1"));                       // repair trailing commas
+  if (v !== undefined) return v;
   return null;
 }

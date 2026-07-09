@@ -390,7 +390,8 @@
       "Bash(awk 'NR<=711 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
       "Bash(awk '/\\\\.mock-resume-stamp \\\\{/,/^\\\\}/' css/home.css)",
       "Bash(awk '{print $5\" bytes\"}')",
-      "Bash(sel)"
+      "Bash(sel)",
+      "Bash(node home_test.js)"
     ]
   }
 }

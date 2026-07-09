@@ -313,7 +313,8 @@
       "Bash(/usr/bin/sed -n '60,126p' js/editor.js)",
       "Bash(/usr/bin/grep -nE \"^function |^async function \")",
       "Bash(awk 'NR<=113 && /^\\(async \\)?function /{f=$0; l=NR} END{print l\": \"f}' js/editor.js)",
-      "Bash(/usr/bin/sed -n '3338,3352p' js/editor.js)"
+      "Bash(/usr/bin/sed -n '3338,3352p' js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"async function login|function signToken|function makeToken|role:|ADMIN|SUPER_ADMIN|adminPassword|ADMIN_PASSWORD|superPassword\" worker/worker.js)"
     ]
   }
 }

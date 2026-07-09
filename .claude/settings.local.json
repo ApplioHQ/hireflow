@@ -384,7 +384,10 @@
       "Bash(node scripts/geo-speakable.js)",
       "Bash(awk '/gd-steps/{f=1} f{print} /<\\\\/ol>/{if\\(f\\)exit}' guides/how-to-write-resume-summary.html)",
       "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('sitemap.xml'\\); print\\('VALID, URLs:', open\\('sitemap.xml'\\).read\\(\\).count\\('<loc>'\\)\\)\")",
-      "Bash(grep -nA20 \"## Guides\" llms-full.txt)"
+      "Bash(grep -nA20 \"## Guides\" llms-full.txt)",
+      "Bash(awk 'NR>=420 && NR<=440' css/home.css)",
+      "Bash(awk 'NR<=434 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
+      "Bash(awk 'NR<=711 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)"
     ]
   }
 }

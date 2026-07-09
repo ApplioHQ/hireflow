@@ -2029,12 +2029,27 @@ function _paginate(doc) {
   // centered in the body and only grows downward), so read it once — this avoids a
   // forced reflow per unit and keeps pagination fast on very long resumes.
   const colTop = col.getBoundingClientRect().top;
-  let page = 0, prevUnit = null;
+  let page = 0, prevUnit = null, forceBreakNext = false;
   for (const unit of units) {
     if (page >= MAX_SHEETS - 1) break;
     const r = unit.getBoundingClientRect();
     if (r.height < 1) { prevUnit = unit; continue; }       // skip empty units so they never create a phantom page
-    const top = r.top - colTop;
+    let top = r.top - colTop;
+
+    // Re-anchor: after an atomic (>1 page) block the continuous content has drifted
+    // off the gapped sheet grid, so snap the next unit to a fresh page top.
+    if (forceBreakNext) {
+      forceBreakNext = false;
+      if (top > page * step + 1) {
+        const sp = doc.createElement('div');
+        sp.className = 'hf-pagebreak';
+        sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
+        (unit.parentNode || flow).insertBefore(sp, unit);
+        page++;
+        top = page * step;                                 // unit now sits at the new page top
+      }
+    }
+
     const bottom = top + r.height;
     const sheetTop = page * step;
     const sheetBottom = sheetTop + PAGE_PX;
@@ -2054,9 +2069,10 @@ function _paginate(doc) {
     }
     // Atomic block taller than a full page (an unsplittable giant paragraph/bullet):
     // reserve the extra sheets it spans so everything after it stays page-aligned
-    // instead of cascading over the gutters. Rare, but keeps long resumes flawless.
+    // instead of cascading over the gutters, then force a fresh page after it.
     if (r.height > PAGE_PX + TAIL) {
       page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((r.height - TAIL) / PAGE_PX) - 1);
+      forceBreakNext = true;
     }
     prevUnit = unit;
   }

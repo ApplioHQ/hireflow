@@ -3181,6 +3181,15 @@ function _normalizeImported(raw) {
   else if (Array.isArray(raw.skills)) cats = [{ name: 'All', items: raw.skills }];
   else if (typeof raw.skills === 'string') cats = [{ name: 'All', items: raw.skills.split(/[,|]/).map(s => s.trim()).filter(Boolean) }];
   if (cats) base.skills = { categories: cats.map(c => ({ name: (c && c.name) || 'All', items: Array.isArray(c && c.items) ? c.items : [] })) };
+  // Import replaces CONTENT only, preserve the user's template/styling, version history,
+  // and any custom sections so re-importing to refresh content doesn't wipe all that.
+  if (resume && typeof resume === 'object') {
+    if (resume.customize) base.customize = resume.customize;
+    if (Array.isArray(resume.versions)) base.versions = resume.versions;
+    if (resume.tailor) base.tailor = resume.tailor;
+    const metas = (base.customize && Array.isArray(base.customize.customSections)) ? base.customize.customSections : [];
+    metas.forEach(m => { if (m && m.key && Array.isArray(resume[m.key])) base[m.key] = resume[m.key]; });
+  }
   return base;
 }
 

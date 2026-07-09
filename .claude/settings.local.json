@@ -251,7 +251,9 @@
       "Bash(/usr/bin/grep -inE \"reset|forgot\" worker/worker.js)",
       "Bash(/usr/bin/grep -nE \"downloads/increment|printFrame|isFree|downloadsLeft|tryExport\" export.html)",
       "Bash(/usr/bin/grep -nE \"sync|/me|reload|poll|setTimeout|setInterval|plan|isPaid|session_id|checkout\" success.html)",
-      "Bash(/usr/bin/grep -n \"function syncWithStripe\\\\|function me\\\\b\\\\|session_id\\\\|checkout.session\" worker/worker.js)"
+      "Bash(/usr/bin/grep -n \"function syncWithStripe\\\\|function me\\\\b\\\\|session_id\\\\|checkout.session\" worker/worker.js)",
+      "Bash(/usr/bin/grep -nE \"function syncWithStripe|syncWithStripe =\" js/plan.js)",
+      "Bash(/usr/bin/grep -nA3 \"function syncWithStripe\" js/plan.js)"
     ]
   }
 }

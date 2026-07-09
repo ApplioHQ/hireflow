@@ -295,7 +295,7 @@ async function adminListUsers(req, env) {
   for (const key of list.keys) {
     const raw = await env.HIREFLOW_KV.get(key.name);
     if (!raw) continue;
-    const u = JSON.parse(raw);
+    let u; try { u = JSON.parse(raw); } catch { continue; }   // one corrupt record must not 500 the whole list
     users.push({
       email: u.email,
       plan: u.plan || "free",
@@ -673,6 +673,11 @@ async function verifyStripeSig(body, sigHeader, secret) {
   const t = parts.t?.[0];
   const sigs = parts.v1 || [];
   if (!t || !sigs.length) return false;
+  // Reject events outside Stripe's recommended 5-minute tolerance so a captured,
+  // validly-signed request body can't be replayed later. Stripe re-signs each
+  // delivery attempt with a fresh timestamp, so legitimate retries are unaffected.
+  const ts = Number(t);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
   const expected = await hmacHex(secret, `${t}.${body}`);
   for (const s of sigs) if (timingEqual(s, expected)) return true;
   return false;

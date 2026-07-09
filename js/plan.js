@@ -1,6 +1,7 @@
 // ============ Plan/User helpers (shared across pages) ============
 const API_BASE = window.HIREFLOW_CONFIG.API_URL;
 const _ME_CACHE_KEY = 'hf_me_cache';
+function _planEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 let CURRENT_USER = null;
 let SYSTEM_STATUS = null;
 

@@ -344,7 +344,9 @@
       "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles3.json','utf8'\\)\\); if\\(!Array.isArray\\(r\\)||r.length<8\\)process.exit\\(1\\)\")",
       "Bash(node -e \"try{const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles3.json','utf8'\\)\\);console.log\\('roles3:',r.length,'|',r.map\\(x=>x.slug\\).join\\(','\\)\\)}catch\\(e\\){console.log\\('partial'\\)}\")",
       "Bash(node gen-hubs.js)",
-      "Bash(/usr/bin/grep -nE \"gd-answer|gd-section gd-cards|Pick your role|gd-final\" resume-examples/index.html)"
+      "Bash(/usr/bin/grep -nE \"gd-answer|gd-section gd-cards|Pick your role|gd-final\" resume-examples/index.html)",
+      "Bash(/usr/bin/grep -nE \"function esc|const esc|esc *=\" js/plan.js)",
+      "Bash(/usr/bin/sed -n '253,262p' js/plan.js)"
     ]
   }
 }

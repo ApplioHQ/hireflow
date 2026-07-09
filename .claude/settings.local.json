@@ -340,7 +340,9 @@
       "Bash(/usr/bin/grep -nE \"modal-import|import-text|btn-import-go|id=\\\\\"import|textarea\" editor.html)",
       "Bash(/usr/bin/grep -nE \"btn-import-go|function doImport|function runImport|import-text|onclick.*[Ii]mport|openModal\\\\\\('import'\\\\\\)\" js/editor.js)",
       "Bash(/usr/bin/grep -nE \"welcome|_maybeShowWelcome|URLSearchParams|params.get\" js/editor.js)",
-      "Bash(/usr/bin/grep -nE \"<script>|<script src|</script>|function |addEventListener\\\\\\('DOMContentLoaded|IIFE|\\\\\\(function|\\\\\\(\\\\\\(\\\\\\)\" ats-checker.html)"
+      "Bash(/usr/bin/grep -nE \"<script>|<script src|</script>|function |addEventListener\\\\\\('DOMContentLoaded|IIFE|\\\\\\(function|\\\\\\(\\\\\\(\\\\\\)\" ats-checker.html)",
+      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles3.json','utf8'\\)\\); if\\(!Array.isArray\\(r\\)||r.length<8\\)process.exit\\(1\\)\")",
+      "Bash(node -e \"try{const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles3.json','utf8'\\)\\);console.log\\('roles3:',r.length,'|',r.map\\(x=>x.slug\\).join\\(','\\)\\)}catch\\(e\\){console.log\\('partial'\\)}\")"
     ]
   }
 }

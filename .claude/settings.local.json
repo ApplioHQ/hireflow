@@ -317,7 +317,9 @@
       "Bash(/usr/bin/grep -nE \"async function login|function signToken|function makeToken|role:|ADMIN|SUPER_ADMIN|adminPassword|ADMIN_PASSWORD|superPassword\" worker/worker.js)",
       "Bash(/usr/bin/grep -nE \"^name|^main|^account_id|^\\\\[\\\\[|compatibility_date\" worker/wrangler.toml)",
       "Bash(awk '{print $NF, $5\\\\\" bytes\\\\\"}')",
-      "Bash(/usr/bin/grep -oE \"https://[a-z0-9.-]+workers\\\\.dev\" js/config.js)"
+      "Bash(/usr/bin/grep -oE \"https://[a-z0-9.-]+workers\\\\.dev\" js/config.js)",
+      "WebFetch(domain:appliohq.com)",
+      "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)"
     ]
   }
 }

@@ -832,7 +832,10 @@ const FIT_ONE_PAGE_FLOOR = 0.72;   // never shrink text below 72% (~11.5px base 
 const FIT_ONE_PAGE_MARGIN_FLOOR = 0.58;   // margins may go tighter than text; they cost height without hurting legibility
 function fitDocToOnePage(doc, pageH) {
   if (!doc || !doc.body) return false;
-  const root = doc.body.firstElementChild;         // the resume's template root (.t-*)
+  // The body starts with the shared + template <style> blocks, so the résumé root
+  // (.t-modern, .t-onyx, …) is the first DIV child, NOT firstElementChild.
+  const root = doc.body.querySelector('div[class^="t-"]')
+    || Array.from(doc.body.children).find(el => el.tagName === 'DIV');
   if (!root) return false;
   const win = doc.defaultView || window;
   // Reset any previous fit so re-renders are idempotent and measurement is honest.

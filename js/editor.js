@@ -742,6 +742,18 @@ function renderSkills() {
 
 function _focusSkillInput() { var el = document.getElementById('skill-inp'); if (el) el.focus(); }
 
+// Remove the Nth skill counting across ALL categories (the pills are a flattened list,
+// so a flat index does not map to categories[0] once there is more than one category).
+function _removeSkillAt(flatIdx) {
+  var cats = (resume.skills && resume.skills.categories) || [];
+  var i = flatIdx;
+  for (var ci = 0; ci < cats.length; ci++) {
+    var its = cats[ci].items || [];
+    if (i < its.length) { its.splice(i, 1); return; }
+    i -= its.length;
+  }
+}
+
 function _bindTagInput() {
   var inp = document.getElementById('skill-inp');
   var wrap = document.getElementById('tag-input-wrap');
@@ -765,12 +777,12 @@ function _bindTagInput() {
       addSkill(inp.value);
       inp.value = '';
     } else if (e.key === 'Backspace' && inp.value === '') {
-      // Remove last skill
-      var cats = resume.skills.categories;
-      if (cats.length && cats[0].items.length) {
-        cats[0].items.pop();
-        save(); _refreshTagPills();
+      // Remove the last skill across all categories (not just category 0).
+      var cats = resume.skills.categories, popped = false;
+      for (var ci = cats.length - 1; ci >= 0; ci--) {
+        if (cats[ci].items && cats[ci].items.length) { cats[ci].items.pop(); popped = true; break; }
       }
+      if (popped) { save(); _refreshTagPills(); }
     }
   });
   inp.addEventListener('blur', function() {
@@ -782,8 +794,7 @@ function _bindTagInput() {
     var btn = e.target.closest('[data-skill-rm]');
     if (!btn) return;
     var idx = +btn.dataset.skillRm;
-    var cats = resume.skills.categories;
-    if (cats.length) cats[0].items.splice(idx, 1);
+    _removeSkillAt(idx);   // pills are a FLAT list across all categories; map the flat index back
     save(); _refreshTagPills();
   });
 }

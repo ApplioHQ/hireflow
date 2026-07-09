@@ -21,7 +21,13 @@ async function loadCurrentUser() {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const r = await fetch(API_BASE + '/me', { headers: { Authorization: 'Bearer ' + token } });
-      if (r.status === 401 || r.status === 403) break;   // real auth failure, don't mask it with cache
+      if (r.status === 401 || r.status === 403) {
+        // Session genuinely expired or revoked: drop the dead token + cached identity
+        // so we never show a stale plan; the page's auth guard then routes to sign-in.
+        try { localStorage.removeItem('hf_token'); localStorage.removeItem(_ME_CACHE_KEY); } catch (e) {}
+        CURRENT_USER = null;
+        return null;
+      }
       if (!r.ok) throw new Error('me ' + r.status);
       CURRENT_USER = await r.json();
       try { localStorage.setItem(_ME_CACHE_KEY, JSON.stringify(CURRENT_USER)); } catch (e) {}

@@ -218,7 +218,7 @@ async function login(req, env) {
     const token = await signToken({
       email: "ADMIN",
       role: "admin",
-      exp: Math.floor(Date.now()/1000) + 3600 * 8
+      exp: Math.floor(Date.now()/1000) + 3600 * 24 * 30   // 30 days (revocable anytime via the ADMIN-tier kill switch)
     }, env.JWT_SECRET);
     return { token, email: "ADMIN", role: "admin" };
   }

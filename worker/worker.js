@@ -1067,6 +1067,9 @@ Rules:
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
+  const cacheKey = (jobDescription || '').slice(0, 4000) + " " + JSON.stringify(resume || {}).slice(0, 7000);
+  const cached = await aiCacheGet(env, "ats", cacheKey);
+  if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You are an ATS (Applicant Tracking System) and resume scoring expert.
 
 Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
@@ -1107,7 +1110,7 @@ Rules:
 
   // Return STRUCTURED output so the frontend can render bars, cards, and chips
   // instead of a flat text blob. `feedback` stays as the short prose summary only.
-  return {
+  const out = {
     score: j.score ?? 50,
     breakdown: (j.breakdown && typeof j.breakdown === "object") ? {
       keywords: j.breakdown.keywords,
@@ -1120,6 +1123,8 @@ Rules:
     issues: Array.isArray(j.issues) ? j.issues.slice(0, 6) : [],
     missingKeywords: Array.isArray(j.missingKeywords) ? j.missingKeywords.slice(0, 12) : [],
   };
+  await aiCachePut(env, "ats", cacheKey, out);
+  return out;
 }
 
 // ============ Analyze ============

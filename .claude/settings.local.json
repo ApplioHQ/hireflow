@@ -258,7 +258,9 @@
       "Bash(/usr/bin/grep -c \"JSON.parse\" /Users/pritamavuthu/hireflow-main/worker/worker.js)",
       "Bash(echo \"exit=$?\")",
       "Bash(/usr/bin/grep -n \"FREE_ASSISTANT_MESSAGES\" /Users/pritamavuthu/hireflow-main/worker/worker.js)",
-      "Bash(/usr/bin/grep -n \"interview-feedback\" /Users/pritamavuthu/hireflow-main/worker/worker.js)"
+      "Bash(/usr/bin/grep -n \"interview-feedback\" /Users/pritamavuthu/hireflow-main/worker/worker.js)",
+      "Bash(/usr/bin/grep -n \"FREE_ASSISTANT_MESSAGES\" worker/worker.js)",
+      "Bash(/usr/bin/grep -nE \"freeForAll|interview-feedback|free for\" worker/worker.js)"
     ]
   }
 }

@@ -117,10 +117,10 @@ function render(){
           ${f.message ? `<p style="font-size:14px; line-height:1.6; word-break:break-word; margin:0;">${esc(f.message)}</p>`
                       : `<p style="font-size:13px; color:var(--muted); font-style:italic; margin:0;">(no message)</p>`}
           <div class="fb-meta">
-            ${f.category ? `<span class="fb-chip" style="background:rgba(99,102,241,.15);color:#818cf8;">${esc(f.category)}</span>` : ''}
-            <span>📍 ${esc(f.context || ', ')}${f.page ? ' · ' + esc(f.page) : ''}</span>
+            ${f.context ? `<span class="fb-chip" style="background:rgba(99,102,241,.15);color:#818cf8;">${esc(f.context)}</span>` : ''}
+            ${f.page ? `<span>📍 ${esc(f.page)}</span>` : ''}
             <span>👤 ${esc(f.email || 'unknown')} (${esc(f.plan || 'free')})</span>
-            <span>🕓 ${_fmtDate(f.timestamp)}</span>
+            <span>🕓 ${_fmtDate(f.ts)}</span>
           </div>
         </div>
       </div>

@@ -369,56 +369,126 @@ function signOut() {
   location.href = '/';
 }
 
-async function showAnalytics() {
-  // Analytics is available to both ADMIN and SUPERADMIN.
-  if (ROLE !== 'admin' && ROLE !== 'super') return toast('Admin only', { type: 'warn' });
-  const card = document.getElementById('analytics-card');
-  if (!card) return;
-  if (card.style.display === '') { card.style.display = 'none'; return; }
-  card.style.display = '';
-  document.getElementById('analytics-body').textContent = 'Loading...';
+// ─────────────── Analytics (always visible) ───────────────
+async function loadAnalytics() {
+  const body = document.getElementById('analytics-body');
+  if (!body) return;
   try {
-    const data = await apiGet('/admin/analytics');
-    const d = data;
-    document.getElementById('analytics-body').innerHTML =
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
-      + _statBox('Total Users', d.total)
-      + _statBox('Paid Users', d.plans.premium + d.plans.lifetime)
-      + _statBox('Conversion Rate', d.conversionRate + '%')
-      + _statBox('Total Downloads', d.totalDownloads)
-      + _statBox('Signups (7d)', d.last7Signups)
-      + _statBox('Signups (30d)', d.last30Signups)
+    const d = await apiGet('/admin/analytics');
+    const trend = d.signupTrend || 0;
+    const trendStr = (trend > 0 ? '▲ ' : trend < 0 ? '▼ ' : '') + Math.abs(trend) + '% WoW';
+    const trendColor = trend > 0 ? '#22c55e' : trend < 0 ? '#ef4444' : 'var(--muted)';
+    body.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
+      + _statBox('Total Users', d.total, '#6366f1')
+      + _statBox('Active Paid', d.activeSubs, '#22c55e', (d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime'))
+      + _statBox('Conversion', d.conversionRate + '%', '#8b5cf6', (d.plans.premium + d.plans.lifetime) + ' of ' + d.total + ' paid')
+      + _statBox('Signups Today', d.signupsToday, '#06b6d4')
+      + _statBox('Signups (7d)', d.last7Signups, '#06b6d4', trendStr, trendColor)
+      + _statBox('Signups (30d)', d.last30Signups, '#06b6d4')
+      + _statBox('Activation', d.activationRate + '%', '#f59e0b', d.everDownloaded + ' downloaded ≥1')
+      + _statBox('Avg Downloads', d.avgDownloads, '#f59e0b', d.totalDownloads + ' total')
+      + _statBox('Stripe Linked', d.stripeLinked, '#635bff')
+      + _statBox('Dormant', d.dormant, '#ef4444', 'joined >7d ago, 0 downloads')
       + '</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Plan Breakdown</div>'
-      + '<div style="display:flex;gap:10px;">'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
       + '<span class="pill">Free: ' + d.plans.free + '</span>'
       + '<span class="pill success">Premium: ' + d.plans.premium + '</span>'
       + '<span class="pill success">Lifetime: ' + d.plans.lifetime + '</span>'
       + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-top:14px;margin-bottom:8px;font-weight:600;">Signups Last 30 Days</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Signups, Last 30 Days</div>'
       + _sparkline(d.signupsByDay);
-  } catch(e) { document.getElementById('analytics-body').textContent = 'Failed: ' + e.message; }
+    const upd = document.getElementById('analytics-updated');
+    if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  } catch (e) {
+    body.innerHTML = '<span style="color:var(--danger);">Couldn\'t load analytics: ' + esc(e.message) + '</span>';
+  }
 }
 
-function _statBox(label, value) {
-  return '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px;">'
+function _statBox(label, value, color, sub, subColor) {
+  return '<div style="background:var(--bg-2);border:1px solid var(--border);border-top:3px solid ' + (color || '#6366f1') + ';border-radius:8px;padding:12px 14px;">'
     + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">' + label + '</div>'
-    + '<div style="font-size:22px;font-weight:700;color:var(--text);">' + value + '</div>'
+    + '<div style="font-size:24px;font-weight:800;color:var(--text);line-height:1.1;">' + value + '</div>'
+    + (sub ? '<div style="font-size:10.5px;color:' + (subColor || 'var(--muted)') + ';margin-top:4px;">' + sub + '</div>' : '')
     + '</div>';
 }
 
 function _sparkline(byDay) {
-  const entries = Object.entries(byDay).sort();
+  const entries = Object.entries(byDay || {}).sort();
   const vals = entries.map(function(e) { return e[1]; });
-  const max = Math.max(...vals, 1);
-  const w = 100 / vals.length;
+  const max = Math.max.apply(null, vals.concat([1]));
   var bars = vals.map(function(v, i) {
     const h = Math.max(2, Math.round((v / max) * 48));
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:52px;" title="' + entries[i][0] + ': ' + v + '">'
-      + '<div style="width:80%;background:#6366f1;border-radius:2px 2px 0 0;height:' + h + 'px;opacity:.8;"></div>'
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:52px;" title="' + entries[i][0] + ': ' + v + ' signup' + (v===1?'':'s') + '">'
+      + '<div style="width:80%;background:linear-gradient(180deg,#8b5cf6,#6366f1);border-radius:2px 2px 0 0;height:' + h + 'px;"></div>'
       + '</div>';
   }).join('');
   return '<div style="display:flex;align-items:flex-end;gap:1px;height:52px;background:var(--bg-2);border-radius:6px;padding:4px;">' + bars + '</div>';
+}
+
+// ─────────────── User feedback (always visible) ───────────────
+let ALL_FEEDBACK = [];
+let FB_FILTER = 'all';
+const _RATING = { up: { icon: '👍', color: '#22c55e' }, down: { icon: '👎', color: '#ef4444' }, none: { icon: '💬', color: '#64748b' } };
+function _rk(f) { return f.rating === 'up' ? 'up' : f.rating === 'down' ? 'down' : 'none'; }
+function _fbDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' +
+         d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+function setFbFilter(f) {
+  FB_FILTER = f;
+  document.querySelectorAll('#fb-filters [data-f]').forEach(function(b) { b.classList.toggle('success', b.dataset.f === f); });
+  renderFeedback();
+}
+
+async function loadFeedback() {
+  const body = document.getElementById('fb-body');
+  if (!body) return;
+  try {
+    const data = await apiGet('/feedback/list');
+    ALL_FEEDBACK = Array.isArray(data.feedback) ? data.feedback : [];
+    renderFeedback();
+  } catch (e) {
+    document.getElementById('fb-count').textContent = '';
+    body.innerHTML = '<div style="color:var(--danger);font-size:13px;">Couldn\'t load feedback: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderFeedback() {
+  const body = document.getElementById('fb-body');
+  const up = ALL_FEEDBACK.filter(f => f.rating === 'up').length;
+  const down = ALL_FEEDBACK.filter(f => f.rating === 'down').length;
+  const withMsg = ALL_FEEDBACK.filter(f => (f.message || '').trim()).length;
+  document.getElementById('fb-count').innerHTML =
+    ALL_FEEDBACK.length + ' total · <span style="color:#22c55e;">' + up + ' 👍</span> · <span style="color:#ef4444;">' + down + ' 👎</span> · ' + withMsg + ' with a message';
+  const list = ALL_FEEDBACK.filter(function(f) {
+    if (FB_FILTER === 'all') return true;
+    if (FB_FILTER === 'msg') return (f.message || '').trim();
+    return _rk(f) === FB_FILTER;
+  });
+  if (!list.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:28px;">No feedback in this view yet.</div>';
+    return;
+  }
+  body.innerHTML = list.map(function(f) {
+    const r = _RATING[_rk(f)];
+    const where = [f.context, f.page].filter(Boolean).map(esc).join(' · ');
+    return '<div style="border-left:3px solid ' + r.color + ';background:var(--bg-2);border-radius:8px;padding:12px 14px;margin-bottom:10px;">'
+      + '<div style="display:flex;align-items:flex-start;gap:11px;">'
+      + '<span style="font-size:20px;line-height:1.2;">' + r.icon + '</span>'
+      + '<div style="flex:1;min-width:0;">'
+      + (f.message && f.message.trim()
+          ? '<p style="font-size:13.5px;line-height:1.6;margin:0;word-break:break-word;">' + esc(f.message) + '</p>'
+          : '<p style="font-size:13px;color:var(--muted);font-style:italic;margin:0;">(rating only, no message)</p>')
+      + '<div style="display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11px;color:var(--muted);margin-top:8px;">'
+      + '<span>👤 ' + esc(f.email || 'unknown') + ' (' + esc(f.plan || 'free') + ')</span>'
+      + (where ? '<span>📍 ' + where + '</span>' : '')
+      + '<span>🕓 ' + _fbDate(f.ts) + '</span>'
+      + '</div></div></div></div>';
+  }).join('');
 }
 
 init();

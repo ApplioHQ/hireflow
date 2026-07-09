@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Your Career Home, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .dash-wrap { max-width: 1000px; margin: 0 auto; padding: 30px 20px 90px; }
+  .dash-hero { margin-bottom: 26px; }
+  .dash-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .dash-hero p { color: var(--muted); font-size: 15px; }
+
+  .dash-h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 32px 0 14px; }
+
+  /* Nudge cards — the "do next" list */
+  .dash-nudges { display: grid; gap: 12px; }
+  .nudge {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 18px; border-radius: var(--r-md);
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-left: 3px solid var(--nc, var(--accent));
+    box-shadow: var(--sh-1);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .nudge:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
+  .nudge-ico { flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--nc, var(--accent)) 14%, transparent); color: var(--nc, var(--accent)); }
+  .nudge-ico svg { width: 20px; height: 20px; }
+  .nudge-body { flex: 1; min-width: 0; }
+  .nudge-title { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
+  .nudge-text { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .nudge-cta {
+    flex-shrink: 0; align-self: center; font: inherit; font-size: 13px; font-weight: 700;
+    white-space: nowrap; cursor: pointer; text-decoration: none;
+    color: var(--nc, var(--accent)); background: none; border: 0; padding: 6px 2px;
+  }
+  .nudge-cta:hover { text-decoration: underline; }
+  .dash-allclear { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--r-md); }
+
+  /* Pipeline snapshot */
+  .dash-pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .pipe-stat { padding: 14px 10px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); border-top: 3px solid var(--c); text-align: center; text-decoration: none; display: block; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .pipe-stat:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
+  .pipe-num { font-size: 26px; font-weight: 800; color: var(--c); line-height: 1; }
+  .pipe-label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  @media (max-width: 560px) { .dash-pipe { grid-template-columns: repeat(3, 1fr); } }
+
+  /* Quick actions */
+  .dash-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .dash-actions { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 460px) { .dash-actions { grid-template-columns: 1fr; } }
+  .act-card {
+    display: flex; align-items: center; gap: 12px; padding: 15px 16px;
+    border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border);
+    text-decoration: none; color: var(--text);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .act-card:hover { transform: translateY(-2px); box-shadow: var(--sh-2); border-color: var(--accent); }
+  .act-ico { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: var(--gradient); color: #fff; }
+  .act-ico svg { width: 19px; height: 19px; }
+  .act-title { font-weight: 700; font-size: 14px; }
+  .act-desc { color: var(--muted); font-size: 12px; margin-top: 1px; }
+
+  /* Two-column: profile + wins */
+  .dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .dash-cols { grid-template-columns: 1fr; } }
+  .dash-panel { padding: 20px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); }
+  .dash-panel h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .dash-panel .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+
+  .pf-field { margin-bottom: 12px; }
+  .pf-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .pf-input, .pf-select {
+    width: 100%; box-sizing: border-box; padding: 9px 11px; font: inherit; font-size: 13.5px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text);
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .pf-input:focus, .pf-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .pf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .win-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .win-list { list-style: none; padding: 0; margin: 0; }
+  .win-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.5; }
+  .win-item:first-child { border-top: 0; }
+  .win-item .win-txt { flex: 1; }
+  .win-date { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .win-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
+  .win-del:hover { color: #ef4444; }
+  .win-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab active" href="dashboard">Home</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="match">Best Match</a>
+    <a class="topbar-tab" href="cover-letter">Cover Letter</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="health-badge"></span>
+    <div class="acct-center" id="acct-center">
+      <button class="acct-trigger" id="acct-trigger" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Account center" title="Account">
+        <span class="acct-avatar" id="acct-avatar">A</span>
+        <svg class="acct-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="acct-menu" id="acct-menu" role="menu" hidden>
+        <div class="acct-head">
+          <div class="acct-avatar acct-avatar-lg" id="acct-avatar-lg">A</div>
+          <div class="acct-head-text">
+            <div class="acct-email" id="acct-email">Account</div>
+            <div class="acct-plan" id="acct-plan-label"></div>
+          </div>
+        </div>
+        <div class="acct-sep"></div>
+        <div class="acct-row acct-row-static">
+          <span class="acct-row-label">Plan</span>
+          <span id="plan-pill"></span>
+        </div>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()">
+          <span class="acct-row-label">Appearance</span>
+          <span class="acct-row-val theme-toggle"></span>
+        </button>
+        <button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href='admin';">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Admin Console</span>
+        </button>
+        <button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); openBillingPortal();">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>Manage / cancel subscription</span>
+        </button>
+        <div class="acct-sep"></div>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="openFeedbackModal({context:'dashboard'}); closeAcctMenu();">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>Feedback</span>
+        </button>
+        <button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Sign out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="dash-wrap">
+  <div class="dash-hero">
+    <h1 id="dash-greeting">Welcome back</h1>
+    <p id="dash-sub">Here's your job search at a glance.</p>
+  </div>
+
+  <div class="dash-h2">Do next</div>
+  <section class="dash-nudges" id="dash-nudges"></section>
+
+  <div class="dash-h2">Your pipeline</div>
+  <section class="dash-pipe" id="dash-pipe"></section>
+
+  <div class="dash-h2">Jump back in</div>
+  <section class="dash-actions" id="dash-actions"></section>
+
+  <div class="dash-cols" style="margin-top:32px;">
+    <section class="dash-panel" id="dash-profile">
+      <h3>Career profile</h3>
+      <div class="sub">Applio uses this to tailor its coaching to you.</div>
+      <div class="pf-field">
+        <label for="pf-role">Target role</label>
+        <input class="pf-input" id="pf-role" type="text" placeholder="e.g. Senior Product Designer" maxlength="80">
+      </div>
+      <div class="pf-grid2">
+        <div class="pf-field">
+          <label for="pf-seniority">Seniority</label>
+          <select class="pf-select" id="pf-seniority">
+            <option value="">—</option>
+            <option>Internship</option><option>Entry</option><option>Mid</option>
+            <option>Senior</option><option>Lead / Staff</option><option>Manager</option><option>Director+</option>
+          </select>
+        </div>
+        <div class="pf-field">
+          <label for="pf-status">Search status</label>
+          <select class="pf-select" id="pf-status">
+            <option value="active">Actively applying</option>
+            <option value="casual">Casually looking</option>
+            <option value="passive">Open, not looking</option>
+            <option value="off">Not looking</option>
+          </select>
+        </div>
+      </div>
+      <div class="pf-grid2">
+        <div class="pf-field">
+          <label for="pf-location">Location</label>
+          <input class="pf-input" id="pf-location" type="text" placeholder="City or Remote" maxlength="80">
+        </div>
+        <div class="pf-field">
+          <label for="pf-goal">Weekly application goal</label>
+          <input class="pf-input" id="pf-goal" type="number" min="0" max="99" placeholder="e.g. 5">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="pf-save" style="margin-top:4px;">Save profile</button>
+    </section>
+
+    <section class="dash-panel" id="dash-wins">
+      <h3>Win journal</h3>
+      <div class="sub">Log accomplishments as they happen — ready to drop into your resume and reviews.</div>
+      <div class="win-row">
+        <input class="pf-input" id="win-input" type="text" placeholder="e.g. Cut page load time 40%" maxlength="240">
+        <button class="btn btn-primary btn-sm" id="win-add" style="white-space:nowrap;">Log</button>
+      </div>
+      <ul class="win-list" id="win-list"></ul>
+    </section>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/health-badge.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

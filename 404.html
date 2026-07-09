@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, follow">
+<title>Page not found, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .nf-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; position: relative; overflow: hidden; }
+  .nf-glow { position: absolute; top: 30%; left: 50%; width: 640px; height: 640px; max-width: 120vw; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(99,102,241,.20), transparent 66%); filter: blur(20px); pointer-events: none; z-index: 0; }
+  .nf-inner { position: relative; z-index: 1; max-width: 520px; }
+  .nf-brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; font-weight: 800; font-size: 18px; }
+  .nf-brand img { width: 34px; height: 34px; border-radius: 8px; }
+  .nf-code { font-size: 92px; font-weight: 800; letter-spacing: -.04em; line-height: 1; margin: 0; background: linear-gradient(120deg, #818cf8, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .nf-title { font-size: 24px; font-weight: 700; letter-spacing: -.01em; margin: 14px 0 8px; }
+  .nf-sub { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 0 auto 26px; max-width: 400px; }
+  .nf-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .nf-links { margin-top: 30px; display: flex; gap: 6px 20px; flex-wrap: wrap; justify-content: center; font-size: 13px; }
+  .nf-links a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  .nf-links a:hover { color: var(--accent); }
+</style>
+</head>
+<body class="home-body">
+  <div class="nf-wrap">
+    <div class="nf-glow" aria-hidden="true"></div>
+    <div class="nf-inner">
+      <a class="nf-brand" href="/"><img src="logo.jpeg" width="34" height="34" alt="Applio">Applio</a>
+      <p class="nf-code">404</p>
+      <h1 class="nf-title">This page took a wrong turn</h1>
+      <p class="nf-sub">The page you're looking for doesn't exist or has moved. Let's get you back to building your resume.</p>
+      <div class="nf-actions">
+        <a class="btn btn-primary" href="/">Back to home</a>
+        <a class="btn btn-secondary" href="/editor">Open the resume builder</a>
+      </div>
+      <nav class="nf-links">
+        <a href="/pricing">Pricing</a>
+        <a href="/ats-checker">Free ATS Checker</a>
+        <a href="/resume-templates">Templates</a>
+        <a href="/guides">Guides</a>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>

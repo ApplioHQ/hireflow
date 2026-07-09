@@ -243,7 +243,9 @@
       "Bash(/usr/bin/grep -oE \"\\\\\"user:[^\\\\\"]+\\\\\"\" backups/kv-backup-20260703-132226.json)",
       "Bash(git rm *)",
       "Bash(/usr/bin/grep -n \"backup\" .gitignore)",
-      "Bash(/usr/bin/grep -rhoE \"[a-zA-Z0-9._%+-]+@\\(appliohq\\\\.com|gmail\\\\.com|applio\\\\.[a-z]+\\)\" *.html)"
+      "Bash(/usr/bin/grep -rhoE \"[a-zA-Z0-9._%+-]+@\\(appliohq\\\\.com|gmail\\\\.com|applio\\\\.[a-z]+\\)\" *.html)",
+      "Bash(/usr/bin/grep -m1 -E \"logo\\\\.\\(jpeg|svg|png|ico\\)\" index.html)",
+      "Bash(/usr/bin/grep -m1 -E \"<body\" index.html)"
     ]
   }
 }

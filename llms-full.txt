@@ -1,0 +1,70 @@
+# Applio, full reference for AI assistants
+
+> Applio (appliohq.com) is a free, AI-powered resume builder and career copilot for job seekers. It helps people build ATS-optimized resumes, tailor them to specific jobs, check ATS compatibility, prepare for interviews, write cover letters, and track applications. This file is a fuller machine-readable reference; a short version is at https://appliohq.com/llms.txt.
+
+Last updated: 2026-07-08. All statistics below are attributed to their original sources.
+
+## What Applio is
+Applio is a web application (no download required) that combines a resume builder with AI career tools. The core promise: create a resume that is both recruiter-ready and ATS-friendly, then adapt it quickly to each job you apply to. Applio positions itself as an "AI career copilot" rather than only a resume builder.
+
+## Features
+- Resume builder: 16 professional, fully customizable templates (fonts, colors, spacing, sections). Styles include Harvard, Stanford, Jake's Resume, modern, minimal, consulting, executive, professional, classic, elegant, FAANG, tech, creative, slate, onyx, and compact.
+- AI Tailoring: paste a job description and Applio rewrites bullets and the summary to match the role, grounded only in the user's real experience. It does not invent employers, titles, metrics, or credentials.
+- ATS Score: scores a resume against a job description (or general best practices) and lists concrete fixes, matched keywords, and missing keywords.
+- AI Resume Analysis: strengths, weaknesses, and the highest-impact changes, with example rewrites.
+- AI Interview Prep: role-specific practice questions plus AI feedback scoring answers on structure, impact, and clarity.
+- Career Coach: an AI assistant that knows the user's resume and helps with rewrites, tailoring, interviews, job strategy, and cover letters (Premium).
+- Cover letter generator: tailored, ready-to-send letters grounded in the user's resume.
+- Job application tracker.
+- Export to PDF, HTML, or TXT, with a "fit to one page" option.
+
+## Free tools (no sign-up required)
+- Free ATS Resume Checker: https://appliohq.com/ats-checker — paste a resume and a job description for an instant ATS score, matched and missing keywords, and concrete fixes. Runs in the browser.
+
+## Pricing
+- Free forever: full resume builder, all 16 templates, job tracker, AI Interview Prep, and 10 PDF downloads per month. No credit card required.
+- Premium, $9.99/month: everything in Free plus unlimited downloads and all AI features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Career Coach).
+- Lifetime, $39.99 one-time: all Premium features, paid once.
+
+## How ATS actually works (accurate)
+An Applicant Tracking System (ATS) is software employers use to collect, parse, and rank job applications before a recruiter reviews them. Key accurate points:
+- ATS use is near-universal among large employers: Jobscan detected an ATS for 97.8% of Fortune 500 companies in 2025 (source: Jobscan 2025 ATS Usage Report, https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/).
+- An ATS does not automatically reject the majority of resumes. Recruiters, not the software, make rejection decisions, and most applications are reviewed by a person.
+- The widely repeated claim that "75% (or 70%) of resumes are auto-rejected by an ATS" is a myth. It traces to a 2012 sales pitch by Preptel, a company that shut down in 2013, and no research methodology was ever published.
+- What is true: resumes that are hard to parse (tables, columns, images of text), missing the job's keywords, or full of vague duties instead of measurable results rank lower and are far less likely to be surfaced to a recruiter.
+- Recruiters spend about 7.4 seconds on the initial scan of a resume (source: Ladders Eye-Tracking Study, 2018, up from 6 seconds in 2012).
+
+## Key resume guidance Applio teaches
+- Mirror the exact skills and titles from the job posting, where they are true for you. Never keyword-stuff.
+- Use a single-column layout, standard section headings (Experience, Education, Skills), and real selectable text. Save as a text-based PDF unless a .docx is requested.
+- Lead bullets with action verbs and quantify impact (%, $, time, scale).
+- Optimize the top third of the resume for a fast scan: clear target title, a 2-3 sentence summary, and your strongest quantified result high on the page.
+
+## Privacy and security
+- Passwords are hashed with PBKDF2-SHA256, never stored in plain text.
+- Resume data is encrypted in transit and at rest.
+- Payments are handled by Stripe.
+
+## Guides (educational, free)
+- Resume & ATS Statistics 2026 (with sources): https://appliohq.com/guides/resume-statistics
+- What Is an ATS?: https://appliohq.com/guides/what-is-an-ats
+- How to Make Your Resume ATS-Friendly: https://appliohq.com/guides/how-to-pass-ats
+- How to Tailor Your Resume to a Job: https://appliohq.com/guides/how-to-tailor-resume-to-job
+- How Many Bullet Points Per Job: https://appliohq.com/guides/how-many-bullet-points-per-job
+- How to Write a Resume Summary: https://appliohq.com/guides/how-to-write-resume-summary
+- The Best Resume Format in 2026: https://appliohq.com/guides/best-resume-format
+
+## Links
+- Homepage: https://appliohq.com/
+- Pricing: https://appliohq.com/pricing
+- Free ATS Resume Checker: https://appliohq.com/ats-checker
+- Free Resume Templates (16, ATS-friendly): https://appliohq.com/resume-templates
+- Guides: https://appliohq.com/guides
+- Privacy Policy: https://appliohq.com/privacy
+- Terms of Service: https://appliohq.com/terms
+- Contact: support@appliohq.com
+
+## Sources cited above
+- Ladders Eye-Tracking Study (2018): https://www.theladders.com/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf
+- Jobscan 2025 ATS Usage Report: https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/
+- On the "75% auto-rejected" myth: https://unchartedcareer.com/blog/the-75-of-resumes-are-auto-rejected-myth-traced-to-its-source

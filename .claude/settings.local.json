@@ -231,7 +231,12 @@
       "Bash(rm -f verify-chat.js.light)",
       "Bash(node verify-interview.js)",
       "Bash(/usr/bin/grep -n \"runAI\" worker/worker.js)",
-      "Bash(/usr/bin/grep -n \"AI Feedback\\\\|WHAT YOU\\\\|Recording\\\\|ip-sample-wave\\\\|Tell me about a product\\\\|Great structure\\\\|Structure\\\\|ip-fb-bar\\\\|BEHAVIORAL\" interview.html)"
+      "Bash(/usr/bin/grep -n \"AI Feedback\\\\|WHAT YOU\\\\|Recording\\\\|ip-sample-wave\\\\|Tell me about a product\\\\|Great structure\\\\|Structure\\\\|ip-fb-bar\\\\|BEHAVIORAL\" interview.html)",
+      "Bash(/usr/bin/grep -oE \"<loc>[^<]+</loc>\" sitemap.xml)",
+      "Bash(/usr/bin/grep -oE \"\\\\\"@type\\\\\": ?\\\\\"[^\\\\\"]+\\\\\"\" index.html)",
+      "Bash(/usr/bin/grep -rl \"hash\\\\|salt\\\\|password\" backups/)",
+      "Bash(/usr/bin/grep -icE \"faq|frequently asked|<summary\" index.html)",
+      "Bash(/usr/bin/grep -nE \"X-Content-Type|X-Frame|Strict-Transport|Referrer-Policy|nosniff|securityHeaders\" worker/worker.js)"
     ]
   }
 }

@@ -358,7 +358,13 @@
       "Bash(/usr/bin/head -c 30 resume-file.js)",
       "Bash(xxd)",
       "Bash(node --check resume-file.js)",
-      "Bash(/usr/bin/sed -n '1p' resume-file.js)"
+      "Bash(/usr/bin/sed -n '1p' resume-file.js)",
+      "Bash(grep -iE \"\\\\.sqlite|\\\\.env$|secret|dump|\\\\.pem$|\\\\.key$|id_rsa\")",
+      "Bash(gh repo *)",
+      "Bash(pip show *)",
+      "Bash(/usr/bin/head -c 30 js/resume-file.js)",
+      "Bash(/usr/bin/sed -n '1p' js/resume-file.js)",
+      "Bash(/usr/bin/awk 'NR<=3{print NR\": \"$0}' js/resume-file.js)"
     ]
   }
 }

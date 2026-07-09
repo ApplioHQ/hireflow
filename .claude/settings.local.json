@@ -371,7 +371,8 @@
       "Bash(grep -E \"\\\\*.sqlite|\\\\.env$\")",
       "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('sitemap.xml'\\); print\\('sitemap XML valid'\\)\")",
       "Bash(echo \"exit:$?\")",
-      "Bash(LC_ALL=C perl -ne 'print \"L$.: \", \\($_ =~ tr/\\\\x00//\\), \" NUL\\(s\\) :: \", \\(my $c=$_\\)=~s/[^\\\\x20-\\\\x7e]/./gr' -e 'if \\(/\\\\x00/\\)' /Users/pritamavuthu/hireflow-main/worker/worker.js)"
+      "Bash(LC_ALL=C perl -ne 'print \"L$.: \", \\($_ =~ tr/\\\\x00//\\), \" NUL\\(s\\) :: \", \\(my $c=$_\\)=~s/[^\\\\x20-\\\\x7e]/./gr' -e 'if \\(/\\\\x00/\\)' /Users/pritamavuthu/hireflow-main/worker/worker.js)",
+      "Bash(awk 'NR>=/./ && /^async function ai\\\\\\(req/{p=1} p{print NR\": \"$0} p&&/^}/{c++; if\\(c>=1 && /^}$/\\){exit}}' /Users/pritamavuthu/hireflow-main/worker/worker.js)"
     ]
   }
 }

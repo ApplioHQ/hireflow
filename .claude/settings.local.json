@@ -301,7 +301,11 @@
       "Bash(/usr/bin/grep -rnE \"function toggleAcctMenu|function closeAcctMenu|acct-avatar'\\\\\\)|getElementById\\\\\\('acct-|acct-admin-console|function initAccountCenter|function renderAcct\" js/*.js editor.html)",
       "Bash(/usr/bin/grep -nE \"theme-toggle|querySelectorAll|Light|Dark\" js/theme.js)",
       "Bash(/usr/bin/grep -n \"theme.js\" export.html)",
-      "Bash(/usr/bin/grep -nE \"function planLabel|function isAdmin\" js/plan.js)"
+      "Bash(/usr/bin/grep -nE \"function planLabel|function isAdmin\" js/plan.js)",
+      "Bash(git remote *)",
+      "Bash(sed -E 's#\\(https://\\)[^@]*@#\\\\1***@#')",
+      "Bash(git config *)",
+      "Bash(/usr/bin/grep -iE \"credential|url|user\\\\.\")"
     ]
   }
 }

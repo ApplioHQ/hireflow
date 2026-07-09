@@ -237,8 +237,15 @@
         <div class="float-ats-label">ATS Score</div>
         <div class="ats-ring">
           <svg viewBox="0 0 80 80" width="80" height="80">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="#e0e7ff" stroke-width="8"/>
-            <circle id="ats-ring-fill" cx="40" cy="40" r="34" fill="none" stroke="#22c55e" stroke-width="8"
+            <defs>
+              <linearGradient id="atsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4ade80"/>
+                <stop offset="55%" stop-color="#22c55e"/>
+                <stop offset="100%" stop-color="#15a34a"/>
+              </linearGradient>
+            </defs>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#e8edf7" stroke-width="7"/>
+            <circle id="ats-ring-fill" cx="40" cy="40" r="34" fill="none" stroke="url(#atsGrad)" stroke-width="7"
               stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round"
               transform="rotate(-90 40 40)"/>
           </svg>

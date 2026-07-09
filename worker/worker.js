@@ -1361,8 +1361,8 @@ OUTPUT FORMAT:
 
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
-  const cacheKey = String(role || '').slice(0, 200) + " " +
-    (jobDescription || '').slice(0, 2000) + " " + JSON.stringify(resume || {}).slice(0, 3500);
+  const cacheKey = String(role || '').slice(0, 200) + "\u0000" +
+    (jobDescription || '').slice(0, 2000) + "\u0000" + JSON.stringify(resume || {}).slice(0, 3500);
   const cached = await aiCacheGet(env, "interview", cacheKey);
   if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You are a senior interview coach. The candidate is preparing for an interview for a specific role.

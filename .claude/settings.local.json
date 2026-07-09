@@ -368,7 +368,8 @@
       "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --version)",
       "Bash(/usr/bin/grep -nP \"[^\\\\x00-\\\\x7F]\" js/resume-file.js)",
       "Bash(/usr/bin/grep -nE \"\\\\?\\\\.|\\\\?\\\\?|#[a-zA-Z]|await [a-z]\" js/resume-file.js)",
-      "Bash(grep -E \"\\\\*.sqlite|\\\\.env$\")"
+      "Bash(grep -E \"\\\\*.sqlite|\\\\.env$\")",
+      "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('sitemap.xml'\\); print\\('sitemap XML valid'\\)\")"
     ]
   }
 }

@@ -2431,6 +2431,7 @@ function _setSaveStatus(msg, color) {
 
 let _cloudTimer = null;
 function save() {
+  resume.updatedAt = Date.now();   // last-write timestamp for cross-device reconciliation
   localStorage.setItem('hf_resume', JSON.stringify(resume));
   _setSaveStatus('● Unsaved changes', 'var(--warning)');
   // Debounced cloud autosave so work is never stranded on one device.
@@ -3360,17 +3361,25 @@ function _maybePendingImport() {
 // so the user doesn't see a blank editor and overwrite their real resume. We only
 // do this when there was NO local resume, so unsaved local edits are never clobbered.
 async function _hydrateFromCloud() {
-  if (HAD_LOCAL_RESUME) return;
   try {
     const r = await fetch(API + '/resume', { headers: { Authorization: 'Bearer ' + TOKEN } });
     if (!r.ok) return;
     const data = await r.json();
-    if (data && data.resume && typeof data.resume === 'object') {
-      resume = data.resume;
-      if (!Array.isArray(resume.versions)) resume.versions = [];
+    if (!(data && data.resume && typeof data.resume === 'object')) return;
+    const cloud = _normalizeResume(data.resume);
+    const localTs = Number(resume && resume.updatedAt) || 0;
+    const cloudTs = Number(cloud.updatedAt) || 0;
+    // Adopt the cloud copy when there's no local resume at all, OR when the cloud was
+    // saved more recently than this device's local copy (edited on another device).
+    // Same-device local is always >= cloud, so this never clobbers newer local edits,
+    // which was the cross-device data-loss bug (stale local overwriting a newer cloud).
+    if (!HAD_LOCAL_RESUME || cloudTs > localTs) {
+      const adopting = HAD_LOCAL_RESUME && cloudTs > localTs;
+      resume = cloud;
       localStorage.setItem('hf_resume', JSON.stringify(resume));
+      if (adopting && typeof toast === 'function') toast('Loaded the latest version of your résumé from another device.', { type: 'info', duration: 4000 });
     }
-  } catch (_) { /* offline / transient, fall back to the local default */ }
+  } catch (_) { /* offline / transient, keep the local copy */ }
 }
 
 (async () => {

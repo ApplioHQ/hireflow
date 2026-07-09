@@ -288,7 +288,11 @@
       "Bash(/usr/bin/grep -nE \"signOut|Sign out|topbar-right|account|plan-pill|download-pill\" export.html)",
       "Bash(/usr/bin/grep -nE \"rotate|perspective|transform|export-preview|resume-preview|exp-sizer|resume-frame\" export.html)",
       "Bash(/usr/bin/grep -nE \"export-preview-container|rotate|perspective\" css/styles.css)",
-      "Bash(/usr/bin/grep -nE \"function renderAccount|account-menu|accountMenu|renderPlanPill|account-dropdown|openAccountModal|renderAccountMenu\" js/plan.js)"
+      "Bash(/usr/bin/grep -nE \"function renderAccount|account-menu|accountMenu|renderPlanPill|account-dropdown|openAccountModal|renderAccountMenu\" js/plan.js)",
+      "Bash(/usr/bin/grep -rnEi \"rotate[XYZ]?\\\\\\(|skew|perspective|tilt|mousemove\" export.html css/styles.css js/*.js)",
+      "Bash(/usr/bin/grep -viE \"chevron|spin|counter|arrow|an-pre|360deg\")",
+      "Bash(/usr/bin/sed -n '11,20p' export.html)",
+      "Bash(/usr/bin/grep -nE \"export-grid|resume-preview|export-side\" export.html css/styles.css)"
     ]
   }
 }

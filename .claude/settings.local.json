@@ -263,7 +263,9 @@
       "Bash(/usr/bin/grep -nE \"freeForAll|interview-feedback|free for\" worker/worker.js)",
       "Bash(/usr/bin/grep -n \"function renderTemplate\\\\|SHARED_TEMPLATE_CSS\\\\s*=\\\\|const SHARED_TEMPLATE_CSS\\\\|return SHARED\" templates.js js/templates.js)",
       "Bash(/usr/bin/grep -nA3 \"function renderTemplate\" js/templates.js)",
-      "Bash(/usr/bin/grep -n \"firstElementChild\\\\|const root =\" js/templates.js)"
+      "Bash(/usr/bin/grep -n \"firstElementChild\\\\|const root =\" js/templates.js)",
+      "Bash(/usr/bin/grep -nE \"function esc|const esc *=\" js/templates.js)",
+      "Bash(/usr/bin/grep -nA2 \"function esc\" js/templates.js)"
     ]
   }
 }

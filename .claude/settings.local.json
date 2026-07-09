@@ -274,7 +274,8 @@
       "Bash(/usr/bin/grep -n \"guides/what-is-an-ats\\\\|guides</loc>\\\\|<lastmod>\" sitemap.xml)",
       "Bash(/usr/bin/grep -n \"guides/what-is-an-ats\\\\|class=\\\\\"\" guides/index.html)",
       "Bash(/usr/bin/sed -n '26,32p' sitemap.xml)",
-      "Bash(/usr/bin/grep -n 'href=\"/guides/' guides/index.html)"
+      "Bash(/usr/bin/grep -n 'href=\"/guides/' guides/index.html)",
+      "Bash(/usr/bin/grep -lc \"gd-answer\" guides/*.html)"
     ]
   }
 }

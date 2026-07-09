@@ -2290,6 +2290,11 @@ function _bindPreviewClicks(doc) {
     el.setAttribute('data-hf-sec', sec);
     el.title = label;
     if (isHead) { el.classList.add('hf-sec-head'); el.setAttribute('data-hf-label', label); }
+    // _mountResume fires its callback twice (fonts-ready + timeout fallback) on the
+    // same elements, so guard against attaching duplicate listeners. Fresh elements
+    // from doc.write() start without the flag, so re-renders still rebind correctly.
+    if (el._hfBound) return;
+    el._hfBound = true;
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       nextSection(sec);

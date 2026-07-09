@@ -391,7 +391,8 @@
       "Bash(awk '/\\\\.mock-resume-stamp \\\\{/,/^\\\\}/' css/home.css)",
       "Bash(awk '{print $5\" bytes\"}')",
       "Bash(sel)",
-      "Bash(node home_test.js)"
+      "Bash(node home_test.js)",
+      "Bash(awk 'NR>=255 && NR<=300' css/home.css)"
     ]
   }
 }

@@ -63,6 +63,8 @@ An Applicant Tracking System (ATS) is software employers use to collect, parse, 
 
 ## Resume examples by role
 Role-specific resume examples (summary, skills, quantified bullet points) at https://appliohq.com/resume-examples:
+Browse by industry: Tech & Engineering (https://appliohq.com/resume-examples/technology), Business, Finance & Operations (https://appliohq.com/resume-examples/business-finance), Healthcare & Public Service (https://appliohq.com/resume-examples/healthcare), Sales, Marketing & Creative (https://appliohq.com/resume-examples/sales-marketing).
+
 - Software Engineer: https://appliohq.com/resume-examples/software-engineer
 - Project Manager: https://appliohq.com/resume-examples/project-manager
 - Registered Nurse: https://appliohq.com/resume-examples/registered-nurse

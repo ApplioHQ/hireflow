@@ -246,7 +246,10 @@
       "Bash(/usr/bin/grep -rhoE \"[a-zA-Z0-9._%+-]+@\\(appliohq\\\\.com|gmail\\\\.com|applio\\\\.[a-z]+\\)\" *.html)",
       "Bash(/usr/bin/grep -m1 -E \"logo\\\\.\\(jpeg|svg|png|ico\\)\" index.html)",
       "Bash(/usr/bin/grep -m1 -E \"<body\" index.html)",
-      "Bash(git ls-tree *)"
+      "Bash(git ls-tree *)",
+      "Bash(/usr/bin/grep -inE \"forgot|reset password|reset-password|/auth/reset|/auth/forgot\" login.html)",
+      "Bash(/usr/bin/grep -inE \"reset|forgot\" worker/worker.js)",
+      "Bash(/usr/bin/grep -nE \"downloads/increment|printFrame|isFree|downloadsLeft|tryExport\" export.html)"
     ]
   }
 }

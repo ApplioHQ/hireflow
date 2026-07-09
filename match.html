@@ -34,8 +34,15 @@
   .bm-detail summary::-webkit-details-marker { display:none; }
   .bm-detail .bm-detail-body { padding:0 16px 14px; font-size:12.5px; line-height:1.6; color:var(--muted); }
   .bm-chip { display:inline-block; font-size:11px; padding:3px 9px; border-radius:var(--r-full); background:var(--bg); border:1px solid var(--border); margin:3px 4px 0 0; color:var(--text); }
+  /* Two-column hero so the value preview sits beside the form (no long scroll) */
+  .bm-main { padding:32px 20px; max-width:1120px; margin:0 auto; }
+  .bm-hero { display:grid; grid-template-columns:1.12fr .88fr; gap:20px; align-items:start; }
+  @media (max-width:900px){ .bm-hero { grid-template-columns:1fr; } }
+  .bm-hero .section-card { margin:0; }
+  .bm-hero.results-open { grid-template-columns:1fr; }   /* full-width form once results show */
+  .bm-hero.results-open #bm-intro { display:none; }
   /* Intro: sample ranked result + how it works */
-  #bm-intro { margin-top:22px; }
+  #bm-intro { margin-top:0; }
   .bm-sample-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
   .bm-sample { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:12px; box-shadow:var(--sh-2), var(--hi); }
   .bm-sample-row { display:flex; align-items:center; gap:14px; padding:12px; border-radius:var(--r-md); }
@@ -143,6 +150,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /.bm-hero -->
 
   <div id="bm-results"></div>
 </main>

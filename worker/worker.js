@@ -1361,6 +1361,10 @@ OUTPUT FORMAT:
 
 // ============ Interview prep ============
 async function aiInterview(env, { role, jobDescription, resume }) {
+  const cacheKey = String(role || '').slice(0, 200) + " " +
+    (jobDescription || '').slice(0, 2000) + " " + JSON.stringify(resume || {}).slice(0, 3500);
+  const cached = await aiCacheGet(env, "interview", cacheKey);
+  if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You are a senior interview coach. The candidate is preparing for an interview for a specific role.
 
 Generate 10 high-quality practice interview questions, mixing:
@@ -1411,9 +1415,13 @@ Rules:
 - Avoid generic questions like "What's your greatest weakness?" — interviewers ask sharper questions today
 - No preamble. Start directly with "[Behavioral]".`;
 
-  return { text: await runAI(env, sys,
+  const out = { text: await runAI(env, sys,
     `Role: ${role}\n\nJob Description:\n${(jobDescription || '(none provided)').slice(0, 2000)}\n\nCandidate Resume:\n${JSON.stringify(resume).slice(0, 3500)}`,
     { model: SMART_MODEL, max_tokens: 1400, temperature: 0.35 }) };
+  // Short TTL: dedupes accidental double-submits / refreshes / back-navigation (the
+  // real waste) without locking the user into one question set for long.
+  await aiCachePut(env, "interview", cacheKey, out.text ? out : null, 3600);
+  return out;
 }
 
 // ============ Interview answer feedback (scored) ============

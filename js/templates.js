@@ -246,7 +246,7 @@ function orderedBody(r, opts) {
         const m = _customMeta(r, k); if (!m) return '';
         const items = r[k] || [];
         inner = items.length ? customBlocks(items) : '';
-        title = m.title || 'Section';
+        title = esc(m.title || 'Section');   // user-defined title, must be escaped (the def branch uses trusted constants)
       }
       return inner ? `<${tag}>${xform(titles[k] || title)}</${tag}>${inner}` : '';
     }).join('');

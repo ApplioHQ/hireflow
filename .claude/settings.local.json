@@ -298,7 +298,10 @@
       "Bash(/usr/bin/grep -nE \"function toggleAcctMenu|function closeAcctMenu|function openBillingPortal|acct-avatar|acct-email|acct-admin-console|acct-manage-sub|function renderPlanPill|function openFeedbackModal\" js/plan.js)",
       "Bash(/usr/bin/grep -nE \"js/plan.js|js/icons.js|js/notify.js|loadCurrentUser|renderPlanPill\" export.html)",
       "Bash(/usr/bin/grep -nE \"renderPlanPill|loadCurrentUser|renderAcct|initAcct\" editor.html)",
-      "Bash(/usr/bin/grep -rnE \"function toggleAcctMenu|function closeAcctMenu|acct-avatar'\\\\\\)|getElementById\\\\\\('acct-|acct-admin-console|function initAccountCenter|function renderAcct\" js/*.js editor.html)"
+      "Bash(/usr/bin/grep -rnE \"function toggleAcctMenu|function closeAcctMenu|acct-avatar'\\\\\\)|getElementById\\\\\\('acct-|acct-admin-console|function initAccountCenter|function renderAcct\" js/*.js editor.html)",
+      "Bash(/usr/bin/grep -nE \"theme-toggle|querySelectorAll|Light|Dark\" js/theme.js)",
+      "Bash(/usr/bin/grep -n \"theme.js\" export.html)",
+      "Bash(/usr/bin/grep -nE \"function planLabel|function isAdmin\" js/plan.js)"
     ]
   }
 }

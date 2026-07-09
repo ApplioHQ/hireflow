@@ -353,7 +353,12 @@
       "Bash(/usr/bin/grep -nE \"<script>|</script>|<script type\" editor.html)",
       "Bash(/usr/bin/grep -nE \"JSON.parse|new Function|eval\\\\\\(\" js/resume-file.js js/health-badge.js js/icons.js js/notify.js js/waves.js)",
       "Bash(xargs ls -la)",
-      "Bash(awk '{print $5, $9}')"
+      "Bash(awk '{print $5, $9}')",
+      "Bash(/usr/bin/head -1 resume-file.js)",
+      "Bash(/usr/bin/head -c 30 resume-file.js)",
+      "Bash(xxd)",
+      "Bash(node --check resume-file.js)",
+      "Bash(/usr/bin/sed -n '1p' resume-file.js)"
     ]
   }
 }

@@ -56,7 +56,8 @@
   <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <nav class="topbar-tabs">
     <a class="topbar-tab active" href="admin">Admin Console</a>
-    <a class="topbar-tab" href="#" onclick="showAnalytics();return false;">Analytics</a>
+    <a class="topbar-tab" href="#" onclick="scrollToId('analytics-section');return false;">Analytics</a>
+    <a class="topbar-tab" href="#" onclick="scrollToId('feedback-section');return false;">Feedback</a>
     <a class="topbar-tab" href="editor">Resume Builder</a>
   </nav>
   <div class="topbar-right">
@@ -248,6 +249,15 @@ async function refresh() {
   } catch (e) {
     toast('Failed to load: ' + e.message, { type: 'error' });
   }
+  // Analytics + feedback are always shown; load them independently so one failing
+  // never blanks the other.
+  loadAnalytics();
+  loadFeedback();
+}
+
+function scrollToId(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderUsers() {

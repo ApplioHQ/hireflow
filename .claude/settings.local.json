@@ -378,7 +378,8 @@
       "Bash(node --check js/dashboard.js)",
       "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' editor.html)",
       "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' jobs.html)",
-      "Bash(awk '{print $9, $5\"B\"}')"
+      "Bash(awk '{print $9, $5\"B\"}')",
+      "Bash(awk '/application\\\\/ld\\\\+json/{f=1} f{print} /<\\\\/script>/{if\\(f\\)c++; if\\(c>=4\\)exit}' guides/how-to-pass-ats.html)"
     ]
   }
 }

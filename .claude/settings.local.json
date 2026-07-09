@@ -377,7 +377,8 @@
       "Bash(curl -s https://hireflow-api.pritamavuthu7.workers.dev/status)",
       "Bash(node --check js/dashboard.js)",
       "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' editor.html)",
-      "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' jobs.html)"
+      "Bash(grep -nA3 '<nav class=\"topbar-tabs\">' jobs.html)",
+      "Bash(awk '{print $9, $5\"B\"}')"
     ]
   }
 }

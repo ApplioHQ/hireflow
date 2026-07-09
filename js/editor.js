@@ -102,7 +102,11 @@ function hydrate() {
   const ipTab = document.getElementById('ip-tab');
   const obadge = document.getElementById('optimize-badge');
 
-  if (isPaid()) {
+  const _admin = (typeof isAdmin === 'function' && isAdmin());
+  if (_admin) {
+    planPill.innerHTML = `<span class="pill success" title="Admin — full access">${ICON('crown','ico ico-sm')} Admin</span>`;
+    if (obadge) obadge.innerHTML = '';
+  } else if (isPaid()) {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     if (obadge) obadge.innerHTML = '';
   } else {
@@ -117,9 +121,9 @@ function hydrate() {
     const el = document.getElementById(id); if (el) el.textContent = initials;
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
-  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = isPaid() ? planLabel() + ' plan' : 'Free plan';
-  // Manage / cancel subscription is only relevant to paying users.
-  const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = isPaid() ? '' : 'none';
+  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : (isPaid() ? planLabel() + ' plan' : 'Free plan');
+  // Manage / cancel subscription is only for real paying (Stripe) users, not admins.
+  const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = (isPaid() && !_admin) ? '' : 'none';
   // Admin Console: only admins/super-admins (moved here from the topbar button).
   const adRow = document.getElementById('acct-admin-console');
   if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';

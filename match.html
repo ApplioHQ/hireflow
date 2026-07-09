@@ -224,7 +224,6 @@ async function runMatch(){
   // Use the SAME free-AI bucket as the editor (localStorage hf_free_ai_uses) so a
   // free user's "1 free ATS use" is consistent everywhere. One match run = one use.
   if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
-  if (isFree()) consumeFreeAiUse('ats');
 
   document.getElementById('bm-results').innerHTML = '';
   const scored = [];
@@ -248,6 +247,9 @@ async function runMatch(){
     }
   }
   aiLoadingDone();
+  // Only spend the free ATS use if at least one resume actually scored — a run that
+  // errored out (cold worker / offline) must not burn the user's single free try.
+  if (isFree() && scored.some(s => typeof s.score === 'number')) consumeFreeAiUse('ats');
   _renderResults(scored, paywalled, cands.length);
 }
 

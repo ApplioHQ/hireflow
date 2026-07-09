@@ -28,8 +28,8 @@ Never use em dashes; use commas, periods, or parentheses instead.`;
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
 const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant"]);
-// Career Coach gives free users a few messages as a taste, then upgrades (see ai()).
-const FREE_ASSISTANT_MESSAGES = 5;
+// Career Coach (assistant) is Premium/Lifetime only — it is in PRO_AI above and the
+// frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
 
 export default {

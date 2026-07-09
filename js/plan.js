@@ -1,9 +1,18 @@
 // ============ Plan/User helpers (shared across pages) ============
 const API_BASE = window.HIREFLOW_CONFIG.API_URL;
+const _ME_CACHE_KEY = 'hf_me_cache';
 let CURRENT_USER = null;
 let SYSTEM_STATUS = null;
 
-const _ME_CACHE_KEY = 'hf_me_cache';
+// Hydrate synchronously from the last-known-good identity the moment this script
+// loads, so ANY render that runs before the async /me fetch resolves already shows
+// the correct plan. Without this, admins/paid users briefly rendered as "Free" on
+// every reload (the menu painted before /me returned). loadCurrentUser() refreshes
+// it a moment later; the server still enforces real entitlements on every request.
+if (localStorage.getItem('hf_token')) {
+  try { const _c = JSON.parse(localStorage.getItem(_ME_CACHE_KEY) || 'null'); if (_c && typeof _c === 'object') CURRENT_USER = _c; } catch (e) {}
+}
+
 async function loadCurrentUser() {
   const token = localStorage.getItem('hf_token');
   if (!token) return null;

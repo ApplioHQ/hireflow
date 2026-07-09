@@ -351,7 +351,9 @@
       "Bash(/usr/bin/grep -nE \"r.summary\\\\\\) resume.personal.summary|resume.personal.summary = |versions.unshift|function _snapshot|Manual save|function restoreVersion\" js/editor.js)",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('manifest.json','utf8'\\)\\); console.log\\('✅ valid'\\)\")",
       "Bash(/usr/bin/grep -nE \"<script>|</script>|<script type\" editor.html)",
-      "Bash(/usr/bin/grep -nE \"JSON.parse|new Function|eval\\\\\\(\" js/resume-file.js js/health-badge.js js/icons.js js/notify.js js/waves.js)"
+      "Bash(/usr/bin/grep -nE \"JSON.parse|new Function|eval\\\\\\(\" js/resume-file.js js/health-badge.js js/icons.js js/notify.js js/waves.js)",
+      "Bash(xargs ls -la)",
+      "Bash(awk '{print $5, $9}')"
     ]
   }
 }

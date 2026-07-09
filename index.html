@@ -24,11 +24,23 @@
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
+  "@id": "https://appliohq.com/#software",
   "name": "Applio",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "description": "Applio is an AI career copilot that builds ATS-optimized resumes, tailors them to any job in seconds, preps you for interviews, and tracks your applications. Free forever plan.",
   "url": "https://appliohq.com/",
+  "publisher": { "@id": "https://appliohq.com/#organization" },
+  "featureList": [
+    "ATS-optimized resume builder with 16 templates",
+    "AI resume tailoring to any job description",
+    "ATS score and keyword matching",
+    "AI resume analysis and improvement",
+    "AI interview preparation and answer feedback",
+    "Cover letter generator",
+    "Job application tracker",
+    "Export to PDF, HTML, and TXT"
+  ],
   "offers": [
     { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
     { "@type": "Offer", "name": "Premium", "price": "9.99", "priceCurrency": "USD" },
@@ -39,11 +51,23 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://appliohq.com/#website",
+  "name": "Applio",
+  "alternateName": "Applio AI Career Copilot",
+  "url": "https://appliohq.com/",
+  "inLanguage": "en",
+  "publisher": { "@id": "https://appliohq.com/#organization" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
     { "@type": "Question", "name": "Is Applio really free to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Free plan gives you the full Resume Builder, all templates, Job Tracker, and 10 PDF downloads per month, no credit card required. AI features and unlimited downloads are part of Premium or Lifetime." } },
     { "@type": "Question", "name": "How does the AI tailor my resume?", "acceptedAnswer": { "@type": "Answer", "text": "You paste a job description and our AI rewrites your bullets, optimizes keywords, and rewrites your summary to match what the role is asking for, grounded in your actual experience, never inventing things." } },
-    { "@type": "Question", "name": "What is ATS and why does it matter?", "acceptedAnswer": { "@type": "Answer", "text": "An Applicant Tracking System filters resumes before a human ever sees them. Around 70% of resumes never make it past this stage. Applio scores your resume against the ATS rubric and tells you exactly what to fix." } },
+    { "@type": "Question", "name": "What is ATS and why does it matter?", "acceptedAnswer": { "@type": "Answer", "text": "An Applicant Tracking System (ATS) is software most mid-size and large employers use to collect and filter resumes before a person reviews them. A resume that is not ATS-friendly, on formatting or keywords, can be filtered out early. Applio scores your resume against the ATS rubric and tells you exactly what to fix." } },
     { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Passwords are hashed with PBKDF2-SHA256, never stored in plain text. Payment data is handled by Stripe directly. Your resume data is encrypted in transit and at rest." } }
   ]
 }
@@ -52,10 +76,12 @@
 {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://appliohq.com/#organization",
   "name": "Applio",
   "url": "https://appliohq.com/",
   "logo": "https://appliohq.com/logo.jpeg",
   "description": "Applio is an AI career copilot that helps job seekers build ATS-optimized resumes, tailor them to any job description, prep for interviews, and land more interviews.",
+  "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "email": "support@appliohq.com", "availableLanguage": "en" },
   "sameAs": [
     "https://www.linkedin.com/company/appliohq/",
     "https://www.youtube.com/@Applio-AIResumeBuilder",

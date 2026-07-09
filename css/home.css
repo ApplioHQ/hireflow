@@ -16,11 +16,42 @@
 }
 .home-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
 .home-brand img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
-.home-nav-links { display: flex; gap: 32px; }
+.home-nav-links { display: flex; align-items: center; gap: 30px; }
 .nav-signin-m { display: none; }   /* shown only inside the mobile menu (desktop has the Sign in button) */
 .home-nav-links a { color: rgba(255,255,255,.75); font-size: 14px; font-weight: 500; text-decoration: none; transition: color .15s; }
 .home-nav-links a:hover { color: #fff; }
 .home-nav .btn { padding: 9px 18px; font-size: 13px; }
+
+/* ===== Nav "Resources" dropdown — groups secondary links so the bar stays uncluttered ===== */
+.nav-dd { position: relative; display: inline-flex; }
+.nav-dd-trigger {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: rgba(255,255,255,.75); font: inherit; font-size: 14px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 5px; transition: color .15s;
+}
+.nav-dd-trigger::after { display: none; }   /* neutralize the nav-link underline pseudo */
+.nav-dd-trigger:hover, .nav-dd:hover .nav-dd-trigger, .nav-dd:focus-within .nav-dd-trigger { color: #fff; }
+.nav-dd-trigger svg { width: 13px; height: 13px; opacity: .75; transition: transform .2s ease; }
+.nav-dd:hover .nav-dd-trigger svg, .nav-dd:focus-within .nav-dd-trigger svg { transform: rotate(180deg); }
+.nav-dd-menu {
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(4px);
+  min-width: 216px; padding: 8px; margin-top: 12px;
+  background: #10143a; border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
+  box-shadow: 0 22px 55px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 2px;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease; z-index: 60;
+}
+.nav-dd-menu::before { content: ''; position: absolute; top: -14px; left: 0; right: 0; height: 14px; }  /* hover bridge */
+.nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0);
+}
+.nav-dd-menu a {
+  display: block; padding: 9px 12px; border-radius: 9px;
+  color: rgba(255,255,255,.82); font-size: 14px; font-weight: 500; white-space: nowrap;
+}
+.nav-dd-menu a::after { display: none; }
+.nav-dd-menu a:hover { background: rgba(255,255,255,.09); color: #fff; }
 
 /* ===== Buttons (page-level overrides) ===== */
 .btn-lg { padding: 14px 26px; font-size: 15px; }
@@ -713,6 +744,16 @@
   .home-nav-links.nav-open { display: flex; }
   .home-nav-links a { padding: 10px 8px; font-size: 15px; }
   .home-nav-links a.nav-signin-m { display: block; }   /* mobile-only Sign in inside the menu */
+  /* Flatten the Resources dropdown into the stacked mobile menu (all links visible). */
+  .nav-dd { display: block; width: 100%; }
+  .nav-dd-trigger { display: none; }
+  .nav-dd-menu {
+    position: static; opacity: 1; visibility: visible; pointer-events: auto;
+    transform: none; margin: 0; padding: 0; min-width: 0;
+    background: none; border: 0; box-shadow: none; gap: 0;
+  }
+  .nav-dd-menu::before { display: none; }
+  .nav-dd-menu a { padding: 10px 8px; font-size: 15px; border-radius: 0; }
   .home-nav { position: relative; }
   .nav-actions .btn-ghost { display: none; }
   .testimonial-grid { grid-template-columns: 1fr; }

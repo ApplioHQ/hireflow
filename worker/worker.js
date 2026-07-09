@@ -899,7 +899,7 @@ async function runAIJSON(env, system, user, opts = {}) {
 // Keyed by SHA-256 of (namespace + input), stored in KV with a short TTL. Fail-open:
 // any KV hiccup just falls through to a live AI call, never an error.
 async function _aiCacheKey(ns, input) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ns + " " + input));
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ns + "\u0000" + input));
   return "aicache:" + ns + ":" + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 async function aiCacheGet(env, ns, input) {
@@ -1103,7 +1103,7 @@ Rules:
 
 // ============ ATS check ============
 async function aiATS(env, { jobDescription, resume }) {
-  const cacheKey = (jobDescription || '').slice(0, 4000) + " " + JSON.stringify(resume || {}).slice(0, 7000);
+  const cacheKey = (jobDescription || '').slice(0, 4000) + "\u0000" + JSON.stringify(resume || {}).slice(0, 7000);
   const cached = await aiCacheGet(env, "ats", cacheKey);
   if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You are an ATS (Applicant Tracking System) and resume scoring expert.

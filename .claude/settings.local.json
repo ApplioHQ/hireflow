@@ -321,7 +321,10 @@
       "WebFetch(domain:appliohq.com)",
       "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)",
       "Bash(curl -sS -D - -o /dev/null --max-time 15 https://hireflow-api.pritamavuthu7.workers.dev/status)",
-      "Bash(/usr/bin/grep -iE \"^HTTP|x-content-type-options|referrer-policy|x-frame-options|cache-control\")"
+      "Bash(/usr/bin/grep -iE \"^HTTP|x-content-type-options|referrer-policy|x-frame-options|cache-control\")",
+      "Bash(/usr/bin/grep -nE \"<footer|footer-|href=\\\\\"/\\(guides|resume-templates|resume-examples|ats-checker|pricing\\)\" index.html)",
+      "Bash(/usr/bin/grep -c \"preconnect\\\\|dns-prefetch\" index.html ats-checker.html)",
+      "Bash(/usr/bin/sed -n '18,22p' index.html)"
     ]
   }
 }

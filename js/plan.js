@@ -3,15 +3,29 @@ const API_BASE = window.HIREFLOW_CONFIG.API_URL;
 let CURRENT_USER = null;
 let SYSTEM_STATUS = null;
 
+const _ME_CACHE_KEY = 'hf_me_cache';
 async function loadCurrentUser() {
   const token = localStorage.getItem('hf_token');
   if (!token) return null;
-  try {
-    const r = await fetch(API_BASE + '/me', { headers: { Authorization: 'Bearer ' + token } });
-    if (!r.ok) return null;
-    CURRENT_USER = await r.json();
-    return CURRENT_USER;
-  } catch { return null; }
+  // One quick retry, so a single cold-worker/network blip doesn't drop the user
+  // to a "Free" state (which briefly showed admins/paid users as Free + Upgrade).
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(API_BASE + '/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (r.status === 401 || r.status === 403) break;   // real auth failure, don't mask it with cache
+      if (!r.ok) throw new Error('me ' + r.status);
+      CURRENT_USER = await r.json();
+      try { localStorage.setItem(_ME_CACHE_KEY, JSON.stringify(CURRENT_USER)); } catch (e) {}
+      return CURRENT_USER;
+    } catch (e) { if (attempt === 0) await new Promise(res => setTimeout(res, 600)); }
+  }
+  // Transient failure after retry: fall back to the last-known-good identity so the
+  // UI keeps the correct plan instead of flickering to Free. The server still
+  // enforces real entitlements on every request, so this only affects display.
+  if (!CURRENT_USER) {
+    try { const c = JSON.parse(localStorage.getItem(_ME_CACHE_KEY) || 'null'); if (c && typeof c === 'object') CURRENT_USER = c; } catch (e) {}
+  }
+  return CURRENT_USER;
 }
 
 function isAdmin()      { return CURRENT_USER && (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super'); }

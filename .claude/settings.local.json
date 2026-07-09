@@ -339,7 +339,8 @@
       "Bash(/usr/bin/grep -nE \"Fix these|ac-resume|ac-jd|login\\\\?mode=signup|value|localStorage\" ats-checker.html)",
       "Bash(/usr/bin/grep -nE \"modal-import|import-text|btn-import-go|id=\\\\\"import|textarea\" editor.html)",
       "Bash(/usr/bin/grep -nE \"btn-import-go|function doImport|function runImport|import-text|onclick.*[Ii]mport|openModal\\\\\\('import'\\\\\\)\" js/editor.js)",
-      "Bash(/usr/bin/grep -nE \"welcome|_maybeShowWelcome|URLSearchParams|params.get\" js/editor.js)"
+      "Bash(/usr/bin/grep -nE \"welcome|_maybeShowWelcome|URLSearchParams|params.get\" js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"<script>|<script src|</script>|function |addEventListener\\\\\\('DOMContentLoaded|IIFE|\\\\\\(function|\\\\\\(\\\\\\(\\\\\\)\" ats-checker.html)"
     ]
   }
 }

@@ -308,7 +308,8 @@
       "Bash(/usr/bin/grep -iE \"credential|url|user\\\\.\")",
       "Bash(/usr/bin/grep -nE \"CURRENT_USER *=\" js/plan.js)",
       "Bash(/usr/bin/sed -n '177,196p' js/plan.js)",
-      "Bash(/usr/bin/sed -n '96,135p' js/plan.js)"
+      "Bash(/usr/bin/sed -n '96,135p' js/plan.js)",
+      "Bash(/usr/bin/grep -rnE \"Project Name|Short summary of impact|React, Node|function withFallback\" js/templates.js)"
     ]
   }
 }

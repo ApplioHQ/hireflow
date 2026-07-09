@@ -29,8 +29,8 @@
   .ip-rec-time { font-size:13px; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
   .ip-rec-hint { font-size:11.5px; color:var(--muted); }
   /* Scored feedback breakdown bars */
-  .ip-fb-bar { height:6px; border-radius:4px; background:var(--bg-2); overflow:hidden; margin-top:5px; }
-  .ip-fb-bar > i { display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width .6s ease; }
+  .ip-fb-bar { height:5px; border-radius:99px; background:var(--bg-3); overflow:hidden; margin-top:6px; }
+  .ip-fb-bar > i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#6366f1,#818cf8); transition:width .7s cubic-bezier(.2,.8,.2,1); }
 
   /* ===== Landing layout ===== */
   .ip-main { position:relative; padding:40px 20px 70px; max-width:1080px; margin:0 auto; }
@@ -45,23 +45,29 @@
   .ip-chip { font-size:12.5px; padding:7px 13px; border-radius:var(--r-full); border:1px solid var(--border); background:var(--bg-2); color:var(--text); cursor:pointer; transition:all var(--dur) var(--ease); }
   .ip-chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
   /* Sample "what you'll get" card */
-  .ip-sample-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
-  .ip-sample-card { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px; box-shadow:var(--sh-2), var(--hi); }
-  .ip-sample-q { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .ip-sample-tag { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,.16); border:1px solid rgba(99,102,241,.3); border-radius:var(--r-full); padding:3px 10px; }
-  .ip-sample-rec { font-size:11px; color:#f87171; font-weight:600; }
-  .ip-sample-qtext { font-size:14px; font-weight:600; line-height:1.5; margin-bottom:14px; }
-  .ip-sample-wave { display:flex; align-items:center; gap:2px; height:30px; padding:6px 4px; margin-bottom:14px; background:var(--bg-2); border-radius:var(--r-sm); }
-  .ip-sample-wave span { flex:1; border-radius:2px; background:linear-gradient(180deg,#818cf8,#6366f1); opacity:.8; }
-  .ip-sample-fb { border:1px solid rgba(99,102,241,.3); border-radius:var(--r-md); overflow:hidden; }
-  .ip-sample-fb-head { display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(99,102,241,.10); }
-  .ip-sample-score { font-size:22px; font-weight:800; color:#6ee7b7; }
-  .ip-sample-score small { font-size:12px; font-weight:600; color:var(--muted); }
-  .ip-sample-fb-title { font-size:13px; font-weight:600; }
-  .ip-sample-bars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:14px; }
+  .ip-sample-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+  .ip-sample-card { background:var(--bg-1); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:var(--sh-2), var(--hi); }
+  .ip-sample-q { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .ip-sample-tag { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.22); border-radius:var(--r-full); padding:4px 11px; }
+  .ip-sample-rec { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-weight:600; }
+  .ip-sample-rec i { width:7px; height:7px; border-radius:50%; background:#f87171; animation:ipRecPulse 1.8s ease-in-out infinite; }
+  @keyframes ipRecPulse { 0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(248,113,113,.45); } 50% { opacity:.45; box-shadow:0 0 0 5px rgba(248,113,113,0); } }
+  .ip-sample-qtext { font-size:15px; font-weight:600; line-height:1.5; letter-spacing:-.01em; margin-bottom:18px; }
+  .ip-sample-wave { display:flex; align-items:center; gap:3px; height:34px; margin-bottom:20px; }
+  .ip-sample-wave span { flex:1; border-radius:99px; background:#6366f1; opacity:.45; }
+  /* Feedback: flat and airy, no boxed header */
+  .ip-sample-fb { border-top:1px solid var(--border); padding-top:18px; }
+  .ip-sample-fb-head { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+  .ip-sample-ring { width:54px; height:54px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; position:relative;
+    background:conic-gradient(#34d399 calc(var(--p,92) * 1%), var(--bg-3) 0); }
+  .ip-sample-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-1); }
+  .ip-sample-ring b { position:relative; font-size:17px; font-weight:800; color:var(--text); letter-spacing:-.02em; }
+  .ip-sample-fb-title { font-size:14px; font-weight:700; letter-spacing:-.01em; }
+  .ip-sample-fb-sub { font-size:12px; color:#34d399; font-weight:600; margin-top:3px; }
+  .ip-sample-bars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:18px; }
   .ip-sample-bl { display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); }
   .ip-sample-bl span:last-child { color:var(--text); font-weight:700; }
-  .ip-sample-note { padding:0 14px 14px; font-size:12.5px; color:var(--muted); line-height:1.55; }
+  .ip-sample-note { font-size:12.5px; color:var(--muted); line-height:1.6; }
   /* Question-type coverage under the sample, balances the column height */
   .ip-cats { margin-top:16px; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:16px 18px; box-shadow:var(--sh-1), var(--hi); }
   .ip-cats-title { font-size:12.5px; font-weight:650; color:var(--text); margin-bottom:11px; }

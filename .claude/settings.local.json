@@ -294,7 +294,10 @@
       "Bash(/usr/bin/sed -n '11,20p' export.html)",
       "Bash(/usr/bin/grep -nE \"export-grid|resume-preview|export-side\" export.html css/styles.css)",
       "Bash(/usr/bin/grep -nE \"acct-center|account-menu|renderAccount|openAccountMenu|id=\\\\\"account|topbar-right\" editor.html jobs.html)",
-      "Bash(/usr/bin/grep -nE \"function .*[Aa]ccount|acct-center|account-menu-bd|renderPlanPill|function renderAccount\" js/plan.js)"
+      "Bash(/usr/bin/grep -nE \"function .*[Aa]ccount|acct-center|account-menu-bd|renderPlanPill|function renderAccount\" js/plan.js)",
+      "Bash(/usr/bin/grep -nE \"function toggleAcctMenu|function closeAcctMenu|function openBillingPortal|acct-avatar|acct-email|acct-admin-console|acct-manage-sub|function renderPlanPill|function openFeedbackModal\" js/plan.js)",
+      "Bash(/usr/bin/grep -nE \"js/plan.js|js/icons.js|js/notify.js|loadCurrentUser|renderPlanPill\" export.html)",
+      "Bash(/usr/bin/grep -nE \"renderPlanPill|loadCurrentUser|renderAcct|initAcct\" editor.html)"
     ]
   }
 }

@@ -349,11 +349,13 @@ function _rowHTML(s, idx, isBest){
 
   const banner = document.getElementById('bm-banner');
   if (isFree()) {
-    const left = trialsLeft('ats');
+    // Use the SAME counter the gate enforces (freeAiUsesLeft/hf_free_ai_uses), so the
+    // displayed count never disagrees with when the paywall actually triggers.
+    const left = freeAiUsesLeft('ats');
     if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free ATS scoring trials, matching needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free match, running it again needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
     } else {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'score':'scores'}</strong> left, each resume scored uses one. Then it’s Premium.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">✨ <strong style="color:var(--accent);">${left} free ${left===1?'match':'matches'}</strong> left. Then it’s Premium.</p>`;
     }
   }
 })();

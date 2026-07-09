@@ -326,7 +326,9 @@
       "Bash(/usr/bin/grep -c \"preconnect\\\\|dns-prefetch\" index.html ats-checker.html)",
       "Bash(/usr/bin/sed -n '18,22p' index.html)",
       "Bash(/usr/bin/grep -nE \"<main|<h1|class=\\\\\"g-|gd-final|section-card|More resume|Related\" guides/index.html)",
-      "Bash(/usr/bin/sed -n '100,118p' guides/index.html)"
+      "Bash(/usr/bin/sed -n '100,118p' guides/index.html)",
+      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles2.json','utf8'\\)\\); if\\(r.length<8\\)process.exit\\(1\\)\")",
+      "Bash(node -e \"const r=JSON.parse\\(require\\('fs'\\).readFileSync\\('roles2.json','utf8'\\)\\); console.log\\('ready:', r.length, 'roles |', r.map\\(x=>x.slug\\).join\\(','\\)\\)\")"
     ]
   }
 }

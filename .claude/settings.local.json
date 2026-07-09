@@ -389,7 +389,8 @@
       "Bash(awk 'NR<=434 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
       "Bash(awk 'NR<=711 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
       "Bash(awk '/\\\\.mock-resume-stamp \\\\{/,/^\\\\}/' css/home.css)",
-      "Bash(awk '{print $5\" bytes\"}')"
+      "Bash(awk '{print $5\" bytes\"}')",
+      "Bash(sel)"
     ]
   }
 }

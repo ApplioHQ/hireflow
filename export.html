@@ -369,6 +369,27 @@ function showExportFeedbackPrompt() {
   armAutoDismiss();
 }
 
+// File-format selection: pick a format up top, the big button downloads it.
+let SELECTED_FORMAT = 'pdf';
+const FMT_INFO = {
+  pdf:  { label: 'Download PDF',  hint: 'Pixel-perfect and ready to send to recruiters.' },
+  html: { label: 'Download HTML', hint: 'An editable web page you can open in any browser.' },
+  txt:  { label: 'Download TXT',  hint: 'Plain text, ideal for pasting into ATS application forms.' },
+};
+function selectFormat(fmt) {
+  if (!FMT_INFO[fmt]) return;
+  SELECTED_FORMAT = fmt;
+  document.querySelectorAll('#fmt-seg .fmt-opt').forEach(function (b) {
+    const on = b.dataset.fmt === fmt;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
+  });
+  const hint = document.getElementById('fmt-hint');
+  if (hint) hint.textContent = FMT_INFO[fmt].hint;
+  const btn = document.getElementById('btn-pdf');
+  if (btn) btn.innerHTML = `${ICON('download')} <span>${FMT_INFO[fmt].label}</span>`;
+}
+
 function updatePageSize() {
   // Re-render: the iframe rebuilds at the correct page width.
   render();

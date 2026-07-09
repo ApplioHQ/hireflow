@@ -309,7 +309,11 @@
       "Bash(/usr/bin/grep -nE \"CURRENT_USER *=\" js/plan.js)",
       "Bash(/usr/bin/sed -n '177,196p' js/plan.js)",
       "Bash(/usr/bin/sed -n '96,135p' js/plan.js)",
-      "Bash(/usr/bin/grep -rnE \"Project Name|Short summary of impact|React, Node|function withFallback\" js/templates.js)"
+      "Bash(/usr/bin/grep -rnE \"Project Name|Short summary of impact|React, Node|function withFallback\" js/templates.js)",
+      "Bash(/usr/bin/sed -n '60,126p' js/editor.js)",
+      "Bash(/usr/bin/grep -nE \"^function |^async function \")",
+      "Bash(awk 'NR<=113 && /^\\(async \\)?function /{f=$0; l=NR} END{print l\": \"f}' js/editor.js)",
+      "Bash(/usr/bin/sed -n '3338,3352p' js/editor.js)"
     ]
   }
 }

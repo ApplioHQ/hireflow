@@ -204,7 +204,7 @@ async function login(req, env) {
     const token = await signToken({
       email: env.SUPERADMIN_EMAIL,
       role: "super",
-      exp: Math.floor(Date.now()/1000) + 3600 * 8
+      exp: Math.floor(Date.now()/1000) + 3600 * 24 * 7   // 7 days (super has no kill switch, keep tighter)
     }, env.JWT_SECRET);
     return { token, email: env.SUPERADMIN_EMAIL, role: "super" };
   }

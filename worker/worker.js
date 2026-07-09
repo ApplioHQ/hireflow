@@ -88,9 +88,17 @@ function corsHeaders(env, req) {
     "Access-Control-Max-Age": "86400",
   };
 }
+// Baseline security headers for every API response. This is a JSON auth API:
+// responses must never be sniffed, framed, cached by intermediaries, or leak a referrer.
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+  "Cache-Control": "no-store",
+};
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
-    status, headers: { "Content-Type": "application/json", ...headers },
+    status, headers: { "Content-Type": "application/json", ...SECURITY_HEADERS, ...headers },
   });
 }
 function withCors(res, cors) {

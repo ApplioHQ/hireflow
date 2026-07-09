@@ -336,10 +336,11 @@
 .testimonial-dots span.active { background: #4f46e5; width: 22px; border-radius: 4px; }
 
 /* ===== Stats ===== */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 60px; }
-.stat { text-align: center; }
-.stat-num { font-size: 56px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -2px; }
-.stat-label { font-size: 14px; color: #6b7280; margin-top: 4px; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+.stat { text-align: center; padding: 34px 22px; background: #fff; border: 1px solid #eceef4; border-radius: 20px; box-shadow: 0 2px 12px rgba(15,23,42,.04); transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+.stat:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(99,102,241,.14); border-color: #d7dbf0; }
+.stat-num { font-size: 56px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -2px; line-height: 1; }
+.stat-label { font-size: 14px; color: #6b7280; margin-top: 10px; line-height: 1.45; max-width: 240px; margin-left: auto; margin-right: auto; }
 
 /* ===== Trust ===== */
 .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }

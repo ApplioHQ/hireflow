@@ -1124,6 +1124,9 @@ Rules:
 
 // ============ Analyze ============
 async function aiAnalyze(env, { resume }) {
+  const cacheKey = JSON.stringify(resume || {}).slice(0, 9000);
+  const cached = await aiCacheGet(env, "analyze", cacheKey);
+  if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You are a senior career coach and resume reviewer. The candidate uploaded their resume and wants a full critique.
 
 Output STRICT JSON:
@@ -1169,7 +1172,7 @@ Rules:
   // Strengths / Weaknesses / Top Fixes cards. If the model didn't return valid JSON,
   // hand back the raw text and let the frontend's tolerant parser recover it.
   if (!j) return { text: raw };
-  return {
+  const out = {
     overallScore: j.overallScore,
     summary: j.summary,
     strengths: Array.isArray(j.strengths) ? j.strengths : [],
@@ -1177,6 +1180,8 @@ Rules:
     topFixes: Array.isArray(j.topFixes) ? j.topFixes : [],
     missingSections: Array.isArray(j.missingSections) ? j.missingSections : [],
   };
+  await aiCachePut(env, "analyze", cacheKey, out);
+  return out;
 }
 
 // ============ Parse (resume import — most important!) ============

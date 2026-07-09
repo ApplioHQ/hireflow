@@ -198,14 +198,13 @@
 
 /* ===== Floating cards on hero ===== */
 .float-ats {
-  position: absolute; top: -32px; right: 4px;
-  background: rgba(255,255,255,.97); border: 1px solid rgba(255,255,255,.65);
+  position: absolute; top: -26px; right: -28px;
+  background: #fff; border: 1px solid rgba(255,255,255,.7);
   border-radius: 18px; padding: 16px 22px;
   box-shadow: 0 24px 55px rgba(0,0,0,.42);
   display: flex; flex-direction: column; align-items: center;
   font-family: Inter, sans-serif; color: #1f2937;
   z-index: 12; animation: float 4s ease-in-out infinite;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
 .float-ats-label { font-size: 10px; color: #6b7280; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
 .ats-ring { position: relative; width: 82px; height: 82px; }

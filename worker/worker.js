@@ -31,6 +31,12 @@ const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "impr
 // Career Coach (assistant) is Premium/Lifetime only — it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
+// Per-account daily AI call caps — a soft backstop against runaway usage/abuse
+// driving up Workers AI cost. Deliberately far above what a genuine user does in a
+// day (free users can only reach parse / interview / summary-improve; paid do heavier
+// tailoring). Admins bypass entirely. Approximate (KV, eventually consistent) by design.
+const FREE_AI_DAILY = 50;
+const PAID_AI_DAILY = 400;
 
 export default {
   async fetch(req, env) {
@@ -721,6 +727,21 @@ async function ai(req, env, action) {
 
   // Career Coach (assistant) is Premium-only — enforced by the PRO_AI gate above.
 
+  // Per-account daily AI cap: soft cost/abuse guard. Count is per UTC day, expires
+  // after 2 days, and is checked/incremented per request. Failures are fail-open
+  // (a KV hiccup never blocks a legit call). Real users never approach these caps.
+  const rlDay = new Date().toISOString().slice(0, 10);
+  const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
+  const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);
+  const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
+  if (rlUsed >= rlCap) {
+    throw err(429, paid
+      ? "You've reached today's AI usage limit. It resets at midnight UTC — sorry for the interruption."
+      : "You've reached today's free AI limit. Upgrade to Premium for a much higher limit, or come back tomorrow.");
+  }
+  const bumpRate = () => env.HIREFLOW_KV
+    .put(rlKey, String(rlUsed + 1), { expirationTtl: 172800 }).catch(() => {});
+
   // Cover Letter Maker: free users get a couple of letters as a taste, then must
   // upgrade. Counted only on a SUCCESSFUL generation. Paid users are unlimited.
   if (action === "cover-letter" && !paid) {
@@ -728,12 +749,14 @@ async function ai(req, env, action) {
     if (used >= FREE_COVER_LETTERS) {
       throw err(402, "You've used your free cover letters. Upgrade to Premium for unlimited cover letters.");
     }
+    await bumpRate();
     const result = await aiDispatch(env, action, body);
     user.coverLettersUsed = used + 1;
     await putUser(env, user);
     return { ...result, freeRemaining: Math.max(0, FREE_COVER_LETTERS - user.coverLettersUsed) };
   }
 
+  await bumpRate();
   return await aiDispatch(env, action, body);
 }
 

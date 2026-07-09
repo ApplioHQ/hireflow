@@ -3180,7 +3180,7 @@ async function restoreVersion(i) {
   // Deep-clone so edits don't mutate the archived snapshot, and KEEP the
   // version history (snapshots are stored without it, so a raw assign would
   // wipe every saved version on the next save).
-  resume = JSON.parse(JSON.stringify(snap));
+  resume = _normalizeResume(JSON.parse(JSON.stringify(snap)));   // legacy snapshots may miss keys
   resume.versions = history;
   save(); closeModal('version'); renderMain();
   toast('Version restored', { type: 'success' });

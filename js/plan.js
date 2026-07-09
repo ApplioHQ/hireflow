@@ -256,7 +256,7 @@ async function openBillingPortal() {
   requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
 
   const rows = [
-    `<div class="acct-row"><span class="acct-label">Email</span><span class="acct-value">${u.email}</span></div>`,
+    `<div class="acct-row"><span class="acct-label">Email</span><span class="acct-value">${_planEsc(u.email)}</span></div>`,
     `<div class="acct-row"><span class="acct-label">Plan</span><span class="acct-value"><span class="pill ${plan!=='free'?'success':''}">${planName}</span></span></div>`,
   ];
   if (renewsDate && plan === 'premium')

@@ -254,7 +254,11 @@
       "Bash(/usr/bin/grep -n \"function syncWithStripe\\\\|function me\\\\b\\\\|session_id\\\\|checkout.session\" worker/worker.js)",
       "Bash(/usr/bin/grep -nE \"function syncWithStripe|syncWithStripe =\" js/plan.js)",
       "Bash(/usr/bin/grep -nA3 \"function syncWithStripe\" js/plan.js)",
-      "Bash(/usr/bin/grep -nE \"cl-text|letter|\\\\.value =|textContent =|data\\\\.text|result\\\\.text|_letter|renderLetter|cl-body.*=\" cover-letter.html)"
+      "Bash(/usr/bin/grep -nE \"cl-text|letter|\\\\.value =|textContent =|data\\\\.text|result\\\\.text|_letter|renderLetter|cl-body.*=\" cover-letter.html)",
+      "Bash(/usr/bin/grep -c \"JSON.parse\" /Users/pritamavuthu/hireflow-main/worker/worker.js)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(/usr/bin/grep -n \"FREE_ASSISTANT_MESSAGES\" /Users/pritamavuthu/hireflow-main/worker/worker.js)",
+      "Bash(/usr/bin/grep -n \"interview-feedback\" /Users/pritamavuthu/hireflow-main/worker/worker.js)"
     ]
   }
 }

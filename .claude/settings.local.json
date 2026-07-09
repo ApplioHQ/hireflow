@@ -387,7 +387,8 @@
       "Bash(grep -nA20 \"## Guides\" llms-full.txt)",
       "Bash(awk 'NR>=420 && NR<=440' css/home.css)",
       "Bash(awk 'NR<=434 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
-      "Bash(awk 'NR<=711 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)"
+      "Bash(awk 'NR<=711 && /@media/{last=NR\": \"$0} END{print last}' css/home.css)",
+      "Bash(awk '/\\\\.mock-resume-stamp \\\\{/,/^\\\\}/' css/home.css)"
     ]
   }
 }

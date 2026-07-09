@@ -201,6 +201,7 @@ async function generate() {
   if (!role) return toast('Enter a role first', { type: 'warn' });
   let resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch { resume = {}; }
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
+  var _rb = document.getElementById('_resume-banner'); if (_rb) _rb.remove();   // starting fresh
   document.getElementById('results').innerHTML = '';
   showAILoading('Generating your interview questions…');
   try {
@@ -577,8 +578,9 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
       _practiceAnswers = saved.answers || {};
       _practiceFeedback = saved.feedback || {};
       _practiceIdx = Math.min(saved.idx || 0, saved.qs.length - 1);
-      const intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
-      _renderPracticeQuestion();
+      // Land on the setup screen with a one-click "Resume" banner rather than
+      // dropping the user back into the questions with no way out.
+      _renderResumeBanner();
     }
   } catch (e) {}
 })();

@@ -239,7 +239,8 @@
       "Bash(/usr/bin/grep -nE \"X-Content-Type|X-Frame|Strict-Transport|Referrer-Policy|nosniff|securityHeaders\" worker/worker.js)",
       "Bash(/usr/bin/grep -oE \"\\\\\"\\(hash|salt|pw|password\\)\\\\\"\" backups/kv-backup-20260703-132226.json)",
       "Bash(/usr/bin/grep -n \"function json\\\\|function cors\\\\|const cors\\\\|headers:\" worker/worker.js)",
-      "Bash(/usr/bin/grep -oE \"<lastmod>[^<]+</lastmod>\" sitemap.xml)"
+      "Bash(/usr/bin/grep -oE \"<lastmod>[^<]+</lastmod>\" sitemap.xml)",
+      "Bash(/usr/bin/grep -oE \"\\\\\"user:[^\\\\\"]+\\\\\"\" backups/kv-backup-20260703-132226.json)"
     ]
   }
 }

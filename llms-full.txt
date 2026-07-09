@@ -2,7 +2,7 @@
 
 > Applio (appliohq.com) is a free, AI-powered resume builder and career copilot for job seekers. It helps people build ATS-optimized resumes, tailor them to specific jobs, check ATS compatibility, prepare for interviews, write cover letters, and track applications. This file is a fuller machine-readable reference; a short version is at https://appliohq.com/llms.txt.
 
-Last updated: 2026-07-08. All statistics below are attributed to their original sources.
+Last updated: 2026-07-09. All statistics below are attributed to their original sources.
 
 ## What Applio is
 Applio is a web application (no download required) that combines a resume builder with AI career tools. The core promise: create a resume that is both recruiter-ready and ATS-friendly, then adapt it quickly to each job you apply to. Applio positions itself as an "AI career copilot" rather than only a resume builder.
@@ -53,6 +53,26 @@ An Applicant Tracking System (ATS) is software employers use to collect, parse, 
 - How Many Bullet Points Per Job: https://appliohq.com/guides/how-many-bullet-points-per-job
 - How to Write a Resume Summary: https://appliohq.com/guides/how-to-write-resume-summary
 - The Best Resume Format in 2026: https://appliohq.com/guides/best-resume-format
+
+
+## Resume examples by role
+Role-specific resume examples (summary, skills, quantified bullet points) at https://appliohq.com/resume-examples:
+- Software Engineer: https://appliohq.com/resume-examples/software-engineer
+- Project Manager: https://appliohq.com/resume-examples/project-manager
+- Registered Nurse: https://appliohq.com/resume-examples/registered-nurse
+- Data Analyst: https://appliohq.com/resume-examples/data-analyst
+- Marketing Manager: https://appliohq.com/resume-examples/marketing-manager
+- Teacher: https://appliohq.com/resume-examples/teacher
+- Accountant: https://appliohq.com/resume-examples/accountant
+- Customer Service Representative: https://appliohq.com/resume-examples/customer-service-representative
+- Business Analyst: https://appliohq.com/resume-examples/business-analyst
+- Sales Representative: https://appliohq.com/resume-examples/sales-representative
+- Graphic Designer: https://appliohq.com/resume-examples/graphic-designer
+- Human Resources Manager: https://appliohq.com/resume-examples/human-resources-manager
+- Mechanical Engineer: https://appliohq.com/resume-examples/mechanical-engineer
+- Financial Analyst: https://appliohq.com/resume-examples/financial-analyst
+- Operations Manager: https://appliohq.com/resume-examples/operations-manager
+- Administrative Assistant: https://appliohq.com/resume-examples/administrative-assistant
 
 ## Links
 - Homepage: https://appliohq.com/

@@ -1184,6 +1184,8 @@ async function aiParse(env, { text }) {
   if (!text || text.trim().length < 30) {
     throw err(400, "Paste at least a few lines from your resume — 'test' isn't enough text to parse.");
   }
+  const cached = await aiCacheGet(env, "parse", text.slice(0, 8000));
+  if (cached) return cached;
   const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy — line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
 
 Extract everything into this EXACT JSON schema. Fill every field you can confidently extract. Use "" for unknown strings and [] for empty arrays.

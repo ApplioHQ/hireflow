@@ -130,6 +130,17 @@
       N.push({ tone: 'neutral', icon: 'target', title: 'Track your first application', text: 'Save the jobs you’re eyeing so Applio can nudge you on follow-ups and interviews.', cta: { label: 'Open tracker', href: 'jobs' } });
     }
 
+    // New role landed → offer the onboarding plan. This is the key handoff: it
+    // catches people right after the resume worked and turns them into returning
+    // users through the whole first-90-days ramp.
+    var onb = PROFILE.onboarding || {};
+    var onbDone = onb.done ? Object.keys(onb.done).filter(function (k) { return onb.done[k]; }).length : 0;
+    if (onb.startDate || onbDone > 0) {
+      N.push({ tone: 'accent', icon: 'compass', title: 'Your first 90 days', text: 'Keep your onboarding on track — check off what you’ve done and see what’s next.', cta: { label: 'Open plan', href: 'first-90-days' } });
+    } else if (jobs.some(function (j) { return j.status === 'Offer' || j.status === 'Accepted'; })) {
+      N.push({ tone: 'success', icon: 'compass', title: 'Congrats on the offer — plan your first 90 days', text: 'The first three months shape how you’re seen for years. Start a 30/60/90 plan so you ramp fast and strong.', cta: { label: 'Start plan', href: 'first-90-days' } });
+    }
+
     // Weekly win ritual — the habit that keeps a resume current between searches,
     // and the main reason to come back when you're NOT actively job hunting. Only
     // nudge people who've already logged at least one win, so we never nag newcomers.

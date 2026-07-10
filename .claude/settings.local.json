@@ -424,7 +424,9 @@
       "Bash(LC_ALL=C perl -i -pe 's{\\(\\\\.spot-title \\\\{ font-size: clamp\\\\\\(28px, 3.4vw, 40px\\\\\\); font-weight: \\)800}{${1}700}' css/home.css)",
       "Bash(curl -s -m 15 -o /dev/null -w '/admin/users: HTTP %{http_code} in %{time_total}s\\\\n' __TRACKED_VAR__/admin/users -H 'Authorization: Bearer bad')",
       "Bash(curl -s -m 15 -o /dev/null -w '/admin/analytics: HTTP %{http_code} in %{time_total}s\\\\n' __TRACKED_VAR__/admin/analytics -H 'Authorization: Bearer bad')",
-      "Bash(grep -nE '\\\\.ba-[a-z]+[^{]*\\\\{[^}]*\\(gradient|rgba\\\\\\(\\(99,102,241|139\\)|glow\\)' css/home.css)"
+      "Bash(grep -nE '\\\\.ba-[a-z]+[^{]*\\\\{[^}]*\\(gradient|rgba\\\\\\(\\(99,102,241|139\\)|glow\\)' css/home.css)",
+      "Bash(sed 's/#toolkit/#pricing/g; s/toolkit.png/pricing.png/g; s/saved toolkit/saved pricing/g; s/no toolkit/no pricing/g' toolkit.js)",
+      "Bash(node pricing_shot.js)"
     ]
   }
 }

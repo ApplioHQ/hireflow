@@ -342,7 +342,7 @@ function _renderPracticeQuestion() {
     + '<div style="width:' + Math.round(((_practiceIdx+1)/total)*100) + '%;height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:width .35s;"></div>'
     + '</div>'
     + '<h3 style="font-size:17px;font-weight:600;line-height:1.5;margin-bottom:14px;">' + esc(q.question) + '</h3>'
-    + (q.tip ? '<details class="ip-tip"><summary>💡 Coaching tip</summary><p>' + esc(q.tip) + '</p></details>' : '')
+    + (q.tip ? '<details class="ip-tip"><summary><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.9;"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 2z"/></svg> Coaching tip</summary><p>' + esc(q.tip) + '</p></details>' : '')
     + '<div class="form-field"><label style="font-size:12px;">Your Answer <span style="color:var(--muted);font-weight:400;">, speak it out loud or type, aim for STAR: Situation · Task · Action · Result</span></label>'
     + '<div class="ip-rec-row" id="_prec-row">'
     +   '<button type="button" class="ip-mic" id="_pmic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg><span id="_pmic-label">Record answer</span></button>'
@@ -548,7 +548,7 @@ function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
   if (isFree()) {
     const note = document.createElement('p');
     note.style.cssText = 'font-size:12px;color:var(--muted);text-align:center;margin-top:10px;';
-    note.innerHTML = `✨ Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.`;
+    note.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.`;
     document.querySelector('main .section-card').appendChild(note);
   }
 

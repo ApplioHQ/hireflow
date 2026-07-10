@@ -433,7 +433,8 @@
       "mcp__claude-in-chrome__navigate",
       "mcp__claude-in-chrome__tabs_context_mcp",
       "Bash(node --check js/footer.js)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(xmllint --noout sitemap.xml)"
     ]
   }
 }

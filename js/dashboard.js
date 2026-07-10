@@ -10,6 +10,7 @@
   var TOKEN = localStorage.getItem('hf_token');
   if (!TOKEN) { location.href = 'login'; return; }
 
+  var API = (window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL) || '';
   var DAY = 86400000;
   var PROFILE_KEY = 'hf_profile';
 
@@ -23,6 +24,30 @@
     PROFILE.updatedAt = Date.now();
     if (!PROFILE.createdAt) PROFILE.createdAt = Date.now();
     try { localStorage.setItem(PROFILE_KEY, JSON.stringify(PROFILE)); } catch (e) {}
+    pushProfile();
+  }
+  // Cloud sync so the profile + win journal follow the user across devices.
+  function pushProfile() {
+    if (!API) return;
+    fetch(API + '/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ profile: PROFILE }) }).catch(function () {});
+  }
+  function pullProfile() {
+    if (!API) return Promise.resolve(false);
+    return fetch(API + '/profile', { headers: { 'Authorization': 'Bearer ' + TOKEN } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.profile) { if (PROFILE.updatedAt) pushProfile(); return false; }  // seed empty cloud
+        var cloud = d.profile;
+        var localTs = PROFILE.updatedAt || 0, cloudTs = cloud.updatedAt || 0;
+        if (cloudTs > localTs) {
+          PROFILE = cloud;
+          if (!Array.isArray(PROFILE.achievements)) PROFILE.achievements = [];
+          try { localStorage.setItem(PROFILE_KEY, JSON.stringify(PROFILE)); } catch (e) {}
+          return true;   // adopted cloud → caller re-renders
+        }
+        if (localTs > cloudTs) pushProfile();   // local newer → update cloud
+        return false;
+      }).catch(function () { return false; });
   }
   function loadJobs() { var j = readJSON('hf_jobs', []); return Array.isArray(j) ? j : []; }
   function loadResume() { var r = readJSON('hf_resume', null); return (r && typeof r === 'object') ? r : null; }
@@ -316,4 +341,9 @@
   if (typeof loadCurrentUser === 'function') {
     Promise.resolve(loadCurrentUser()).then(function () { hydrateAccount(); renderGreeting(); }).catch(function () {});
   }
+
+  // Pull the cloud profile; if it's newer than local, adopt it and re-render.
+  pullProfile().then(function (adopted) {
+    if (adopted) { hydrateProfileForm(); renderWins(); renderGreeting(); renderNudges(); }
+  });
 })();

@@ -372,12 +372,16 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
 (function () {
   const stat = document.querySelector('.problem-stat');
   if (!stat) return;
+  // Drive the fill width from the actual stat number so the bar can never drift from
+  // the label (e.g. a "98%" stat fills to 98%, not a hardcoded value).
+  const big = stat.querySelector('.stat-big');
+  const pct = big ? Math.max(0, Math.min(100, parseInt(big.textContent, 10) || 70)) : 70;
   const bar  = document.createElement('div'); bar.className = 'problem-bar';
   const fill = document.createElement('div'); fill.className = 'problem-bar-fill';
   bar.appendChild(fill); stat.after(bar);
   new IntersectionObserver(function (entries, obs) {
     entries.forEach(function (e) {
-      if (e.isIntersecting) { fill.classList.add('animated'); obs.unobserve(e.target); }
+      if (e.isIntersecting) { fill.style.width = pct + '%'; fill.classList.add('animated'); obs.unobserve(e.target); }
     });
   }, { threshold: .5 }).observe(stat);
 })();

@@ -82,6 +82,19 @@
   .pf-input:focus, .pf-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
   .pf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+  .win-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .win-brag { font-size: 12.5px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+  .win-brag:hover { text-decoration: underline; }
+  .win-ritual { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); }
+  .win-ritual.done { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.06); }
+  .wr-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .wr-streak { font-size: 12px; font-weight: 700; letter-spacing: .01em; color: var(--text); }
+  .wr-weeks { display: flex; gap: 4px; }
+  .wr-dot { width: 11px; height: 11px; border-radius: 3px; background: var(--bg-3); border: 1px solid var(--border); box-sizing: border-box; }
+  .wr-dot.on { background: var(--accent); border-color: var(--accent); }
+  .wr-dot.now { border-color: var(--accent); border-style: dashed; }
+  .wr-line { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+  .wr-line strong { color: var(--text); font-weight: 700; }
   .win-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .win-list { list-style: none; padding: 0; margin: 0; }
   .win-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.5; }

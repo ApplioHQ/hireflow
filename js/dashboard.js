@@ -130,6 +130,17 @@
       N.push({ tone: 'neutral', icon: 'target', title: 'Track your first application', text: 'Save the jobs you’re eyeing so Applio can nudge you on follow-ups and interviews.', cta: { label: 'Open tracker', href: 'jobs' } });
     }
 
+    // Weekly win ritual — the habit that keeps a resume current between searches,
+    // and the main reason to come back when you're NOT actively job hunting. Only
+    // nudge people who've already logged at least one win, so we never nag newcomers.
+    if ((PROFILE.achievements || []).length && !loggedThisWeek()) {
+      var st = winStreak();
+      N.push({ tone: 'accent', icon: 'trophy',
+        title: st >= 1 ? 'Keep your ' + st + '-week streak alive' : 'Log this week’s win',
+        text: st >= 1 ? 'You haven’t logged a win this week yet — one line keeps the streak, and your resume, current.' : 'What went well this week? Jot one win so it’s ready for your next resume update or performance review.',
+        cta: { label: 'Log a win', focus: 'wins' } });
+    }
+
     // Weekly goal progress
     var goal = parseInt(PROFILE.weeklyGoal, 10);
     if (goal > 0 && isActivelyLooking()) {
@@ -198,6 +209,7 @@
     { href: 'match', icon: 'gauge', title: 'Best Match', desc: 'Score your resume vs a job' },
     { href: 'interview', icon: 'mic', title: 'Interview Prep', desc: 'Practice and get scored' },
     { href: 'cover-letter', icon: 'pen', title: 'Cover Letter', desc: 'Generate a tailored letter' },
+    { href: 'brag-doc', icon: 'trophy', title: 'Brag Doc', desc: 'Turn your wins into a review-ready one-pager' },
     { href: 'assistant', icon: 'chat', title: 'Career Coach', desc: 'Ask anything, anytime' }
   ];
   function renderActions() {
@@ -395,7 +407,7 @@
 
   // Pull the cloud profile; if it's newer than local, adopt it and re-render.
   pullProfile().then(function (adopted) {
-    if (adopted) { hydrateProfileForm(); renderWins(); renderGreeting(); renderNudges(); }
+    if (adopted) { hydrateProfileForm(); renderWins(); renderWinRitual(); renderGreeting(); renderNudges(); }
   });
 
   // Pull cloud jobs; if newer, the pipeline / nudges / greeting reflect them.

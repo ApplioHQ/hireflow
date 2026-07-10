@@ -399,7 +399,7 @@ async function adminAnalytics(req, env) {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
     activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
-    signupsByDay,
+    signupsByDay, attribution,
   };
 }
 

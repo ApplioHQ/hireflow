@@ -298,26 +298,45 @@ async function requireAdmin(req, env, requireSuper = false) {
   return payload;
 }
 
+// Read every user record from KV. Lists all keys (paginated), then fetches the
+// values in PARALLEL batches — one sequential get() per user does not scale (a few
+// hundred users would exceed the Worker's wall-time budget and the admin request
+// would hang). Batching keeps it fast and bounded. One corrupt record is skipped.
+async function _readAllUserRecords(env) {
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor });
+    for (const k of page.keys) keys.push(k.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  const users = [];
+  const BATCH = 60;
+  for (let i = 0; i < keys.length; i += BATCH) {
+    const raws = await Promise.all(keys.slice(i, i + BATCH).map(name => env.HIREFLOW_KV.get(name)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      let u; try { u = JSON.parse(raw); } catch { continue; }
+      users.push(u);
+    }
+  }
+  return users;
+}
+
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
-  const list = await env.HIREFLOW_KV.list({ prefix: "user:" });
-  const users = [];
-  for (const key of list.keys) {
-    const raw = await env.HIREFLOW_KV.get(key.name);
-    if (!raw) continue;
-    let u; try { u = JSON.parse(raw); } catch { continue; }   // one corrupt record must not 500 the whole list
-    users.push({
-      email: u.email,
-      plan: u.plan || "free",
-      createdAt: u.createdAt || null,
-      currentPeriodEnd: u.currentPeriodEnd || null,
-      downloadsUsed: u.downloadsUsed || 0,
-      hasStripeCustomer: !!u.stripeCustomerId,
-      updatedAt: u.updatedAt || u.createdAt || null,
-    });
-  }
-  // Newest first
-  users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const records = await _readAllUserRecords(env);
+  const users = records.map(u => ({
+    email: u.email,
+    plan: u.plan || "free",
+    createdAt: u.createdAt || null,
+    currentPeriodEnd: u.currentPeriodEnd || null,
+    downloadsUsed: u.downloadsUsed || 0,
+    hasStripeCustomer: !!u.stripeCustomerId,
+    updatedAt: u.updatedAt || u.createdAt || null,
+  }));
+  users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));   // newest first
   return { users, total: users.length };
 }
 
@@ -339,39 +358,32 @@ async function adminAnalytics(req, env) {
     signupsByDay[new Date(now - i * DAY).toISOString().slice(0, 10)] = 0;
   }
 
-  // Iterate every user key (paginated — list() caps at 1000 per page).
-  let cursor;
-  do {
-    const page = await env.HIREFLOW_KV.list({ prefix: "user:", cursor });
-    for (const key of page.keys) {
-      const raw = await env.HIREFLOW_KV.get(key.name);
-      if (!raw) continue;
-      let u; try { u = JSON.parse(raw); } catch { continue; }
-      total++;
-      const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
-      plans[plan]++;
-      const dl = Number(u.downloadsUsed) || 0;
-      totalDownloads += dl;
-      if (dl > 0) everDownloaded++;
-      if (u.stripeCustomerId) stripeLinked++;
-      // Active paid: lifetime never expires; premium counts if its period end is in the future.
-      if (plan === "lifetime") activeSubs++;
-      else if (plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now) activeSubs++;
-      const created = Number(u.createdAt) || 0;
-      if (created) {
-        const age = now - created;
-        if (new Date(created).toISOString().slice(0, 10) === todayStr) signupsToday++;
-        if (age <= 7 * DAY)  last7Signups++;
-        else if (age <= 14 * DAY) prev7Signups++;
-        if (age <= 30 * DAY) last30Signups++;
-        const day = new Date(created).toISOString().slice(0, 10);
-        if (day in signupsByDay) signupsByDay[day]++;
-      }
-      // Dormant: joined more than 7 days ago and never downloaded anything.
-      if (created && now - created > 7 * DAY && dl === 0) dormant++;
+  // Read all user records in parallel batches (fast + bounded), then aggregate.
+  const records = await _readAllUserRecords(env);
+  for (const u of records) {
+    total++;
+    const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
+    plans[plan]++;
+    const dl = Number(u.downloadsUsed) || 0;
+    totalDownloads += dl;
+    if (dl > 0) everDownloaded++;
+    if (u.stripeCustomerId) stripeLinked++;
+    // Active paid: lifetime never expires; premium counts if its period end is in the future.
+    if (plan === "lifetime") activeSubs++;
+    else if (plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now) activeSubs++;
+    const created = Number(u.createdAt) || 0;
+    if (created) {
+      const age = now - created;
+      if (new Date(created).toISOString().slice(0, 10) === todayStr) signupsToday++;
+      if (age <= 7 * DAY)  last7Signups++;
+      else if (age <= 14 * DAY) prev7Signups++;
+      if (age <= 30 * DAY) last30Signups++;
+      const day = new Date(created).toISOString().slice(0, 10);
+      if (day in signupsByDay) signupsByDay[day]++;
     }
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
+    // Dormant: joined more than 7 days ago and never downloaded anything.
+    if (created && now - created > 7 * DAY && dl === 0) dormant++;
+  }
 
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;

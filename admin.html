@@ -250,6 +250,11 @@ async function refresh() {
     renderStatus(statusRes);
   } catch (e) {
     toast('Failed to load: ' + e.message, { type: 'error' });
+    // Never leave the panels stuck on a placeholder — show the error clearly.
+    var us = document.getElementById('user-summary');
+    if (us) us.innerHTML = '<span style="color:var(--danger);">Couldn\'t load users: ' + esc(e.message) + '</span>';
+    var sr = document.getElementById('status-readout');
+    if (sr && /loading/i.test(sr.textContent)) sr.innerHTML = '<span style="color:var(--danger);">Couldn\'t load status.</span>';
   }
   // Analytics + feedback are always shown; load them independently so one failing
   // never blanks the other.

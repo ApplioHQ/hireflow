@@ -118,7 +118,7 @@ ${p.faq.map(f => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></det
 <div class="gd-final">
 <h2>${esc(p.finalTitle || 'Build a resume that gets interviews')}</h2>
 <p>${esc(p.finalSub || 'Free to start, no credit card. Pick a template, import or type your details, and export a clean PDF.')}</p>
-<a class="btn btn-primary" href="/login?mode=signup">Start free →</a>
+<a class="btn btn-primary" href="${(p.finalCta && p.finalCta.href) || '/login?mode=signup'}">${esc((p.finalCta && p.finalCta.label) || 'Start free →')}</a>
 </div>
 </main>
 <script src="/js/footer.js"></script>

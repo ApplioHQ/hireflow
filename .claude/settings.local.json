@@ -429,7 +429,8 @@
       "Bash(node pricing_shot.js)",
       "Bash(bc)",
       "Bash(lsof -ti:3000)",
-      "Bash(ps -p 57835 -o command=)"
+      "Bash(ps -p 57835 -o command=)",
+      "mcp__claude-in-chrome__navigate"
     ]
   }
 }

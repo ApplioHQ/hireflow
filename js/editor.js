@@ -2703,8 +2703,26 @@ function _applyAiSuggestion() {
 async function aiImprove(target) {
   aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
   try {
-    const text = target === 'summary' ? resume.personal.summary : JSON.stringify(resume[target] || {});
-    const r = await ai('improve', { target, text });
+    // Send the exact text being improved plus role/company context so the AI writes
+    // bullets relevant to the real position instead of generic filler.
+    let text, context = {};
+    if (target === 'summary') {
+      text = resume.personal.summary || '';
+      const top = (resume.experience || [])[0] || {};
+      context = { role: top.title || '', company: top.company || '', section: 'summary' };
+    } else {
+      const item = (resume[target] || [])[0] || {};
+      const field = ('description' in item) ? 'description'
+                  : ('abstract' in item) ? 'abstract'
+                  : Object.keys(item).find(k => typeof item[k] === 'string' && (item[k] || '').length > 20);
+      text = field ? (item[field] || '') : JSON.stringify(item);
+      context = {
+        role: item.title || item.role || item.name || '',
+        company: item.company || item.org || item.issuer || item.venue || '',
+        section: target
+      };
+    }
+    const r = await ai('improve', { target, text, context });
     const suggestion = r.text || '';
     let apply = null, hint = null;
     if (target === 'summary') {

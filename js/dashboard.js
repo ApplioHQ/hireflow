@@ -119,8 +119,8 @@
       var gaps = resumeGaps(resume);
       if (gaps.length) {
         N.push({ tone: 'neutral', icon: 'doc', title: 'Strengthen your resume', text: 'Your resume is missing ' + gaps.join(', ') + '. Adding ' + (gaps.length > 1 ? 'these' : 'this') + ' lifts your ATS score.', cta: { label: 'Open builder', href: 'editor' } });
-      } else if (daysSince(resume.updatedAt) >= 21 && isActivelyLooking()) {
-        N.push({ tone: 'neutral', icon: 'refresh', title: 'Refresh your resume', text: "It's been " + daysSince(resume.updatedAt) + ' days since your last edit. Add a recent win to keep it current.', cta: { label: 'Add a win', focus: 'wins' } });
+      } else if (resume.updatedAt && daysSince(resume.updatedAt) >= 21 && isActivelyLooking()) {
+        N.push({ tone: 'neutral', icon: 'refresh', title: 'Refresh your resume', text: "It's been a while since your last edit. Add a recent win to keep it current.", cta: { label: 'Add a win', focus: 'wins' } });
       }
     } else {
       N.push({ tone: 'accent', icon: 'doc', title: 'Build your resume', text: 'Start from a template or import an existing resume in minutes.', cta: { label: 'Start', href: 'editor' } });

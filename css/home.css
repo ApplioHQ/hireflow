@@ -90,7 +90,7 @@
 .hero-title { font-size: clamp(40px, 5.2vw, 72px); font-weight: 800; line-height: 1.04; letter-spacing: -1.5px; margin-bottom: 28px; color: #fff; }
 /* The rotating word can be the longest line, keep it on one line and never let it clip. */
 .rotator { white-space: nowrap; max-width: 100%; }
-.rotator { background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
+.rotator { color: #a5b4fc; display: inline-block; }
 .hero-sub { font-size: 18px; color: rgba(255,255,255,.7); max-width: 520px; line-height: 1.55; margin-bottom: 36px; }
 .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
 
@@ -796,15 +796,7 @@
 .home-nav-links a:hover::after,
 .home-nav-links a.nav-active::after { width: 100%; }
 
-/* ── CTA primary button: sweep shine on hover ── */
-.btn-primary { position: relative; overflow: hidden; }
-.btn-primary::after {
-  content: ''; position: absolute; top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
-  transform: skewX(-18deg); transition: left .55s ease; pointer-events: none;
-}
-.btn-primary:hover::after { left: 150%; }
+/* Primary buttons are solid and quiet — no shimmer sweep (reads as templated/AI). */
 
 /* ── Feature icon glow + scale on hover ── */
 .feat-icon { transition: box-shadow .2s, transform .2s; }
@@ -986,12 +978,12 @@
 @keyframes float-enter-r { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
 @keyframes float-enter-l { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
 
-/* ── Hero CTA: glowing button ── */
+/* ── Hero CTA: a physical shadow, not a neon glow ── */
 .hero-ctas .btn-primary {
-  box-shadow: 0 8px 28px rgba(99,102,241,.55);
+  box-shadow: 0 6px 18px rgba(0,0,0,.32);
 }
 .hero-ctas .btn-primary:hover {
-  box-shadow: 0 14px 40px rgba(99,102,241,.7);
+  box-shadow: 0 10px 26px rgba(0,0,0,.4);
   transform: translateY(-2px);
 }
 

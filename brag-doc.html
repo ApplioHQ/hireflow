@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Brag Doc, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .bd-main { max-width: 860px; margin: 0 auto; padding: 24px 20px 80px; }
+  .bd-intro { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 6px 0 18px; max-width: 640px; }
+  .bd-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); }
+  .bd-toolbar label { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .bd-toolbar select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 7px 10px; font-size: 13px; font-family: inherit; }
+  .bd-toolbar .bd-spacer { flex: 1; }
+  .bd-count { font-size: 12px; color: var(--muted); }
+
+  /* The printable sheet */
+  .bd-sheet { background: #fff; color: #111827; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.22), 0 18px 44px rgba(0,0,0,.28); padding: 52px 56px; }
+  .bd-sheet h1 { font-size: 26px; font-weight: 800; letter-spacing: -.3px; margin: 0; color: #0f172a; }
+  .bd-role { font-size: 14px; color: #475569; margin-top: 4px; }
+  .bd-range-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #6366f1; margin-top: 18px; }
+  .bd-rule { height: 2px; background: #0f172a; margin: 6px 0 18px; }
+  .bd-group { margin-bottom: 20px; break-inside: avoid; }
+  .bd-group h2 { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: .01em; }
+  .bd-group ul { margin: 0; padding-left: 20px; }
+  .bd-group li { font-size: 13.5px; line-height: 1.6; color: #1f2937; margin-bottom: 6px; }
+  .bd-foot { margin-top: 26px; font-size: 11px; color: #94a3b8; }
+  .bd-empty { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 40px 28px; text-align: center; color: var(--muted); }
+  .bd-empty h2 { color: var(--text); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+
+  @media (max-width: 560px) { .bd-sheet { padding: 32px 24px; } }
+  @media print {
+    body { background: #fff !important; }
+    .app-topbar, .bd-toolbar, .bd-intro, .bd-pagehead .sub, #theme-toggle, .theme-toggle { display: none !important; }
+    .bd-main { padding: 0; max-width: none; }
+    .bd-sheet { box-shadow: none; border-radius: 0; padding: 0; }
+    .bd-range-label { color: #4338ca !important; }
+  }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a class="brand" href="dashboard" style="text-decoration:none;color:inherit;"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="dashboard">Home</a>
+    <a class="topbar-tab" href="autopilot">Autopilot</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="cover-letter">Cover Letter</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="plan-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="bd-main">
+  <div class="bd-pagehead">
+    <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;">Your brag doc</h1>
+    <p class="bd-intro">A running record of what you've accomplished, pulled straight from your Win Journal. Perfect for performance reviews, promotion cases, raise conversations, or your next resume update. Pick a time range, then print or copy it.</p>
+  </div>
+
+  <div class="bd-toolbar" id="bd-toolbar">
+    <label for="bd-range">Time range</label>
+    <select id="bd-range">
+      <option value="90">Last 90 days</option>
+      <option value="180" selected>Last 6 months</option>
+      <option value="365">Last 12 months</option>
+      <option value="0">All time</option>
+    </select>
+    <span class="bd-count" id="bd-count"></span>
+    <span class="bd-spacer"></span>
+    <button class="btn btn-secondary btn-sm" id="bd-copy">Copy text</button>
+    <button class="btn btn-primary btn-sm" id="bd-print">Print / Save PDF</button>
+  </div>
+
+  <div id="bd-out"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/bragdoc.js"></script>
+<script src="js/appnav.js"></script>
+</body>
+</html>

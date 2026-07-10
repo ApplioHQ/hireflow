@@ -2331,6 +2331,7 @@ function _renderFullPreview() {
   _mountResume(f, false, function (doc) {
     _injectPreviewChrome(doc);
     _bindPreviewClicks(doc);   // click anywhere in a section to jump-edit it
+    _bindFullWheel(doc);       // wheel over the paper scrolls/zooms the outer viewport
     _maybeFitOnePage(doc);
     const pages = _paginate(doc);
     _fullContentH = doc.documentElement.scrollHeight || doc.body.scrollHeight || 1056;
@@ -2339,6 +2340,7 @@ function _renderFullPreview() {
     _fpUpdateNav();
     _updateFit1Btn();
     if (_fullFit) _fitFullPreview(); else _applyFullZoom();
+    _syncFitButtons();
   });
 }
 
@@ -2427,10 +2429,11 @@ function _buildFullOverlay() {
   document.body.appendChild(_fullOverlay);
 
   const q = s => _fullOverlay.querySelector(s);
-  q('#fz-out').onclick = () => setFullZoom(-0.1);
-  q('#fz-in').onclick = () => setFullZoom(0.1);
-  q('#fz-fit').onclick = _fitFullPreview;
-  q('#full-zoom-label').onclick = _fitFullPreview;
+  q('#fz-out').onclick = () => setFullZoom(-0.15);
+  q('#fz-in').onclick = () => setFullZoom(0.15);
+  q('#fz-fitw').onclick = () => _fitFullPreview('width');
+  q('#fz-fitpage').onclick = () => _fitFullPreview('page');
+  q('#full-zoom-label').onclick = () => _fitFullPreview();
   q('#fz-close').onclick = closeFullPreview;
   q('#fp-prev').onclick = () => _fpGoto(-1);
   q('#fp-next').onclick = () => _fpGoto(1);
@@ -2440,8 +2443,43 @@ function _buildFullOverlay() {
     if (scroll._navRaf) return;
     scroll._navRaf = requestAnimationFrame(() => { scroll._navRaf = 0; _fpUpdateNav(); });
   }, { passive: true });
-  _fullOverlay.addEventListener('click', (e) => { if (e.target === _fullOverlay || e.target === scroll) closeFullPreview(); });
+  // Cmd/Ctrl + wheel over the gray canvas = zoom toward the cursor. (Wheeling over
+  // the paper is handled by a forwarder inside the iframe — see _bindFullWheel.)
+  scroll.addEventListener('wheel', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    const r = scroll.getBoundingClientRect();
+    setFullZoom(e.deltaY < 0 ? 0.12 : -0.12, { x: e.clientX - r.left, y: e.clientY - r.top });
+  }, { passive: false });
+  // Click the empty backdrop (never the page) to close.
+  _fullOverlay.addEventListener('click', (e) => { if (e.target === _fullOverlay || e.target === scroll || e.target.id === 'full-sizer') closeFullPreview(); });
   if (window.ResizeObserver) new ResizeObserver(() => { if (_fullFit && _fullOverlay.style.display === 'flex') _fitFullPreview(); }).observe(scroll);
+}
+
+// A same-origin iframe swallows wheel events, so the outer scroller never moves
+// when you wheel over the paper. Forward them: plain wheel scrolls the preview,
+// Cmd/Ctrl + wheel zooms toward the cursor. Re-bound each render (doc.write()
+// recreates the document), guarded so it attaches only once per doc.
+function _bindFullWheel(doc) {
+  if (!doc || doc._hfWheelBound) return;
+  doc._hfWheelBound = true;
+  doc.addEventListener('wheel', (e) => {
+    const scroll = document.getElementById('full-scroll');
+    const f = document.getElementById('full-frame');
+    if (!scroll || !f) return;
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const fr = f.getBoundingClientRect(), sr = scroll.getBoundingClientRect();
+      // Map the cursor (iframe-internal coords) onto the outer scroll viewport.
+      const ax = fr.left + e.clientX * _fullZoom - sr.left;
+      const ay = fr.top + e.clientY * _fullZoom - sr.top;
+      setFullZoom(e.deltaY < 0 ? 0.12 : -0.12, { x: ax, y: ay });
+    } else {
+      e.preventDefault();
+      scroll.scrollTop += e.deltaY;
+      scroll.scrollLeft += e.deltaX;
+    }
+  }, { passive: false });
 }
 
 function _bindPreviewClicks(doc) {

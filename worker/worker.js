@@ -1522,9 +1522,9 @@ async function aiAutopilot(env, { jobDescription, resume, tone, role, company })
   if (!resume || typeof resume !== "object" || !Object.keys(resume).length) {
     throw err(400, "Build or import your resume first — Autopilot tailors it to the job.");
   }
-  const cacheKey = (jobDescription || "").slice(0, 4000) + " " +
-    JSON.stringify(resume || {}).slice(0, 7000) + " " + (tone || "") + " " +
-    (role || "") + " " + (company || "");
+  const cacheKey = (jobDescription || "").slice(0, 4000) + "\u0000" +
+    JSON.stringify(resume || {}).slice(0, 7000) + "\u0000" + (tone || "") + "\u0000" +
+    (role || "") + "\u0000" + (company || "");
   const cached = await aiCacheGet(env, "autopilot", cacheKey);
   if (cached) return cached;
 

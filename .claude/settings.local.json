@@ -413,7 +413,11 @@
       "Bash(awk '/\\\\.btn-primary \\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{exit}' css/styles.css)",
       "Bash(awk '/\\\\.hero-left *\\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{c++; if\\(c>=1\\)exit}' css/home.css)",
       "Bash(node home_deai.js)",
-      "Bash(node editor_after.js)"
+      "Bash(node editor_after.js)",
+      "Bash(time curl -s -m 15 -o /dev/null -w 'HTTP %{http_code} in %{time_total}s\\\\n' https://hireflow-api.pritamavuthu7.workers.dev/me -H 'Authorization: Bearer bad')",
+      "Bash(curl -s -m 15 -o /dev/null -w 'HTTP %{http_code} in %{time_total}s\\\\n' https://hireflow-api.pritamavuthu7.workers.dev/admin/analytics -H 'Authorization: Bearer bad')",
+      "Bash(curl -s -m 15 -o /dev/null -w 'HTTP %{http_code} in %{time_total}s\\\\n' https://hireflow-api.pritamavuthu7.workers.dev/admin/users -H 'Authorization: Bearer bad')",
+      "Bash(curl -s -m 15 -o /dev/null -w 'HTTP %{http_code}\\\\n' -X OPTIONS https://hireflow-api.pritamavuthu7.workers.dev/me -H 'Origin: https://appliohq.com' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: authorization' -D /tmp/cors.txt)"
     ]
   }
 }

@@ -51,6 +51,11 @@ export default {
       return handleWebhook(req, env).then(r => withCors(r, cors)).catch(e => withCors(json({ error: e.message }, e.status || 500), cors));
     }
 
+    // One-click email unsubscribe (public, HTML response, token-verified — no login).
+    if (path === "/unsubscribe") {
+      return handleUnsubscribe(url, env).catch(() => new Response("Something went wrong.", { status: 500, headers: { "Content-Type": "text/html" } }));
+    }
+
     try {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);

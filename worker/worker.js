@@ -27,7 +27,7 @@ Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot"]);
 // Career Coach (assistant) is Premium/Lifetime only — it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
@@ -806,6 +806,7 @@ async function aiDispatch(env, action, body) {
     case "interview-feedback": return aiInterviewFeedback(env, body);
     case "cover-letter": return aiCoverLetter(env, body);
     case "assistant": return aiAssistant(env, body);
+    case "autopilot": return aiAutopilot(env, body);
     default: throw err(404, "Unknown AI action");
   }
 }

@@ -70,6 +70,7 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen
+    localStorage.setItem('hf_ask_attribution', '1'); // one-time "where did you hear about us?"
     location.href = 'editor';
   } catch (err) {
     setMsg('signup','error', err.message);

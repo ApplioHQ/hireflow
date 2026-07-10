@@ -2250,9 +2250,14 @@ function closeFullPreview() {
 
 function _fullKeyHandler(e) {
   if (e.key === 'Escape') return closeFullPreview();
-  if (e.key === '+' || e.key === '=') { e.preventDefault(); setFullZoom(0.1); }
-  else if (e.key === '-' || e.key === '_') { e.preventDefault(); setFullZoom(-0.1); }
-  else if (e.key === '0') { e.preventDefault(); _fitFullPreview(); }
+  if (e.key === '+' || e.key === '=') { e.preventDefault(); setFullZoom(0.15); }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); setFullZoom(-0.15); }
+  else if (e.key === '0') { e.preventDefault(); _fitFullPreview('width'); }
+  else if (e.key === '9') { e.preventDefault(); _fitFullPreview('page'); }
+  else if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); _fpGoto(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); _fpGoto(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); _fpGoto(-999); }
+  else if (e.key === 'End') { e.preventDefault(); _fpGoto(999); }
 }
 
 let _fullFitMode = 'width';   // 'width' = whole page width fills the viewport; 'page' = a full page fits top-to-bottom

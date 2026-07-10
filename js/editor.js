@@ -2494,7 +2494,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 function signOut() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_profile','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 
@@ -2824,7 +2824,7 @@ function _trackerDialog(title, company, jd) {
     try { arr = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(arr)) arr = []; } catch { arr = []; }
     const now = Date.now();
     arr.unshift({ id: now, addedAt: now, statusAt: now, title: t, company: c, location: '', status: 'Applied', notes: jd.slice(0, 280), tailored: true });
-    try { localStorage.setItem('hf_jobs', JSON.stringify(arr)); } catch (e) { toast('Could not save, storage may be full', { type: 'error' }); return; }
+    try { localStorage.setItem('hf_jobs', JSON.stringify(arr)); if (window.HFJobsSync) HFJobsSync.push(); } catch (e) { toast('Could not save, storage may be full', { type: 'error' }); return; }
     close();
     toast('Added to Job Tracker', { type: 'success' });
   };

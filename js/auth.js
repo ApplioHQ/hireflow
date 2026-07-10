@@ -9,7 +9,7 @@ function _switchAccountIfNeeded(newEmail) {
   const prev = (localStorage.getItem('hf_email') || '').toLowerCase();
   const next = (newEmail || '').toLowerCase();
   if (prev !== next) {
-    ['hf_resume', 'hf_jobs', 'hf_profile', 'hf_ai_results', 'hf_welcome'].forEach(k => localStorage.removeItem(k));
+    ['hf_resume', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome'].forEach(k => localStorage.removeItem(k));
   }
 }
 

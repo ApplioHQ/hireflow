@@ -2274,6 +2274,11 @@ function _applyFullZoom() {
   const f = document.getElementById('full-frame');
   const sizer = document.getElementById('full-sizer');
   if (!f || !sizer) return;
+  // The iframe DOCUMENT is CANVAS_W wide (page + gray side margins). The iframe
+  // ELEMENT must match, or scrolling="no" clips the right margin (and the page's
+  // right edge) and the paper sits left-of-center in the wider sizer — which reads
+  // as a tilt. This one line is the actual "right side cut off" fix.
+  f.style.width = CANVAS_W + 'px';
   f.style.transformOrigin = 'top left';
   f.style.transform = 'scale(' + _fullZoom + ')';
   // Sizer reserves the SCALED footprint of the full canvas (page + side margins), so
@@ -2282,6 +2287,8 @@ function _applyFullZoom() {
   sizer.style.height = Math.round(_fullContentH * _fullZoom) + 'px';
   const lbl = document.getElementById('full-zoom-label');
   if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
+  const scroll = document.getElementById('full-scroll');
+  if (scroll) scroll.classList.toggle('fp-zoomed', !_fullFit && _fullZoom > _fitScale() + 0.001);
   _fpUpdateNav();
 }
 

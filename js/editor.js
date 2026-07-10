@@ -2494,7 +2494,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 function signOut() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_profile','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 

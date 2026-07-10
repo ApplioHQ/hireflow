@@ -146,7 +146,7 @@
     var N = computeNudges();
     if (!N.length) {
       host.className = '';
-      host.innerHTML = '<div class="dash-allclear">🎉 You’re all caught up. Nice work — line up your next application when you’re ready.</div>';
+      host.innerHTML = '<div class="dash-allclear">You’re all caught up. Line up your next application when you’re ready.</div>';
       return;
     }
     host.className = 'dash-nudges';

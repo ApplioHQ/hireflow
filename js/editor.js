@@ -1795,7 +1795,7 @@ function toggleFitMode() {
   const r = _miniRefs();
   if (r.frame && r.frame._doc) _scaleMini(r.wrap, r.sizer, r.frame, r.frame._doc);
   const btn = document.getElementById('mini-mode-btn');
-  if (btn) btn.textContent = _previewMode === 'page' ? '↔ Fit width' : '▭ One page';
+  if (btn) btn.textContent = _previewMode === 'page' ? 'Fit width' : 'One page';
   const lbl = document.getElementById('mini-zoom-label');
   if (lbl) lbl.textContent = 'Fit';
 }
@@ -1939,7 +1939,7 @@ function _renderFitIndicator(ratio, pages) {
   } else if (ratio <= 2.1) {
     // Two-page resumes are fine for experienced candidates, not an error.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 ' + pages + ' pages, great for fuller experience. All pages export. Try “One page” to read each clearly.';
+    text = pages + ' pages — good for a fuller history. All pages export. Try “One page” to read each clearly.';
   } else {
     // Long resumes are legitimate (senior / academic). Encourage, don't scold.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';

@@ -411,7 +411,8 @@
       "Bash(python3 -c \"import sys,json;print\\(json.load\\(sys.stdin\\).get\\('text',''\\)\\)\")",
       "Bash(grep -nA4 '\\\\.btn-primary *\\\\{' css/styles.css)",
       "Bash(awk '/\\\\.btn-primary \\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{exit}' css/styles.css)",
-      "Bash(awk '/\\\\.hero-left *\\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{c++; if\\(c>=1\\)exit}' css/home.css)"
+      "Bash(awk '/\\\\.hero-left *\\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{c++; if\\(c>=1\\)exit}' css/home.css)",
+      "Bash(node home_deai.js)"
     ]
   }
 }

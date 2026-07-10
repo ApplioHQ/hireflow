@@ -405,7 +405,8 @@
       "Bash(node jobsync2.js)",
       "Bash(node app_sweep.js)",
       "Bash(awk '/:root *\\\\{/,/^\\\\}/' css/styles.css)",
-      "Bash(grep -nA4 '\\\\.dash-hero {' dashboard.html)"
+      "Bash(grep -nA4 '\\\\.dash-hero {' dashboard.html)",
+      "Bash(node dash_after.js)"
     ]
   }
 }

@@ -213,6 +213,26 @@ function renderMain() {
     var dot = el.querySelector('.s-dot');
     if (dot) { dot.style.background = done ? 'var(--accent)' : 'var(--border)'; }
   });
+  _renderSidebarProgress();
+}
+
+// Overall resume-completion meter at the top of the sidebar, so users always know
+// how far along they are and what's left. Counts the core sections that make a
+// resume submittable.
+const _CORE_SECTIONS = ['personal', 'experience', 'education', 'skills', 'projects'];
+function _renderSidebarProgress() {
+  const host = document.getElementById('sidebar-progress');
+  if (!host) return;
+  const done = _CORE_SECTIONS.filter(_sectionComplete).length;
+  const total = _CORE_SECTIONS.length;
+  const pct = Math.round((done / total) * 100);
+  const allDone = done === total;
+  host.innerHTML =
+    '<div class="sp-top">'
+    + '<span class="sp-label">' + (allDone ? 'Resume ready' : 'Resume progress') + '</span>'
+    + '<span class="sp-count' + (allDone ? ' sp-done' : '') + '">' + (allDone ? '✓ ' : '') + done + '/' + total + '</span>'
+    + '</div>'
+    + '<div class="sp-track"><div class="sp-fill" style="width:' + pct + '%"></div></div>';
 }
 
 // ============ Section: Templates ============

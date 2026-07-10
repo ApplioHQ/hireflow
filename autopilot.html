@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Application Autopilot, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .ap-wrap { max-width: 920px; margin: 0 auto; padding: 30px 20px 90px; }
+  .ap-hero { margin-bottom: 22px; }
+  .ap-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+  .ap-hero .ap-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 4px 10px; border-radius: var(--r-full); }
+  .ap-hero p { color: var(--muted); font-size: 15px; margin-top: 6px; max-width: 620px; line-height: 1.55; }
+
+  .ap-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
+  .ap-field { margin-bottom: 14px; }
+  .ap-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .ap-field .hint { color: var(--muted); font-weight: 400; }
+  .ap-ta { width: 100%; box-sizing: border-box; min-height: 180px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13.5px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ap-ta:focus, .ap-input:focus, .ap-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .ap-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 620px) { .ap-row { grid-template-columns: 1fr; } }
+  .ap-input, .ap-select { width: 100%; box-sizing: border-box; padding: 9px 11px; font: inherit; font-size: 13.5px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); }
+  .ap-resume-note { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin: 4px 0 14px; }
+  .ap-resume-note a { color: var(--accent); }
+
+  .ap-results { margin-top: 22px; display: none; }
+  .ap-results.show { display: block; }
+  .ap-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; margin-bottom: 16px; }
+  .ap-card h2 { font-size: 15px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .ap-card .ap-card-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+
+  /* Verdict */
+  .ap-verdict { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .ap-ring { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+  .ap-ring .ap-ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; }
+  .ap-verdict-text { flex: 1; min-width: 220px; }
+  .ap-verdict-label { font-size: 20px; font-weight: 800; }
+  .ap-verdict-why { color: var(--muted); font-size: 13.5px; margin-top: 4px; line-height: 1.5; }
+  .ap-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 16px; }
+  @media (max-width: 520px){ .ap-bars { grid-template-columns: 1fr; } }
+  .ap-bar-track { height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+  .ap-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+
+  .ap-chip { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: var(--r-full); margin: 3px 5px 0 0; }
+  .ap-chip-ok { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+  .ap-chip-no { background: rgba(148,163,184,.14); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
+
+  .ap-diff { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 10px; }
+  .ap-diff-before { padding: 10px 12px; font-size: 13px; color: var(--muted); background: rgba(239,68,68,.06); border-bottom: 1px solid var(--border); text-decoration: line-through; text-decoration-color: rgba(239,68,68,.4); }
+  .ap-diff-after { padding: 10px 12px; font-size: 13.5px; color: var(--text); background: rgba(34,197,94,.06); }
+  .ap-list { list-style: none; padding: 0; margin: 0; }
+  .ap-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; margin-bottom: 7px; }
+
+  .ap-cover { white-space: pre-wrap; font-size: 13.5px; line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px 18px; max-height: 340px; overflow: auto; }
+  .ap-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+  .ap-run-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+  .ap-loading { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .ap-loading.show { display: flex; }
+  .ap-spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
+  @keyframes ap-spin { to { transform: rotate(360deg); } }
+  .ap-upgrade { text-align: center; padding: 26px; }
+  .ap-upgrade h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .ap-upgrade p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .ap-fail { font-size: 12.5px; color: #f59e0b; margin-top: 10px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="dashboard">Home</a>
+    <a class="topbar-tab active" href="autopilot">Autopilot</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="match">Best Match</a>
+    <a class="topbar-tab" href="cover-letter">Cover Letter</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="health-badge"></span>
+    <div class="acct-center" id="acct-center">
+      <button class="acct-trigger" id="acct-trigger" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Account center" title="Account">
+        <span class="acct-avatar" id="acct-avatar">A</span>
+        <svg class="acct-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="acct-menu" id="acct-menu" role="menu" hidden>
+        <div class="acct-head">
+          <div class="acct-avatar acct-avatar-lg" id="acct-avatar-lg">A</div>
+          <div class="acct-head-text">
+            <div class="acct-email" id="acct-email">Account</div>
+            <div class="acct-plan" id="acct-plan-label"></div>
+          </div>
+        </div>
+        <div class="acct-sep"></div>
+        <div class="acct-row acct-row-static"><span class="acct-row-label">Plan</span><span id="plan-pill"></span></div>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>
+        <button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); openBillingPortal();"><span class="acct-row-main">Manage / cancel subscription</span></button>
+        <div class="acct-sep"></div>
+        <button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()"><span class="acct-row-main">Sign out</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="ap-wrap">
+  <div class="ap-hero">
+    <h1>Application Autopilot <span class="ap-badge">Premium</span></h1>
+    <p>Paste a job description and Applio builds your whole application in one shot: a fit verdict, a tailored résumé, a cover letter, and the keywords you're missing.</p>
+  </div>
+
+  <div class="ap-panel">
+    <div class="ap-field">
+      <label for="ap-jd">Job description <span class="hint">— paste the full posting for the best result</span></label>
+      <textarea id="ap-jd" class="ap-ta" placeholder="Paste the job description here…"></textarea>
+    </div>
+    <div class="ap-row">
+      <div class="ap-field" style="margin-bottom:0;">
+        <label for="ap-role">Role <span class="hint">(optional)</span></label>
+        <input id="ap-role" class="ap-input" type="text" placeholder="e.g. Senior PM" maxlength="120">
+      </div>
+      <div class="ap-field" style="margin-bottom:0;">
+        <label for="ap-company">Company <span class="hint">(optional)</span></label>
+        <input id="ap-company" class="ap-input" type="text" placeholder="e.g. Acme" maxlength="120">
+      </div>
+      <div class="ap-field" style="margin-bottom:0;">
+        <label for="ap-tone">Cover letter tone</label>
+        <select id="ap-tone" class="ap-select">
+          <option value="professional">Professional</option>
+          <option value="enthusiastic">Enthusiastic</option>
+          <option value="confident">Confident</option>
+          <option value="warm">Warm</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-resume-note" id="ap-resume-note"></div>
+    <div class="ap-run-wrap">
+      <button class="btn btn-primary" id="ap-run">Run Autopilot →</button>
+      <div class="ap-loading" id="ap-loading"><span class="ap-spin"></span> <span id="ap-loading-text">Tailoring your application… this takes ~15 seconds</span></div>
+    </div>
+  </div>
+
+  <div class="ap-results" id="ap-results"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/health-badge.js"></script>
+<script src="js/autopilot.js"></script>
+</body>
+</html>

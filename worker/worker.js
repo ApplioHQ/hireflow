@@ -1010,53 +1010,74 @@ ${resumeCtx}`;
 }
 
 // ============ Improve writing ============
-async function aiImprove(env, { target, text }) {
+async function aiImprove(env, { target, text, context }) {
   if (!text || !text.trim()) {
     return { text: "Add some content first, then click AI Improve to refine it." };
   }
   const isSummary = target === "summary" || target === "personal";
+  const ctx = context || {};
+  // Role/company context makes bullets relevant to the actual position instead of generic.
+  const role = String(ctx.role || "").slice(0, 120);
+  const company = String(ctx.company || "").slice(0, 120);
+  const roleLine = role
+    ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.`
+    : "";
+
   const body = isSummary
-    ? `You are an elite resume writer. Rewrite the candidate's professional summary so it:
-- Is 2-3 sentences, 40-60 words MAX — tight, no filler
-- Opens with a strong identity statement (e.g. "Senior product designer with 7+ years…")
-- Names 2-3 standout competencies with specifics
-- Ends with a value statement aimed at hiring managers
-- Uses active voice, no buzzwords ("synergy", "dynamic", "passionate", "results-driven")
-- Is in third-person implied (no "I", no "you")
-- Preserves the candidate's real facts — never invent titles, numbers, or achievements
-- Plain text only — no markdown, no headers, no quotation marks
+    ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.
+${roleLine}
+
+WRITE IT SO IT:
+- Is 2-3 sentences, 40-60 words MAX — tight, zero filler.
+- Opens with a strong identity statement: "[Title/role] with [X years / core domain]…" using only facts in the input.
+- Names 2-3 standout, specific strengths (skills, domains, or scope) — concrete nouns, not adjectives.
+- Ends with the value the candidate brings to a hiring manager for this kind of role.
+- Active voice; third-person implied (no "I", no "you").
+- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter".
+- Preserves the candidate's real facts — never invent titles, numbers, employers, or achievements.
+- Plain text only — no markdown, no headers, no quotation marks.
+
+Before answering, silently check: under 60 words? no banned buzzword? no invented fact? Fix any that fail.
 
 OUTPUT: Only the rewritten summary. Nothing else.`
-    : `You are an elite resume writer. Rewrite the following ${target} content into tight, achievement-focused bullets.
+    : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.
+${roleLine}
+
+Every bullet follows the impact formula:  [strong action verb] + [what you did] + [the measurable result or scope].
 
 HARD RULES — follow exactly:
 - Output 3-6 bullets, one per line, each starting with "• ".
-- Each bullet is ONE sentence, 10-18 words. NEVER exceed 20 words. No second sentence, no trailing clauses.
-- Start each bullet with a distinct strong past-tense action verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected…). Never reuse a verb.
-- Lead with the result/impact. Include a metric (%, $, time, scale, users) ONLY if it is present in or directly implied by the input. NEVER invent specific numbers.
-- Keep the candidate's real facts. Do NOT add fluff, filler, stacked adjectives, or explanation. Banned phrases: "responsible for", "successfully", "in order to", "which resulted in", "helped to", "various", "leveraged".
+- Each bullet is ONE sentence, 12-20 words. Never a second sentence or trailing "which…" clause.
+- Begin each bullet with a DISTINCT strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected, Launched, Cut, Scaled, Automated, Negotiated). Never reuse a verb.
+- Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if present in or directly implied by the input. NEVER invent numbers.
+- Keep real facts; prefer concrete outcomes over stacked adjectives.
+- BANNED openers/phrases (never use): "Responsible for", "Worked on", "Helped", "Assisted with", "Tasked with", "Duties included", "Successfully", "In order to", "Various", "Leveraged", "Utilized", "Spearheaded".
 - Plain text only. No markdown, no headers, no preamble, no closing remarks.
 
-GOOD — tight, one sentence, real impact:
-  "• Rebuilt the marketing site in Next.js, cutting page load time 40%."
-BAD — padded, multi-clause, fluffy (NEVER do this):
-  "• Was responsible for rebuilding the company's marketing website using modern technologies such as Next.js, which ultimately resulted in significantly faster load times and a much improved user experience for site visitors."
+Before answering, silently self-check each bullet: unique strong verb? one sentence, ≤20 words? no banned phrase? no invented number? Fix any that fail.
+
+EXAMPLES (weak input → strong bullet):
+  "Responsible for the website and worked on making it faster."
+    → "• Rebuilt the marketing site in Next.js, cutting page load time 40%."
+  "Helped the sales team with reports and did some analysis to find trends."
+    → "• Built weekly sales dashboards in SQL, surfacing trends that lifted quota attainment."
+  "Managed engineers and shipped features."
+    → "• Led a team of engineers to ship three core features across two product launches."
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
   const sys = GROUNDING + "\n\n" + body;
-  // Both paths use the stronger model + low temperature + tight token budget so the AI
-  // stays accurate and can't ramble into fabricated paragraphs.
+  // Stronger model + low temperature + tight token budget so the AI stays accurate and
+  // can't ramble into fabricated paragraphs.
   const opts = isSummary
-    ? { model: SMART_MODEL, max_tokens: 220, temperature: 0.25 }
-    : { model: SMART_MODEL, max_tokens: 320, temperature: 0.2 };
+    ? { model: SMART_MODEL, max_tokens: 240, temperature: 0.3 }
+    : { model: SMART_MODEL, max_tokens: 360, temperature: 0.25 };
   const out = await runAI(env, sys, `Candidate content:\n${text}\n\nRewrite it.`, opts);
-  // Strip common AI preambles / wrapping quotes
   let cleaned = out
     .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
     .replace(/^["']|["']$/g, "")
     .trim();
-  // For bullets, enforce the length/format rules in CODE so a chatty model can never
-  // slip paragraphs of fluff past us: one tight sentence per bullet, ≤20 words, max 6.
+  // For bullets, enforce format + strip banned openers in CODE so a chatty model can
+  // never slip fluff past us: one tight sentence per bullet, ≤20 words, distinct verbs.
   if (!isSummary) cleaned = _tightenBullets(cleaned);
   return { text: cleaned };
 }
@@ -1064,11 +1085,18 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
 // Backstop that guarantees concise bullets regardless of model output: strips list
 // markers/markdown, keeps only the first sentence of each bullet (trailing sentences
 // are almost always padding), hard-caps ~20 words, and limits to 6 bullets.
+// Weak/filler openers to strip so a bullet always leads with a strong verb.
+const _WEAK_OPENERS = /^(responsible for|worked on|tasked with|assisted with|assisted in|helped to|helped with|helped|duties included|in charge of|was |were |involved in|participated in|successfully )/i;
 function _tightenBullets(out) {
   const lines = out.split("\n").map(l => l.trim()).filter(Boolean);
   const bullets = [];
+  const usedVerbs = new Set();
   for (const line of lines) {
     let s = line.replace(/^\s*(?:[••*\-]+|\d+[.)])\s*/, "").replace(/\*\*/g, "").trim();
+    if (!s) continue;
+    // Strip a weak/filler opener and re-capitalize what remains (leads with the real action).
+    let prev;
+    do { prev = s; s = s.replace(_WEAK_OPENERS, "").trim(); } while (s !== prev && _WEAK_OPENERS.test(s));
     if (!s) continue;
     const m = s.match(/^(.*?[.!?])(?:\s+\S[^]*)?$/);      // keep first sentence only
     if (m) s = m[1].trim();
@@ -1076,6 +1104,10 @@ function _tightenBullets(out) {
     if (words.length > 20) s = words.slice(0, 20).join(" ").replace(/[,;:]+$/, "") + ".";
     if (!/[.!?]$/.test(s)) s += ".";
     s = s.charAt(0).toUpperCase() + s.slice(1);
+    // De-duplicate the leading verb so bullets don't all start with the same word.
+    const verb = s.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, "");
+    if (verb && usedVerbs.has(verb) && bullets.length) continue;
+    if (verb) usedVerbs.add(verb);
     bullets.push("• " + s);
     if (bullets.length >= 6) break;
   }

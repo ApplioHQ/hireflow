@@ -238,7 +238,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .exp-act, .exp-act > span:not(.ico) { transition: none; }
 }
 
-.app-shell-inner { display: grid; grid-template-columns: 220px 1fr 290px; height: calc(100vh - 56px); }
+.app-shell-inner { display: grid; grid-template-columns: 220px 1fr 340px; height: calc(100vh - 56px); }
 
 .sidebar {
   background: var(--bg-1); border-right: 1px solid var(--border);
@@ -262,7 +262,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .main-area::-webkit-scrollbar { display: none; }
 
 .right-panel {
-  background: var(--bg-1); border-left: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  border-left: 1px solid var(--border);
   padding: 16px; overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }

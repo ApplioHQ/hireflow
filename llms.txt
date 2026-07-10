@@ -27,6 +27,8 @@
 
 ## Links
 - Homepage: https://appliohq.com/
+- Free Resume Builder: https://appliohq.com/resume-builder
+- Resume builders by audience: students (https://appliohq.com/resume-builder-for-students), high school students (https://appliohq.com/resume-builder-for-high-school-students), internships (https://appliohq.com/resume-builder-for-internships), software engineers (https://appliohq.com/resume-builder-for-software-engineers), nurses (https://appliohq.com/resume-builder-for-nurses), finance jobs (https://appliohq.com/resume-builder-for-finance-jobs)
 - Pricing: https://appliohq.com/pricing
 - Free ATS Resume Checker: https://appliohq.com/ats-checker
 - Free Resume Templates (16, ATS-friendly): https://appliohq.com/resume-templates

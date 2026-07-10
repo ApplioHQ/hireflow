@@ -402,7 +402,8 @@
       "Bash(LC_ALL=C perl -0777 -i -pe 's{\\(<script src=\"js/dashboard.js\">\\)}{<script src=\"js/jobsync.js\"></script>\\\\n$1}' dashboard.html)",
       "Bash(LC_ALL=C perl -0777 -i -pe 's{\\(<script src=\"js/autopilot.js\">\\)}{<script src=\"js/jobsync.js\"></script>\\\\n$1}' autopilot.html)",
       "Bash(LC_ALL=C perl -0777 -i -pe 's{\\(<script src=\"js/editor.js\">\\)}{<script src=\"js/jobsync.js\"></script>\\\\n$1}' editor.html)",
-      "Bash(node jobsync2.js)"
+      "Bash(node jobsync2.js)",
+      "Bash(node app_sweep.js)"
     ]
   }
 }

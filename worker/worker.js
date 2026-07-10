@@ -865,6 +865,7 @@ async function listFeedback(req, env) {
 async function aiDispatch(env, action, body) {
   switch (action) {
     case "improve":   return aiImprove(env, body);
+    case "win":       return aiWin(env, body);
     case "skills":    return aiSkills(env, body);
     case "tailor":    return aiTailor(env, body);
     case "ats":       return aiATS(env, body);
@@ -1107,6 +1108,27 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
   // never slip fluff past us: one tight sentence per bullet, ≤20 words, distinct verbs.
   if (!isSummary) cleaned = _tightenBullets(cleaned);
   return { text: cleaned };
+}
+
+// ============ Polish one win-journal note into a resume-ready bullet ============
+// Free for all (it drives the win-logging habit and shows AI value). Grounded so
+// it never invents facts — it only rewrites what the user actually wrote.
+async function aiWin(env, { text, context }) {
+  if (!text || !text.trim()) return { text: "" };
+  const role = String((context && context.role) || "").slice(0, 120);
+  const roleLine = role ? `CONTEXT: this is for a "${role}" role — keep it relevant to that.\n` : "";
+  const sys = GROUNDING + `
+
+You are an elite resume writer. Turn the candidate's rough note about something they accomplished into ONE polished, achievement-focused resume bullet.
+${roleLine}HARD RULES:
+- Output EXACTLY one bullet, starting with "• ".
+- One sentence, 12-20 words, leading with a strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Launched, Cut, Scaled, Automated, Improved).
+- Lead with impact. Keep any real metric from the note; NEVER invent numbers, tools, names, dates, or scope that aren't in the note.
+- No buzzwords (results-driven, dynamic, passionate, team player, detail-oriented, hard-working).
+- Plain text only — output only the bullet, nothing else.`;
+  const out = await runAI(env, sys, `Rough note:\n${text}\n\nPolish it into one bullet.`, { model: SMART_MODEL, max_tokens: 90, temperature: 0.25 });
+  const bullet = (_tightenBullets(out).split("\n")[0] || "").replace(/^•\s*/, "").trim();
+  return { text: bullet || text.trim() };
 }
 
 // Backstop that guarantees concise bullets regardless of model output: strips list

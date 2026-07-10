@@ -74,7 +74,11 @@ function customizeStyleAttr(customize, marginsKey) {
     // quote would prematurely close the attribute and break the font. Swap to single
     // quotes (valid CSS) so the font actually registers in the preview and export.
     const safeFont = font.replace(/"/g, "'");
-    parts.push(`--app-font:${safeFont}`, `font-family:${safeFont}`);
+    // Only drive the CSS var — every template's font-family is `var(--app-font, <native>)`,
+    // so this respects the font control WITHOUT clobbering a template's intended font
+    // (e.g. Harvard's serif). A blanket inline `font-family` here used to override every
+    // template to the same font, which is why Harvard rendered sans-serif.
+    parts.push(`--app-font:${safeFont}`);
   }
   return parts.join(';');
 }

@@ -342,7 +342,43 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-builder resume-builder-for-students resume-builder-for-high-school-students resume-builder-for-internships resume-builder-for-software-engineers resume-builder-for-nurses resume-builder-for-finance-jobs</loc>
+    <loc>https://appliohq.com/resume-builder</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-students</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-high-school-students</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-internships</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-software-engineers</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-nurses</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-builder-for-finance-jobs</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

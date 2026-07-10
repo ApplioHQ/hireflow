@@ -87,7 +87,7 @@
   background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.3);
   color: #c4b5fd; font-size: 13px; font-weight: 500; margin-bottom: 28px;
 }
-.hero-title { font-size: clamp(40px, 5.2vw, 72px); font-weight: 800; line-height: 1.04; letter-spacing: -1.5px; margin-bottom: 28px; color: #fff; }
+.hero-title { font-size: clamp(40px, 5.2vw, 72px); font-weight: 700; line-height: 1.04; letter-spacing: -1.5px; margin-bottom: 28px; color: #fff; }
 /* The rotating word can be the longest line, keep it on one line and never let it clip. */
 .rotator { white-space: nowrap; max-width: 100%; }
 .rotator { color: #a5b4fc; display: inline-block; }
@@ -229,7 +229,7 @@
 .container { max-width: 1180px; margin: 0 auto; }
 .container.narrow { max-width: 880px; }
 .container.center { text-align: center; }
-.section-title { font-size: clamp(34px, 4vw, 52px); font-weight: 800; letter-spacing: -1.5px; text-align: center; line-height: 1.1; margin-bottom: 16px; }
+.section-title { font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -1.5px; text-align: center; line-height: 1.1; margin-bottom: 16px; }
 .section-title.light { color: #fff; }
 .section-sub { font-size: 17px; color: #6b7280; text-align: center; max-width: 640px; margin: 0 auto 40px; line-height: 1.55; }
 .section-sub.light { color: rgba(255,255,255,.75); }
@@ -1184,7 +1184,7 @@ section[id] { scroll-margin-top: 80px; }
 .spotlight.reverse .spot-mock { order: 1; }
 .spot-eyebrow { display:inline-block; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
   color: #a5b4fc; margin-bottom: 14px; }
-.spot-title { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; color: #fff; margin-bottom: 16px; }
+.spot-title { font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; line-height: 1.12; letter-spacing: -.02em; color: #fff; margin-bottom: 16px; }
 .spot-desc { font-size: 15px; line-height: 1.7; color: #9aa3c7; max-width: 460px; }
 .spot-link { display: inline-block; margin-top: 20px; font-size: 14px; font-weight: 600; color: #a5b4fc; }
 .spot-link:hover { color: #fff; }

@@ -74,16 +74,49 @@
     }).finally(function () { setLoading(false); });
   }
 
+  // ---------- free taste (client-side fit check, zero AI) ----------
+  function resumeToText(r) {
+    var out = [], p = r.personal || {};
+    if (p.fullName) out.push(p.fullName);
+    if (p.summary) out.push(p.summary);
+    (r.experience || []).forEach(function (e) { out.push([e.title, e.company].filter(Boolean).join(' ')); if (e.description) out.push(e.description); });
+    (r.education || []).forEach(function (e) { out.push([e.degree, e.field, e.school].filter(Boolean).join(' ')); });
+    ((r.skills && r.skills.categories) || []).forEach(function (c) { if (c.items && c.items.length) out.push(c.items.join(', ')); });
+    (r.projects || []).forEach(function (pr) { out.push([pr.name, pr.tech, pr.description].filter(Boolean).join(' ')); });
+    return out.join('\n');
+  }
+  function runFree(jd, resume) {
+    if (!window.AtsEngine || typeof window.AtsEngine.score !== 'function') { renderUpgrade(); return; }
+    var s = window.AtsEngine.score(resumeToText(resume), jd) || {};
+    var score = typeof s.score === 'number' ? s.score : null;
+    var verdict = score == null ? 'stretch' : score >= 75 ? 'apply' : score >= 55 ? 'stretch' : 'skip';
+    var label = score == null ? 'Assessed' : score >= 75 ? 'Strong fit — apply' : score >= 55 ? 'Worth a shot — a few gaps to close' : 'Long shot — close the gaps first';
+    var bd = s.breakdown || {};
+    var packet = {
+      fit: { score: score, verdict: verdict, label: label },
+      ats: { score: score, breakdown: { keywords: bd.keywords, experience: bd.impact, formatting: bd.formatting, completeness: bd.completeness }, feedback: '', wins: [], issues: [] },
+      tailor: null, matchedKeywords: s.matchedKeywords || [], missingKeywords: s.missingKeywords || [], coverLetter: null,
+      failed: {}, _free: true
+    };
+    render(packet);
+  }
+
   // ---------- render ----------
   var VC = { apply: '#22c55e', stretch: '#f59e0b', skip: '#ef4444' };
   function ringColor(v) { return VC[v] || 'var(--accent)'; }
 
   function render(d) {
     var parts = [];
+    if (d._free) parts.push(freeBanner());
     parts.push(verdictCard(d));
-    if (d.missingKeywords && d.missingKeywords.length) parts.push(keywordsCard(d));
-    if (d.tailor) parts.push(tailorCard(d.tailor));
-    if (d.coverLetter) parts.push(coverCard(d.coverLetter));
+    if ((d.missingKeywords && d.missingKeywords.length) || (d.matchedKeywords && d.matchedKeywords.length)) parts.push(keywordsCard(d));
+    if (d._free) {
+      parts.push(lockedCard('Tailored résumé', 'Applio rewrites your summary and bullets to match this job — grounded in your real experience.'));
+      parts.push(lockedCard('Cover letter', 'A ready-to-send cover letter written for this exact role and company.'));
+    } else {
+      if (d.tailor) parts.push(tailorCard(d.tailor));
+      if (d.coverLetter) parts.push(coverCard(d.coverLetter));
+    }
     parts.push(saveCard(d));
     els.results.innerHTML = parts.join('');
     els.results.classList.add('show');
@@ -129,7 +162,7 @@
   }
 
   function keywordsCard(d) {
-    var matched = (d.tailor && d.tailor.matchedKeywords) || [];
+    var matched = (d.tailor && d.tailor.matchedKeywords) || d.matchedKeywords || [];
     var missing = d.missingKeywords || [];
     return '<div class="ap-card"><h2>Keywords</h2><div class="ap-card-sub">Add the missing ones where they\'re genuinely true for you.</div>'
       + (matched.length ? '<div style="font-weight:700;font-size:13px;margin-bottom:4px;">Already matched</div>' + matched.map(function (k) { return '<span class="ap-chip ap-chip-ok">' + esc(k) + '</span>'; }).join('') : '')
@@ -170,6 +203,16 @@
       + '<a class="btn btn-ghost btn-sm" href="jobs">Open tracker</a></div></div>';
   }
 
+  function freeBanner() {
+    return '<div class="ap-banner"><div class="ap-banner-txt"><strong>Your free fit check.</strong> Upgrade to Premium and Autopilot writes the tailored résumé and cover letter for you.</div>'
+      + '<a class="btn btn-primary btn-sm" href="pricing" style="white-space:nowrap;">Unlock the full packet</a></div>';
+  }
+  function lockedCard(title, desc) {
+    return '<div class="ap-card ap-locked"><h2>' + esc(title) + ' <span class="ap-lock">🔒 Premium</span></h2>'
+      + '<div class="ap-card-sub">' + esc(desc) + '</div>'
+      + '<div class="ap-locked-preview"><div class="ap-blur">Senior product designer with 7+ years shipping user-loved products at scale, specializing in design systems and growth. Led a redesign that lifted activation 30% and cut support tickets 22%…</div></div>'
+      + '<a class="btn btn-primary btn-sm" href="pricing">Unlock with Premium</a></div>';
+  }
   function renderUpgrade() {
     els.results.innerHTML = '<div class="ap-card ap-upgrade"><h3>Application Autopilot is a Premium feature</h3>'
       + '<p>Upgrade to run the full one-shot flow: fit verdict, tailored résumé, and a cover letter for every job.</p>'

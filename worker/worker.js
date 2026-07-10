@@ -86,6 +86,12 @@ export default {
       return json({ error: e.message || "Error" }, e.status || 500, cors);
     }
   },
+
+  // Cron (Fridays 16:00 UTC, see wrangler.toml). Weekly "log your win" nudge.
+  // Fully inert until env.RESEND_API_KEY is configured.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
+  },
 };
 
 // ============ Helpers ============

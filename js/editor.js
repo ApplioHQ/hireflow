@@ -2255,18 +2255,48 @@ function _fullKeyHandler(e) {
   else if (e.key === '0') { e.preventDefault(); _fitFullPreview(); }
 }
 
+let _fullFitMode = 'width';   // 'width' = whole page width fills the viewport; 'page' = a full page fits top-to-bottom
 function _fitScale() {
   const scroll = document.getElementById('full-scroll');
   if (!scroll || !scroll.clientWidth) return 1;
   // Fit against CANVAS_W (page + gray side margins), not PAGE_W — the iframe renders
   // the full canvas, so fitting to PAGE_W left the content ~10% too wide (right edge clipped).
-  return Math.max(0.4, Math.min(1.4, (scroll.clientWidth - 56) / CANVAS_W));
+  const byWidth = (scroll.clientWidth - 56) / CANVAS_W;
+  if (_fullFitMode === 'page') {
+    const byHeight = (scroll.clientHeight - 60) / PAGE_PX;   // one whole page visible top-to-bottom
+    return Math.max(0.35, Math.min(1.6, Math.min(byWidth, byHeight)));
+  }
+  return Math.max(0.35, Math.min(1.6, byWidth));
 }
-function _fitFullPreview() { _fullFit = true; _fullZoom = _fitScale(); _applyFullZoom(); }
-function setFullZoom(delta) {
+function _fitFullPreview(mode) {
+  if (mode) _fullFitMode = mode;
+  _fullFit = true; _fullZoom = _fitScale(); _applyFullZoom();
+  _syncFitButtons();
+}
+function setFullZoom(delta, anchor) {
   _fullFit = false;
-  _fullZoom = Math.min(2, Math.max(0.4, +(_fullZoom + delta).toFixed(2)));
+  const scroll = document.getElementById('full-scroll');
+  const before = _fullZoom;
+  _fullZoom = Math.min(3, Math.max(0.35, +(_fullZoom + delta).toFixed(2)));
+  // Keep a point stable across the zoom: the cursor if given, else the viewport center.
+  let nx, ny;
+  if (scroll && before) {
+    const r = _fullZoom / before;
+    const ax = anchor ? anchor.x : scroll.clientWidth / 2;
+    const ay = anchor ? anchor.y : scroll.clientHeight / 2;
+    nx = (scroll.scrollLeft + ax) * r - ax;
+    ny = (scroll.scrollTop + ay) * r - ay;
+  }
   _applyFullZoom();
+  if (scroll && nx != null) { scroll.scrollLeft = nx; scroll.scrollTop = ny; }
+  _syncFitButtons();
+}
+// Highlight whichever fit control is currently active (only while in fit mode).
+function _syncFitButtons() {
+  if (!_fullOverlay) return;
+  const w = _fullOverlay.querySelector('#fz-fitw'), p = _fullOverlay.querySelector('#fz-fitpage');
+  if (w) w.classList.toggle('on', _fullFit && _fullFitMode === 'width');
+  if (p) p.classList.toggle('on', _fullFit && _fullFitMode === 'page');
 }
 // Scale the iframe and reserve the SCALED footprint on a sizer, so the page stays
 // centered and scrolls correctly at any zoom (mirrors the mini-preview approach).

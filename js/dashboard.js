@@ -283,7 +283,7 @@
 
   // ---------- account center (self-contained; mirrors editor/export) ----------
   window.signOut = function () {
-    ['hf_token', 'hf_email', 'hf_resume', 'hf_jobs', 'hf_ai_results', 'hf_welcome', 'hf_profile'].forEach(function (k) { localStorage.removeItem(k); });
+    ['hf_token', 'hf_email', 'hf_resume', 'hf_jobs', 'hf_jobs_ts', 'hf_ai_results', 'hf_welcome', 'hf_profile'].forEach(function (k) { localStorage.removeItem(k); });
     location.href = '/';
   };
   window.toggleAcctMenu = function (e) {

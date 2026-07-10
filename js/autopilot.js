@@ -255,7 +255,7 @@
   }
 
   // ---------- account center (self-contained, mirrors dashboard) ----------
-  window.signOut = function () { ['hf_token', 'hf_email', 'hf_resume', 'hf_jobs', 'hf_ai_results', 'hf_welcome', 'hf_profile'].forEach(function (k) { localStorage.removeItem(k); }); location.href = '/'; };
+  window.signOut = function () { ['hf_token', 'hf_email', 'hf_resume', 'hf_jobs', 'hf_jobs_ts', 'hf_ai_results', 'hf_welcome', 'hf_profile'].forEach(function (k) { localStorage.removeItem(k); }); location.href = '/'; };
   window.toggleAcctMenu = function (e) { if (e) e.stopPropagation(); var m = document.getElementById('acct-menu'); if (!m) return; if (m.hasAttribute('hidden')) { m.removeAttribute('hidden'); var t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'true'); document.getElementById('acct-center').classList.add('open'); } else { closeAcctMenu(); } };
   window.closeAcctMenu = function () { var m = document.getElementById('acct-menu'); if (!m || m.hasAttribute('hidden')) return; m.setAttribute('hidden', ''); var t = document.getElementById('acct-trigger'); if (t) t.setAttribute('aria-expanded', 'false'); var c = document.getElementById('acct-center'); if (c) c.classList.remove('open'); };
   document.addEventListener('click', function (e) { var c = document.getElementById('acct-center'); if (c && !c.contains(e.target)) closeAcctMenu(); });

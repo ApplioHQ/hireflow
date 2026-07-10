@@ -437,7 +437,9 @@
       "Bash(xmllint --noout sitemap.xml)",
       "Bash(awk '{print $9}')",
       "Bash(xargs -n1 basename)",
-      "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print $c+0, \"\\\\n\"}' worker/worker.js)"
+      "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print $c+0, \"\\\\n\"}' worker/worker.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/ai/win -H 'Content-Type: application/json' -d '{\"text\":\"test\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/ai/bogus -H 'Content-Type: application/json' -d '{}')"
     ]
   }
 }

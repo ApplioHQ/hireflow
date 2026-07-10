@@ -101,6 +101,14 @@
   .win-item:first-child { border-top: 0; }
   .win-item .win-txt { flex: 1; }
   .win-date { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .win-polish { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 600; line-height: 1; padding: 4px 9px; border-radius: 999px; flex-shrink: 0; transition: border-color .12s, color .12s; }
+  .win-polish:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .win-polish:disabled { opacity: .6; cursor: default; }
+  .win-sug { margin-top: 8px; padding: 10px 11px; border: 1px solid var(--accent); border-radius: 8px; background: rgba(99,102,241,.06); }
+  .win-sug .ws-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+  .win-sug .ws-row { display: flex; gap: 8px; margin-top: 8px; }
+  .win-sug .ws-use { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .win-sug .ws-keep { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
   .win-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
   .win-del:hover { color: #ef4444; }
   .win-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }

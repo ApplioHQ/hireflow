@@ -313,7 +313,8 @@
     if (!wins.length) { host.innerHTML = '<li class="win-empty">No wins logged yet. The moment something goes well, jot it here so you never lose it.</li>'; return; }
     host.innerHTML = wins.map(function (w) {
       var when = w.ts ? new Date(w.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
-      return '<li class="win-item"><span class="win-txt">' + esc(w.text) + '<div class="win-date">' + when + '</div></span>'
+      return '<li class="win-item" data-id="' + w.id + '"><span class="win-txt">' + esc(w.text) + '<div class="win-date">' + when + '</div><div class="win-sug" hidden></div></span>'
+        + '<button class="win-polish" data-polish="' + w.id + '" title="Polish into a resume-ready bullet">Polish</button>'
         + '<button class="win-del" data-id="' + w.id + '" title="Delete" aria-label="Delete win">×</button></li>';
     }).join('');
     host.querySelectorAll('.win-del').forEach(function (b) {
@@ -323,6 +324,38 @@
         saveProfile(); renderWins(); renderWinRitual();
       });
     });
+    host.querySelectorAll('.win-polish').forEach(function (b) {
+      b.addEventListener('click', function () { polishWin(b.getAttribute('data-polish'), b); });
+    });
+  }
+
+  // AI-polish a logged win into a resume-ready bullet. Non-destructive: shows the
+  // suggestion inline; the user chooses "Use this" (replaces) or "Keep mine".
+  function polishWin(id, btn) {
+    var w = PROFILE.achievements.filter(function (x) { return String(x.id) === String(id); })[0];
+    if (!w || !API) return;
+    var li = document.querySelector('.win-item[data-id="' + id + '"]');
+    var sug = li && li.querySelector('.win-sug');
+    if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = 'Polishing…';
+    var role = PROFILE.currentRole || PROFILE.targetRole || '';
+    fetch(API + '/ai/win', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ text: w.text, context: { role: role } }) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        btn.disabled = false; btn.textContent = 'Polish';
+        if (!res.ok) { if (window.toast) toast(res.d && res.d.error ? res.d.error : 'Could not polish that one — try again.', { type: 'error' }); return; }
+        var polished = (res.d && res.d.text || '').trim();
+        if (!polished || polished === w.text) { if (window.toast) toast('That one already reads well.', { type: 'info' }); return; }
+        if (!sug) return;
+        sug.hidden = false;
+        sug.innerHTML = '<div class="ws-text">' + esc(polished) + '</div><div class="ws-row"><button class="ws-use">Use this</button><button class="ws-keep">Keep mine</button></div>';
+        sug.querySelector('.ws-use').onclick = function () {
+          w.text = polished.slice(0, 240); saveProfile(); renderWins();
+          if (window.toast) toast('Win polished', { type: 'success' });
+        };
+        sug.querySelector('.ws-keep').onclick = function () { sug.hidden = true; sug.innerHTML = ''; };
+      })
+      .catch(function () { btn.disabled = false; btn.textContent = 'Polish'; if (window.toast) toast('Network error — try again.', { type: 'error' }); });
   }
   function addWin() {
     var input = document.getElementById('win-input');

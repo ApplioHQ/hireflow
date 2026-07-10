@@ -434,7 +434,8 @@
       "mcp__claude-in-chrome__tabs_context_mcp",
       "Bash(node --check js/footer.js)",
       "Bash(node *)",
-      "Bash(xmllint --noout sitemap.xml)"
+      "Bash(xmllint --noout sitemap.xml)",
+      "Bash(awk '{print $9}')"
     ]
   }
 }

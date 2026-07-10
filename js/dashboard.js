@@ -167,6 +167,7 @@
 
   // ---------- quick actions ----------
   var ACTIONS = [
+    { href: 'autopilot', icon: 'target', title: 'Application Autopilot', desc: 'Paste a job → full application, ready' },
     { href: 'editor', icon: 'edit', title: 'Resume Builder', desc: 'Edit and perfect your resume' },
     { href: 'jobs', icon: 'list', title: 'Job Tracker', desc: 'Track every application' },
     { href: 'match', icon: 'gauge', title: 'Best Match', desc: 'Score your resume vs a job' },

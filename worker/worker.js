@@ -61,6 +61,7 @@ export default {
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
       if (path === "/profile" && req.method === "POST") return json(await saveProfile(req, env), 200, cors);
+      if (path === "/attribution" && req.method === "POST") return json(await saveAttribution(req, env), 200, cors);
       if (path === "/jobs" && req.method === "GET")  return json(await getJobs(req, env), 200, cors);
       if (path === "/jobs" && req.method === "POST") return json(await saveJobs(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
@@ -359,9 +360,11 @@ async function adminAnalytics(req, env) {
   }
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
+  const attribution = {};
   const records = await _readAllUserRecords(env);
   for (const u of records) {
     total++;
+    if (u.attribution) attribution[u.attribution] = (attribution[u.attribution] || 0) + 1;
     const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
     plans[plan]++;
     const dl = Number(u.downloadsUsed) || 0;
@@ -476,6 +479,18 @@ async function saveProfile(req, env) {
   const str = JSON.stringify(profile);
   if (str.length > 60000) throw err(413, "Profile too large");
   await env.HIREFLOW_KV.put(`profile:${payload.email.toLowerCase()}`, str);
+  return { ok: true };
+}
+
+// ============ Signup attribution ("where did you hear about us?") ============
+// Stored on the user record so the admin analytics can aggregate the breakdown.
+async function saveAttribution(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const source = String(body.source || "").trim().slice(0, 40);
+  if (!source) return { ok: false };
+  const user = await getUser(env, payload.email).catch(() => null);
+  if (user) { user.attribution = source; user.attributionAt = Date.now(); await putUser(env, user); }
   return { ok: true };
 }
 

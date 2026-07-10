@@ -9,14 +9,17 @@
   --border: #2a2f55;
   --text: #e6e9f5;
   --muted: #9aa3c7;
-  --accent: #6366f1;
+  --accent: #5b54e8;         /* deeper, richer indigo — less "default AI purple" */
+  --accent-deep: #4840cf;    /* button depth / pressed */
   --accent-2: #8b5cf6;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
+  --primary: #4840cf;
+  --primary-hover: #3a33b8;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  /* Reserved for hero moments only (banner, featured tier, hero CTA). Regular
+     buttons use a restrained vertical sheen instead of this diagonal gradient. */
+  --gradient: linear-gradient(135deg, #4840cf 0%, #6d5cf0 100%);
   --gradient-soft: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
 
   /* ---- Design tokens (Tier 1 system) ---- */

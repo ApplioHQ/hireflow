@@ -16,7 +16,7 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --gradient: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%);
+  --gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   --gradient-soft: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
 
   /* ---- Design tokens (Tier 1 system) ---- */
@@ -382,22 +382,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* ===== Misc ===== */
 .banner-gradient {
-  position: relative; overflow: hidden;
-  background: var(--gradient); color: #fff;
+  position: relative;
+  background: var(--primary); color: #fff;
   padding: 11px 13px; border-radius: var(--r-md);
   font-size: 12.5px; font-weight: 600; letter-spacing: .01em;
   margin: 0 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  box-shadow: 0 6px 18px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.20);
+  box-shadow: var(--sh-1);
 }
-/* Soft light sweep so the copilot badge feels alive */
-.banner-gradient::after {
-  content: ""; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent);
-  transform: skewX(-20deg); animation: bannerShine 5.5s ease-in-out infinite; pointer-events: none;
-}
-@keyframes bannerShine { 0%, 55% { left: -60%; } 100% { left: 135%; } }
 .banner-gradient > span:first-child { position: relative; z-index: 1; }
-.banner-gradient .ico { filter: drop-shadow(0 0 6px rgba(255,255,255,.55)); }
 .kbd {
   position: relative; z-index: 1; font-family: ui-monospace, "SF Mono", monospace; font-weight: 700;
   background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.30);

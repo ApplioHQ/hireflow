@@ -1734,6 +1734,15 @@ function renderCustomize() {
 }
 function resetSectionOrder(){ resume.customize.sectionOrder = ALL_SECTIONS.slice(); save(); renderMain(); toast('Section order reset', {type:'info'}); }
 const ALL_SECTIONS = ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications'];
+// Does a section actually have content? An empty section never renders on the resume
+// even when its visibility toggle is on, so the Customize list marks it "empty".
+function _sectionHasContent(k) {
+  if (k === 'skills') {
+    const cats = (resume.skills && resume.skills.categories) || [];
+    return cats.some(c => c && Array.isArray(c.items) && c.items.length > 0);
+  }
+  return Array.isArray(resume[k]) && resume[k].length > 0;
+}
 // Current section order: saved order (valid keys only) + any missing sections appended.
 function _sectionOrder() {
   const saved = (resume.customize.sectionOrder || []).filter(k => ALL_SECTIONS.includes(k));

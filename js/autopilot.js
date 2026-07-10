@@ -50,10 +50,11 @@
     var resume = readResume();
     if (!resume || !Object.keys(resume).length) { refreshResumeNote(); if (window.toast) toast('Build your résumé first', { type: 'warn' }); return; }
 
-    // Premium gate (backend also enforces): give a clean upsell instead of a wasted call.
+    // Free users get a real fit check computed client-side (no AI, no cost): the fit
+    // verdict + matched/missing keywords. The tailored résumé + cover letter stay Premium.
     var admin = (typeof isAdmin === 'function' && isAdmin());
     var paid = (typeof isPaid === 'function' && isPaid());
-    if (!paid && !admin) { renderUpgrade(); els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (!paid && !admin) { runFree(jd, resume); els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
 
     setLoading(true);
     els.results.classList.remove('show');

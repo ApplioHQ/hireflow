@@ -404,7 +404,8 @@
       "Bash(LC_ALL=C perl -0777 -i -pe 's{\\(<script src=\"js/editor.js\">\\)}{<script src=\"js/jobsync.js\"></script>\\\\n$1}' editor.html)",
       "Bash(node jobsync2.js)",
       "Bash(node app_sweep.js)",
-      "Bash(awk '/:root *\\\\{/,/^\\\\}/' css/styles.css)"
+      "Bash(awk '/:root *\\\\{/,/^\\\\}/' css/styles.css)",
+      "Bash(grep -nA4 '\\\\.dash-hero {' dashboard.html)"
     ]
   }
 }

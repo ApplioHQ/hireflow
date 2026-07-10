@@ -233,7 +233,56 @@
     });
   }
 
-  // ---------- win journal ----------
+  // ---------- win journal: weekly ritual + streak ----------
+  // Weeks are anchored to Mon 2024-01-01 (a Monday) so every device buckets the
+  // same way regardless of timezone quirks. A "win week" is any week with >=1 win.
+  var WEEK = 7 * DAY;
+  var MON0 = Date.UTC(2024, 0, 1);           // Monday, Jan 1 2024
+  function weekIndex(ts) { return Math.floor((ts - MON0) / WEEK); }
+  function winWeekSet() {
+    var s = {};
+    (PROFILE.achievements || []).forEach(function (w) { if (w && w.ts) s[weekIndex(w.ts)] = 1; });
+    return s;
+  }
+  // Consecutive weeks with a win, ending at this week (or last week if this week
+  // is still empty — so the streak doesn't "break" just because it's Monday).
+  function winStreak() {
+    var set = winWeekSet(), now = weekIndex(Date.now());
+    var start = set[now] ? now : (set[now - 1] ? now - 1 : null);
+    if (start == null) return 0;
+    var n = 0; while (set[start]) { n++; start--; }
+    return n;
+  }
+  function loggedThisWeek() { return !!winWeekSet()[weekIndex(Date.now())]; }
+
+  function renderWinRitual() {
+    var host = document.getElementById('win-ritual');
+    if (!host) return;
+    var set = winWeekSet(), now = weekIndex(Date.now()), streak = winStreak(), here = loggedThisWeek();
+    var total = (PROFILE.achievements || []).length;
+    // 8-week habit strip (oldest → this week), GitHub-contribution style.
+    var dots = '';
+    for (var i = 7; i >= 0; i--) {
+      var wk = now - i;
+      var cls = set[wk] ? 'on' : '';
+      if (wk === now && !set[wk]) cls = 'now';
+      dots += '<span class="wr-dot ' + cls + '" title="' + (set[wk] ? 'Win logged' : 'No win') + '"></span>';
+    }
+    var line;
+    if (!total) {
+      line = '<strong>Start your win streak.</strong> Log one thing that went well — it becomes a resume bullet and review-ready proof later.';
+    } else if (here) {
+      line = '<strong>Logged this week ✓</strong>' + (streak > 1 ? ' — ' + streak + '-week streak. Keep it going.' : ' — nice. Come back next week to build a streak.');
+    } else {
+      line = '<strong>What went well this week?</strong> ' + (streak >= 1 ? 'Log a win to keep your ' + streak + '-week streak alive.' : 'One quick win keeps your resume current all year.');
+    }
+    host.className = 'win-ritual' + (here ? ' done' : '');
+    host.innerHTML =
+      '<div class="wr-head"><span class="wr-streak">' + (streak >= 1 ? streak + '-week streak' : 'Weekly win') + '</span>'
+        + '<div class="wr-weeks">' + dots + '</div></div>'
+      + '<div class="wr-line">' + line + '</div>';
+  }
+
   function renderWins() {
     var host = document.getElementById('win-list');
     var wins = PROFILE.achievements;
@@ -247,7 +296,7 @@
       b.addEventListener('click', function () {
         var id = b.getAttribute('data-id');
         PROFILE.achievements = PROFILE.achievements.filter(function (w) { return String(w.id) !== String(id); });
-        saveProfile(); renderWins();
+        saveProfile(); renderWins(); renderWinRitual();
       });
     });
   }
@@ -260,6 +309,7 @@
     saveProfile();
     input.value = '';
     renderWins();
+    renderWinRitual();
     if (window.toast) toast('Win logged', { type: 'success' });
   }
   function wireWins() {
@@ -334,6 +384,7 @@
   hydrateProfileForm();
   wireProfile();
   renderWins();
+  renderWinRitual();
   wireWins();
   hydrateAccount();
 

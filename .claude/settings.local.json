@@ -408,7 +408,8 @@
       "Bash(grep -nA4 '\\\\.dash-hero {' dashboard.html)",
       "Bash(node dash_after.js)",
       "Bash(grep -nA6 'customize' js/editor.js)",
-      "Bash(python3 -c \"import sys,json;print\\(json.load\\(sys.stdin\\).get\\('text',''\\)\\)\")"
+      "Bash(python3 -c \"import sys,json;print\\(json.load\\(sys.stdin\\).get\\('text',''\\)\\)\")",
+      "Bash(grep -nA4 '\\\\.btn-primary *\\\\{' css/styles.css)"
     ]
   }
 }

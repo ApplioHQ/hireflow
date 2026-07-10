@@ -2322,8 +2322,6 @@ function _applyFullZoom() {
   sizer.style.height = Math.round(_fullContentH * _fullZoom) + 'px';
   const lbl = document.getElementById('full-zoom-label');
   if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';
-  const scroll = document.getElementById('full-scroll');
-  if (scroll) scroll.classList.toggle('fp-zoomed', !_fullFit && _fullZoom > _fitScale() + 0.001);
   _fpUpdateNav();
 }
 
@@ -2385,15 +2383,16 @@ function _buildFullOverlay() {
     '#full-preview-overlay .fp-zbtn{width:32px;height:30px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#fff;border-radius:8px;cursor:pointer;font-size:17px;line-height:1;transition:background .12s;}' +
     '#full-preview-overlay .fp-zbtn:hover{background:rgba(255,255,255,.14);}' +
     '#full-preview-overlay .fp-zlabel{min-width:52px;text-align:center;font-size:13px;font-weight:600;color:#fff;cursor:pointer;user-select:none;}' +
+    '#full-preview-overlay .fp-fitgroup{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:3px;}' +
+    '#full-preview-overlay .fp-fitbtn{border:0;background:transparent;color:#c7cbe0;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}' +
+    '#full-preview-overlay .fp-fitbtn:hover{background:rgba(255,255,255,.12);color:#fff;}' +
+    '#full-preview-overlay .fp-fitbtn.on{background:rgba(255,255,255,.16);color:#fff;}' +
     '#full-preview-overlay .fp-export{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:0 6px 18px rgba(99,102,241,.35);transition:transform .12s,box-shadow .12s;}' +
     '#full-preview-overlay .fp-export:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.45);}' +
     '#full-preview-overlay .fp-close{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 13px;font-size:13px;cursor:pointer;transition:background .12s;}' +
     '#full-preview-overlay .fp-close:hover{background:rgba(255,255,255,.16);}' +
     '#full-preview-overlay .fp-close kbd{font:600 10px ui-monospace,monospace;background:rgba(255,255,255,.14);border-radius:4px;padding:1px 5px;}' +
-    '#full-preview-overlay .fp-scroll{flex:1;overflow:auto;display:flex;justify-content:safe center;align-items:flex-start;padding:34px 24px 90px;scroll-behavior:smooth;cursor:default;}' +
-    '#full-preview-overlay .fp-scroll.fp-zoomed{cursor:grab;}' +
-    '#full-preview-overlay .fp-scroll.fp-panning{cursor:grabbing;scroll-behavior:auto;}' +
-    '#full-preview-overlay .fp-scroll.fp-panning *{pointer-events:none;}' +
+    '#full-preview-overlay .fp-scroll{flex:1;overflow:auto;display:flex;justify-content:safe center;align-items:flex-start;padding:34px 24px 90px;overscroll-behavior:contain;}' +
     '#full-preview-overlay .fp-sizer{position:relative;flex:none;margin:0 auto;}' +
     '#full-preview-overlay #full-frame{position:absolute;top:0;left:0;width:' + CANVAS_W + 'px;border:0;background:#fff;border-radius:3px;box-shadow:0 30px 90px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);}' +
     '#full-preview-overlay.hf-fp-in .fp-sizer{animation:fpRise .3s cubic-bezier(.2,.7,.2,1) both;}' +
@@ -2412,9 +2411,12 @@ function _buildFullOverlay() {
         '<button class="fp-fit1" id="fp-fit1" title="Compress the résumé to fit exactly one page"><span class="dot"></span>Fit to 1 page</button></div>' +
       '<div class="fp-zoom">' +
         '<button class="fp-zbtn" id="fz-out" title="Zoom out (−)" aria-label="Zoom out">−</button>' +
-        '<span class="fp-zlabel" id="full-zoom-label" title="Fit to width (press 0)">100%</span>' +
+        '<span class="fp-zlabel" id="full-zoom-label" title="Reset to fit (press 0)">100%</span>' +
         '<button class="fp-zbtn" id="fz-in" title="Zoom in (+)" aria-label="Zoom in">+</button>' +
-        '<button class="fp-zbtn" id="fz-fit" title="Fit width" aria-label="Fit width">⤡</button>' +
+      '</div>' +
+      '<div class="fp-fitgroup">' +
+        '<button class="fp-fitbtn" id="fz-fitw" title="Fit page width (press 0)">Fit width</button>' +
+        '<button class="fp-fitbtn" id="fz-fitpage" title="Fit a whole page (press 9)">Fit page</button>' +
       '</div>' +
       '<div class="fp-right">' +
         '<a class="fp-export" href="export">Export PDF →</a>' +

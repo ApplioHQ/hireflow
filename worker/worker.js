@@ -1509,6 +1509,64 @@ Requirements:
   return { text: cleaned };
 }
 
+// ============ Application Autopilot ============
+// The flagship one-shot flow: given a job description + the user's resume, produce a
+// complete application packet. Reuses the already-tuned ATS, Tailor, and Cover Letter
+// analyses, run in PARALLEL, then derives an apply/stretch/skip verdict. Fail-soft:
+// any sub-analysis that errors comes back null so the rest of the packet still lands.
+// Cached as a unit so re-running the same job is free.
+async function aiAutopilot(env, { jobDescription, resume, tone, role, company }) {
+  if (!jobDescription || jobDescription.trim().length < 40) {
+    throw err(400, "Paste the job description (at least a few lines) so Autopilot has something to work with.");
+  }
+  if (!resume || typeof resume !== "object" || !Object.keys(resume).length) {
+    throw err(400, "Build or import your resume first — Autopilot tailors it to the job.");
+  }
+  const cacheKey = (jobDescription || "").slice(0, 4000) + " " +
+    JSON.stringify(resume || {}).slice(0, 7000) + " " + (tone || "") + " " +
+    (role || "") + " " + (company || "");
+  const cached = await aiCacheGet(env, "autopilot", cacheKey);
+  if (cached) return cached;
+
+  const [atsR, tailorR, coverR] = await Promise.allSettled([
+    aiATS(env, { jobDescription, resume }),
+    aiTailor(env, { jobDescription, resume }),
+    aiCoverLetter(env, { role: role || "", company: company || "", jobDescription, tone, resume }),
+  ]);
+  const ats    = atsR.status === "fulfilled" ? atsR.value : null;
+  const tailor = tailorR.status === "fulfilled" ? tailorR.value : null;
+  const cover  = coverR.status === "fulfilled" ? coverR.value : null;
+
+  // Verdict from the ATS score: strong fit / worth a shot / long shot.
+  const score = ats && typeof ats.score === "number" ? ats.score : null;
+  let verdict = "stretch", label = "Worth a shot";
+  if (score != null) {
+    if (score >= 75)      { verdict = "apply";   label = "Strong fit — apply"; }
+    else if (score >= 55) { verdict = "stretch"; label = "Worth a shot — a few gaps to close"; }
+    else                  { verdict = "skip";    label = "Long shot — only if you can close the gaps"; }
+  }
+
+  const dedupe = (arr) => [...new Set((arr || []).filter(k => typeof k === "string" && k.trim()))];
+  const missingKeywords = dedupe([...(ats && ats.missingKeywords || []), ...(tailor && tailor.missingKeywords || [])]).slice(0, 12);
+
+  const out = {
+    fit: { score, verdict, label },
+    ats: ats ? { score: ats.score, breakdown: ats.breakdown, feedback: ats.feedback, wins: ats.wins || [], issues: ats.issues || [] } : null,
+    tailor: tailor ? {
+      summary: tailor.summary || null,
+      matchedKeywords: tailor.matchedKeywords || [],
+      emphasize: tailor.emphasize || [],
+      bulletSuggestions: tailor.bulletSuggestions || [],
+    } : null,
+    missingKeywords,
+    coverLetter: cover ? cover.text : null,
+    failed: { ats: atsR.status === "rejected", tailor: tailorR.status === "rejected", cover: coverR.status === "rejected" },
+  };
+  // Only cache when at least one analysis succeeded (don't lock in a total failure).
+  if (ats || tailor || cover) await aiCachePut(env, "autopilot", cacheKey, out, 86400);
+  return out;
+}
+
 // Robustly pull a JSON value out of a model reply. Handles: clean JSON, ```json
 // fences, prose wrappers, arrays as well as objects, and trailing-comma / truncation
 // damage. Returns null only if nothing salvageable parses.

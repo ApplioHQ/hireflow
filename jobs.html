@@ -125,6 +125,7 @@
 <script src="js/icons.js"></script>
 <script src="js/notify.js"></script>
 <script src="js/health-badge.js"></script>
+<script src="js/jobsync.js"></script>
 <script>
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login';
@@ -156,7 +157,7 @@ function _followUpDays(j){
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function _save(){
-  try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); return true; }
+  try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); if (window.HFJobsSync) HFJobsSync.push(); return true; }
   catch(e){ toast('Could not save, your browser storage may be full', { type:'error', duration:4500 }); return false; }
 }
 function toggleForm(){

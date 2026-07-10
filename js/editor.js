@@ -1723,7 +1723,7 @@ function renderCustomize() {
                  aria-label="${k} section. Drag, or press arrow up or down, to reorder.">
               <span style="display:flex; align-items:center; gap:10px;">
                 <span class="sec-grip" aria-hidden="true" title="Drag to reorder"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="5" cy="4" r="1.4"/><circle cx="11" cy="4" r="1.4"/><circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/><circle cx="5" cy="12" r="1.4"/><circle cx="11" cy="12" r="1.4"/></svg></span>
-                <span style="text-transform:capitalize;${c.sections[k]?'':'opacity:.5;'}">${k}</span>
+                <span style="text-transform:capitalize;${(c.sections[k] && _sectionHasContent(k))?'':'opacity:.5;'}">${k}${_sectionHasContent(k) ? '' : ' <span style="text-transform:none;font-size:11px;color:var(--muted);font-weight:400;" title="This section has no content yet, so it won\'t appear on your resume until you add some.">· empty</span>'}</span>
               </span>
               <div class="toggle ${c.sections[k]?'on':''}" role="switch" tabindex="0" aria-checked="${!!c.sections[k]}" aria-label="Show ${k} section" onclick="toggleSection('${k}')"></div>
             </div>`).join('')}

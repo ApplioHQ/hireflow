@@ -441,7 +441,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/ai/win -H 'Content-Type: application/json' -d '{\"text\":\"test\"}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/ai/bogus -H 'Content-Type: application/json' -d '{}')",
       "Bash(LC_ALL=C perl -i -pe 's/\\\\x00/\\\\\\\\u0000/g' worker/worker.js)",
-      "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print $c+0,\"\\\\n\"}' worker/worker.js)"
+      "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print $c+0,\"\\\\n\"}' worker/worker.js)",
+      "Bash(curl -s -o /dev/null -w 'status=%{http_code} type=%{content_type}\\\\n' https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe)",
+      "Bash(curl -s https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe)"
     ]
   }
 }

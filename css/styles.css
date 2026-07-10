@@ -326,6 +326,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .add-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(99,102,241,.05); }
 
+/* Win journal → bullet inserter (Experience/Projects entries) */
+.wins-helper { margin-top: 8px; }
+.wins-toggle { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12px; font-weight: 600; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 2px 0; }
+.wins-toggle:hover { color: var(--text); }
+.wins-panel { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.wins-panel[hidden] { display: none; }
+.wins-chip { font: inherit; font-size: 12.5px; line-height: 1.4; text-align: left; padding: 8px 11px; border-radius: var(--r-sm); background: var(--bg-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+.wins-chip:hover { border-color: var(--accent); background: var(--bg-3); }
+.wins-chip::before { content: '+ '; color: var(--accent); font-weight: 700; }
+
 /* ===== Tags ===== */
 .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .tag {

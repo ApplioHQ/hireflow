@@ -908,9 +908,45 @@ function itemCard(key, idx, fields, longField, longValue) {
             oninput="_liveBM(this,'bm_${key}_${idx}')"
             >${esc(longValue||'')}</textarea>
           ${longField === 'description' ? '<div id="bmbar_' + key + '_' + idx + '" class="bm-bar-wrap"></div>' : ''}
+          ${longField === 'description' ? _winsHelper(key, idx) : ''}
         </div>` : ''}
       </div>
     </div>`;
+}
+
+// ============ Win journal → bullets ============
+// Surfaces the accomplishments the user logged on the dashboard (hf_profile) so they
+// can drop one into any Experience/Projects entry as a bullet in one click.
+function _loggedWins() {
+  try { const p = JSON.parse(localStorage.getItem('hf_profile') || '{}'); return Array.isArray(p.achievements) ? p.achievements : []; }
+  catch (e) { return []; }
+}
+function _winsHelper(key, idx) {
+  const wins = _loggedWins();
+  if (!wins.length) return '';
+  const pid = 'wins_' + key + '_' + idx;
+  return '<div class="wins-helper">'
+    + '<button type="button" class="wins-toggle" onclick="_toggleWins(\'' + pid + '\')">'
+    + ICON('sparkle', 'ico ico-sm') + ' Add from your win journal (' + wins.length + ')</button>'
+    + '<div class="wins-panel" id="' + pid + '" hidden>'
+    + wins.map((w, i) => '<button type="button" class="wins-chip" title="Add as a bullet" onclick="_insertWin(\'' + key + '\',' + idx + ',' + i + ')">' + esc(w.text) + '</button>').join('')
+    + '</div></div>';
+}
+function _toggleWins(pid) {
+  const el = document.getElementById(pid);
+  if (el) el.hidden = !el.hidden;
+}
+function _insertWin(key, idx, i) {
+  const wins = _loggedWins();
+  const w = wins[i];
+  if (!w) return;
+  const ta = document.querySelector('[data-bind="' + key + '.' + idx + '.description"]');
+  if (!ta) return;
+  const cur = (ta.value || '').replace(/\s+$/, '');
+  ta.value = (cur ? cur + '\n' : '') + '• ' + w.text;
+  ta.dispatchEvent(new Event('input', { bubbles: true }));   // triggers bindAutoSave + bullet meter + autogrow
+  ta.focus();
+  if (typeof toast === 'function') toast('Added to your bullets', { type: 'success' });
 }
 
 // Score a description/bullets block 0–100

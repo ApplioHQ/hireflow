@@ -1943,7 +1943,7 @@ function _renderFitIndicator(ratio, pages) {
   } else {
     // Long resumes are legitimate (senior / academic). Encourage, don't scold.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = '📄 ' + pages + ' pages, fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
+    text = pages + ' pages — fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
   }
   ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
   ind.textContent = text;

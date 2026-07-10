@@ -327,6 +327,10 @@ document.getElementById('add-btn').innerHTML = `${ICON('plus','ico ico-sm')} <sp
 document.getElementById('empty-icon').innerHTML = ICON('briefcase','ico ico-lg').replace('class="ico ico-lg"','class="ico" style="width:48px;height:48px;"');
 document.getElementById('empty-btn').innerHTML = `${ICON('plus','ico ico-sm')} <span>Add Your First Job</span>`;
 render();
+// Pull cloud jobs; if a newer set exists (e.g. added on another device), adopt + re-render.
+if (window.HFJobsSync) HFJobsSync.pull(function (adopted) {
+  if (adopted) { try { jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(jobs)) jobs = []; } catch (e) { jobs = []; } render(); }
+});
 </script>
   <script src="js/appnav.js"></script>
 </body>

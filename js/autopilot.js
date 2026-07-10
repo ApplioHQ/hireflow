@@ -248,7 +248,7 @@
       var now = Date.now();
       jobs.unshift({ id: now, addedAt: now, statusAt: now, title: role || 'Role', company: company || 'Company', location: '', status: 'Saved',
         notes: 'Added by Autopilot' + (d.fit && typeof d.fit.score === 'number' ? ' · fit ' + d.fit.score + '/100' : '') });
-      try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
+      try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); if (window.HFJobsSync) HFJobsSync.push(); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
       saveBtn.textContent = '✓ Saved to tracker'; saveBtn.disabled = true;
       if (window.toast) toast('Saved to Job Tracker', { type: 'success' });
     });

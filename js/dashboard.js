@@ -346,4 +346,9 @@
   pullProfile().then(function (adopted) {
     if (adopted) { hydrateProfileForm(); renderWins(); renderGreeting(); renderNudges(); }
   });
+
+  // Pull cloud jobs; if newer, the pipeline / nudges / greeting reflect them.
+  if (window.HFJobsSync) HFJobsSync.pull(function (adopted) {
+    if (adopted) { renderPipe(); renderNudges(); renderGreeting(); }
+  });
 })();

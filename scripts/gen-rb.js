@@ -22,6 +22,7 @@ const STYLE = `
   .gd-section { margin-top: 34px; }
   .gd-section h2 { font-size: 22px; font-weight: 700; letter-spacing:-.3px; margin-bottom: 12px; }
   .gd-section p, .gd-section li { color: var(--text); line-height: 1.75; font-size: 15.5px; }
+  .gd-section p { margin-bottom: 12px; } .gd-section p:last-child { margin-bottom: 0; }
   .gd-section ul, .gd-section ol { padding-left: 20px; } .gd-section li { margin-bottom: 8px; }
   .gd-section a { color: var(--accent); } .gd-section a:hover { text-decoration: underline; }
   .gd-faq { margin-top: 40px; }

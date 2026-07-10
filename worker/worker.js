@@ -467,6 +467,24 @@ async function saveProfile(req, env) {
   return { ok: true };
 }
 
+// ============ Job tracker (cross-device sync of the application pipeline) ============
+// Stored as { jobs:[...], updatedAt } so the client can do last-write-wins.
+async function getJobs(req, env) {
+  const payload = await authenticate(req, env);
+  const raw = await env.HIREFLOW_KV.get(`jobs:${payload.email.toLowerCase()}`);
+  return raw ? JSON.parse(raw) : { jobs: null, updatedAt: 0 };
+}
+async function saveJobs(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const jobs = Array.isArray(body.jobs) ? body.jobs : [];
+  const doc = { jobs, updatedAt: body.updatedAt || Date.now() };
+  const str = JSON.stringify(doc);
+  if (str.length > 200000) throw err(413, "Too many jobs to sync");
+  await env.HIREFLOW_KV.put(`jobs:${payload.email.toLowerCase()}`, str);
+  return { ok: true };
+}
+
 // ============ Downloads ============
 async function incrementDownload(req, env) {
   const payload = await authenticate(req, env);

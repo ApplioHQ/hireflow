@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>First 90 Days, Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .n90-main { max-width: 1040px; margin: 0 auto; padding: 24px 20px 90px; }
+  .n90-intro { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 6px 0 18px; max-width: 680px; }
+  .n90-setup { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); margin-bottom: 16px; }
+  .n90-setup .fld { display: flex; flex-direction: column; gap: 5px; }
+  .n90-setup label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .n90-setup input { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 8px 10px; font-size: 13px; font-family: inherit; }
+  .n90-setup .day-badge { margin-left: auto; text-align: right; }
+  .n90-day { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+  .n90-day span { color: var(--muted); font-weight: 600; font-size: 13px; }
+  .n90-prog { height: 8px; border-radius: 999px; background: var(--bg-3); overflow: hidden; margin: 4px 0 20px; }
+  .n90-prog > i { display: block; height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width .3s ease; }
+  .n90-prog-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+  .n90-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 880px) { .n90-grid { grid-template-columns: 1fr; } }
+  .n90-phase { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); padding: 16px; display: flex; flex-direction: column; }
+  .n90-phase.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--sh-1); }
+  .n90-phase h3 { font-size: 15px; font-weight: 700; }
+  .n90-phase .ph-sub { font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
+  .n90-phase .ph-count { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .n90-tasks { list-style: none; padding: 0; margin: 0 0 10px; }
+  .n90-task { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; font-size: 13px; line-height: 1.45; }
+  .n90-task input { margin-top: 2px; accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+  .n90-task label { cursor: pointer; flex: 1; }
+  .n90-task.checked label { color: var(--muted); text-decoration: line-through; }
+  .n90-task .t-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; opacity: 0; flex-shrink: 0; }
+  .n90-task:hover .t-del { opacity: 1; }
+  .n90-task .t-del:hover { color: #ef4444; }
+  .n90-add { display: flex; gap: 6px; margin-top: auto; }
+  .n90-add input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 7px 9px; font-size: 12.5px; font-family: inherit; }
+  .n90-add button { background: var(--bg-3); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 0 12px; font-size: 13px; cursor: pointer; }
+  .n90-add button:hover { border-color: var(--accent); }
+
+  .n90-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .n90-cols { grid-template-columns: 1fr; } }
+  .n90-card { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); padding: 16px; }
+  .n90-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .n90-card .c-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .n90-people { list-style: none; padding: 0; margin: 0; }
+  .n90-q { list-style: none; padding: 0; margin: 0; }
+  .n90-q li { position: relative; padding: 7px 0 7px 18px; font-size: 13px; line-height: 1.5; color: var(--text); }
+  .n90-q li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a class="brand" href="dashboard" style="text-decoration:none;color:inherit;"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="dashboard">Home</a>
+    <a class="topbar-tab" href="autopilot">Autopilot</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="cover-letter">Cover Letter</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <span id="plan-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="n90-main">
+  <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;">Your first 90 days</h1>
+  <p class="n90-intro">The first three months in a new role decide how you're seen for years. This plan keeps you focused on the right things — learning, relationships, then delivery — so you ramp fast and start strong. Check items off as you go; it saves automatically and follows you across devices.</p>
+
+  <div class="n90-setup">
+    <div class="fld"><label for="n90-role">Role</label><input id="n90-role" type="text" placeholder="e.g. Senior Product Manager" maxlength="80"></div>
+    <div class="fld"><label for="n90-company">Company</label><input id="n90-company" type="text" placeholder="e.g. NorthStar" maxlength="80"></div>
+    <div class="fld"><label for="n90-start">Start date</label><input id="n90-start" type="date"></div>
+    <div class="day-badge"><div class="n90-day" id="n90-day">Day —</div></div>
+  </div>
+
+  <div class="n90-prog-label" id="n90-prog-label">0 of 0 done</div>
+  <div class="n90-prog"><i id="n90-prog-bar" style="width:0%"></i></div>
+
+  <div class="n90-grid" id="n90-grid"></div>
+
+  <div class="n90-cols">
+    <div class="n90-card">
+      <h3>People to meet</h3>
+      <div class="c-sub">Relationships are the hidden half of onboarding. Check each off once you've connected.</div>
+      <ul class="n90-people" id="n90-people"></ul>
+    </div>
+    <div class="n90-card">
+      <h3>Questions for your manager</h3>
+      <div class="c-sub">Bring these to an early 1:1 — clarity now prevents months of guessing.</div>
+      <ul class="n90-q" id="n90-questions"></ul>
+    </div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/first90.js"></script>
+<script src="js/appnav.js"></script>
+</body>
+</html>

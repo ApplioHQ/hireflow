@@ -2193,7 +2193,9 @@ function _fullKeyHandler(e) {
 function _fitScale() {
   const scroll = document.getElementById('full-scroll');
   if (!scroll || !scroll.clientWidth) return 1;
-  return Math.max(0.4, Math.min(1.4, (scroll.clientWidth - 56) / PAGE_W));
+  // Fit against CANVAS_W (page + gray side margins), not PAGE_W — the iframe renders
+  // the full canvas, so fitting to PAGE_W left the content ~10% too wide (right edge clipped).
+  return Math.max(0.4, Math.min(1.4, (scroll.clientWidth - 56) / CANVAS_W));
 }
 function _fitFullPreview() { _fullFit = true; _fullZoom = _fitScale(); _applyFullZoom(); }
 function setFullZoom(delta) {
@@ -2209,7 +2211,9 @@ function _applyFullZoom() {
   if (!f || !sizer) return;
   f.style.transformOrigin = 'top left';
   f.style.transform = 'scale(' + _fullZoom + ')';
-  sizer.style.width = Math.round(PAGE_W * _fullZoom) + 'px';
+  // Sizer reserves the SCALED footprint of the full canvas (page + side margins), so
+  // horizontal scroll/centering match the actual content width.
+  sizer.style.width = Math.round(CANVAS_W * _fullZoom) + 'px';
   sizer.style.height = Math.round(_fullContentH * _fullZoom) + 'px';
   const lbl = document.getElementById('full-zoom-label');
   if (lbl) lbl.textContent = Math.round(_fullZoom * 100) + '%';

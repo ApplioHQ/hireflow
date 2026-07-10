@@ -59,6 +59,8 @@ export default {
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
+      if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
+      if (path === "/profile" && req.method === "POST") return json(await saveProfile(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);
@@ -442,6 +444,25 @@ async function getResume(req, env) {
   const payload = await authenticate(req, env);
   const raw = await env.HIREFLOW_KV.get(`resume:${payload.email.toLowerCase()}`);
   return { resume: raw ? JSON.parse(raw) : null };
+}
+
+// ============ Career profile (dashboard: goals, target role, win journal) ============
+// Small per-user document that makes the copilot "know you" across devices. Kept
+// separate from the resume so the dashboard can sync it independently.
+async function getProfile(req, env) {
+  const payload = await authenticate(req, env);
+  const raw = await env.HIREFLOW_KV.get(`profile:${payload.email.toLowerCase()}`);
+  return { profile: raw ? JSON.parse(raw) : null };
+}
+async function saveProfile(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const profile = body && typeof body.profile === "object" && body.profile ? body.profile : {};
+  // Guard against runaway size (the win journal is capped client-side, but be safe).
+  const str = JSON.stringify(profile);
+  if (str.length > 60000) throw err(413, "Profile too large");
+  await env.HIREFLOW_KV.put(`profile:${payload.email.toLowerCase()}`, str);
+  return { ok: true };
 }
 
 // ============ Downloads ============

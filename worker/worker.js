@@ -873,6 +873,90 @@ async function listFeedback(req, env) {
   return { feedback };
 }
 
+// ============ Weekly "log your win" email nudge (cron-driven) ============
+// Retention loop: if someone who has used the Win Journal hasn't logged a win in a
+// week, send ONE gentle prompt. Fully inert until env.RESEND_API_KEY is set.
+// Respects unsubscribes and never emails the same person more than ~weekly.
+const WIN_NUDGE_MAX_SENDS = 200;   // per run — bounds cost + protects sender reputation
+const WIN_NUDGE_SCAN_CAP = 3000;   // profiles scanned per run
+
+// Short, stable, unguessable per-email unsubscribe token derived from JWT_SECRET.
+async function winUnsubToken(env, email) {
+  return (await hmacHex(env.JWT_SECRET || "x", "winunsub:" + email.toLowerCase())).slice(0, 32);
+}
+
+function unsubPage(title, msg) {
+  return new Response(
+    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">`
+    + `<title>${title}</title>`
+    + `<div style="font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:520px;margin:12vh auto;padding:0 24px;color:#111;text-align:center;">`
+    + `<div style="font-weight:800;font-size:20px;margin-bottom:8px;">${title}</div>`
+    + `<p style="color:#555;">${msg}</p>`
+    + `<p style="margin-top:24px;"><a href="https://appliohq.com/dashboard" style="color:#4f46e5;font-weight:600;">Back to Applio &rarr;</a></p></div>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+}
+
+async function handleUnsubscribe(url, env) {
+  const email = (url.searchParams.get("e") || "").toLowerCase().trim();
+  const token = url.searchParams.get("t") || "";
+  if (!email || !token) return unsubPage("Invalid link", "This unsubscribe link is missing information.");
+  const good = await winUnsubToken(env, email);
+  if (token.length !== good.length || token !== good) return unsubPage("Invalid link", "This unsubscribe link isn't valid. If you keep getting emails, just reply and we'll remove you.");
+  await env.HIREFLOW_KV.put(`winmail_off:${email}`, "1");
+  return unsubPage("You're unsubscribed", "You won't get the weekly win reminder anymore. You can still log wins anytime from your dashboard.");
+}
+
+async function runWeeklyWinNudge(env) {
+  if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
+  const now = Date.now();
+  const WEEK = 7 * 86400000;
+  let cursor, scanned = 0, sent = 0;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "profile:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      if (scanned >= WIN_NUDGE_SCAN_CAP || sent >= WIN_NUDGE_MAX_SENDS) { cursor = null; break; }
+      scanned++;
+      const email = k.name.slice("profile:".length);
+      if (!email || !email.includes("@")) continue;
+      if (await env.HIREFLOW_KV.get(`winmail_off:${email}`)) continue;   // opted out
+      if (await env.HIREFLOW_KV.get(`winmail_last:${email}`)) continue;  // emailed within the weekly window
+      let profile;
+      try { profile = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
+      const wins = profile && Array.isArray(profile.achievements) ? profile.achievements : [];
+      if (!wins.length) continue;                          // never nag people who haven't used it
+      const lastWin = wins.reduce((m, w) => Math.max(m, (w && w.ts) || 0), 0);
+      if (lastWin && now - lastWin < WEEK) continue;       // logged one recently — leave them be
+      if (await sendWinNudgeEmail(env, email, wins.length)) {
+        sent++;
+        await env.HIREFLOW_KV.put(`winmail_last:${email}`, String(now), { expirationTtl: 561600 }); // ~6.5 days
+      }
+    }
+  } while (cursor);
+  return { ok: true, scanned, sent };
+}
+
+async function sendWinNudgeEmail(env, email, winCount) {
+  const from = env.MAIL_FROM || "Applio <noreply@appliohq.com>";
+  const unsub = `https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe?e=${encodeURIComponent(email)}&t=${await winUnsubToken(env, email)}`;
+  const addr = env.MAILING_ADDRESS || "";
+  const html = `<!doctype html><meta charset="utf-8"><div style="font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111;">`
+    + `<div style="font-weight:800;font-size:20px;color:#4f46e5;margin-bottom:12px;">Applio</div>`
+    + `<p style="font-size:18px;font-weight:700;margin:0 0 8px;">What went well this week?</p>`
+    + `<p style="color:#444;margin:0 0 18px;">Take 30 seconds to log one win while it's fresh. It becomes a resume bullet and review-ready proof later &mdash; and keeps your streak going.</p>`
+    + `<p style="margin:0 0 24px;"><a href="https://appliohq.com/dashboard" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:8px;">Log this week's win &rarr;</a></p>`
+    + `<hr style="border:0;border-top:1px solid #eee;margin:24px 0 12px;">`
+    + `<p style="color:#999;font-size:12px;margin:0;">You're getting this because you use Applio's Win Journal. <a href="${unsub}" style="color:#999;">Unsubscribe</a>.${addr ? " " + addr : ""}</p></div>`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: [email], subject: "What went well this week?", html }),
+    });
+    return r.ok;
+  } catch { return false; }
+}
+
 async function aiDispatch(env, action, body) {
   switch (action) {
     case "improve":   return aiImprove(env, body);

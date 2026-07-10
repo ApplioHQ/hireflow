@@ -10,8 +10,16 @@
 <script src="js/theme.js"></script>
 <style>
   .dash-wrap { max-width: 1000px; margin: 0 auto; padding: 30px 20px 90px; }
-  .dash-hero { margin-bottom: 26px; }
-  .dash-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .dash-hero {
+    position: relative; overflow: hidden;
+    margin-bottom: 28px; padding: 28px 30px; border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 55%),
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--bg-1)), var(--bg-1) 62%);
+    box-shadow: var(--sh-1), var(--hi);
+  }
+  .dash-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.6px; margin-bottom: 6px; }
   .dash-hero p { color: var(--muted); font-size: 15px; }
 
   .dash-h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 32px 0 14px; }

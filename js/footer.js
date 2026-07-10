@@ -32,6 +32,8 @@
     +     '<a href="/resume-builder">Resume Builder</a>'
     +     '<a href="/resume-templates">Resume Templates</a>'
     +     '<a href="/ats-checker">Free ATS Checker</a>'
+    +     '<a href="/cover-letter-generator">Cover Letter Generator</a>'
+    +     '<a href="/interview-preparation">Interview Prep</a>'
     +     '<a href="/resume-examples">Resume Examples</a>'
     +     '<a href="/guides">Guides</a>'
     +     '<a href="/pricing">Pricing</a>'

@@ -47,7 +47,7 @@
     + '</div>'
     + '<div class="app-footer-bot">'
     +   '<span>© ' + YEAR + ' Applio · Built for job seekers everywhere</span>'
-    +   '<span>🔒 Data encrypted · PBKDF2-hashed passwords · Never sold</span>'
+    +   '<span style="display:inline-flex;align-items:center;gap:7px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.8;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Data encrypted · PBKDF2-hashed passwords · Never sold</span>'
     + '</div>';
 
   var footer = document.createElement('footer');

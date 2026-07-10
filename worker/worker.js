@@ -61,6 +61,8 @@ export default {
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
       if (path === "/profile" && req.method === "POST") return json(await saveProfile(req, env), 200, cors);
+      if (path === "/jobs" && req.method === "GET")  return json(await getJobs(req, env), 200, cors);
+      if (path === "/jobs" && req.method === "POST") return json(await saveJobs(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
       if (path === "/stripe/checkout")         return json(await createCheckout(req, env), 200, cors);
       if (path === "/stripe/portal")           return json(await createPortal(req, env), 200, cors);

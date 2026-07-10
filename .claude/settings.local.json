@@ -395,7 +395,8 @@
       "Bash(awk 'NR>=255 && NR<=300' css/home.css)",
       "Bash(node cap.js)",
       "Bash(LC_ALL=C perl -0777 -i -pe 's{\\(<a class=\"topbar-tab active\" href=\"dashboard\">Home</a>\\\\n\\)}{$1.\"    <a class=\\\\\"topbar-tab\\\\\" href=\\\\\"autopilot\\\\\">Autopilot</a>\\\\n\"}e' dashboard.html)",
-      "Bash(grep -nA3 'href=\"dashboard\">Home' editor.html)"
+      "Bash(grep -nA3 'href=\"dashboard\">Home' editor.html)",
+      "Bash(node ap_test.js)"
     ]
   }
 }

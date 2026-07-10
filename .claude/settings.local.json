@@ -409,7 +409,8 @@
       "Bash(node dash_after.js)",
       "Bash(grep -nA6 'customize' js/editor.js)",
       "Bash(python3 -c \"import sys,json;print\\(json.load\\(sys.stdin\\).get\\('text',''\\)\\)\")",
-      "Bash(grep -nA4 '\\\\.btn-primary *\\\\{' css/styles.css)"
+      "Bash(grep -nA4 '\\\\.btn-primary *\\\\{' css/styles.css)",
+      "Bash(awk '/\\\\.btn-primary \\\\{/{f=1} f{print NR\": \"$0} f&&/\\\\}/{exit}' css/styles.css)"
     ]
   }
 }

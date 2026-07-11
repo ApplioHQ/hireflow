@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Applio Demo</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .demo-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .demo-card { width: 100%; max-width: 420px; text-align: center; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--sh-3); padding: 34px 28px; }
+  .demo-card img { width: 46px; height: 46px; border-radius: 11px; margin-bottom: 16px; }
+  .demo-card h1 { font-size: 21px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 8px; }
+  .demo-card p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  .demo-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--gradient); border-radius: 999px; padding: 4px 11px; margin-bottom: 16px; }
+  .demo-spin { width: 26px; height: 26px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; margin: 20px auto 0; animation: dspin .8s linear infinite; }
+  @keyframes dspin { to { transform: rotate(360deg); } }
+  .demo-err { color: #f87171; font-size: 13.5px; margin-top: 14px; }
+  .demo-card .btn { margin-top: 18px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<div class="demo-wrap">
+  <div class="demo-card">
+    <img src="logo.jpeg" alt="Applio">
+    <div class="demo-badge">Premium demo</div>
+    <h1 id="demo-title">Setting up your demo…</h1>
+    <p id="demo-msg">Loading a full-access Applio account so you can try everything.</p>
+    <div class="demo-spin" id="demo-spin"></div>
+    <div id="demo-err"></div>
+  </div>
+</div>
+<script src="js/config.js"></script>
+<script>
+(function () {
+  var API = (window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL) || '';
+  function qp(n) { try { return new URLSearchParams(location.search).get(n); } catch (e) { return null; } }
+  var k = qp('k') || (location.hash ? decodeURIComponent((location.hash.match(/k=([^&]+)/) || [])[1] || '') : '');
+  function fail(msg) {
+    document.getElementById('demo-spin').style.display = 'none';
+    document.getElementById('demo-title').textContent = 'Demo unavailable';
+    document.getElementById('demo-msg').textContent = '';
+    document.getElementById('demo-err').innerHTML = (msg || 'This demo link isn\'t valid.') + '<br><a class="btn btn-secondary btn-sm" href="/">Go to Applio →</a>';
+  }
+  if (!k) return fail('This link is missing its demo key.');
+  fetch(API + '/demo/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: k }) })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+      if (!res.ok || !res.d || !res.d.token) return fail(res.d && res.d.error);
+      // Fresh session for the demo account.
+      ['hf_resume', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome', 'hf_me_cache', 'hf_ask_attribution'].forEach(function (key) { try { localStorage.removeItem(key); } catch (e) {} });
+      localStorage.setItem('hf_token', res.d.token);
+      localStorage.setItem('hf_email', res.d.email);
+      document.getElementById('demo-title').textContent = 'You\'re in!';
+      document.getElementById('demo-msg').textContent = 'Taking you to your dashboard…';
+      setTimeout(function () { location.href = 'dashboard'; }, 500);
+    })
+    .catch(function () { fail('Network error — please try again.'); });
+})();
+</script>
+</body>
+</html>

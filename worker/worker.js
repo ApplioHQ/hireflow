@@ -62,6 +62,7 @@ export default {
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
+      if (path === "/demo/session" && req.method === "POST") return json(await demoSession(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
       if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
@@ -285,6 +286,23 @@ async function me(req, env) {
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
   };
+}
+
+// ============ Premium demo magic-link (public, secret-keyed) ============
+// A shareable link that logs a visitor into the pre-seeded demo account, which has
+// plan = "lifetime" so every Premium/AI feature works (those are gated server-side).
+// Gated by the exact demoKey stored on the demo user record, so only people with the
+// link can enter. No password. To revoke: change/remove demoKey on user:demo@appliohq.com.
+async function demoSession(req, env) {
+  const body = await req.json().catch(() => ({}));
+  const k = String(body.k || "").trim();
+  const email = "demo@appliohq.com";
+  const user = await getUser(env, email);
+  if (!user || !user.demoKey) throw err(404, "Demo isn't set up.");
+  if (!k || k !== user.demoKey) throw err(401, "This demo link isn't valid.");
+  if (user.plan !== "lifetime") { user.plan = "lifetime"; await putUser(env, user); }
+  const token = await signToken({ email, exp: Math.floor(Date.now() / 1000) + 86400 * 30 }, env.JWT_SECRET);
+  return { token, email };
 }
 
 // ============ System status (public — no auth needed) ============

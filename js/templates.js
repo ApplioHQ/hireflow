@@ -793,12 +793,92 @@ function tJake(r, accent) {
     </div>`;
 }
 
+// Ivory — clean two-column with a LIGHT sidebar (the others are dark/colored),
+// the most common "modern professional" resume layout. Accent used as the divider
+// rule + role/label color so it stays readable on the light panel.
+function tIvory(r, accent) {
+  const c = accent || '#334155';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-ivory { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 33% 67%; grid-template-rows: 1fr; }
+      .t-ivory .sidebar { background: #f1f3f5; padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); border-right: 1px solid #e3e6ea; }
+      .t-ivory .name { font-size: 168%; font-weight: 800; line-height: 1.1; letter-spacing: -.01em; color: #111827; margin-bottom: 1.5%; }
+      .t-ivory .role { font-size: 82%; font-weight: 600; color: ${c}; margin-bottom: 5%; }
+      .t-ivory .sidebar h3 { font-size: 79%; text-transform: uppercase; letter-spacing: .12em; color: ${c}; margin: calc(5.5% * var(--app-space, 1)) 0 2.5%; }
+      .t-ivory .sidebar .item { font-size: 80%; margin-bottom: 1.5%; color: #374151; word-break: break-word; line-height: 1.4; }
+      .t-ivory .sidebar .item strong { color: #111827; }
+      .t-ivory .main { padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); }
+      .t-ivory h2 { font-size: 104%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 2px solid ${c}; }
+      .t-ivory h2:first-child { margin-top: 0; }
+      .t-ivory .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
+      .t-ivory .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-weight: 700; font-size: 93%; }
+      .t-ivory .t-entry-date { color: #6b7280; font-weight: 600; font-size: 88%; white-space: nowrap; }
+      .t-ivory .t-entry-sub { color: #6b7280; font-size: 83%; }
+      .t-ivory .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-ivory .summary { font-size: 89%; }
+    </style>
+    <div class="t-ivory" style="${st}">
+      <div class="sidebar">
+        <div class="name">${esc(p.fullName)}</div>
+        ${(r.experience[0] && r.experience[0].title) ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
+        <h3>Contact</h3>
+        ${p.email ? `<div class="item">${esc(p.email)}</div>` : ''}
+        ${p.phone ? `<div class="item">${esc(p.phone)}</div>` : ''}
+        ${p.location ? `<div class="item">${esc(p.location)}</div>` : ''}
+        ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
+        ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
+        ${skillsLine(r.skills) ? `<h3>Skills</h3><div class="item">${skillsLine(r.skills)}</div>` : ''}
+        ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' – ' + esc(e.end) : ''}</div>`).join('')}` : ''}
+      </div>
+      <div class="main">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r, { only: MAIN_COLUMN_KEYS })}
+      </div>
+    </div>`;
+}
+
+// Timeline — single column where every entry is a milestone on a continuous
+// vertical rail (dots on the line). Distinctive but ATS-safe (real text, one column).
+function tTimeline(r, accent) {
+  const c = accent || '#4f46e5';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean).map(esc).join(' &middot; ');
+  return `
+    <style>
+      .t-timeline { font-family: var(--app-font); color: #1f2937; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-timeline .name { font-size: 215%; font-weight: 800; letter-spacing: -.02em; line-height: 1.02; color: #111827; }
+      .t-timeline .contact { font-size: 80%; color: #6b7280; margin: 1.5% 0 5%; }
+      .t-timeline .rail { border-left: 2px solid ${c}40; padding-left: 26px; margin-left: 4px; }
+      .t-timeline h2 { color: ${c}; font-size: 106%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
+      .t-timeline h2:first-child { margin-top: 0; }
+      .t-timeline .summary { font-size: 90%; margin-bottom: 2%; }
+      .t-timeline .t-entry { position: relative; margin-bottom: calc(3.5% * var(--app-space, 1)); }
+      .t-timeline .t-entry::before { content: ''; position: absolute; left: -31px; top: .42em; width: 9px; height: 9px; background: #fff; border: 2.5px solid ${c}; border-radius: 50%; box-sizing: border-box; }
+      .t-timeline .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; font-size: 96%; }
+      .t-timeline .t-entry-date { color: #6b7280; font-weight: 600; font-size: 88%; white-space: nowrap; }
+      .t-timeline .t-entry-sub { color: #6b7280; font-style: italic; font-size: 85%; }
+      .t-timeline .t-entry-desc { font-size: 88%; margin-top: 1%; }
+    </style>
+    <div class="t-timeline" style="${st}">
+      <div class="name">${esc(p.fullName)}</div>
+      ${contact ? `<div class="contact">${contact}</div>` : ''}
+      <div class="rail">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r)}
+      </div>
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
   professional: tProfessional, tech: tTech, executive: tExecutive,
-  compact: tCompact, elegant: tElegant, onyx: tOnyx, slate: tSlate
+  compact: tCompact, elegant: tElegant, onyx: tOnyx, slate: tSlate,
+  ivory: tIvory, timeline: tTimeline
 };
 
 // Public API: render any template

@@ -42,10 +42,7 @@
       'transition:width .18s cubic-bezier(.4,0,.2,1),box-shadow .18s;}' +
     '.app-rail::-webkit-scrollbar{display:none;}' +
     '.app-rail:hover{width:220px;box-shadow:0 24px 60px rgba(0,0,0,.36);}' +
-    '.rail-brand{display:flex;align-items:center;gap:12px;height:44px;padding:0 16px;margin-bottom:6px;white-space:nowrap;}' +
-    '.rail-brand img{width:28px;height:28px;border-radius:7px;flex-shrink:0;}' +
-    '.rail-brand b{font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--text);opacity:0;transition:opacity .15s;}' +
-    '.app-rail:hover .rail-brand b{opacity:1;}' +
+    '.rail-top{height:46px;flex-shrink:0;}' +   /* clears the topbar row so items start below it */
     '.rail-item{display:flex;align-items:center;gap:13px;height:42px;padding:0 19px;color:var(--muted);' +
       'white-space:nowrap;border-left:2px solid transparent;cursor:pointer;transition:color .14s,background .14s;}' +
     '.rail-item:hover{color:var(--text);background:var(--bg-2);}' +
@@ -62,7 +59,6 @@
   style.textContent = css;
   document.head.appendChild(style);
 
-  var brand = '<a class="rail-brand" href="/dashboard" title="Applio"><img src="/logo.jpeg" alt="Applio"><b>Applio</b></a>';
   var items = NAV.map(function (n) {
     if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
     var active = n[0] === here ? ' active' : '';
@@ -74,7 +70,7 @@
   var rail = document.createElement('nav');
   rail.className = 'app-rail';
   rail.setAttribute('aria-label', 'Primary navigation');
-  rail.innerHTML = brand + items;
+  rail.innerHTML = '<div class="rail-top"></div>' + items;
 
   document.body.appendChild(rail);
   document.body.classList.add('has-rail');

@@ -904,7 +904,12 @@ async function handleUnsubscribe(url, env) {
   const good = await winUnsubToken(env, email);
   if (token.length !== good.length || token !== good) return unsubPage("Invalid link", "This unsubscribe link isn't valid. If you keep getting emails, just reply and we'll remove you.");
   await env.HIREFLOW_KV.put(`winmail_off:${email}`, "1");
-  return unsubPage("You're unsubscribed", "You won't get the weekly win reminder anymore. You can still log wins anytime from your dashboard.");
+  // Also clear the in-app opt-in so the dashboard toggle reflects the unsubscribe.
+  try {
+    const raw = await env.HIREFLOW_KV.get(`profile:${email}`);
+    if (raw) { const p = JSON.parse(raw); if (p && p.emailWeeklyWin) { p.emailWeeklyWin = false; await env.HIREFLOW_KV.put(`profile:${email}`, JSON.stringify(p)); } }
+  } catch { /* non-critical */ }
+  return unsubPage("You're unsubscribed", "You won't get the weekly win reminder anymore. You can still turn them back on from your dashboard.");
 }
 
 // Admin-only: fire one nudge email on demand to confirm delivery works, without
@@ -934,12 +939,13 @@ async function runWeeklyWinNudge(env) {
       scanned++;
       const email = k.name.slice("profile:".length);
       if (!email || !email.includes("@")) continue;
-      if (await env.HIREFLOW_KV.get(`winmail_off:${email}`)) continue;   // opted out
+      if (await env.HIREFLOW_KV.get(`winmail_off:${email}`)) continue;   // hard opt-out (unsubscribe link)
       if (await env.HIREFLOW_KV.get(`winmail_last:${email}`)) continue;  // emailed within the weekly window
       let profile;
       try { profile = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
-      const wins = profile && Array.isArray(profile.achievements) ? profile.achievements : [];
-      if (!wins.length) continue;                          // never nag people who haven't used it
+      if (!profile || profile.emailWeeklyWin !== true) continue;   // OPT-IN required — only email users who explicitly turned reminders on
+      const wins = Array.isArray(profile.achievements) ? profile.achievements : [];
+      if (!wins.length) continue;                          // (belt-and-suspenders: need a win to nudge about anyway)
       const lastWin = wins.reduce((m, w) => Math.max(m, (w && w.ts) || 0), 0);
       if (lastWin && now - lastWin < WEEK) continue;       // logged one recently — leave them be
       if ((await sendWinNudgeEmail(env, email, wins.length)).ok) {

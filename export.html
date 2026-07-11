@@ -427,7 +427,11 @@ function selectFormat(fmt) {
 }
 
 function updatePageSize() {
-  // Re-render: the iframe rebuilds at the correct page width.
+  // Persist to customize.paperSize (single source of truth, shared with the editor
+  // preview), then re-render: the iframe rebuilds at the correct page width/height.
+  if (!resume.customize) resume.customize = {};
+  resume.customize.paperSize = (document.getElementById('page-size').value === 'a4') ? 'A4' : 'Letter';
+  try { localStorage.setItem('hf_resume', JSON.stringify(resume)); } catch (_) {}
   render();
 }
 
@@ -529,6 +533,8 @@ function updatePills() {
   selectFormat(SELECTED_FORMAT);
   const fitBox = document.getElementById('fit-one-page');
   if (fitBox) fitBox.checked = !!(resume.customize && resume.customize.fitOnePage);
+  const psSel = document.getElementById('page-size');
+  if (psSel) psSel.value = (resume.customize && resume.customize.paperSize === 'A4') ? 'a4' : 'letter';
   render();
   await loadCurrentUser();
   updatePills();

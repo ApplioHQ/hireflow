@@ -1769,6 +1769,13 @@ function renderCustomize() {
         </div>
       </div>
       <div class="form-field" style="margin-top:12px;">
+        <label>Paper size</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button type="button" onclick="setCustom('paperSize','Letter')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${(c.paperSize||'Letter')==='Letter'?'transparent':'var(--border)'};background:${(c.paperSize||'Letter')==='Letter'?'var(--accent,#4f46e5)':'transparent'};color:${(c.paperSize||'Letter')==='Letter'?'#fff':'var(--text)'};font-weight:600;">US Letter <span style="opacity:.7;font-weight:400;font-size:11px;">8.5×11″</span></button>
+          <button type="button" onclick="setCustom('paperSize','A4')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.paperSize==='A4'?'transparent':'var(--border)'};background:${c.paperSize==='A4'?'var(--accent,#4f46e5)':'transparent'};color:${c.paperSize==='A4'?'#fff':'var(--text)'};font-weight:600;">A4 <span style="opacity:.7;font-weight:400;font-size:11px;">210×297mm</span></button>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:12px;">
         <label>Heading capitalization</label>
         <div style="display:flex;gap:8px;margin-top:6px;">
           <button type="button" onclick="setCustom('headingCase','uppercase')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid ${(c.headingCase||'uppercase')==='uppercase'?'transparent':'var(--border)'};background:${(c.headingCase||'uppercase')==='uppercase'?'var(--accent,#4f46e5)':'transparent'};color:${(c.headingCase||'uppercase')==='uppercase'?'#fff':'var(--text)'};font-weight:600;">Uppercase</button>

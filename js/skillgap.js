@@ -108,7 +108,7 @@
   document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(false); });
 
   // ---- One-click gap check on a job from the tracker ----
-  var trackedJobs = [];
+  var trackedJobs = [], _currentJobId = null;
   function populateJobs(list) {
     var jobs = (list || []).filter(function (j) { return j && (j.title || j.company); });
     trackedJobs = jobs;
@@ -118,11 +118,17 @@
     sel.innerHTML = '<option value="">Pick a tracked job…</option>' + jobs.map(function (j, i) {
       return '<option value="' + i + '">' + esc((j.title || 'Role') + (j.company ? ' · ' + j.company : '')) + (j.jd && j.jd.trim() ? '  (posting saved)' : '') + '</option>';
     }).join('');
+    // Keep the dropdown showing the job currently being analyzed across re-populates
+    // (local hf_jobs first, then the fresher cloud /jobs list).
+    if (_currentJobId != null) {
+      for (var k = 0; k < jobs.length; k++) { if (String(jobs[k].id) === String(_currentJobId)) { sel.value = String(k); break; } }
+    }
     pick.style.display = '';
     maybeDeepLink();
   }
   function selectJob(j) {
     if (!j) return;
+    _currentJobId = j.id;
     var hint = document.getElementById('sg-jobpick-hint');
     if (j.title) document.getElementById('sg-role').value = j.title;
     if (j.jd && j.jd.trim()) {

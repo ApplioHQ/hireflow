@@ -90,6 +90,8 @@
         </div>
       </div>
       <div class="form-field"><label>Notes / Link</label><input id="j-notes"></div>
+      <div class="form-field"><label>Job description <span style="color:var(--muted); font-weight:400; font-size:12px;">— optional, powers the Skill Gap check &amp; tailoring</span></label>
+        <textarea id="j-jd" rows="4" placeholder="Paste the posting here…" style="width:100%; box-sizing:border-box; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; line-height:1.5; resize:vertical; font-family:inherit;"></textarea></div>
       <div style="display:flex; gap:10px;">
         <button class="btn btn-secondary" onclick="toggleForm()">Cancel</button>
         <button class="btn btn-primary" onclick="saveJob()" id="form-save-btn">Save Job</button>
@@ -176,7 +178,8 @@ function saveJob(){
   const fields = { title, company,
     location: document.getElementById('j-location').value.trim(),
     status: document.getElementById('j-status').value,
-    notes: document.getElementById('j-notes').value.trim() };
+    notes: document.getElementById('j-notes').value.trim(),
+    jd: document.getElementById('j-jd').value.trim().slice(0, 8000) };
   if (editingId) {
     const j = jobs.find(x=>x.id===editingId);
     if (j) { const changed = j.status !== fields.status; Object.assign(j, fields); if (changed || !j.statusAt) j.statusAt = Date.now(); }
@@ -186,7 +189,7 @@ function saveJob(){
     toast('Job added', { type:'success' });
   }
   _save();
-  ['j-title','j-company','j-location','j-notes'].forEach(id=>document.getElementById(id).value='');
+  ['j-title','j-company','j-location','j-notes','j-jd'].forEach(id=>document.getElementById(id).value='');
   editingId = null;
   toggleForm(); render();
 }
@@ -199,6 +202,7 @@ function editJob(id){
   document.getElementById('j-location').value = j.location || '';
   document.getElementById('j-status').value = j.status || 'Saved';
   document.getElementById('j-notes').value = j.notes || '';
+  document.getElementById('j-jd').value = j.jd || '';
   document.getElementById('form-title').textContent = 'Edit Job';
   document.getElementById('form-save-btn').textContent = 'Save Changes';
   document.getElementById('add-form').style.display = '';

@@ -443,7 +443,9 @@
       "Bash(LC_ALL=C perl -i -pe 's/\\\\x00/\\\\\\\\u0000/g' worker/worker.js)",
       "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print $c+0,\"\\\\n\"}' worker/worker.js)",
       "Bash(curl -s -o /dev/null -w 'status=%{http_code} type=%{content_type}\\\\n' https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe)",
-      "Bash(curl -s https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe)"
+      "Bash(curl -s https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe)",
+      "Bash(perl -0pi -e \"s/const H=\\\\{'Access-Control-Allow-Origin':'\\\\*'\\\\};/const H={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'};/\" admin_layout.js)",
+      "Bash(perl -0pi -e \"s/\\(pg.on\\\\\\('request',req=>\\\\{const u=req.url\\\\\\(\\\\\\);if\\\\\\(!u.includes\\\\\\('workers.dev'\\\\\\)\\\\\\)return req.continue\\\\\\(\\\\\\);\\)/\\\\$1\\\\n    if\\(req.method\\(\\)==='OPTIONS'\\)return req.respond\\({status:204,headers:H,body:''}\\);/\" admin_layout.js)"
     ]
   }
 }

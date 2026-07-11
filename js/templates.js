@@ -17,6 +17,7 @@ const TEMPLATE_DEFS = [
   { id: 'professional', name: 'Professional',   cat: 'Business' },
   { id: 'classic',      name: 'Classic',        cat: 'Business' },
   { id: 'elegant',      name: 'Elegant',        cat: 'Business' },
+  { id: 'ivory',        name: 'Ivory',          cat: 'Business' },
   // Technology
   { id: 'jake',         name: "Jake's Resume",  cat: 'Technology' },
   { id: 'faang',        name: 'FAANG',          cat: 'Technology' },
@@ -26,6 +27,7 @@ const TEMPLATE_DEFS = [
   { id: 'slate',        name: 'Slate',          cat: 'Creative' },
   { id: 'onyx',         name: 'Onyx',           cat: 'Creative' },
   { id: 'compact',      name: 'Compact',        cat: 'Creative' },
+  { id: 'timeline',     name: 'Timeline',       cat: 'Creative' },
 ];
 
 const SAMPLE = {

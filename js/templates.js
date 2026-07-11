@@ -457,7 +457,7 @@ function tTech(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-tech { font-family: var(--app-font); color: #e5e7eb; background: #0f172a; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); height: 100%; }
+      .t-tech { font-family: var(--app-font); color: #e5e7eb; background: #0f172a; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); min-height: 1048px; }
       .t-tech .prompt { color: ${c}; font-size: 85%; margin-bottom: 1%; }
       .t-tech .header { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom: 3%; border-bottom: 1px solid #334155; margin-bottom: 4%; }
       .t-tech .name { font-size: 200%; font-weight: 700; color: #fff; letter-spacing: -.01em; }
@@ -493,7 +493,7 @@ function tExecutive(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; border: 4px double ${c}; }
+      .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); min-height: 1048px; border: 4px double ${c}; box-sizing: border-box; }
       .t-executive .name { font-size: 240%; font-weight: 600; color: ${c}; text-align: center; letter-spacing: .02em; margin-bottom: 1%; }
       .t-executive .subtitle { text-align: center; font-size: 80%; letter-spacing: .25em; text-transform: uppercase; color: #6b5a4a; margin-bottom: 4%; padding-bottom: 4%; border-bottom: 1px solid ${c}66; }
       .t-executive .contact { text-align: center; font-size: 82%; margin-bottom: 4%; font-style: italic; }
@@ -573,7 +573,7 @@ function tOnyx(r, accent) {
   const skills = (r.skills.categories || []).flatMap(cat => cat.items);
   return `
     <style>
-      .t-onyx { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 34% 66%; }
+      .t-onyx { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 34% 66%; grid-template-rows: 1fr; }
       .t-onyx .rail { background: #1e2433; color: #e5e7eb; padding: calc(6% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); }
       .t-onyx .name { font-size: 160%; font-weight: 700; line-height: 1.12; color: #fff; margin-bottom: 2%; }
       .t-onyx .role { font-size: 78%; color: ${c}; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6%; }

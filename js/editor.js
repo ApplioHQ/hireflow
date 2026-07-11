@@ -8,7 +8,7 @@ if (!TOKEN) location.href = 'login';
 const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
-    accent: '#4f46e5', font: 'Inter', spacing: 'medium',
+    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal',
     sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true },
     sectionOrder: ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications']
   },
@@ -1688,8 +1688,11 @@ function countFilled() {
   return { done, total: 5, score: done/5 };
 }
 
-const SWATCHES = ['#4f46e5','#7c3aed','#ec4899','#0f766e','#f59e0b','#10b981','#0ea5e9','#3b82f6','#1f2937','#7c2d12'];
-const FONTS = ['Inter','Helvetica','Georgia','Times'];
+const SWATCHES = ['#4f46e5','#2563eb','#0ea5e9','#0f766e','#059669','#65a30d','#ca8a04','#ea580c','#dc2626','#db2777','#9333ea','#1f2937'];
+const FONT_OPTGROUPS = [['Sans-serif', ['Inter','Arial','Calibri','Helvetica','Tahoma','Verdana']], ['Serif', ['Georgia','Cambria','Garamond','Times','Palatino']]];
+const FONTS = FONT_OPTGROUPS.reduce((a,g)=>a.concat(g[1]), []);
+const TEXT_SIZES = [['xs','Extra small'],['s','Small'],['m','Medium'],['l','Large'],['xl','Extra large']];
+const MARGIN_OPTS = ['Narrow','Normal','Wide'];
 
 function renderCustomize() {
   const c = resume.customize;
@@ -1697,22 +1700,37 @@ function renderCustomize() {
     <div class="section-card">
       <div class="section-head"><h3>${ICON('settings')} Customize Template</h3></div>
       <div style="margin-bottom:18px;">
-        <label style="font-size:13px; color:var(--muted);">Accent Color</label>
+        <label style="font-size:13px; color:var(--muted);">Accent color</label>
         <div class="swatch-grid" style="margin-top:8px;">
-          ${SWATCHES.map((s,i)=>`<div class="swatch ${c.accent===s?'selected':''}" style="background:${s};" role="button" tabindex="0" aria-label="Accent color ${i+1}${c.accent===s?', selected':''}" onclick="setCustom('accent','${s}')"></div>`).join('')}
+          ${SWATCHES.map((s,i)=>`<div class="swatch ${(c.accent||'').toLowerCase()===s?'selected':''}" style="background:${s};" role="button" tabindex="0" aria-label="Accent color ${i+1}${(c.accent||'').toLowerCase()===s?', selected':''}" onclick="setCustom('accent','${s}')"></div>`).join('')}
+          <label class="swatch swatch-custom" title="Pick any color" style="background:${SWATCHES.includes((c.accent||'').toLowerCase())?'conic-gradient(from 0deg,#ef4444,#eab308,#22c55e,#3b82f6,#a855f7,#ef4444)':c.accent};">
+            <input type="color" value="${/^#[0-9a-fA-F]{6}$/.test(c.accent||'')?c.accent:'#4f46e5'}" oninput="setCustom('accent', this.value)" style="opacity:0;width:100%;height:100%;cursor:pointer;">
+          </label>
         </div>
       </div>
-      <div class="form-field">
-        <label>Font</label>
-        <select data-bind="customize.font">${FONTS.map(f=>`<option ${c.font===f?'selected':''}>${f}</option>`).join('')}</select>
+      <div class="pf-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label>Font</label>
+          <select data-bind="customize.font">${FONT_OPTGROUPS.map(([g,list])=>`<optgroup label="${g}">${list.map(f=>`<option ${c.font===f?'selected':''}>${f}</option>`).join('')}</optgroup>`).join('')}</select>
+        </div>
+        <div class="form-field">
+          <label>Text size</label>
+          <select data-bind="customize.textSize">${TEXT_SIZES.map(([v,l])=>`<option value="${v}" ${(c.textSize||'m')===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
       </div>
-      <div class="form-field">
-        <label>Spacing</label>
-        <select data-bind="customize.spacing">
-          <option value="compact" ${c.spacing==='compact'?'selected':''}>Compact</option>
-          <option value="medium" ${c.spacing==='medium'?'selected':''}>Medium</option>
-          <option value="relaxed" ${c.spacing==='relaxed'?'selected':''}>Relaxed</option>
-        </select>
+      <div class="pf-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
+          <label>Spacing</label>
+          <select data-bind="customize.spacing">
+            <option value="compact" ${c.spacing==='compact'?'selected':''}>Compact</option>
+            <option value="medium" ${c.spacing==='medium'?'selected':''}>Medium</option>
+            <option value="relaxed" ${c.spacing==='relaxed'?'selected':''}>Relaxed</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Margins</label>
+          <select data-bind="customize.margins">${MARGIN_OPTS.map(m=>`<option value="${m}" ${(c.margins||'Normal')===m?'selected':''}>${m}</option>`).join('')}</select>
+        </div>
       </div>
       <div style="margin-top:18px;">
         <strong>Resume Sections</strong>

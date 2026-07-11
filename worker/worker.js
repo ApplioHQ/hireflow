@@ -915,10 +915,10 @@ async function adminTestWinNudge(req, env) {
   const email = String(body.email || "").trim().toLowerCase();
   if (!email || !email.includes("@")) throw err(400, "Provide a valid email address");
   if (!env.RESEND_API_KEY) return { ok: false, error: "RESEND_API_KEY is not set on the worker." };
-  const sent = await sendWinNudgeEmail(env, email, 3);
-  return sent
-    ? { ok: true, email }
-    : { ok: false, error: "Resend rejected the send — check MAIL_FROM uses your verified appliohq.com domain." };
+  const res = await sendWinNudgeEmail(env, email, 3);
+  return res.ok
+    ? { ok: true, email, from: env.MAIL_FROM || "Applio <noreply@appliohq.com>" }
+    : { ok: false, error: "Resend rejected it: " + (res.error || ("HTTP " + res.status)) + " (from: " + (env.MAIL_FROM || "Applio <noreply@appliohq.com>") + ")" };
 }
 
 async function runWeeklyWinNudge(env) {
@@ -942,7 +942,7 @@ async function runWeeklyWinNudge(env) {
       if (!wins.length) continue;                          // never nag people who haven't used it
       const lastWin = wins.reduce((m, w) => Math.max(m, (w && w.ts) || 0), 0);
       if (lastWin && now - lastWin < WEEK) continue;       // logged one recently — leave them be
-      if (await sendWinNudgeEmail(env, email, wins.length)) {
+      if ((await sendWinNudgeEmail(env, email, wins.length)).ok) {
         sent++;
         await env.HIREFLOW_KV.put(`winmail_last:${email}`, String(now), { expirationTtl: 561600 }); // ~6.5 days
       }
@@ -968,8 +968,12 @@ async function sendWinNudgeEmail(env, email, winCount) {
       headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to: [email], subject: "What went well this week?", html }),
     });
-    return r.ok;
-  } catch { return false; }
+    if (r.ok) return { ok: true };
+    let detail = "";
+    try { const j = await r.json(); detail = j.message || j.error || JSON.stringify(j); }
+    catch { detail = (await r.text().catch(() => "")) || `HTTP ${r.status}`; }
+    return { ok: false, status: r.status, error: detail };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
 }
 
 async function aiDispatch(env, action, body) {

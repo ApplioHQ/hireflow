@@ -46,6 +46,10 @@ const T = [
     tagline:'A refined dark header with graceful typography.',
     bestFor:['Client-facing and brand roles','Hospitality, law, and real estate','Anyone who wants understated sophistication'],
     why:'A tasteful dark header adds personality while the body stays formal and easy to scan.' },
+  { id:'ivory', name:'Ivory', cat:'Business', kw:'sidebar resume template',
+    tagline:'A clean two-column layout with a soft light-gray sidebar.',
+    bestFor:['Corporate, product, and operations roles','Marketing, HR, and finance','Anyone who wants a modern two-column look that stays conservative'],
+    why:'A light sidebar holds your contact, skills, and education while the main column leads with impact — the polished two-column format most modern resumes use, kept fully ATS-parseable with real, selectable text.' },
   { id:'jake', name:"Jake's Resume", cat:'Technology', kw:"Jake's resume template",
     tagline:'The single-page engineering favorite: centered name, pipe-separated contact, ruled sections.',
     bestFor:['Software engineers and CS students','New-grad and internship applications','Anyone who wants the popular LaTeX look without LaTeX'],
@@ -74,6 +78,10 @@ const T = [
     tagline:'A dense, efficient layout that fits more on one page.',
     bestFor:['Experienced candidates with a lot to say','Roles requiring one-page resumes','Anyone consolidating a long history'],
     why:'Tight spacing fits more experience per page without sacrificing readability.' },
+  { id:'timeline', name:'Timeline', cat:'Creative', kw:'timeline resume template',
+    tagline:'A single-column layout where every role is a milestone on a vertical timeline.',
+    bestFor:['Candidates with a clear career progression','Design, product, and startup roles','Anyone who wants a distinctive but ATS-safe format'],
+    why:'A continuous rail with a dot at each role turns your history into a visual timeline that stands out, while staying single-column with selectable text so applicant tracking systems parse it cleanly.' },
 ];
 
 const byId = Object.fromEntries(T.map(t => [t.id, t]));

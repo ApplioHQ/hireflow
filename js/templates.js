@@ -544,7 +544,7 @@ function tSlate(r, accent) {
       .t-slate { font-family: var(--app-font); color: #1f2937; height: 100%; }
       .t-slate .hd { background: #0f172a; color: #fff; padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); display:flex; justify-content:space-between; align-items:flex-end; gap: 4%; }
       .t-slate .name { font-size: 195%; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
-      .t-slate .role { font-size: 80%; color: ${c}; letter-spacing: .06em; text-transform: uppercase; margin-top: 2.5%; }
+      .t-slate .role { font-size: 80%; color: color-mix(in srgb, ${c} 45%, #fff); letter-spacing: .06em; text-transform: uppercase; margin-top: 2.5%; }
       .t-slate .hd-contact { font-size: 76%; color: #cbd5e1; text-align: right; line-height: 1.7; white-space: nowrap; }
       .t-slate .body { padding: calc(4% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); }
       .t-slate h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); padding-left: 2.5%; border-left: 3px solid ${c}; }

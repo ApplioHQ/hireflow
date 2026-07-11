@@ -43,6 +43,49 @@
 
   var out = document.getElementById('sg-out');
 
+  // Add user-affirmed skills into the resume's first skills category (dedup,
+  // case-insensitive), persist, and cloud-sync. Only ever adds skills the user
+  // explicitly checked as "I have this" — never blanket-adds every gap.
+  function addSkillsToResume(skills) {
+    if (!skills || !skills.length) return 0;
+    if (!resume.skills || typeof resume.skills !== 'object') resume.skills = {};
+    if (!Array.isArray(resume.skills.categories) || !resume.skills.categories.length) resume.skills.categories = [{ name: 'Skills', items: [] }];
+    var cat = resume.skills.categories[0];
+    if (!Array.isArray(cat.items)) cat.items = [];
+    var seen = {}; cat.items.forEach(function (s) { seen[String(s).toLowerCase().trim()] = 1; });
+    var added = 0;
+    skills.forEach(function (s) { var k = String(s).toLowerCase().trim(); if (s && !seen[k]) { cat.items.push(s); seen[k] = 1; added++; } });
+    if (!added) return 0;
+    resume.updatedAt = Date.now();
+    try { localStorage.setItem('hf_resume', JSON.stringify(resume)); } catch (e) {}
+    if (API) fetch(API + '/resume', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ resume: resume }) }).catch(function () {});
+    return added;
+  }
+
+  function wireAdd() {
+    var cbs = Array.prototype.slice.call(document.querySelectorAll('.sg-have-cb'));
+    var addBtn = document.getElementById('sg-add'), hint = document.getElementById('sg-addhint');
+    if (!addBtn) return;
+    function refresh() {
+      var n = cbs.filter(function (c) { return c.checked && !c.disabled; }).length;
+      addBtn.disabled = !n;
+      addBtn.textContent = n ? 'Add ' + n + ' to my resume' : 'Add to my resume';
+    }
+    cbs.forEach(function (c) { c.addEventListener('change', refresh); });
+    addBtn.addEventListener('click', function () {
+      var picked = cbs.filter(function (c) { return c.checked && !c.disabled; }).map(function (c) { return c.getAttribute('data-skill'); });
+      if (!picked.length) return;
+      var added = addSkillsToResume(picked);
+      if (added) {
+        cbs.forEach(function (c) { if (c.checked) c.disabled = true; });
+        if (hint) hint.innerHTML = added + ' skill' + (added === 1 ? '' : 's') + ' added to your resume. <a href="editor" style="color:var(--accent);font-weight:600;">Open Resume Builder →</a>';
+        if (window.toast) toast('Added to your resume', { type: 'success' });
+      } else if (window.toast) { toast('Those are already on your resume.', { type: 'info' }); }
+      refresh();
+    });
+    refresh();
+  }
+
   function analyze(useJD) {
     var role = (document.getElementById('sg-role').value || '').trim();
     var jd = useJD ? (document.getElementById('sg-jd').value || '').trim() : '';
@@ -94,13 +137,16 @@
     html += '<div class="sg-block"><h2>Gaps to close</h2>'
       + '<div class="sg-sub">' + (isJD ? 'The most important skills this posting asks for that aren\'t on your resume yet.' : 'The highest-impact skills ' + esc(role) + ' roles expect that aren\'t on your resume yet.') + '</div>'
       + missing.map(function (m, i) {
-        return '<div class="sg-gap"><div class="sg-num">' + (i + 1) + '</div><div><div class="sg-skill">' + esc(m.skill) + '</div>'
-          + (m.why ? '<div class="sg-why">' + esc(m.why) + '</div>' : '') + '</div></div>';
-      }).join('') + '</div>';
-    html += '<div class="sg-cta"><strong>What to do with this:</strong> for any skill you actually have, add it in the '
-      + '<a href="editor">Resume Builder</a> so recruiters and ATS filters catch it' + (isJD ? ' when you apply' : '') + '. Treat the rest as your learning shortlist. '
-      + 'Never list a skill you can\'t back up in an interview.</div>';
+        return '<div class="sg-gap"><div class="sg-num">' + (i + 1) + '</div>'
+          + '<div style="flex:1;min-width:0;"><div class="sg-skill">' + esc(m.skill) + '</div>'
+          + (m.why ? '<div class="sg-why">' + esc(m.why) + '</div>' : '') + '</div>'
+          + '<label class="sg-have"><input type="checkbox" class="sg-have-cb" data-skill="' + esc(m.skill) + '"> I have this</label></div>';
+      }).join('')
+      + '<div class="sg-addbar"><span class="sg-addhint" id="sg-addhint">Check the ones you genuinely have, then add them — recruiters and ATS filters only catch what\'s written. Never add a skill you can\'t back up in an interview.</span>'
+      + '<button class="btn btn-primary btn-sm" id="sg-add" disabled>Add to my resume</button></div></div>';
+    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong> — the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
     out.innerHTML = html;
+    wireAdd();
   }
 
   document.getElementById('sg-run').addEventListener('click', function () { analyze(false); });

@@ -49,18 +49,17 @@
   .nudge-cta:hover { text-decoration: underline; }
   .dash-allclear { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--r-md); }
 
-  /* Pipeline snapshot */
-  .dash-pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .pipe-stat { padding: 14px 10px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); border-top: 3px solid var(--c); text-align: center; text-decoration: none; display: block; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  /* Pipeline snapshot — full-width "at a glance" stat strip */
+  .dash-pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .pipe-stat { padding: 16px 12px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); border-top: 3px solid var(--c); text-align: center; text-decoration: none; display: block; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .pipe-stat:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
-  .pipe-num { font-size: 26px; font-weight: 800; color: var(--c); line-height: 1; }
-  .pipe-label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  .pipe-num { font-size: 28px; font-weight: 800; color: var(--c); line-height: 1; letter-spacing: -.5px; }
+  .pipe-label { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 4px; letter-spacing: .01em; }
   @media (max-width: 560px) { .dash-pipe { grid-template-columns: repeat(3, 1fr); } }
 
-  /* Quick actions */
-  .dash-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  @media (max-width: 720px) { .dash-actions { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 460px) { .dash-actions { grid-template-columns: 1fr; } }
+  /* Quick actions (2-up inside the main column) */
+  .dash-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 520px) { .dash-actions { grid-template-columns: 1fr; } }
   .act-card {
     display: flex; align-items: center; gap: 12px; padding: 15px 16px;
     border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border);
@@ -73,9 +72,6 @@
   .act-title { font-weight: 700; font-size: 14px; }
   .act-desc { color: var(--muted); font-size: 12px; margin-top: 1px; }
 
-  /* Two-column: profile + wins */
-  .dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 760px) { .dash-cols { grid-template-columns: 1fr; } }
   .dash-panel { padding: 20px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); }
   .dash-panel h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
   .dash-panel .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }

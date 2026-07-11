@@ -301,11 +301,12 @@ function tModern(r, accent) {
   return `
     <style>
       .t-modern { font-family: var(--app-font); color: #1f2937; height: 100%; }
-      .t-modern .header { background: linear-gradient(135deg, ${c}, ${c}cc); color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
-      .t-modern .name { font-size: 200%; font-weight: 700; letter-spacing: -.02em; margin-bottom: 2%; }
-      .t-modern .contact { font-size: 80%; opacity: .92; display:flex; flex-wrap:wrap; gap: 2.5%; }
-      .t-modern .body { padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-modern .header { background: linear-gradient(135deg, ${c}, ${c}cc); color: #fff; padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-modern .name { font-size: 205%; font-weight: 700; letter-spacing: -.02em; margin-bottom: 1.4%; line-height: 1.05; }
+      .t-modern .contact { font-size: 80%; opacity: .92; display:flex; flex-wrap:wrap; gap: 1% 3%; }
+      .t-modern .body { padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
       .t-modern h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid ${c}33; padding-bottom: 1%; }
+      .t-modern .body > h2:first-child { margin-top: 0; }
       .t-modern .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-modern .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
       .t-modern .t-entry-sub { color: #4b5563; font-style: italic; font-size: 85%; }

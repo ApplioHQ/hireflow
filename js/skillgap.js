@@ -114,7 +114,7 @@
     trackedJobs = jobs;
     var sel = document.getElementById('sg-job'), pick = document.getElementById('sg-jobpick');
     if (!sel || !pick) return;
-    if (!jobs.length) { pick.style.display = 'none'; return; }
+    if (!jobs.length) { pick.style.display = 'none'; maybeDeepLink(); return; }
     sel.innerHTML = '<option value="">Pick a tracked job…</option>' + jobs.map(function (j, i) {
       return '<option value="' + i + '">' + esc((j.title || 'Role') + (j.company ? ' · ' + j.company : '')) + (j.jd && j.jd.trim() ? '  (posting saved)' : '') + '</option>';
     }).join('');

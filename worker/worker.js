@@ -1012,6 +1012,7 @@ async function aiDispatch(env, action, body) {
     case "improve":   return aiImprove(env, body);
     case "win":       return aiWin(env, body);
     case "skills":    return aiSkills(env, body);
+    case "skill-gap": return aiSkillGap(env, body);
     case "tailor":    return aiTailor(env, body);
     case "ats":       return aiATS(env, body);
     case "analyze":   return aiAnalyze(env, body);

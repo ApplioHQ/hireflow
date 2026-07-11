@@ -796,6 +796,94 @@ function tTimeline(r, accent) {
     </div>`;
 }
 
+// Cascade — a clean corporate single column with a light header band (name, role,
+// contact) and an accent baseline. The conventional "modern professional" look used
+// across most real-world resume tools; light background, fully legible on any accent.
+function tCascade(r, accent) {
+  const c = accent || '#1f2937';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean).map(esc).join(' &nbsp;&bull;&nbsp; ');
+  const role = (r.experience[0] && r.experience[0].title) ? esc(r.experience[0].title) : '';
+  return `
+    <style>
+      .t-cascade { font-family: var(--app-font); color: #1f2937; }
+      .t-cascade .head { background: #f3f4f6; border-bottom: 3px solid ${c}; padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-cascade .name { font-size: 210%; font-weight: 800; letter-spacing: -.02em; line-height: 1.04; color: #111827; }
+      .t-cascade .role { font-size: 92%; font-weight: 600; color: ${c}; margin-top: .5%; }
+      .t-cascade .contact { font-size: 80%; color: #4b5563; margin-top: 1.8%; }
+      .t-cascade .body { padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-cascade h2 { font-size: 104%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 1.5px solid #d1d5db; }
+      .t-cascade .body > h2:first-child { margin-top: 0; }
+      .t-cascade .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
+      .t-cascade .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; font-size: 95%; }
+      .t-cascade .t-entry-date { color: #6b7280; font-weight: 600; font-size: 88%; white-space: nowrap; }
+      .t-cascade .t-entry-sub { color: #6b7280; font-style: italic; font-size: 84%; }
+      .t-cascade .t-entry-desc { font-size: 88%; margin-top: 1%; }
+      .t-cascade .summary { font-size: 89%; }
+    </style>
+    <div class="t-cascade" style="${st}">
+      <div class="head">
+        <div class="name">${esc(p.fullName)}</div>
+        ${role ? `<div class="role">${role}</div>` : ''}
+        ${contact ? `<div class="contact">${contact}</div>` : ''}
+      </div>
+      <div class="body">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r)}
+      </div>
+    </div>`;
+}
+
+// Deedy — the widely-used two-column engineering résumé: a full-width name banner
+// (first name black, surname in accent) with right-aligned contact, then a narrow
+// Education/Skills column beside a wide Experience column. Real text throughout.
+function tDeedy(r, accent) {
+  const c = accent || '#2563eb';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const nm = esc(p.fullName || '');
+  const sp = nm.indexOf(' ');
+  const nameHTML = sp > 0 ? `${nm.slice(0, sp)} <span>${nm.slice(sp + 1)}</span>` : nm;
+  const contactBits = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-deedy { font-family: var(--app-font); color: #1f2937; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
+      .t-deedy .banner { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; border-bottom: 2px solid #111827; padding-bottom: 2.5%; margin-bottom: 4%; }
+      .t-deedy .name { font-size: 235%; font-weight: 800; letter-spacing: -.02em; line-height: 1; color: #111827; }
+      .t-deedy .name span { color: ${c}; }
+      .t-deedy .banner .contact { text-align: right; font-size: 76%; color: #4b5563; line-height: 1.55; white-space: nowrap; }
+      .t-deedy .cols { display: grid; grid-template-columns: 34% 66%; gap: 5%; }
+      .t-deedy h2 { color: ${c}; font-size: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin: calc(3.5% * var(--app-space, 1)) 0 calc(1.6% * var(--app-space, 1)); border-bottom: 1px solid #e5e7eb; padding-bottom: .6%; }
+      .t-deedy .cols > div > h2:first-child, .t-deedy > .summary + .cols h2:first-child { margin-top: 0; }
+      .t-deedy .col-left h2:first-child, .t-deedy .col-right h2:first-child { margin-top: 0; }
+      .t-deedy .t-entry { margin-bottom: calc(2.6% * var(--app-space, 1)); }
+      .t-deedy .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 700; font-size: 92%; }
+      .t-deedy .t-entry-date { color: #6b7280; font-weight: 600; font-size: 84%; white-space: nowrap; }
+      .t-deedy .t-entry-sub { color: #6b7280; font-size: 82%; }
+      .t-deedy .t-entry-desc { font-size: 85%; margin-top: .6%; }
+      .t-deedy .summary { font-size: 87%; margin-bottom: 3%; }
+      .t-deedy .side-item { font-size: 82%; margin-bottom: 2%; color: #374151; line-height: 1.45; }
+      .t-deedy .side-item strong { color: #111827; }
+    </style>
+    <div class="t-deedy" style="${st}">
+      <div class="banner">
+        <div class="name">${nameHTML}</div>
+        ${contactBits.length ? `<div class="contact">${contactBits.map(x => `<div>${esc(x)}</div>`).join('')}</div>` : ''}
+      </div>
+      ${p.summary ? `<div class="summary">${esc(p.summary)}</div>` : ''}
+      <div class="cols">
+        <div class="col-left">
+          ${r.education.length ? `<h2>Education</h2>${r.education.map(e => `<div class="side-item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' – ' + esc(e.end) : ''}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
+          ${skillsLine(r.skills) ? `<h2>Skills</h2><div class="side-item">${skillsLine(r.skills)}</div>` : ''}
+        </div>
+        <div class="col-right">
+          ${orderedBody(r, { only: MAIN_COLUMN_KEYS })}
+        </div>
+      </div>
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,

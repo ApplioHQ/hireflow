@@ -100,7 +100,7 @@
         <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
           <div>
             <h3 style="margin:0;">All Users</h3>
-            <p style="margin:4px 0 0;" id="user-summary">, </p>
+            <p style="margin:4px 0 0;" id="user-summary">–</p>
           </div>
           <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
         </div>
@@ -202,8 +202,8 @@ let ALL_USERS = [];
 let ROLE = null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ', '; }
-function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ', '; }
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '–'; }
+function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '–'; }
 function fmtPlan(p) {
   if (p === 'lifetime') return '<span class="pill success">Lifetime</span>';
   if (p === 'premium')  return '<span class="pill success">Premium</span>';
@@ -297,7 +297,7 @@ function renderUsers() {
   document.getElementById('users-empty').style.display = 'none';
   document.getElementById('users-tbody').innerHTML = list.map(u => {
     const notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
-                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : ', ';
+                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '–';
     const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
     return `
       <tr>

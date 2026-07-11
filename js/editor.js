@@ -1746,7 +1746,7 @@ function renderCustomize() {
       </div>
       <div class="pf-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="form-field">
-          <label>Spacing</label>
+          <label>Section spacing</label>
           <select data-bind="customize.spacing">
             <option value="compact" ${c.spacing==='compact'?'selected':''}>Compact</option>
             <option value="medium" ${c.spacing==='medium'?'selected':''}>Medium</option>
@@ -1754,8 +1754,25 @@ function renderCustomize() {
           </select>
         </div>
         <div class="form-field">
+          <label>Line height</label>
+          <select data-bind="customize.lineHeight">${LINE_OPTS.map(([v,l])=>`<option value="${v}" ${(c.lineHeight||'normal')===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="pf-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-field">
           <label>Margins</label>
           <select data-bind="customize.margins">${MARGIN_OPTS.map(m=>`<option value="${m}" ${(c.margins||'Normal')===m?'selected':''}>${m}</option>`).join('')}</select>
+        </div>
+        <div class="form-field">
+          <label>Bullet style</label>
+          <select data-bind="customize.bullet">${BULLET_OPTS.map(([v,l])=>`<option value="${v}" ${(c.bullet||'dot')===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:12px;">
+        <label>Heading capitalization</label>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button type="button" onclick="setCustom('headingCase','uppercase')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid ${(c.headingCase||'uppercase')==='uppercase'?'transparent':'var(--border)'};background:${(c.headingCase||'uppercase')==='uppercase'?'var(--accent,#4f46e5)':'transparent'};color:${(c.headingCase||'uppercase')==='uppercase'?'#fff':'var(--text)'};font-weight:600;">Uppercase</button>
+          <button type="button" onclick="setCustom('headingCase','normal')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.headingCase==='normal'?'transparent':'var(--border)'};background:${c.headingCase==='normal'?'var(--accent,#4f46e5)':'transparent'};color:${c.headingCase==='normal'?'#fff':'var(--text)'};font-weight:600;">Normal case</button>
         </div>
       </div>
       <div style="margin-top:18px;">

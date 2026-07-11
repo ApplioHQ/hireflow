@@ -43,60 +43,69 @@
 
   var out = document.getElementById('sg-out');
 
-  function analyze() {
+  function analyze(useJD) {
     var role = (document.getElementById('sg-role').value || '').trim();
-    if (!role) { if (window.toast) toast('Enter the role you\'re targeting first.', { type: 'warn' }); return; }
+    var jd = useJD ? (document.getElementById('sg-jd').value || '').trim() : '';
+    if (useJD && !jd) { if (window.toast) toast('Paste a job description first.', { type: 'warn' }); return; }
+    if (!useJD && !role) { if (window.toast) toast('Enter the role you\'re targeting first.', { type: 'warn' }); return; }
     // Persist the target role so other tools + the dashboard stay in sync.
-    if (profile.targetRole !== role) {
+    if (role && profile.targetRole !== role) {
       profile.targetRole = role; profile.updatedAt = Date.now();
       try { localStorage.setItem('hf_profile', JSON.stringify(profile)); } catch (e) {}
       if (API) fetch(API + '/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ profile: profile }) }).catch(function () {});
     }
-    var btn = document.getElementById('sg-run');
+    var btnId = useJD ? 'sg-run-jd' : 'sg-run';
+    var restore = useJD ? 'Analyze this posting' : 'Find my gaps';
+    var btn = document.getElementById(btnId);
     btn.disabled = true; btn.textContent = 'Analyzing…';
-    out.innerHTML = '<div class="sg-status">Comparing your resume against what ' + esc(role) + ' roles expect…</div>';
+    out.innerHTML = '<div class="sg-status">' + (useJD ? 'Comparing your resume against this job posting…' : 'Comparing your resume against what ' + esc(role) + ' roles expect…') + '</div>';
+    var body = { role: role, skills: currentSkills(), context: resumeContext() };
+    if (jd) body.jobDescription = jd;
     fetch(API + '/ai/skill-gap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-      body: JSON.stringify({ role: role, skills: currentSkills(), context: resumeContext() })
+      body: JSON.stringify(body)
     })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
-        btn.disabled = false; btn.textContent = 'Find my gaps';
+        btn.disabled = false; btn.textContent = restore;
         if (!res.ok) { out.innerHTML = '<div class="sg-empty"><h2>Couldn\'t analyze that</h2><p>' + esc((res.d && res.d.error) || 'Please try again in a moment.') + '</p></div>'; return; }
-        render(role, res.d || {});
+        render(role, res.d || {}, !!jd);
       })
-      .catch(function () { btn.disabled = false; btn.textContent = 'Find my gaps'; out.innerHTML = '<div class="sg-empty"><h2>Network error</h2><p>Please try again.</p></div>'; });
+      .catch(function () { btn.disabled = false; btn.textContent = restore; out.innerHTML = '<div class="sg-empty"><h2>Network error</h2><p>Please try again.</p></div>'; });
   }
 
-  function render(role, data) {
+  function render(role, data, isJD) {
     var missing = Array.isArray(data.missing) ? data.missing : [];
     var relevant = Array.isArray(data.relevant) ? data.relevant : [];
+    var forWhat = isJD ? 'this posting' : (esc(role) + ' roles');
     if (!missing.length) {
       out.innerHTML = '<div class="sg-empty"><h2>No obvious gaps found</h2>'
-        + '<p>Your resume already covers the core skills for ' + esc(role) + '. Add a target job description in <a href="match" style="color:var(--accent);font-weight:600;">Best Match</a> for a sharper, posting-specific comparison.</p></div>';
+        + '<p>' + (isJD ? 'Your resume already covers the key skills this posting asks for. Tailor your bullets to match its language in the <a href="match" style="color:var(--accent);font-weight:600;">Best Match</a> tool.'
+          : 'Your resume already covers the core skills for ' + esc(role) + '. Paste a specific job posting above for a sharper, job-specific comparison.') + '</p></div>';
       return;
     }
     var html = '';
     if (relevant.length) {
       html += '<div class="sg-block"><h2>Skills you already show</h2>'
-        + '<div class="sg-sub">These are on your resume and fit a ' + esc(role) + ' — keep them front and center.</div>'
+        + '<div class="sg-sub">' + (isJD ? 'On your resume and asked for in this posting — lead with these.' : 'These are on your resume and fit a ' + esc(role) + ' — keep them front and center.') + '</div>'
         + '<div class="sg-chips">' + relevant.map(function (s) { return '<span class="sg-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>';
     }
     html += '<div class="sg-block"><h2>Gaps to close</h2>'
-      + '<div class="sg-sub">The highest-impact skills ' + esc(role) + ' roles expect that aren\'t on your resume yet.</div>'
+      + '<div class="sg-sub">' + (isJD ? 'The most important skills this posting asks for that aren\'t on your resume yet.' : 'The highest-impact skills ' + esc(role) + ' roles expect that aren\'t on your resume yet.') + '</div>'
       + missing.map(function (m, i) {
         return '<div class="sg-gap"><div class="sg-num">' + (i + 1) + '</div><div><div class="sg-skill">' + esc(m.skill) + '</div>'
           + (m.why ? '<div class="sg-why">' + esc(m.why) + '</div>' : '') + '</div></div>';
       }).join('') + '</div>';
     html += '<div class="sg-cta"><strong>What to do with this:</strong> for any skill you actually have, add it in the '
-      + '<a href="editor">Resume Builder</a> so recruiters and ATS filters catch it. Treat the rest as your learning shortlist — the fastest way to become a stronger ' + esc(role) + ' candidate. '
+      + '<a href="editor">Resume Builder</a> so recruiters and ATS filters catch it' + (isJD ? ' when you apply' : '') + '. Treat the rest as your learning shortlist. '
       + 'Never list a skill you can\'t back up in an interview.</div>';
     out.innerHTML = html;
   }
 
-  document.getElementById('sg-run').addEventListener('click', analyze);
-  document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(); });
+  document.getElementById('sg-run').addEventListener('click', function () { analyze(false); });
+  document.getElementById('sg-run-jd').addEventListener('click', function () { analyze(true); });
+  document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(false); });
 
   // Prefill the target role and, if we have one + a resume, auto-run once.
   var pre = defaultRole();

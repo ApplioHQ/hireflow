@@ -153,6 +153,15 @@
           <button class="btn btn-danger btn-sm" onclick="setAdminAccessFromPanel(false)">Disable</button>
         </div>
       </div>
+
+      <div class="ctrl-card">
+        <h3>Test win-nudge email</h3>
+        <p>Sends one weekly "log your win" email right now — same template as the Friday cron — to confirm Resend delivery is working. Check inbox and spam.</p>
+        <div class="ctrl-row">
+          <input type="email" id="testnudge-email" placeholder="you@email.com">
+          <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -367,6 +376,17 @@ async function setMaint(minutesOverride) {
     const res = await apiPost('/admin/maintenance', { minutes: m });
     toast(res.maintenanceUntil ? `Site offline for ${m} min` : 'Site back online', { type: 'success' });
     refresh();
+  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+}
+
+async function sendTestNudge() {
+  const el = document.getElementById('testnudge-email');
+  const email = (el.value || '').trim() || (localStorage.getItem('hf_email') || '');
+  if (!email || email.indexOf('@') < 0) return toast('Enter a valid email', { type: 'warn' });
+  try {
+    const res = await apiPost('/admin/test-win-nudge', { email });
+    if (res.ok) toast('Test email sent to ' + email + ' — check inbox & spam.', { type: 'success' });
+    else toast('Send failed: ' + (res.error || 'unknown'), { type: 'error' });
   } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
 

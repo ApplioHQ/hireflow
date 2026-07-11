@@ -907,6 +907,20 @@ async function handleUnsubscribe(url, env) {
   return unsubPage("You're unsubscribed", "You won't get the weekly win reminder anymore. You can still log wins anytime from your dashboard.");
 }
 
+// Admin-only: fire one nudge email on demand to confirm delivery works, without
+// waiting for the weekly cron. Bypasses all eligibility rules (it's a raw send test).
+async function adminTestWinNudge(req, env) {
+  await requireAdmin(req, env);
+  const body = await req.json().catch(() => ({}));
+  const email = String(body.email || "").trim().toLowerCase();
+  if (!email || !email.includes("@")) throw err(400, "Provide a valid email address");
+  if (!env.RESEND_API_KEY) return { ok: false, error: "RESEND_API_KEY is not set on the worker." };
+  const sent = await sendWinNudgeEmail(env, email, 3);
+  return sent
+    ? { ok: true, email }
+    : { ok: false, error: "Resend rejected the send — check MAIL_FROM uses your verified appliohq.com domain." };
+}
+
 async function runWeeklyWinNudge(env) {
   if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
   const now = Date.now();

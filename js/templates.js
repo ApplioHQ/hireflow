@@ -885,6 +885,7 @@ function fitDocToOnePage(doc, pageH) {
   const cs = win.getComputedStyle(root);
   const baseSpace = parseFloat(cs.getPropertyValue('--app-space')) || 1;
   const baseMargin = parseFloat(cs.getPropertyValue('--app-margin')) || 1;
+  const baseScale = parseFloat(cs.getPropertyValue('--app-scale')) || 1;   // user text-size choice
   const measure = () => doc.body.scrollHeight || doc.documentElement.scrollHeight || 0;
   let h = measure();
   if (h <= pageH) return true;                     // already one page, nothing to do
@@ -898,7 +899,7 @@ function fitDocToOnePage(doc, pageH) {
     const prev = factor;
     factor = Math.max(FIT_ONE_PAGE_FLOOR, factor * (pageH - 8) / h);
     const marginFactor = Math.max(FIT_ONE_PAGE_MARGIN_FLOOR, factor);   // margins can go a touch tighter than text
-    root.style.fontSize = (16 * factor).toFixed(2) + 'px';
+    root.style.fontSize = (16 * baseScale * factor).toFixed(2) + 'px';
     root.style.setProperty('--app-space', (baseSpace * factor).toFixed(3));
     root.style.setProperty('--app-margin', (baseMargin * marginFactor).toFixed(3));
     h = measure();

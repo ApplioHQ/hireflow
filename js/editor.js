@@ -8,7 +8,7 @@ if (!TOKEN) location.href = 'login';
 const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
-    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal', lineHeight: 'normal', bullet: 'dot', headingCase: 'uppercase',
+    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal', lineHeight: 'normal', bullet: 'dot', headingCase: 'uppercase', paperSize: 'Letter',
     sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true },
     sectionOrder: ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications']
   },
@@ -1888,14 +1888,25 @@ function navRow(prev, next) {
 // iframe at TRUE page width (816px = US-Letter at 96dpi), the exact document
 // the PDF prints, and scale it with CSS transform. This guarantees the preview
 // is pixel-identical to the export, instead of the old lossy font-size scaling.
-const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
+let PAGE_PX = 1056; // one page height at 96dpi, full scale (US-Letter 1056 / A4 1123)
+
+// Paper size is a single source of truth: resume.customize.paperSize ('Letter'|'A4').
+// The whole preview/pagination pipeline reads PAGE_W / PAGE_PX / CANVAS_W, so we just
+// refresh those before every mount and the mini + full previews reflow to the paper.
+function _syncPaperDims() {
+  const a4 = resume && resume.customize && resume.customize.paperSize === 'A4';
+  PAGE_W = a4 ? 794 : 816;    // page width  (96dpi: Letter 8.5in / A4 210mm)
+  PAGE_PX = a4 ? 1123 : 1056; // page height (96dpi: Letter 11in / A4 297mm)
+  CANVAS_W = PAGE_W + CANVAS_PAD * 2;
+}
 
 // Render the resume into `frame`, wait for web fonts to load (so measurements
 // aren't taken against the fallback font), then hand back the live document.
 // `cb` may run more than once (initial + after fonts settle) and must be idempotent.
 function _mountResume(frame, mini, cb) {
+  _syncPaperDims();
   const html = renderTemplate(resume.template, resume, mini, resume.customize.accent);
-  const doc = writeResumeFrame(frame, html, 816);
+  const doc = writeResumeFrame(frame, html, PAGE_W);
   const ready = () => { try { cb(doc); } catch (e) { /* preview is non-critical */ } };
   const fonts = doc.fonts;
   if (fonts && fonts.ready && typeof fonts.ready.then === 'function') {
@@ -2120,10 +2131,10 @@ function _bestFlowRoot(preview) {
   return best;
 }
 
-const PAGE_W = 816;        // page width (US-Letter at 96dpi)
+let PAGE_W = 816;          // page width (Letter 816 / A4 794 at 96dpi); set by _syncPaperDims
 const SHEET_GAP = 24;      // gray gap between page sheets (true px)
 const CANVAS_PAD = 40;     // gray canvas margin around the page column (true px)
-const CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins
+let CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins; set by _syncPaperDims
 const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
 // Google-Docs-style pagination: lay the resume out as discrete white page sheets

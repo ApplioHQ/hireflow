@@ -454,41 +454,6 @@ function tProfessional(r, accent) {
     </div>`;
 }
 
-function tTech(r, accent) {
-  const c = accent || '#0ea5e9';
-  const p = r.personal;
-  const st = customizeStyleAttr(r.customize, r._marginsKey);
-  return `
-    <style>
-      .t-tech { font-family: var(--app-font); color: #e5e7eb; background: #0f172a; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); min-height: 1048px; }
-      .t-tech .prompt { color: ${c}; font-size: 85%; margin-bottom: 1%; }
-      .t-tech .header { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom: 3%; border-bottom: 1px solid #334155; margin-bottom: 4%; }
-      .t-tech .name { font-size: 200%; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-      .t-tech .contact { font-size: 78%; color: #94a3b8; text-align: right; }
-      .t-tech .contact div { margin-bottom: 1%; }
-      .t-tech h2 { color: ${c}; font-size: 100%; font-weight: 700; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
-      .t-tech h2::before { content: "// "; opacity: .6; }
-      .t-tech .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
-      .t-tech .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; color: #fff; font-size: 92%; }
-      .t-tech .t-entry-sub { color: #94a3b8; font-size: 80%; }
-      .t-tech .t-entry-desc { font-size: 84%; margin-top: 1%; color: #cbd5e1; }
-      .t-tech .summary { font-size: 86%; color: #cbd5e1; }
-    </style>
-    <div class="t-tech" style="${st}">
-      <div class="prompt">~/resume</div>
-      <div class="header">
-        <div class="name">${esc(p.fullName)}</div>
-        <div class="contact">
-          ${p.email?`<div>${esc(p.email)}</div>`:''}
-          ${p.phone?`<div>${esc(p.phone)}</div>`:''}
-          ${p.location?`<div>${esc(p.location)}</div>`:''}
-          ${p.github?`<div>${esc(p.github)}</div>`:''}
-        </div>
-      </div>
-      ${p.summary?`<h2>summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-      ${orderedBody(r, {titleTransform: s => s.toLowerCase()})}
-    </div>`;
-}
 
 function tExecutive(r, accent) {
   const c = accent || '#7c2d12';
@@ -569,49 +534,6 @@ function tElegant(r, accent) {
     </div>`;
 }
 
-function tOnyx(r, accent) {
-  const c = accent || '#6366f1';
-  const p = r.personal;
-  const st = customizeStyleAttr(r.customize, r._marginsKey);
-  const skills = (r.skills.categories || []).flatMap(cat => cat.items);
-  return `
-    <style>
-      .t-onyx { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 34% 66%; grid-template-rows: 1fr; }
-      .t-onyx .rail { background: #1e2433; color: #e5e7eb; padding: calc(6% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); }
-      .t-onyx .name { font-size: 160%; font-weight: 700; line-height: 1.12; color: #fff; margin-bottom: 2%; }
-      .t-onyx .role { font-size: 78%; color: ${c}; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6%; }
-      .t-onyx .rail h3 { font-size: 76%; text-transform: uppercase; letter-spacing: .14em; color: ${c}; margin: calc(6% * var(--app-space,1)) 0 3%; }
-      .t-onyx .rail .item { font-size: 79%; margin-bottom: 1.5%; color: #cbd5e1; word-break: break-word; }
-      .t-onyx .chip { display:inline-block; font-size: 75%; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 1.5% 4%; margin: 0 1.5% 1.5% 0; }
-      .t-onyx .main { padding: calc(6% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); }
-      .t-onyx h2 { color: #111827; font-size: 106%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-bottom: 2px solid ${c}; padding-bottom: 1%; margin: calc(4% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
-      .t-onyx h2:first-child { margin-top: 0; }
-      .t-onyx .t-entry { margin-bottom: calc(3% * var(--app-space,1)); }
-      .t-onyx .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
-      .t-onyx .t-entry-sub { color: #4b5563; font-style: italic; font-size: 82%; }
-      .t-onyx .t-entry-desc { font-size: 86%; margin-top: 1%; }
-      .t-onyx .summary { font-size: 87%; }
-    </style>
-    <div class="t-onyx" style="${st}">
-      <div class="rail">
-        <div class="name">${esc(p.fullName)}</div>
-        ${r.experience[0] && r.experience[0].title ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
-        <h3>Contact</h3>
-        ${p.email?`<div class="item">${esc(p.email)}</div>`:''}
-        ${p.phone?`<div class="item">${esc(p.phone)}</div>`:''}
-        ${p.location?`<div class="item">${esc(p.location)}</div>`:''}
-        ${p.linkedin?`<div class="item">${esc(p.linkedin)}</div>`:''}
-        ${p.github?`<div class="item">${esc(p.github)}</div>`:''}
-        ${p.website?`<div class="item">${esc(p.website)}</div>`:''}
-        ${skills.length?`<h3>Skills</h3>${skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}`:''}
-        ${r.education.length?`<h3>Education</h3>${r.education.map(e=>`<div class="item"><strong style="color:#fff;">${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end?` · ${esc(e.end)}`:''}</div>`).join('')}`:''}
-      </div>
-      <div class="main">
-        ${p.summary?`<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>`:''}
-        ${orderedBody(r, {only: MAIN_COLUMN_KEYS})}
-      </div>
-    </div>`;
-}
 
 function tSlate(r, accent) {
   const c = accent || '#0ea5e9';

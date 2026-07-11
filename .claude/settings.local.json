@@ -459,7 +459,8 @@
       "Bash(perl -0pi -e 's/<title>16 Free ATS-Friendly Resume Templates \\\\| Applio<\\\\/title>/<title>\\\\${T.length} Free ATS-Friendly Resume Templates | Applio<\\\\/title>/' scripts/gen-template-pages.js)",
       "Bash(perl -0pi -e 's/Browse 16 free, ATS-friendly resume templates/Browse \\\\${T.length} free, ATS-friendly resume templates/' scripts/gen-template-pages.js)",
       "Bash(perl -0pi -e 's/content=\"16 Free ATS-Friendly Resume Templates \\\\| Applio\"/content=\"\\\\${T.length} Free ATS-Friendly Resume Templates | Applio\"/' scripts/gen-template-pages.js)",
-      "Bash(perl -0pi -e 's/<p>16 professional, ATS-friendly resume templates\\\\./<p>\\\\${T.length} professional, ATS-friendly resume templates./' scripts/gen-template-pages.js)"
+      "Bash(perl -0pi -e 's/<p>16 professional, ATS-friendly resume templates\\\\./<p>\\\\${T.length} professional, ATS-friendly resume templates./' scripts/gen-template-pages.js)",
+      "Bash(perl -0pi -e 's/^function tTech\\\\\\(r, accent\\\\\\) \\\\{.*?^\\\\}\\\\n//ms; s/^function tOnyx\\\\\\(r, accent\\\\\\) \\\\{.*?^\\\\}\\\\n//ms;' js/templates.js)"
     ]
   }
 }

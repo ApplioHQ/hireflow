@@ -449,7 +449,8 @@
       "Bash(LC_ALL=C perl -ne '$c += tr/\\\\x00//; END{print \"raw NULs: \",$c+0,\"\\\\n\"}' worker/worker.js)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST https://hireflow-api.pritamavuthu7.workers.dev/ai/skill-gap -H 'Content-Type: application/json' -d '{\"role\":\"x\"}')",
       "Bash(python3 -c \"import re; h=open\\('index.html'\\).read\\(\\); print\\('hero-sub + faq edits intact:', 'juggling five different tools' in h and 'Straight answers' in h\\)\")",
-      "Bash(awk '/<section class=\"section-alt\" id=\"faq\">/,/<\\\\/section>/' index.html)"
+      "Bash(awk '/<section class=\"section-alt\" id=\"faq\">/,/<\\\\/section>/' index.html)",
+      "Bash(LC_ALL=C perl -ne '$c+=tr/\\\\x00//; END{print \"raw NULs: \",$c+0,\"\\\\n\"}' worker/worker.js)"
     ]
   }
 }

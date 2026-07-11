@@ -562,6 +562,71 @@ const TEMPLATE_THUMBS = {
     <rect x="13" y="78" width="18" height="2.5" rx="1" fill="#0ea5e9"/>
     <rect x="13" y="84" width="55" height="1.5" rx=".5" fill="#e5e7eb"/>
   </svg>`,
+  ivory: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="28" height="110" fill="#f1f3f5"/>
+    <rect x="5" y="9" width="18" height="3.4" rx=".5" fill="#111"/>
+    <rect x="5" y="15" width="14" height="1.6" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="24" width="11" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="28" width="20" height="1.2" rx=".3" fill="#9aa0a6"/><rect x="5" y="31" width="17" height="1.2" rx=".3" fill="#9aa0a6"/><rect x="5" y="34" width="19" height="1.2" rx=".3" fill="#9aa0a6"/>
+    <rect x="5" y="42" width="9" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="46" width="20" height="1.2" rx=".3" fill="#bbb"/><rect x="5" y="49" width="18" height="1.2" rx=".3" fill="#bbb"/>
+    <rect x="5" y="57" width="13" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="61" width="19" height="1.2" rx=".3" fill="#bbb"/><rect x="5" y="64" width="15" height="1.2" rx=".3" fill="#bbb"/>
+    <rect x="34" y="10" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="13.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="18" width="42" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="22" width="38" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="34" y="31" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="34.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="39" width="30" height="1.6" rx=".5" fill="#444"/><rect x="34" y="43" width="42" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="47" width="38" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="34" y="55" width="30" height="1.6" rx=".5" fill="#444"/><rect x="34" y="59" width="41" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="63" width="36" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="34" y="72" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="75.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="80" width="40" height="1.4" rx=".3" fill="#cfcfcf"/>
+  </svg>`,
+  cascade: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="85" height="26" fill="#f3f4f6"/>
+    <rect x="0" y="24.4" width="85" height="1.6" fill="#4f46e5"/>
+    <rect x="8" y="7" width="38" height="5" rx="1" fill="#111"/>
+    <rect x="8" y="15" width="24" height="1.9" rx=".5" fill="#4f46e5"/>
+    <rect x="8" y="20" width="52" height="1.5" rx=".3" fill="#9aa0a6"/>
+    <rect x="8" y="34" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="37.4" width="69" height=".9" fill="#d1d5db"/>
+    <rect x="8" y="42" width="63" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="8" y="46" width="57" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="8" y="55" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="58.4" width="69" height=".9" fill="#d1d5db"/>
+    <rect x="8" y="63" width="34" height="1.7" rx=".5" fill="#444"/><rect x="8" y="67" width="61" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="8" y="71" width="55" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="8" y="80" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="83.4" width="69" height=".9" fill="#d1d5db"/>
+    <rect x="8" y="88" width="60" height="1.4" rx=".3" fill="#cfcfcf"/>
+  </svg>`,
+  deedy: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="10" width="20" height="5.5" rx="1" fill="#111"/><rect x="30" y="10" width="15" height="5.5" rx="1" fill="#2563eb"/>
+    <rect x="58" y="8" width="19" height="1.3" rx=".3" fill="#9aa0a6"/><rect x="58" y="11" width="19" height="1.3" rx=".3" fill="#9aa0a6"/><rect x="58" y="14" width="19" height="1.3" rx=".3" fill="#9aa0a6"/>
+    <rect x="8" y="19.5" width="69" height="1.2" fill="#111"/>
+    <rect x="8" y="24" width="65" height="1.3" rx=".3" fill="#cfcfcf"/><rect x="8" y="27.5" width="55" height="1.3" rx=".3" fill="#cfcfcf"/>
+    <rect x="8" y="34" width="18" height="1.8" rx=".5" fill="#2563eb"/><rect x="8" y="37" width="22" height=".8" fill="#e5e7eb"/>
+    <rect x="8" y="41" width="20" height="1.5" rx=".5" fill="#333"/><rect x="8" y="44" width="17" height="1.2" rx=".3" fill="#bbb"/><rect x="8" y="47" width="15" height="1.2" rx=".3" fill="#bbb"/>
+    <rect x="8" y="54" width="13" height="1.8" rx=".5" fill="#2563eb"/><rect x="8" y="57" width="22" height=".8" fill="#e5e7eb"/>
+    <rect x="8" y="61" width="21" height="1.2" rx=".3" fill="#bbb"/><rect x="8" y="64" width="18" height="1.2" rx=".3" fill="#bbb"/>
+    <rect x="36" y="34" width="24" height="1.8" rx=".5" fill="#2563eb"/><rect x="36" y="37" width="41" height=".8" fill="#e5e7eb"/>
+    <rect x="36" y="41" width="30" height="1.5" rx=".5" fill="#333"/><rect x="36" y="45" width="40" height="1.3" rx=".3" fill="#cfcfcf"/><rect x="36" y="49" width="35" height="1.3" rx=".3" fill="#cfcfcf"/>
+    <rect x="36" y="55" width="30" height="1.5" rx=".5" fill="#333"/><rect x="36" y="59" width="39" height="1.3" rx=".3" fill="#cfcfcf"/><rect x="36" y="63" width="34" height="1.3" rx=".3" fill="#cfcfcf"/>
+    <rect x="36" y="71" width="24" height="1.8" rx=".5" fill="#2563eb"/><rect x="36" y="74" width="41" height=".8" fill="#e5e7eb"/>
+    <rect x="36" y="78" width="30" height="1.5" rx=".5" fill="#333"/><rect x="36" y="82" width="38" height="1.3" rx=".3" fill="#cfcfcf"/>
+  </svg>`,
+  timeline: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="42" height="5.5" rx="1" fill="#111"/>
+    <rect x="8" y="18" width="52" height="1.5" rx=".5" fill="#9aa0a6"/>
+    <rect x="14" y="27" width="1.2" height="77" fill="#c7d2fe"/>
+    <rect x="20" y="27" width="20" height="2" rx=".5" fill="#4f46e5"/>
+    <rect x="20" y="31" width="55" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="20" y="35" width="48" height="1.4" rx=".3" fill="#cfcfcf"/>
+    <rect x="20" y="43" width="24" height="2" rx=".5" fill="#4f46e5"/>
+    <circle cx="14.6" cy="49.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <rect x="20" y="48" width="30" height="1.6" rx=".5" fill="#333"/><rect x="20" y="52" width="52" height="1.3" rx=".3" fill="#cfcfcf"/><rect x="20" y="56" width="46" height="1.3" rx=".3" fill="#cfcfcf"/>
+    <circle cx="14.6" cy="64.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <rect x="20" y="63" width="30" height="1.6" rx=".5" fill="#333"/><rect x="20" y="67" width="50" height="1.3" rx=".3" fill="#cfcfcf"/>
+    <rect x="20" y="76" width="22" height="2" rx=".5" fill="#4f46e5"/>
+    <circle cx="14.6" cy="82.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <rect x="20" y="81" width="28" height="1.6" rx=".5" fill="#333"/><rect x="20" y="85" width="44" height="1.3" rx=".3" fill="#cfcfcf"/>
+  </svg>`,
 };
 
 // ============ Personal ============

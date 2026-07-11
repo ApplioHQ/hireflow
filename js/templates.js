@@ -358,7 +358,7 @@ function tCreative(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-creative { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 35% 65%; }
+      .t-creative { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
       .t-creative .sidebar { background: ${c}; color: #fff; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
       .t-creative .name { font-size: 180%; font-weight: 700; line-height: 1.1; margin-bottom: 5%; }
       .t-creative .sidebar h3 { font-size: 90%; text-transform: uppercase; letter-spacing: .12em; margin: calc(6% * var(--app-space, 1)) 0 2%; opacity: .9; }
@@ -419,7 +419,7 @@ function tProfessional(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-professional { font-family: var(--app-font); color: #1f2937; height: 100%; display: grid; grid-template-columns: 32% 68%; }
+      .t-professional { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 32% 68%; grid-template-rows: 1fr; }
       .t-professional .sidebar { background: ${c}; color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
       .t-professional .name { font-size: 160%; font-weight: 700; line-height: 1.15; margin-bottom: 4%; }
       .t-professional .sidebar h3 { font-size: 85%; text-transform: uppercase; letter-spacing: .12em; margin: calc(5% * var(--app-space, 1)) 0 2%; padding-bottom: 1%; border-bottom: 1px solid rgba(255,255,255,.3); }

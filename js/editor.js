@@ -8,7 +8,7 @@ if (!TOKEN) location.href = 'login';
 const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
-    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal',
+    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal', lineHeight: 'normal', bullet: 'dot', headingCase: 'uppercase',
     sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true },
     sectionOrder: ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications']
   },
@@ -1717,6 +1717,8 @@ const FONT_OPTGROUPS = [['Sans-serif', ['Inter','Arial','Calibri','Helvetica','T
 const FONTS = FONT_OPTGROUPS.reduce((a,g)=>a.concat(g[1]), []);
 const TEXT_SIZES = [['xs','Extra small'],['s','Small'],['m','Medium'],['l','Large'],['xl','Extra large']];
 const MARGIN_OPTS = ['Narrow','Normal','Wide'];
+const LINE_OPTS = [['tight','Tight'],['normal','Normal'],['relaxed','Relaxed'],['loose','Loose']];
+const BULLET_OPTS = [['dot','• Dot'],['dash','– Dash'],['square','▪ Square'],['chevron','› Chevron'],['arrow','→ Arrow'],['circle','◦ Circle'],['none','No bullets']];
 
 function renderCustomize() {
   const c = resume.customize;

@@ -263,7 +263,7 @@ function hubHTML(){
       {"@type":"ListItem","position":2,"name":"Resume Templates","item":url}
     ]},
     { "@context":"https://schema.org","@type":"CollectionPage","name":"Free Resume Templates","url":url,
-      "description":"16 free, ATS-friendly resume templates you can customize and download.",
+      "description":`${T.length} free, ATS-friendly resume templates you can customize and download.`,
       "hasPart": T.map(t=>({"@type":"CreativeWork","name":`${t.name} resume template`,"url":`${BASE}/resume-templates/${t.id}`})) }
   ];
   return `<!DOCTYPE html>
@@ -271,13 +271,13 @@ function hubHTML(){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>16 Free ATS-Friendly Resume Templates | Applio</title>
-<meta name="description" content="Browse 16 free, ATS-friendly resume templates — Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
+<title>${T.length} Free ATS-Friendly Resume Templates | Applio</title>
+<meta name="description" content="Browse ${T.length} free, ATS-friendly resume templates — Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="16 Free ATS-Friendly Resume Templates | Applio">
+<meta property="og:title" content="${T.length} Free ATS-Friendly Resume Templates | Applio">
 <meta property="og:description" content="Harvard, Stanford, Jake's Resume, FAANG, Consulting and more — free and ATS-friendly.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">
@@ -316,7 +316,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
 <main class="th-wrap">
   <div class="th-head">
     <h1>Free Resume Templates</h1>
-    <p>16 professional, ATS-friendly resume templates. Pick one, customize the colors and fonts, and export to PDF — free, no sign-up to start.</p>
+    <p>${T.length} professional, ATS-friendly resume templates. Pick one, customize the colors and fonts, and export to PDF — free, no sign-up to start.</p>
   </div>
   ${cats.map(c=>`
   <div class="th-cat">${c}</div>

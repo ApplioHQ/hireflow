@@ -32,7 +32,11 @@
     ['SEP'],
     ['interview',   'Interview Prep', '/interview',    'interview'],
     ['assistant',   'Career Coach',   '/assistant',    'coach'],
-    ['jobs',        'Job Tracker',    '/jobs',         'jobs']
+    ['jobs',        'Job Tracker',    '/jobs',         'jobs'],
+    ['SEP'],
+    ['skill-gap',    'Skill Gap',     '/skill-gap',     'skill'],
+    ['brag-doc',     'Brag Doc',      '/brag-doc',      'brag'],
+    ['first-90-days','First 90 Days', '/first-90-days', 'days90']
   ];
 
   var here = location.pathname.replace(/^\//, '').replace(/[?#].*$/, '').replace(/\.html$/, '') || 'dashboard';

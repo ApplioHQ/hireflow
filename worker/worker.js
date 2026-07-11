@@ -1345,21 +1345,45 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
 // highest-impact missing skills. Free (drives the career-copilot loop). Grounded:
 // "relevant" must be verbatim from the user's own list; it never invents skills the
 // candidate has, and frames gaps as "verify you have it / learn it", not "claim it".
-async function aiSkillGap(env, { role, skills, context }) {
+async function aiSkillGap(env, { role, skills, context, jobDescription }) {
   const target = String(role || "").trim().slice(0, 120);
-  if (!target) return { missing: [], relevant: [], note: "no-role" };
+  const jd = String(jobDescription || "").trim().slice(0, 6000);
+  if (!target && !jd) return { missing: [], relevant: [], note: "no-input" };
   const have = Array.isArray(skills) ? skills.map(s => String(s || "").slice(0, 60)).filter(Boolean).slice(0, 80) : [];
   const ctx = String(context || "").slice(0, 1800);
-  const cacheKey = (target + "|" + have.join(",") + "|" + ctx).slice(0, 2000);
+  const cacheKey = ((jd ? "jd" : "role") + "|" + target + "|" + have.join(",") + "|" + (jd ? jd.slice(0, 1600) : ctx)).slice(0, 2400);
   const cached = await aiCacheGet(env, "skillgap", cacheKey);
   if (cached) return cached;
-  const sys = GROUNDING + "\n\n" + `You are an expert technical recruiter and career coach. Compare a candidate's TARGET ROLE against the skills currently listed on their resume, and surface the highest-impact skills/tools that strong candidates for that role usually have but that are MISSING from their list.
 
-Return STRICT JSON only, no markdown, in exactly this shape:
+  const shape = `Return STRICT JSON only, no markdown, in exactly this shape:
 {
-  "missing": [ { "skill": "<short skill or tool name>", "why": "<one concise sentence on why it matters for this role>" } ],
-  "relevant": [ "<the candidate's CURRENT skills that clearly fit this role, verbatim from their list>" ]
-}
+  "missing": [ { "skill": "<short skill or tool name>", "why": "<one concise sentence on why it matters>" } ],
+  "relevant": [ "<the candidate's CURRENT skills that fit, verbatim from their list>" ]
+}`;
+  let sys, user;
+  if (jd) {
+    // Posting-specific: draw requirements ONLY from the pasted job description (real
+    // text the user provided), so nothing is invented about what the job wants.
+    sys = GROUNDING + "\n\n" + `You are an expert recruiter and ATS analyst. Compare a candidate's current resume skills against a SPECIFIC job posting, and surface the most important skills/tools/qualifications the POSTING requires that are MISSING from the candidate's skills.
+
+${shape}
+
+Rules:
+- Draw "missing" ONLY from skills/requirements that actually appear in the job posting text below AND are not already in the candidate's current skills. NEVER invent a requirement the posting doesn't state.
+- Order by how central each is to the posting. 6-10 items.
+- Each "skill" is a concrete tool, technology, methodology, or credential the posting names — never a vague trait.
+- "why" is one short sentence on how the posting uses or requires it.
+- "relevant" contains ONLY the candidate's CURRENT skills (verbatim) that the posting also asks for.`;
+    user = `JOB POSTING:
+${jd}
+
+CANDIDATE'S CURRENT RESUME SKILLS: ${have.length ? have.join(", ") : "(none listed)"}
+
+Return the JSON.`;
+  } else {
+    sys = GROUNDING + "\n\n" + `You are an expert technical recruiter and career coach. Compare a candidate's TARGET ROLE against the skills currently listed on their resume, and surface the highest-impact skills/tools that strong candidates for that role usually have but that are MISSING from their list.
+
+${shape}
 
 Rules:
 - 6-10 "missing" items, most-important first. Each "skill" is a concrete tool, technology, methodology, or credential — never a vague trait like "communication".
@@ -1367,11 +1391,12 @@ Rules:
 - "relevant" contains ONLY skills the candidate actually listed (verbatim) — never invent skills they didn't provide.
 - Match the seniority implied by the role. Be realistic and specific.
 - "why" is one short plain sentence, no fluff.`;
-  const user = `TARGET ROLE: ${target}
+    user = `TARGET ROLE: ${target}
 CURRENT RESUME SKILLS: ${have.length ? have.join(", ") : "(none listed)"}
 RESUME CONTEXT: ${ctx || "(none)"}
 
 Return the JSON.`;
+  }
   const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 750, temperature: 0.3 });
   let data = null;
   try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim()); }

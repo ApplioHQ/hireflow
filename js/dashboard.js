@@ -375,6 +375,25 @@
     document.getElementById('win-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') addWin(); });
   }
 
+  // ---------- weekly-reminder email consent (opt-in) ----------
+  function renderEmailPref() {
+    var t = document.getElementById('win-email-toggle');
+    if (t) t.classList.toggle('on', PROFILE.emailWeeklyWin === true);
+  }
+  function wireEmailPref() {
+    var el = document.getElementById('win-emailpref');
+    if (!el) return;
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      PROFILE.emailWeeklyWin = !(PROFILE.emailWeeklyWin === true);
+      saveProfile();               // syncs the opt-in to the cloud; the Friday cron reads it
+      renderEmailPref();
+      if (window.toast) toast(PROFILE.emailWeeklyWin
+        ? 'Weekly reminder on — we\'ll nudge you only if you skip a week. Unsubscribe anytime.'
+        : 'Weekly reminder off. We won\'t email you.', { type: 'success' });
+    });
+  }
+
   // ---------- greeting ----------
   function renderGreeting() {
     var h = new Date().getHours();
@@ -444,6 +463,8 @@
   renderWins();
   renderWinRitual();
   wireWins();
+  renderEmailPref();
+  wireEmailPref();
   hydrateAccount();
 
   // Refresh identity + plan once the user record loads from the API.
@@ -453,7 +474,7 @@
 
   // Pull the cloud profile; if it's newer than local, adopt it and re-render.
   pullProfile().then(function (adopted) {
-    if (adopted) { hydrateProfileForm(); renderWins(); renderWinRitual(); renderGreeting(); renderNudges(); }
+    if (adopted) { hydrateProfileForm(); renderWins(); renderWinRitual(); renderEmailPref(); renderGreeting(); renderNudges(); }
   });
 
   // Pull cloud jobs; if newer, the pipeline / nudges / greeting reflect them.

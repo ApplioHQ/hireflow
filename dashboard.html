@@ -112,6 +112,9 @@
   .win-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
   .win-del:hover { color: #ef4444; }
   .win-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+  .win-emailpref { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .win-emailpref-txt { font-size: 12.5px; color: var(--text); line-height: 1.35; }
+  .win-emailpref-sub { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -233,6 +236,10 @@
         <button class="btn btn-primary btn-sm" id="win-add" style="white-space:nowrap;">Log</button>
       </div>
       <ul class="win-list" id="win-list"></ul>
+      <label class="win-emailpref" id="win-emailpref" title="We only email you if you turn this on.">
+        <span class="toggle" id="win-email-toggle"></span>
+        <span class="win-emailpref-txt">Email me a weekly reminder to log a win<span class="win-emailpref-sub">Off by default · one short email a week · unsubscribe anytime</span></span>
+      </label>
     </section>
   </div>
 </main>

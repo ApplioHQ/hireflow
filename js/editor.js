@@ -3297,7 +3297,7 @@ function openModal(id) {
 function _updateImportHint(){
   const el = document.getElementById('import-hint');
   if (!el) return;
-  el.innerHTML = `✨ <strong style="color:var(--accent);">Free for everyone</strong>, import as many resumes as you like.`;
+  el.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> <strong style="color:var(--accent);">Free for everyone</strong>, import as many resumes as you like.`;
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
@@ -3518,7 +3518,7 @@ function _maybeShowWelcome() {
       <h1 class="wel-title">Let's land you<br>more interviews.</h1>
       <p class="wel-sub">Already have a resume? Paste it and AI fills in every section in seconds. Starting fresh? Jump right in.</p>
       <div class="wel-actions" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
-        <button class="wel-btn" type="button" onclick="_welImport()">✨ Paste my existing resume</button>
+        <button class="wel-btn" type="button" onclick="_welImport()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> Paste my existing resume</button>
         <button type="button" onclick="_closeWelcome()" style="background:none; border:0; color:rgba(255,255,255,.8); font-size:14px; font-weight:600; cursor:pointer; padding:4px 8px;">Start from scratch →</button>
       </div>
     </div>`;

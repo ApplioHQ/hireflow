@@ -222,6 +222,7 @@
     { href: 'cover-letter', icon: 'pen', title: 'Cover Letter', desc: 'Generate a tailored letter' },
     { href: 'brag-doc', icon: 'trophy', title: 'Brag Doc', desc: 'Turn your wins into a review-ready one-pager' },
     { href: 'first-90-days', icon: 'compass', title: 'First 90 Days', desc: 'Ramp fast in a new role with a 30/60/90 plan' },
+    { href: 'skill-gap', icon: 'gauge', title: 'Skill Gap Coach', desc: 'See what your target role wants that you\'re missing' },
     { href: 'assistant', icon: 'chat', title: 'Career Coach', desc: 'Ask anything, anytime' }
   ];
   function renderActions() {

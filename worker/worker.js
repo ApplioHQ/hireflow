@@ -955,18 +955,49 @@ async function sendWinNudgeEmail(env, email, winCount) {
   const from = env.MAIL_FROM || "Applio <noreply@appliohq.com>";
   const unsub = `https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe?e=${encodeURIComponent(email)}&t=${await winUnsubToken(env, email)}`;
   const addr = env.MAILING_ADDRESS || "";
-  const html = `<!doctype html><meta charset="utf-8"><div style="font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111;">`
-    + `<div style="font-weight:800;font-size:20px;color:#4f46e5;margin-bottom:12px;">Applio</div>`
-    + `<p style="font-size:18px;font-weight:700;margin:0 0 8px;">What went well this week?</p>`
-    + `<p style="color:#444;margin:0 0 18px;">Take 30 seconds to log one win while it's fresh. It becomes a resume bullet and review-ready proof later &mdash; and keeps your streak going.</p>`
-    + `<p style="margin:0 0 24px;"><a href="https://appliohq.com/dashboard" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:8px;">Log this week's win &rarr;</a></p>`
-    + `<hr style="border:0;border-top:1px solid #eee;margin:24px 0 12px;">`
-    + `<p style="color:#999;font-size:12px;margin:0;">You're getting this because you use Applio's Win Journal. <a href="${unsub}" style="color:#999;">Unsubscribe</a>.${addr ? " " + addr : ""}</p></div>`;
+  const dash = "https://appliohq.com/dashboard";
+  const brag = "https://appliohq.com/brag-doc";
+
+  // Rotate the subject line week to week so it stays fresh in a crowded inbox.
+  const SUBJECTS = [
+    "What did you get done this week?",
+    "Don't let this week's wins slip away",
+    "2 minutes now saves you hours at résumé time",
+    "Quick — what went well this week?",
+  ];
+  const subject = SUBJECTS[Math.floor(Date.now() / (7 * 86400000)) % SUBJECTS.length];
+
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;">
+  <div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
+    <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+
+    <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">Before the week gets away from you&nbsp;— what went well?</p>
+
+    <p style="margin:0 0 16px;color:#3a4150;">When it's finally time to update your résumé or ask for a raise, hardly anyone can remember what they actually did months ago. The fix is almost embarrassingly simple: <strong>jot down one win a week, while it's fresh.</strong></p>
+
+    <p style="margin:0 0 10px;color:#3a4150;">Think back on this week — did you&hellip;</p>
+    <ul style="margin:0 0 22px;padding-left:22px;color:#3a4150;">
+      <li style="margin-bottom:5px;">ship or wrap up something?</li>
+      <li style="margin-bottom:5px;">hit a number, or nudge one in the right direction?</li>
+      <li style="margin-bottom:5px;">unblock a teammate or fix something painful?</li>
+      <li>pick up a new tool, or get handed something bigger?</li>
+    </ul>
+    <p style="margin:0 0 26px;color:#3a4150;">Any one of those counts. Logging it takes about 30 seconds.</p>
+
+    <p style="margin:0 0 28px;"><a href="${dash}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Log this week's win &rarr;</a></p>
+
+    <p style="margin:0 0 4px;color:#3a4150;">Here's the payoff: every win you log becomes a ready-to-use résumé bullet and hard proof for your next review, promotion case, or raise — and it all compiles into a <a href="${brag}" style="color:#4f46e5;">one-page brag doc</a> the moment you need it. Miss the week and the memory's usually gone for good.</p>
+
+    <p style="margin:24px 0 0;color:#3a4150;">See you next week,<br>The Applio team</p>
+
+    <hr style="border:0;border-top:1px solid #e9ebf1;margin:30px 0 14px;">
+    <p style="color:#9aa0ad;font-size:12px;line-height:1.6;margin:0;">You're getting this because you use Applio's Win Journal. It's one short email a week, and only when you haven't logged a win. <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe anytime</a>.${addr ? "<br>" + addr : ""}</p>
+  </div></body></html>`;
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [email], subject: "What went well this week?", html }),
+      body: JSON.stringify({ from, to: [email], subject, html }),
     });
     if (r.ok) return { ok: true };
     let detail = "";

@@ -1,8 +1,8 @@
-# Stripe Setup — Final Deploy Steps
+# Stripe Setup, Final Deploy Steps
 
 You've got: Publishable key, Secret key, both Price IDs. Time to wire it up.
 
-## Step 1 — Tell Cloudflare your Stripe secret
+## Step 1, Tell Cloudflare your Stripe secret
 
 ```bash
 cd ~/Hireflow/worker
@@ -10,7 +10,7 @@ npx wrangler secret put STRIPE_SECRET_KEY
 # Paste your sk_live_... when prompted, hit enter.
 ```
 
-## Step 2 — Deploy the new Worker
+## Step 2, Deploy the new Worker
 
 ```bash
 npx wrangler deploy
@@ -18,7 +18,7 @@ npx wrangler deploy
 
 Should print: `https://hireflow-api.hireflow.workers.dev`
 
-## Step 3 — Create the Stripe webhook
+## Step 3, Create the Stripe webhook
 
 Stripe needs to ping your Worker when payments succeed. Set this up in the Dashboard:
 
@@ -28,7 +28,7 @@ Stripe needs to ping your Worker when payments succeed. Set this up in the Dashb
    ```
    https://hireflow-api.hireflow.workers.dev/stripe/webhook
    ```
-4. **Events to listen for** — click "+ Select events" and check these 4:
+4. **Events to listen for**, click "+ Select events" and check these 4:
    - `checkout.session.completed`
    - `customer.subscription.created`
    - `customer.subscription.updated`
@@ -36,7 +36,7 @@ Stripe needs to ping your Worker when payments succeed. Set this up in the Dashb
 5. Click **Add endpoint**
 6. On the next page, click **Reveal** under "Signing secret" → copy the `whsec_...` value
 
-## Step 4 — Tell Cloudflare the webhook secret
+## Step 4, Tell Cloudflare the webhook secret
 
 ```bash
 cd ~/Hireflow/worker
@@ -44,21 +44,21 @@ npx wrangler secret put STRIPE_WEBHOOK_SECRET
 # Paste the whsec_... value, hit enter.
 ```
 
-## Step 5 — Redeploy the Worker with the new secret
+## Step 5, Redeploy the Worker with the new secret
 
 ```bash
 npx wrangler deploy
 ```
 
-## Step 6 — Enable the Customer Portal in Stripe
+## Step 6, Enable the Customer Portal in Stripe
 
 Required for the "Manage billing" button:
 
 1. Go to <https://dashboard.stripe.com/settings/billing/portal>
 2. Click **Activate test link** or **Activate** (live mode)
-3. Defaults are fine — just save.
+3. Defaults are fine, just save.
 
-## Step 7 — Push the new frontend to GitHub
+## Step 7, Push the new frontend to GitHub
 
 Upload to your repo (drag into GitHub web uploader or push via git):
 
@@ -81,14 +81,14 @@ Upload to your repo (drag into GitHub web uploader or push via git):
 
 Pages will go live in ~1 minute on appliohq.com.
 
-## Step 8 — Test it
+## Step 8, Test it
 
 1. Open <https://appliohq.com>, sign in (or sign up fresh)
 2. You should see a purple **Upgrade** button in the topbar
 3. Hit **Upgrade** → pricing page → click **Upgrade to Premium**
-4. You'll land on Stripe Checkout — real payment, real money. Use your own card.
+4. You'll land on Stripe Checkout, real payment, real money. Use your own card.
 5. After payment, redirected to `success.html` → then click **Open Editor**
-6. Plan pill should now show a crown badge — Premium. Lock icons gone. AI works.
+6. Plan pill should now show a crown badge, Premium. Lock icons gone. AI works.
 
 **Want to test without paying real money first?** Use a Stripe test card by temporarily switching to test mode keys (separate dashboard). But you said no test mode, so just be ready with your card and ~$10.
 
@@ -121,10 +121,10 @@ npx wrangler kv key put --binding=HIREFLOW_KV "user:you@example.com" '{"email":"
 | All 9 templates | ✓ | ✓ | ✓ |
 | Job Tracker | ✓ | ✓ | ✓ |
 | Resume downloads | 10 total | unlimited | unlimited |
-| AI Improve writing | — | ✓ | ✓ |
-| Tailor to Job (AI) | — | ✓ | ✓ |
-| ATS Check (AI) | — | ✓ | ✓ |
-| AI Resume Analysis | — | ✓ | ✓ |
-| AI Interview Prep | — | ✓ | ✓ |
-| Resume import (AI parse) | — | ✓ | ✓ |
+| AI Improve writing |, | ✓ | ✓ |
+| Tailor to Job (AI) |, | ✓ | ✓ |
+| ATS Check (AI) |, | ✓ | ✓ |
+| AI Resume Analysis |, | ✓ | ✓ |
+| AI Interview Prep |, | ✓ | ✓ |
+| Resume import (AI parse) |, | ✓ | ✓ |
 | Pricing | $0 | $9.99/mo | $39.99 once |

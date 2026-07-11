@@ -89,7 +89,7 @@ function customizeStyleAttr(customize, marginsKey) {
   const font = FONT_STACKS[c.font];
   const space = SPACE_MULT[c.spacing] ?? 1.0;
   // Margins can come via the render arg (marginsKey) or, more reliably, from the
-  // saved customize.margins — so the control works everywhere renderTemplate runs.
+  // saved customize.margins, so the control works everywhere renderTemplate runs.
   const margin = MARGIN_MULT[marginsKey] ?? MARGIN_MULT[c.margins] ?? 1.0;
   const scale = SCALE_MULT[c.textSize] ?? 1.0;
   const line  = LINE_MULT[c.lineHeight] ?? 1.4;
@@ -113,7 +113,7 @@ function customizeStyleAttr(customize, marginsKey) {
     // quote would prematurely close the attribute and break the font. Swap to single
     // quotes (valid CSS) so the font actually registers in the preview and export.
     const safeFont = font.replace(/"/g, "'");
-    // Only drive the CSS var — every template's font-family is `var(--app-font, <native>)`,
+    // Only drive the CSS var, every template's font-family is `var(--app-font, <native>)`,
     // so this respects the font control WITHOUT clobbering a template's intended font
     // (e.g. Harvard's serif). A blanket inline `font-family` here used to override every
     // template to the same font, which is why Harvard rendered sans-serif.
@@ -154,7 +154,7 @@ function withFallback(resume, mini, marginsKey) {
   if (mini) {
     // Show the sample resume ONLY when the resume is essentially empty (brand new),
     // so a blank editor isn't a blank page. Never sprinkle sample data into a resume
-    // that already has real content — that was leaking a fake "Project Name" project
+    // that already has real content, that was leaking a fake "Project Name" project
     // (and similar) into resumes whose owner simply hadn't filled that one section.
     const hasContent = !!(safe.personal.fullName || safe.personal.summary
       || safe.experience.length || safe.education.length
@@ -732,7 +732,7 @@ function tJake(r, accent) {
     </div>`;
 }
 
-// Ivory — clean two-column with a LIGHT sidebar (the others are dark/colored),
+// Ivory, clean two-column with a LIGHT sidebar (the others are dark/colored),
 // the most common "modern professional" resume layout. Accent used as the divider
 // rule + role/label color so it stays readable on the light panel.
 function tIvory(r, accent) {
@@ -778,7 +778,7 @@ function tIvory(r, accent) {
     </div>`;
 }
 
-// Timeline — single column where every entry is a milestone on a continuous
+// Timeline, single column where every entry is a milestone on a continuous
 // vertical rail (dots on the line). Distinctive but ATS-safe (real text, one column).
 function tTimeline(r, accent) {
   const c = accent || '#4f46e5';
@@ -811,7 +811,7 @@ function tTimeline(r, accent) {
     </div>`;
 }
 
-// Cascade — a clean corporate single column with a light header band (name, role,
+// Cascade, a clean corporate single column with a light header band (name, role,
 // contact) and an accent baseline. The conventional "modern professional" look used
 // across most real-world resume tools; light background, fully legible on any accent.
 function tCascade(r, accent) {
@@ -850,7 +850,7 @@ function tCascade(r, accent) {
     </div>`;
 }
 
-// Deedy — the widely-used two-column engineering résumé: a full-width name banner
+// Deedy, the widely-used two-column engineering résumé: a full-width name banner
 // (first name black, surname in accent) with right-aligned contact, then a narrow
 // Education/Skills column beside a wide Experience column. Real text throughout.
 function tDeedy(r, accent) {
@@ -976,7 +976,7 @@ function writeResumeFrame(frame, bodyHTML, pageWidth) {
 // becomes unreadable. Runs on the SAME rendered doc used by the preview and the
 // export, so what you see matches the PDF. Idempotent: always resets first.
 // Returns true if the doc now fits within one page.
-const FIT_ONE_PAGE_FLOOR = 0.72;   // never shrink text below 72% (~11.5px base — print-readable floor)
+const FIT_ONE_PAGE_FLOOR = 0.72;   // never shrink text below 72% (~11.5px base, print-readable floor)
 const FIT_ONE_PAGE_MARGIN_FLOOR = 0.58;   // margins may go tighter than text; they cost height without hurting legibility
 function fitDocToOnePage(doc, pageH) {
   if (!doc || !doc.body) return false;

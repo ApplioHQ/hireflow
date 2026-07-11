@@ -321,7 +321,7 @@ function _clearAiTimers(el) {
 }
 
 // Frame script for the AI dot-loader (7x7 grid; each frame lists the lit dot
-// indices). A looping "snake" that travels the grid — ported from the DotLoader.
+// indices). A looping "snake" that travels the grid, ported from the DotLoader.
 const _AI_DOT_FRAMES = [
   [14, 7, 0, 8, 6, 13, 20], [14, 7, 13, 20, 16, 27, 21], [14, 20, 27, 21, 34, 24, 28],
   [27, 21, 34, 28, 41, 32, 35], [34, 28, 41, 35, 48, 40, 42], [34, 28, 41, 35, 48, 42, 46],

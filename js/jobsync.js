@@ -1,4 +1,4 @@
-/* jobsync.js — cross-device sync for the job tracker (hf_jobs). One shared module
+/* jobsync.js, cross-device sync for the job tracker (hf_jobs). One shared module
    used by the tracker, dashboard, autopilot, and editor so a job saved on any device
    shows up everywhere. Last-write-wins by a local timestamp (hf_jobs_ts). Fail-open:
    any network hiccup just leaves local data untouched. Exposes window.HFJobsSync. */

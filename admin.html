@@ -162,7 +162,7 @@
   <section id="email-tools-section" style="margin-top:22px;">
     <div class="ctrl-card">
       <h3>Test win-nudge email</h3>
-      <p>Sends one weekly "log your win" email right now — the same template as the Friday cron — to confirm Resend delivery is working end-to-end. Check your inbox and spam folder.</p>
+      <p>Sends one weekly "log your win" email right now, the same template as the Friday cron, to confirm Resend delivery is working end-to-end. Check your inbox and spam folder.</p>
       <div class="ctrl-row">
         <input type="email" id="testnudge-email" placeholder="you@email.com" style="min-width:240px;">
         <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
@@ -236,7 +236,7 @@ async function init() {
     return;
   }
   // role-pill may already have been removed by acctcenter.js (which rebuilds
-  // .topbar-right into the account dropdown while we await /me) — guard it so a
+  // .topbar-right into the account dropdown while we await /me), guard it so a
   // missing cosmetic element never aborts the role-gating + data load below.
   var _rp = document.getElementById('role-pill');
   if (_rp) _rp.innerHTML =
@@ -267,7 +267,7 @@ async function refresh() {
     renderStatus(statusRes);
   } catch (e) {
     toast('Failed to load: ' + e.message, { type: 'error' });
-    // Never leave the panels stuck on a placeholder — show the error clearly.
+    // Never leave the panels stuck on a placeholder, show the error clearly.
     var us = document.getElementById('user-summary');
     if (us) us.innerHTML = '<span style="color:var(--danger);">Couldn\'t load users: ' + esc(e.message) + '</span>';
     var sr = document.getElementById('status-readout');
@@ -393,7 +393,7 @@ async function sendTestNudge() {
   if (!email || email.indexOf('@') < 0) return toast('Enter a valid email', { type: 'warn' });
   try {
     const res = await apiPost('/admin/test-win-nudge', { email });
-    if (res.ok) toast('Test email sent to ' + email + ' — check inbox & spam.', { type: 'success' });
+    if (res.ok) toast('Test email sent to ' + email + ', check inbox & spam.', { type: 'success' });
     else toast('Send failed: ' + (res.error || 'unknown'), { type: 'error' });
   } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }

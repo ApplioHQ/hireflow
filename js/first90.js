@@ -1,4 +1,4 @@
-/* first90.js — a 30/60/90-day onboarding plan for a new role. State lives in
+/* first90.js, a 30/60/90-day onboarding plan for a new role. State lives in
    hf_profile.onboarding (cloud-synced via /profile), so it follows the user and
    sits alongside their win journal. Zero AI; all client-side. */
 (function () {
@@ -38,10 +38,10 @@
       { id: 'p1a', label: 'Ask your manager what success looks like at 30, 60, and 90 days' },
       { id: 'p1b', label: 'Map your team and key partners; set up intro chats with each' },
       { id: 'p1c', label: 'Learn the tools, systems, and docs you\'ll use every day' },
-      { id: 'p1d', label: 'Understand how your team\'s work is measured — the metrics that matter' },
+      { id: 'p1d', label: 'Understand how your team\'s work is measured, the metrics that matter' },
       { id: 'p1e', label: 'Read recent projects, roadmaps, and past decisions or postmortems' },
       { id: 'p1f', label: 'Identify your go-to person for each area, and one peer to lean on' },
-      { id: 'p1g', label: 'Write down early questions and friction — you\'ll never see them this freshly again' }
+      { id: 'p1g', label: 'Write down early questions and friction, you\'ll never see them this freshly again' }
     ] },
     { key: 'p2', title: 'Days 31–60', sub: 'Contribute', tasks: [
       { id: 'p2a', label: 'Take full ownership of a first project or workstream' },
@@ -171,7 +171,7 @@
   }
   function renderDayBadge() {
     var d = daysIn(), el = document.getElementById('n90-day');
-    if (d == null) { el.innerHTML = 'Day <span>— set a start date</span>'; return; }
+    if (d == null) { el.innerHTML = 'Day <span>, set a start date</span>'; return; }
     if (d < 0) { el.innerHTML = 'Starts in ' + (-d) + ' day' + (-d === 1 ? '' : 's'); return; }
     if (d > 90) { el.innerHTML = 'Day 90+ <span>· ramp complete</span>'; return; }
     el.innerHTML = 'Day ' + d + ' <span>of 90</span>';

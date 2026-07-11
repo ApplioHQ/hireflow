@@ -1,4 +1,4 @@
-/* attribution.js — one-time post-signup prompt (flag hf_ask_attribution set at
+/* attribution.js, one-time post-signup prompt (flag hf_ask_attribution set at
    signup). Two quick steps in a single modal:
      1) "Where did you hear about Applio?"  → POST /attribution
      2) "Want a weekly reminder to log your wins?" → sets profile.emailWeeklyWin
@@ -42,7 +42,7 @@
       body: JSON.stringify({ profile: p })
     }).catch(function () {});
     done(); close();
-    if (window.toast) toast(yes ? 'Done — we\'ll send one short weekly nudge. Unsubscribe anytime.' : 'No problem — no emails from us. You can turn them on later in your dashboard.', { type: 'success' });
+    if (window.toast) toast(yes ? 'Done, we\'ll send one short weekly nudge. Unsubscribe anytime.' : 'No problem, no emails from us. You can turn them on later in your dashboard.', { type: 'success' });
   }
 
   function ensureCss() {
@@ -77,7 +77,7 @@
     bd.id = 'attr-backdrop';
     bd.innerHTML = '<div id="attr-card" role="dialog" aria-modal="true" aria-labelledby="attr-title"></div>';
     document.body.appendChild(bd);
-    // Backdrop click dismisses everything (counts as declining — safe default: no email).
+    // Backdrop click dismisses everything (counts as declining, safe default: no email).
     bd.addEventListener('click', function (e) { if (e.target === bd) { done(); close(); } });
     showStep1();
   }
@@ -101,7 +101,7 @@
     if (!card) return;
     card.innerHTML = '<div class="attr-kicker">Stay on track</div>'
       + '<h3 id="attr-title">Want a weekly nudge?</h3>'
-      + '<p>Once a week we can email you a quick reminder to log a win — the habit that keeps your resume current and builds a brag doc for reviews and raises. Only if you skip a week, and you can unsubscribe anytime.</p>'
+      + '<p>Once a week we can email you a quick reminder to log a win, the habit that keeps your resume current and builds a brag doc for reviews and raises. Only if you skip a week, and you can unsubscribe anytime.</p>'
       + '<div id="attr-consent">'
       + '<button type="button" class="attr-yes">Yes, send me a weekly reminder</button>'
       + '<button type="button" class="attr-no">No thanks</button>'

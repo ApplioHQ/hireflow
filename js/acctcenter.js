@@ -1,4 +1,4 @@
-/* acctcenter.js — one shared account dropdown for the older app pages (job tracker,
+/* acctcenter.js, one shared account dropdown for the older app pages (job tracker,
    interview prep, best match, cover letter, career coach, feedback, admin) that still
    had a plain "Sign out" button. Injects the same account center the editor/dashboard
    use into .topbar-right, wires it, and hydrates identity + plan from plan.js. Skips

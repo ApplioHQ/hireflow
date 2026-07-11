@@ -1,4 +1,4 @@
-/* gen-rb.js — generates the public /resume-builder hub + long-tail
+/* gen-rb.js, generates the public /resume-builder hub + long-tail
    "resume builder for [audience]" landing pages. Content authored per-audience
    (specific, not thin). Shell mirrors the guides (styles/topbar/footer/JSON-LD). */
 const fs = require('fs');

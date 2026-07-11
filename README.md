@@ -36,7 +36,7 @@ python3 -m http.server 8000
 
 ## Stack
 
-- Vanilla HTML/CSS/JS — no build step
-- Cloudflare Worker — auth, AI proxy, resume storage
-- Cloudflare KV — user accounts (hashed pw) and resume JSON
-- Cloudflare Workers AI — Llama 3.1 8B Instruct
+- Vanilla HTML/CSS/JS, no build step
+- Cloudflare Worker, auth, AI proxy, resume storage
+- Cloudflare KV, user accounts (hashed pw) and resume JSON
+- Cloudflare Workers AI, Llama 3.1 8B Instruct

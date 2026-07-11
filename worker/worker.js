@@ -21,17 +21,17 @@ const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 // Shared anti-hallucination directive, prepended to every generative AI prompt so the
 // model can never fabricate facts the candidate didn't actually provide. This is the
 // single most important guardrail for output quality/trust.
-const GROUNDING = `GROUNDING — the most important rule, overrides everything else if in conflict:
+const GROUNDING = `GROUNDING, the most important rule, overrides everything else if in conflict:
 Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative, never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
 Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
-// Note: "parse" (resume import) is intentionally NOT here — importing is free for everyone.
+// Note: "parse" (resume import) is intentionally NOT here, importing is free for everyone.
 const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot"]);
-// Career Coach (assistant) is Premium/Lifetime only — it is in PRO_AI above and the
+// Career Coach (assistant) is Premium/Lifetime only, it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
-// Per-account daily AI call caps — a soft backstop against runaway usage/abuse
+// Per-account daily AI call caps, a soft backstop against runaway usage/abuse
 // driving up Workers AI cost. Deliberately far above what a genuine user does in a
 // day (free users can only reach parse / interview / summary-improve; paid do heavier
 // tailoring). Admins bypass entirely. Approximate (KV, eventually consistent) by design.
@@ -46,12 +46,12 @@ export default {
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
-    // Stripe webhook gets raw body — handle before JSON parsing
+    // Stripe webhook gets raw body, handle before JSON parsing
     if (path === "/stripe/webhook") {
       return handleWebhook(req, env).then(r => withCors(r, cors)).catch(e => withCors(json({ error: e.message }, e.status || 500), cors));
     }
 
-    // One-click email unsubscribe (public, HTML response, token-verified — no login).
+    // One-click email unsubscribe (public, HTML response, token-verified, no login).
     if (path === "/unsubscribe") {
       return handleUnsubscribe(url, env).catch(() => new Response("Something went wrong.", { status: 500, headers: { "Content-Type": "text/html" } }));
     }
@@ -305,7 +305,7 @@ async function demoSession(req, env) {
   return { token, email };
 }
 
-// ============ System status (public — no auth needed) ============
+// ============ System status (public, no auth needed) ============
 async function getStatus(req, env) {
   const now = Math.floor(Date.now()/1000);
   const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
@@ -330,7 +330,7 @@ async function requireAdmin(req, env, requireSuper = false) {
 }
 
 // Read every user record from KV. Lists all keys (paginated), then fetches the
-// values in PARALLEL batches — one sequential get() per user does not scale (a few
+// values in PARALLEL batches, one sequential get() per user does not scale (a few
 // hundred users would exceed the Worker's wall-time budget and the admin request
 // would hang). Batching keeps it fast and bounded. One corrupt record is skipped.
 async function _readAllUserRecords(env) {
@@ -646,7 +646,7 @@ async function syncWithStripe(req, env) {
       plan: "premium",
       hasStripeCustomer: true,
       currentPeriodEnd: sub.current_period_end,
-      message: "Synced — Premium subscription active",
+      message: "Synced, Premium subscription active",
     };
   }
 
@@ -661,7 +661,7 @@ async function syncWithStripe(req, env) {
     user.currentPeriodEnd = null;
     user.updatedAt = Date.now();
     await putUser(env, user);
-    return { ok: true, linked: true, plan: "lifetime", hasStripeCustomer: true, message: "Synced — Lifetime access active" };
+    return { ok: true, linked: true, plan: "lifetime", hasStripeCustomer: true, message: "Synced, Lifetime access active" };
   }
 
   // 4) Customer exists but no active subscription or paid one-time
@@ -794,7 +794,7 @@ async function ai(req, env, action) {
   // Admin/super bypass plan and global-disable checks
   const isAdmin = payload.role === "admin" || payload.role === "super";
 
-  // Global AI kill switch — return a generic error so users don't learn it was disabled on purpose.
+  // Global AI kill switch, return a generic error so users don't learn it was disabled on purpose.
   if (!isAdmin) {
     const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
     if (aiUntil > Math.floor(Date.now()/1000)) {
@@ -805,7 +805,7 @@ async function ai(req, env, action) {
   // Read the request body once (req.json() can only be consumed a single time).
   const body = await req.json();
 
-  // Admin tokens have no user record — let them through
+  // Admin tokens have no user record, let them through
   if (isAdmin) {
     return await aiDispatch(env, action, body);
   }
@@ -823,7 +823,7 @@ async function ai(req, env, action) {
     throw err(402, "Upgrade to Premium to use AI features");
   }
 
-  // Career Coach (assistant) is Premium-only — enforced by the PRO_AI gate above.
+  // Career Coach (assistant) is Premium-only, enforced by the PRO_AI gate above.
 
   // Per-account daily AI cap: soft cost/abuse guard. Count is per UTC day, expires
   // after 2 days, and is checked/incremented per request. Failures are fail-open
@@ -834,7 +834,7 @@ async function ai(req, env, action) {
   const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
   if (rlUsed >= rlCap) {
     throw err(429, paid
-      ? "You've reached today's AI usage limit. It resets at midnight UTC — sorry for the interruption."
+      ? "You've reached today's AI usage limit. It resets at midnight UTC, sorry for the interruption."
       : "You've reached today's free AI limit. Upgrade to Premium for a much higher limit, or come back tomorrow.");
   }
   const bumpRate = () => env.HIREFLOW_KV
@@ -896,7 +896,7 @@ async function listFeedback(req, env) {
 // Retention loop: if someone who has used the Win Journal hasn't logged a win in a
 // week, send ONE gentle prompt. Fully inert until env.RESEND_API_KEY is set.
 // Respects unsubscribes and never emails the same person more than ~weekly.
-const WIN_NUDGE_MAX_SENDS = 200;   // per run — bounds cost + protects sender reputation
+const WIN_NUDGE_MAX_SENDS = 200;   // per run, bounds cost + protects sender reputation
 const WIN_NUDGE_SCAN_CAP = 3000;   // profiles scanned per run
 
 // Short, stable, unguessable per-email unsubscribe token derived from JWT_SECRET.
@@ -961,11 +961,11 @@ async function runWeeklyWinNudge(env) {
       if (await env.HIREFLOW_KV.get(`winmail_last:${email}`)) continue;  // emailed within the weekly window
       let profile;
       try { profile = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
-      if (!profile || profile.emailWeeklyWin !== true) continue;   // OPT-IN required — only email users who explicitly turned reminders on
+      if (!profile || profile.emailWeeklyWin !== true) continue;   // OPT-IN required, only email users who explicitly turned reminders on
       const wins = Array.isArray(profile.achievements) ? profile.achievements : [];
       if (!wins.length) continue;                          // (belt-and-suspenders: need a win to nudge about anyway)
       const lastWin = wins.reduce((m, w) => Math.max(m, (w && w.ts) || 0), 0);
-      if (lastWin && now - lastWin < WEEK) continue;       // logged one recently — leave them be
+      if (lastWin && now - lastWin < WEEK) continue;       // logged one recently, leave them be
       if ((await sendWinNudgeEmail(env, email, wins.length)).ok) {
         sent++;
         await env.HIREFLOW_KV.put(`winmail_last:${email}`, String(now), { expirationTtl: 561600 }); // ~6.5 days
@@ -987,7 +987,7 @@ async function sendWinNudgeEmail(env, email, winCount) {
     "What did you get done this week?",
     "Don't let this week's wins slip away",
     "2 minutes now saves you hours at resume time",
-    "Quick — what went well this week?",
+    "Quick, what went well this week?",
   ];
   const subject = SUBJECTS[Math.floor(Date.now() / (7 * 86400000)) % SUBJECTS.length];
 
@@ -995,11 +995,11 @@ async function sendWinNudgeEmail(env, email, winCount) {
   <div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
     <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
 
-    <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">Before the week gets away from you&nbsp;— what went well?</p>
+    <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">Before the week gets away from you&nbsp;, what went well?</p>
 
     <p style="margin:0 0 16px;color:#3a4150;">When it's finally time to update your resume or ask for a raise, hardly anyone can remember what they actually did months ago. The fix is almost embarrassingly simple: <strong>jot down one win a week, while it's fresh.</strong></p>
 
-    <p style="margin:0 0 10px;color:#3a4150;">Think back on this week — did you&hellip;</p>
+    <p style="margin:0 0 10px;color:#3a4150;">Think back on this week, did you&hellip;</p>
     <ul style="margin:0 0 22px;padding-left:22px;color:#3a4150;">
       <li style="margin-bottom:5px;">ship or wrap up something?</li>
       <li style="margin-bottom:5px;">hit a number, or nudge one in the right direction?</li>
@@ -1010,7 +1010,7 @@ async function sendWinNudgeEmail(env, email, winCount) {
 
     <p style="margin:0 0 28px;"><a href="${dash}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Log this week's win &rarr;</a></p>
 
-    <p style="margin:0 0 4px;color:#3a4150;">Here's the payoff: every win you log becomes a ready-to-use resume bullet and hard proof for your next review, promotion case, or raise — and it all compiles into a <a href="${brag}" style="color:#4f46e5;">one-page brag doc</a> the moment you need it. Miss the week and the memory's usually gone for good.</p>
+    <p style="margin:0 0 4px;color:#3a4150;">Here's the payoff: every win you log becomes a ready-to-use resume bullet and hard proof for your next review, promotion case, or raise, and it all compiles into a <a href="${brag}" style="color:#4f46e5;">one-page brag doc</a> the moment you need it. Miss the week and the memory's usually gone for good.</p>
 
     <p style="margin:24px 0 0;color:#3a4150;">See you next week,<br>The Applio team</p>
 
@@ -1148,7 +1148,7 @@ async function runAIJSON(env, system, user, opts = {}) {
   const raw = await runAI(env, system, user, opts);
   let obj = safeJSON(raw);
   if (obj != null) return { obj, raw };
-  const strictSys = system + `\n\nCRITICAL: Respond with ONLY the JSON value — no prose, no explanation, no markdown code fences. Start with { or [ and return complete, valid JSON. Do not stop early.`;
+  const strictSys = system + `\n\nCRITICAL: Respond with ONLY the JSON value, no prose, no explanation, no markdown code fences. Start with { or [ and return complete, valid JSON. Do not stop early.`;
   const raw2 = await runAI(env, strictSys, user, {
     ...opts,
     max_tokens: Math.min(4096, Math.round((opts.max_tokens || 800) * 1.35)),
@@ -1185,7 +1185,7 @@ async function aiAssistant(env, { messages, resume }) {
   }
   const resumeCtx = resume && Object.keys(resume).length
     ? JSON.stringify(resume).slice(0, 5000)
-    : "(the user hasn't built a resume yet — encourage them to start one in the Resume Builder)";
+    : "(the user hasn't built a resume yet, encourage them to start one in the Resume Builder)";
   const sys = `${GROUNDING}
 
 You are Applio's AI career assistant, a sharp, encouraging career coach for job seekers.
@@ -1226,14 +1226,14 @@ async function aiImprove(env, { target, text, context }) {
 ${roleLine}
 
 WRITE IT SO IT:
-- Is 2-3 sentences, 40-60 words MAX — tight, zero filler.
+- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.
 - Opens with a strong identity statement: "[Title/role] with [X years / core domain]…" using only facts in the input.
-- Names 2-3 standout, specific strengths (skills, domains, or scope) — concrete nouns, not adjectives.
+- Names 2-3 standout, specific strengths (skills, domains, or scope), concrete nouns, not adjectives.
 - Ends with the value the candidate brings to a hiring manager for this kind of role.
 - Active voice; third-person implied (no "I", no "you").
 - BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter".
-- Preserves the candidate's real facts — never invent titles, numbers, employers, or achievements.
-- Plain text only — no markdown, no headers, no quotation marks.
+- Preserves the candidate's real facts, never invent titles, numbers, employers, or achievements.
+- Plain text only, no markdown, no headers, no quotation marks.
 
 Before answering, silently check: under 60 words? no banned buzzword? no invented fact? Fix any that fail.
 
@@ -1243,7 +1243,7 @@ ${roleLine}
 
 Every bullet follows the impact formula:  [strong action verb] + [what you did] + [the measurable result or scope].
 
-HARD RULES — follow exactly:
+HARD RULES, follow exactly:
 - Output 3-6 bullets, one per line, each starting with "• ".
 - Each bullet is ONE sentence, 12-20 words. Never a second sentence or trailing "which…" clause.
 - Begin each bullet with a DISTINCT strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected, Launched, Cut, Scaled, Automated, Negotiated). Never reuse a verb.
@@ -1282,11 +1282,11 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
 
 // ============ Polish one win-journal note into a resume-ready bullet ============
 // Free for all (it drives the win-logging habit and shows AI value). Grounded so
-// it never invents facts — it only rewrites what the user actually wrote.
+// it never invents facts, it only rewrites what the user actually wrote.
 async function aiWin(env, { text, context }) {
   if (!text || !text.trim()) return { text: "" };
   const role = String((context && context.role) || "").slice(0, 120);
-  const roleLine = role ? `CONTEXT: this is for a "${role}" role — keep it relevant to that.\n` : "";
+  const roleLine = role ? `CONTEXT: this is for a "${role}" role, keep it relevant to that.\n` : "";
   const sys = GROUNDING + `
 
 You are an elite resume writer. Turn the candidate's rough note about something they accomplished into ONE polished, achievement-focused resume bullet.
@@ -1295,7 +1295,7 @@ ${roleLine}HARD RULES:
 - One sentence, 12-20 words, leading with a strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Launched, Cut, Scaled, Automated, Improved).
 - Lead with impact. Keep any real metric from the note; NEVER invent numbers, tools, names, dates, or scope that aren't in the note.
 - No buzzwords (results-driven, dynamic, passionate, team player, detail-oriented, hard-working).
-- Plain text only — output only the bullet, nothing else.`;
+- Plain text only, output only the bullet, nothing else.`;
   const out = await runAI(env, sys, `Rough note:\n${text}\n\nPolish it into one bullet.`, { model: SMART_MODEL, max_tokens: 90, temperature: 0.25 });
   const bullet = (_tightenBullets(out).split("\n")[0] || "").replace(/^•\s*/, "").trim();
   return { text: bullet || text.trim() };
@@ -1340,7 +1340,7 @@ async function aiSkills(env, { experience }) {
   if (cached) return cached;
   const sys = GROUNDING + "\n\n" + `You extract resume-ready skills that are DEMONSTRATED in the candidate's work history.
 
-Return a clean comma-separated list of 10-16 skills, each one directly evidenced by the described work — a tool they clearly used, a methodology they clearly applied, or a responsibility they clearly held.
+Return a clean comma-separated list of 10-16 skills, each one directly evidenced by the described work, a tool they clearly used, a methodology they clearly applied, or a responsibility they clearly held.
 
 Rules:
 - Only include a skill if the experience gives real evidence for it. Do NOT list skills just because they are common for the job title. When in doubt, leave it out.
@@ -1395,7 +1395,7 @@ ${shape}
 Rules:
 - Draw "missing" ONLY from skills/requirements that actually appear in the job posting text below AND are not already in the candidate's current skills. NEVER invent a requirement the posting doesn't state.
 - Order by how central each is to the posting. 6-10 items.
-- Each "skill" is a concrete tool, technology, methodology, or credential the posting names — never a vague trait.
+- Each "skill" is a concrete tool, technology, methodology, or credential the posting names, never a vague trait.
 - "why" is one short sentence on how the posting uses or requires it.
 - "relevant" contains ONLY the candidate's CURRENT skills (verbatim) that the posting also asks for.`;
     user = `JOB POSTING:
@@ -1410,9 +1410,9 @@ Return the JSON.`;
 ${shape}
 
 Rules:
-- 6-10 "missing" items, most-important first. Each "skill" is a concrete tool, technology, methodology, or credential — never a vague trait like "communication".
+- 6-10 "missing" items, most-important first. Each "skill" is a concrete tool, technology, methodology, or credential, never a vague trait like "communication".
 - A skill is "missing" only if it's commonly expected for the role AND not already in the candidate's current skills. Never repeat something already listed.
-- "relevant" contains ONLY skills the candidate actually listed (verbatim) — never invent skills they didn't provide.
+- "relevant" contains ONLY skills the candidate actually listed (verbatim), never invent skills they didn't provide.
 - Match the seniority implied by the role. Be realistic and specific.
 - "why" is one short plain sentence, no fluff.`;
     user = `TARGET ROLE: ${target}
@@ -1445,7 +1445,7 @@ Analyze the job description and the candidate's resume, then output STRICT JSON 
   "matchedKeywords": ["<keyword 1>", "<keyword 2>", "..."],
   "missingKeywords": ["<important JD keyword the resume doesn't mention>", "..."],
   "emphasize": [
-    "<short, actionable note: 'Lead with your AWS migration work — JD heavily emphasizes cloud infra'>",
+    "<short, actionable note: 'Lead with your AWS migration work, JD heavily emphasizes cloud infra'>",
     "<another note>",
     "<another note>"
   ],
@@ -1511,11 +1511,11 @@ Score the candidate's resume against the job description (or generic best practi
   },
   "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
   "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
-  "issues": ["<specific weakness — name the section and what to fix>", "<another>", "<another>", "<another>"],
+  "issues": ["<specific weakness, name the section and what to fix>", "<another>", "<another>", "<another>"],
   "missingKeywords": ["<keyword from JD missing from resume>", "<another>"]
 }
 
-Scoring rubric — compute each sub-score 0-100, then score = the WEIGHTED sum:
+Scoring rubric, compute each sub-score 0-100, then score = the WEIGHTED sum:
 - keywords (30%): exact-match coverage of the JD's required skills/titles/tools. A missing must-have keyword is a hard penalty.
 - experience (30%): does the described experience actually match the role's level and responsibilities?
 - formatting (20%): ATS-safe structure (standard section headers, no tables/columns/images, real dates, parseable).
@@ -1616,14 +1616,14 @@ Rules:
   return out;
 }
 
-// ============ Parse (resume import — most important!) ============
+// ============ Parse (resume import, most important!) ============
 async function aiParse(env, { text }) {
   if (!text || text.trim().length < 30) {
-    throw err(400, "Paste at least a few lines from your resume — 'test' isn't enough text to parse.");
+    throw err(400, "Paste at least a few lines from your resume, 'test' isn't enough text to parse.");
   }
   const cached = await aiCacheGet(env, "parse", text.slice(0, 8000));
   if (cached) return cached;
-  const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy — line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
+  const sys = `You are an expert resume parser. The user pasted plain text from a resume (could be from a PDF copy-paste, so formatting may be messy, line breaks in odd places, bullet markers like •, *, -, ▪, →, or no markers, dates in any format).
 
 Extract everything into this EXACT JSON schema. Fill every field you can confidently extract. Use "" for unknown strings and [] for empty arrays.
 
@@ -1632,7 +1632,7 @@ SCHEMA:
   "personal": {
     "fullName": "<full name from top of resume>",
     "email": "<email address>",
-    "phone": "<phone number — keep original format>",
+    "phone": "<phone number, keep original format>",
     "location": "<city, state OR city, country>",
     "linkedin": "<linkedin URL or username>",
     "github": "<github URL or username>",
@@ -1643,7 +1643,7 @@ SCHEMA:
     {
       "title": "<job title>",
       "company": "<company name>",
-      "start": "<start date — e.g. 'Jan 2022' or '2022'>",
+      "start": "<start date, e.g. 'Jan 2022' or '2022'>",
       "end": "<end date or 'Present'>",
       "location": "<city, state or 'Remote'>",
       "description": "<all bullets joined with newlines, each starting with '• '>"
@@ -1652,7 +1652,7 @@ SCHEMA:
   "education": [
     {
       "school": "<school name>",
-      "degree": "<degree type — B.S., M.S., Ph.D., B.A., etc.>",
+      "degree": "<degree type, B.S., M.S., Ph.D., B.A., etc.>",
       "field": "<major / field of study>",
       "gpa": "<GPA if mentioned>",
       "start": "<start year>",
@@ -1703,8 +1703,8 @@ CRITICAL RULES:
 3. Dates: keep the original format. If you see "May 2022 - Present", set start="May 2022", end="Present".
 4. Name + contact: usually the first 1-5 lines of the resume.
 5. Skills: extract every listed skill, comma/pipe/bullet separated. Put all under one category "All" unless the resume explicitly groups them.
-6. NEVER hallucinate or embellish. Copy the candidate's wording; do not rewrite, improve, or invent. If a field is not clearly in the text, leave it empty ("") — never guess a value, date, title, company, or metric.
-7. Don't truncate descriptions — keep all bullet content.
+6. NEVER hallucinate or embellish. Copy the candidate's wording; do not rewrite, improve, or invent. If a field is not clearly in the text, leave it empty (""), never guess a value, date, title, company, or metric.
+7. Don't truncate descriptions, keep all bullet content.
 
 OUTPUT FORMAT:
 - ONLY the JSON object.
@@ -1740,7 +1740,7 @@ Format EXACTLY like this (no markdown, no JSON, plain text):
 
 [Behavioral]
 1. <Question>
-   Tip: <One-line strategic tip — what they're really testing, what to emphasize from the candidate's resume>
+   Tip: <One-line strategic tip, what they're really testing, what to emphasize from the candidate's resume>
 
 2. <Question>
    Tip: <Tip>
@@ -1775,7 +1775,7 @@ Format EXACTLY like this (no markdown, no JSON, plain text):
 Rules:
 - Questions should reference specifics from the candidate's actual resume when natural
 - Tips should mention which resume bullet/experience to lean on for the answer
-- Avoid generic questions like "What's your greatest weakness?" — interviewers ask sharper questions today
+- Avoid generic questions like "What's your greatest weakness?", interviewers ask sharper questions today
 - No preamble. Start directly with "[Behavioral]".`;
 
   const out = { text: await runAI(env, sys,
@@ -1803,7 +1803,7 @@ async function aiInterviewFeedback(env, { question, answer, role }) {
   "feedback": "<2-3 sentence overall summary>"
 }
 
-Scoring rubric — compute each sub-score 0-100, then score = the WEIGHTED sum:
+Scoring rubric, compute each sub-score 0-100, then score = the WEIGHTED sum:
 - structure (35%): does it follow STAR (Situation, Task, Action, Result) or otherwise tell a clear, complete story?
 - impact (35%): are there concrete, quantified results and evidence of ownership?
 - clarity (30%): is it concise, specific, and easy to follow (not rambling or vague)?
@@ -1844,23 +1844,23 @@ async function aiCoverLetter(env, { role, company, jobDescription, tone, highlig
   const toneDesc = toneMap[tone] || toneMap.professional;
   const name = (resume && (resume.name || (resume.personal && resume.personal.name))) || "";
 
-  const sys = GROUNDING + "\n\n" + `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume — never invent employers, titles, degrees, or metrics that aren't supported by the resume.
+  const sys = GROUNDING + "\n\n" + `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume, never invent employers, titles, degrees, or metrics that aren't supported by the resume.
 
 Requirements:
 - Tone: ${toneDesc}.
 - Length: 250-350 words, 3-4 short paragraphs.
-- Structure: (1) a specific hook that connects the candidate to THIS role/company, (2) 1-2 paragraphs of evidence — concrete achievements and skills from the resume that map to the job's needs, with real numbers where the resume has them, (3) a confident closing with a call to action.
+- Structure: (1) a specific hook that connects the candidate to THIS role/company, (2) 1-2 paragraphs of evidence, concrete achievements and skills from the resume that map to the job's needs, with real numbers where the resume has them, (3) a confident closing with a call to action.
 - Address it to "Dear Hiring Manager," unless a name is clearly provided.
 - Sign off with "Sincerely," followed by the candidate's name${name ? ` (${name})` : ""}.
 - Mirror the most important keywords and priorities from the job description naturally.
-- NO placeholders or brackets like [Company] or [Your achievement] — use the real details provided; if a detail is unknown, write around it gracefully.
+- NO placeholders or brackets like [Company] or [Your achievement], use the real details provided; if a detail is unknown, write around it gracefully.
 - Plain text only. No markdown, no headings, no preamble like "Here's your cover letter". Output ONLY the letter.`;
 
   const userMsg = [
     `Target role: ${role || "(not specified)"}`,
     `Company: ${company || "(not specified)"}`,
     highlights ? `Candidate wants to emphasize: ${String(highlights).slice(0, 600)}` : "",
-    `\nJob description:\n${(jobDescription || "(none provided — infer needs from the role title and resume)").slice(0, 3500)}`,
+    `\nJob description:\n${(jobDescription || "(none provided, infer needs from the role title and resume)").slice(0, 3500)}`,
     `\nCandidate resume (ground everything in this):\n${JSON.stringify(resume || {}).slice(0, 6000)}`,
   ].filter(Boolean).join("\n");
 
@@ -1882,7 +1882,7 @@ async function aiAutopilot(env, { jobDescription, resume, tone, role, company })
     throw err(400, "Paste the job description (at least a few lines) so Autopilot has something to work with.");
   }
   if (!resume || typeof resume !== "object" || !Object.keys(resume).length) {
-    throw err(400, "Build or import your resume first — Autopilot tailors it to the job.");
+    throw err(400, "Build or import your resume first, Autopilot tailors it to the job.");
   }
   const cacheKey = (jobDescription || "").slice(0, 4000) + "\u0000" +
     JSON.stringify(resume || {}).slice(0, 7000) + "\u0000" + (tone || "") + "\u0000" +
@@ -1903,9 +1903,9 @@ async function aiAutopilot(env, { jobDescription, resume, tone, role, company })
   const score = ats && typeof ats.score === "number" ? ats.score : null;
   let verdict = "stretch", label = "Worth a shot";
   if (score != null) {
-    if (score >= 75)      { verdict = "apply";   label = "Strong fit — apply"; }
-    else if (score >= 55) { verdict = "stretch"; label = "Worth a shot — a few gaps to close"; }
-    else                  { verdict = "skip";    label = "Long shot — only if you can close the gaps"; }
+    if (score >= 75)      { verdict = "apply";   label = "Strong fit, apply"; }
+    else if (score >= 55) { verdict = "stretch"; label = "Worth a shot, a few gaps to close"; }
+    else                  { verdict = "skip";    label = "Long shot, only if you can close the gaps"; }
   }
 
   const dedupe = (arr) => [...new Set((arr || []).filter(k => typeof k === "string" && k.trim()))];

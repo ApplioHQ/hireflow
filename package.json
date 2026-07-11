@@ -2,7 +2,7 @@
   "name": "appliohq",
   "private": true,
   "version": "1.0.0",
-  "description": "Applio (appliohq.com) — static front-end (GitHub Pages) + Cloudflare Worker API (in ./worker).",
+  "description": "Applio (appliohq.com), static front-end (GitHub Pages) + Cloudflare Worker API (in ./worker).",
   "scripts": {
     "deploy": "cd worker && npx wrangler deploy",
     "deploy:staging": "cd worker && npx wrangler deploy --env staging",

@@ -1,7 +1,7 @@
-/* dashboard.js — Applio "Career Home" (the copilot dashboard).
+/* dashboard.js, Applio "Career Home" (the copilot dashboard).
    Orients the user before any single tool: what to do next (nudges computed from
    their pipeline + resume + profile), a pipeline snapshot, quick actions into every
-   tool, an editable career profile, and a win journal. All client-side and ZERO AI —
+   tool, an editable career profile, and a win journal. All client-side and ZERO AI, 
    nudges are heuristics over localStorage, so the "always-on copilot" feel costs
    nothing in tokens. Reads: hf_profile, hf_jobs, hf_resume. */
 (function () {
@@ -136,19 +136,19 @@
     var onb = PROFILE.onboarding || {};
     var onbDone = onb.done ? Object.keys(onb.done).filter(function (k) { return onb.done[k]; }).length : 0;
     if (onb.startDate || onbDone > 0) {
-      N.push({ tone: 'accent', icon: 'compass', title: 'Your first 90 days', text: 'Keep your onboarding on track — check off what you’ve done and see what’s next.', cta: { label: 'Open plan', href: 'first-90-days' } });
+      N.push({ tone: 'accent', icon: 'compass', title: 'Your first 90 days', text: 'Keep your onboarding on track, check off what you’ve done and see what’s next.', cta: { label: 'Open plan', href: 'first-90-days' } });
     } else if (jobs.some(function (j) { return j.status === 'Offer' || j.status === 'Accepted'; })) {
-      N.push({ tone: 'success', icon: 'compass', title: 'Congrats on the offer — plan your first 90 days', text: 'The first three months shape how you’re seen for years. Start a 30/60/90 plan so you ramp fast and strong.', cta: { label: 'Start plan', href: 'first-90-days' } });
+      N.push({ tone: 'success', icon: 'compass', title: 'Congrats on the offer, plan your first 90 days', text: 'The first three months shape how you’re seen for years. Start a 30/60/90 plan so you ramp fast and strong.', cta: { label: 'Start plan', href: 'first-90-days' } });
     }
 
-    // Weekly win ritual — the habit that keeps a resume current between searches,
+    // Weekly win ritual, the habit that keeps a resume current between searches,
     // and the main reason to come back when you're NOT actively job hunting. Only
     // nudge people who've already logged at least one win, so we never nag newcomers.
     if ((PROFILE.achievements || []).length && !loggedThisWeek()) {
       var st = winStreak();
       N.push({ tone: 'accent', icon: 'trophy',
         title: st >= 1 ? 'Keep your ' + st + '-week streak alive' : 'Log this week’s win',
-        text: st >= 1 ? 'You haven’t logged a win this week yet — one line keeps the streak, and your resume, current.' : 'What went well this week? Jot one win so it’s ready for your next resume update or performance review.',
+        text: st >= 1 ? 'You haven’t logged a win this week yet, one line keeps the streak, and your resume, current.' : 'What went well this week? Jot one win so it’s ready for your next resume update or performance review.',
         cta: { label: 'Log a win', focus: 'wins' } });
     }
 
@@ -270,7 +270,7 @@
     return s;
   }
   // Consecutive weeks with a win, ending at this week (or last week if this week
-  // is still empty — so the streak doesn't "break" just because it's Monday).
+  // is still empty, so the streak doesn't "break" just because it's Monday).
   function winStreak() {
     var set = winWeekSet(), now = weekIndex(Date.now());
     var start = set[now] ? now : (set[now - 1] ? now - 1 : null);
@@ -295,9 +295,9 @@
     }
     var line;
     if (!total) {
-      line = '<strong>Start your win streak.</strong> Log one thing that went well — it becomes a resume bullet and review-ready proof later.';
+      line = '<strong>Start your win streak.</strong> Log one thing that went well, it becomes a resume bullet and review-ready proof later.';
     } else if (here) {
-      line = '<strong>Logged this week ✓</strong>' + (streak > 1 ? ' — ' + streak + '-week streak. Keep it going.' : ' — nice. Come back next week to build a streak.');
+      line = '<strong>Logged this week ✓</strong>' + (streak > 1 ? ', ' + streak + '-week streak. Keep it going.' : ', nice. Come back next week to build a streak.');
     } else {
       line = '<strong>What went well this week?</strong> ' + (streak >= 1 ? 'Log a win to keep your ' + streak + '-week streak alive.' : 'One quick win keeps your resume current all year.');
     }
@@ -344,7 +344,7 @@
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         btn.disabled = false; btn.textContent = 'Polish';
-        if (!res.ok) { if (window.toast) toast(res.d && res.d.error ? res.d.error : 'Could not polish that one — try again.', { type: 'error' }); return; }
+        if (!res.ok) { if (window.toast) toast(res.d && res.d.error ? res.d.error : 'Could not polish that one, try again.', { type: 'error' }); return; }
         var polished = (res.d && res.d.text || '').trim();
         if (!polished || polished === w.text) { if (window.toast) toast('That one already reads well.', { type: 'info' }); return; }
         if (!sug) return;
@@ -356,7 +356,7 @@
         };
         sug.querySelector('.ws-keep').onclick = function () { sug.hidden = true; sug.innerHTML = ''; };
       })
-      .catch(function () { btn.disabled = false; btn.textContent = 'Polish'; if (window.toast) toast('Network error — try again.', { type: 'error' }); });
+      .catch(function () { btn.disabled = false; btn.textContent = 'Polish'; if (window.toast) toast('Network error, try again.', { type: 'error' }); });
   }
   function addWin() {
     var input = document.getElementById('win-input');
@@ -389,7 +389,7 @@
       saveProfile();               // syncs the opt-in to the cloud; the Friday cron reads it
       renderEmailPref();
       if (window.toast) toast(PROFILE.emailWeeklyWin
-        ? 'Weekly reminder on — we\'ll nudge you only if you skip a week. Unsubscribe anytime.'
+        ? 'Weekly reminder on, we\'ll nudge you only if you skip a week. Unsubscribe anytime.'
         : 'Weekly reminder off. We won\'t email you.', { type: 'success' });
     });
   }

@@ -28,7 +28,7 @@ const POSTS = [
     subtitle:'The hiring process has changed. Your career tools should too.',
     date:'2026-07-10',
     tag:'Vision',
-    metaDesc:'AI can write a resume in seconds — so why is landing interviews still so hard? Why the modern job search needs an AI career copilot, not just another resume generator.',
+    metaDesc:'AI can write a resume in seconds, so why is landing interviews still so hard? Why the modern job search needs an AI career copilot, not just another resume generator.',
     intro:`
       <p>Applying for jobs has never been easier, or more complicated. Artificial intelligence can generate resumes in seconds, but landing interviews still feels frustratingly difficult. The problem isn't that people need faster resume builders. The problem is that the hiring process has outgrown them.</p>
       <p>For decades, the resume has been the centerpiece of every job application. It has evolved from a typed sheet of paper to a polished digital document, but its purpose has remained the same: communicate your experience well enough to earn a conversation.</p>
@@ -75,7 +75,7 @@ const POSTS = [
         <p>That's the future we believe in at Applio.</p>
         <p>Not because resumes are becoming less important.</p>
         <p>But because careers have become much bigger than resumes.</p>
-        <p>As artificial intelligence continues to reshape the way we work, the most valuable tools won't simply generate documents — they'll become trusted partners that help people navigate every stage of their careers with greater confidence and less friction.</p>`},
+        <p>As artificial intelligence continues to reshape the way we work, the most valuable tools won't simply generate documents, they'll become trusted partners that help people navigate every stage of their careers with greater confidence and less friction.</p>`},
     ],
   },
   {
@@ -84,7 +84,7 @@ const POSTS = [
     subtitle:'The small resume mistakes that can quietly cost you opportunities.',
     date:'2026-07-09',
     tag:'Resume Tips',
-    metaDesc:'Five resume mistakes that quietly cost candidates interviews — generic resumes, listing duties instead of impact, over-design, weak alignment, and stale content — with a fix for each.',
+    metaDesc:'Five resume mistakes that quietly cost candidates interviews, generic resumes, listing duties instead of impact, over-design, weak alignment, and stale content, with a fix for each.',
     intro:`
       <p>Every hiring cycle tells the same story.</p>
       <p>A recruiter opens a role and receives hundreds of applications within days. Most candidates meet at least some of the requirements. Many have similar educational backgrounds, similar technical skills, and similar years of experience.</p>
@@ -112,7 +112,7 @@ const POSTS = [
         <p>There is a growing trend toward visually complex resumes filled with icons, graphics, and elaborate layouts.</p>
         <p>While these designs may stand out, they don't always improve communication.</p>
         <p>Recruiters typically spend only a short amount of time reviewing an application before deciding whether to continue reading. During that initial review, clarity matters far more than decoration.</p>
-        <p>Simple typography, consistent spacing, logical section headings, and concise bullet points make information easier to scan. A clean resume helps employers focus on your experience rather than the design itself — which is why every <a href="/resume-templates">Applio template</a> is built to stay clean and easy to parse.</p>`},
+        <p>Simple typography, consistent spacing, logical section headings, and concise bullet points make information easier to scan. A clean resume helps employers focus on your experience rather than the design itself, which is why every <a href="/resume-templates">Applio template</a> is built to stay clean and easy to parse.</p>`},
       {h:'4. Strong candidates connect their experience to the role', html:`
         <p>Hiring managers are not simply evaluating whether a candidate is qualified.</p>
         <p>They're evaluating whether the candidate is qualified for <em>this</em> position.</p>
@@ -136,7 +136,7 @@ const POSTS = [
     subtitle:'Resume tips, interview strategies, and AI-powered guidance for every stage of your career.',
     date:'2026-07-09',
     tag:'Welcome',
-    metaDesc:'Welcome to the Applio blog — practical, actionable advice on resumes, cover letters, interviews, and AI in hiring to help you stand out and apply with confidence.',
+    metaDesc:'Welcome to the Applio blog, practical, actionable advice on resumes, cover letters, interviews, and AI in hiring to help you stand out and apply with confidence.',
     intro:`
       <p>Finding a job is harder than ever. Between writing resumes, tailoring every application, preparing for interviews, and navigating ATS filters, the process can quickly become overwhelming. That's why we built Applio, an AI-powered career copilot designed to help you at every step of your job search.</p>
       <p>On this blog, we'll share practical, actionable advice to help you build stronger resumes, write compelling cover letters, prepare for interviews, and stay up to date with the latest hiring trends. Whether you're applying for your first internship, searching for a full-time role, or making a career change, our goal is to help you stand out and apply with confidence.</p>
@@ -216,8 +216,8 @@ ${BLOG_CSS}
   </article>
   <div class="blog-final">
     <h2>Put this into practice</h2>
-    <p>Build an ATS-optimized resume free with Applio and let AI tailor it to any job — then track every application in one place.</p>
-    <a class="btn btn-primary" href="/login?mode=signup">Start free — no credit card</a>
+    <p>Build an ATS-optimized resume free with Applio and let AI tailor it to any job, then track every application in one place.</p>
+    <a class="btn btn-primary" href="/login?mode=signup">Start free, no credit card</a>
   </div>
   <div class="blog-rel">
     <h2>Keep reading</h2>
@@ -248,14 +248,14 @@ function hubHTML(){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Applio Blog — Resume & Career Advice</title>
+<title>Applio Blog, Resume & Career Advice</title>
 <meta name="description" content="Resume tips, interview strategies, and AI-powered guidance for every stage of your career, from the team building Applio.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
 <meta property="og:site_name" content="Applio">
-<meta property="og:title" content="Applio Blog — Resume & Career Advice">
+<meta property="og:title" content="Applio Blog, Resume & Career Advice">
 <meta property="og:description" content="Resume tips, interview strategies, and AI-powered guidance for every stage of your career.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">

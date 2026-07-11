@@ -16,7 +16,7 @@ Disallow: /cover-letter
 # Operational data, never for crawlers
 Disallow: /backups/
 
-# Allow AI / generative-engine crawlers (GEO) — the broader the allowlist, the more
+# Allow AI / generative-engine crawlers (GEO), the broader the allowlist, the more
 # assistants can read and cite Applio. App pages stay disallowed via the * rules above.
 User-agent: GPTBot
 Allow: /

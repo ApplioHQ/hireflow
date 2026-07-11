@@ -1,4 +1,4 @@
-/* footer.js — one shared site footer, injected on public pages for consistent
+/* footer.js, one shared site footer, injected on public pages for consistent
    internal linking (SEO) + trust signals. Uses the design tokens from styles.css,
    so it adapts to light/dark automatically. Skips pages that already have a
    <footer> (e.g. the landing page has its own). */
@@ -26,7 +26,7 @@
     + '<div class="app-footer-in">'
     +   '<div>'
     +     '<div class="app-footer-brand"><img src="/logo.jpeg" alt="Applio"> Applio</div>'
-    +     '<div class="app-footer-tag">Your AI career copilot — build ATS-optimized resumes, tailor them to any job, and land more interviews.</div>'
+    +     '<div class="app-footer-tag">Your AI career copilot, build ATS-optimized resumes, tailor them to any job, and land more interviews.</div>'
     +   '</div>'
     +   '<div><h4>Product</h4>'
     +     '<a href="/resume-builder">Resume Builder</a>'

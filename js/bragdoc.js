@@ -1,6 +1,6 @@
-/* bragdoc.js — compiles the user's Win Journal (hf_profile.achievements) into a
+/* bragdoc.js, compiles the user's Win Journal (hf_profile.achievements) into a
    printable "brag doc": accomplishments grouped by month over a chosen range.
-   Read-only, zero AI, no fabrication — it only formats what the user logged. */
+   Read-only, zero AI, no fabrication, it only formats what the user logged. */
 (function () {
   'use strict';
   var TOKEN = localStorage.getItem('hf_token');
@@ -42,7 +42,7 @@
   function grouped(days) {
     var start = rangeStart(days);
     var inRange = wins().filter(function (w) { return (w.ts || 0) >= start; });
-    // Undated wins (legacy) still count — bucket them under "Earlier".
+    // Undated wins (legacy) still count, bucket them under "Earlier".
     var byMonth = {}, undated = [];
     inRange.forEach(function (w) {
       if (w.ts) { var k = monthKey(w.ts); (byMonth[k] = byMonth[k] || []).push(w); }
@@ -96,12 +96,12 @@
   function updatePolishBtn(total) {
     var b = document.getElementById('bd-polish'); if (!b) return;
     if (polishing) { b.disabled = true; b.classList.remove('on'); b.textContent = 'Polishing… 0/' + total; }
-    else { b.disabled = false; b.classList.toggle('on', POLISH_ON); b.textContent = POLISH_ON ? '✓ Polished — show originals' : 'Polish into resume bullets'; }
+    else { b.disabled = false; b.classList.toggle('on', POLISH_ON); b.textContent = POLISH_ON ? '✓ Polished, show originals' : 'Polish into resume bullets'; }
   }
   function togglePolish() {
     if (polishing) return;
     if (POLISH_ON) { POLISH_ON = false; updatePolishBtn(); render(); return; }
-    if (!API) { if (window.toast) toast('AI is unavailable right now — try again shortly.', { type: 'error' }); return; }
+    if (!API) { if (window.toast) toast('AI is unavailable right now, try again shortly.', { type: 'error' }); return; }
     var pending = currentRangeWins().filter(function (w) { return !w.polished; });
     POLISH_ON = true;
     if (!pending.length) { updatePolishBtn(); render(); return; }
@@ -109,7 +109,7 @@
     runLimited(pending, polishOne, 4, function (done, n) { var b = document.getElementById('bd-polish'); if (b && polishing) b.textContent = 'Polishing… ' + done + '/' + n; })
       .then(function () {
         polishing = false; pushProfile(); updatePolishBtn(); render();
-        if (window.toast) toast('Polished into resume bullets — your original notes are kept.', { type: 'success' });
+        if (window.toast) toast('Polished into resume bullets, your original notes are kept.', { type: 'success' });
       });
   }
 
@@ -123,7 +123,7 @@
 
     if (!wins().length) {
       out.innerHTML = '<div class="bd-empty"><h2>No wins logged yet</h2>'
-        + '<p style="margin-bottom:16px;">Your brag doc builds itself from your Win Journal. Log accomplishments as they happen — one line each — and they\'ll appear here, grouped by month and ready for review season.</p>'
+        + '<p style="margin-bottom:16px;">Your brag doc builds itself from your Win Journal. Log accomplishments as they happen, one line each, and they\'ll appear here, grouped by month and ready for review season.</p>'
         + '<a class="btn btn-primary" href="dashboard">Go log your first win →</a></div>';
       return;
     }
@@ -152,7 +152,7 @@
     var g = grouped(days), id = identity();
     var lines = [id.name];
     if (id.role) lines.push(id.role);
-    lines.push('Accomplishments — ' + rangeLabel(days));
+    lines.push('Accomplishments, ' + rangeLabel(days));
     lines.push('');
     g.groups.forEach(function (grp) {
       lines.push(grp.label.toUpperCase());

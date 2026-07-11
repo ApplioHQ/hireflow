@@ -1,4 +1,4 @@
-# HireFlow — Setup Guide
+# HireFlow, Setup Guide
 
 Your site is split into two pieces:
 
@@ -9,7 +9,7 @@ You'll deploy the Worker first, then point the frontend at it, then push to GitH
 
 ---
 
-## Part 1 — Cloudflare Worker
+## Part 1, Cloudflare Worker
 
 ### 1. Install Wrangler
 
@@ -20,7 +20,7 @@ wrangler login
 
 ### 2. Create the KV namespace
 
-This is where users and resumes are stored (replaces your "JSON file" idea — much safer).
+This is where users and resumes are stored (replaces your "JSON file" idea, much safer).
 
 ```bash
 cd worker
@@ -57,7 +57,7 @@ Open `worker/wrangler.toml` and update `ALLOWED_ORIGIN` to your real GitHub Page
 ALLOWED_ORIGIN = "https://rakesh.github.io"
 ```
 
-(or `https://rakesh.github.io/Hireflow` if you're using a project page — use just the origin part, no path.)
+(or `https://rakesh.github.io/Hireflow` if you're using a project page, use just the origin part, no path.)
 
 ### 5. Deploy
 
@@ -71,7 +71,7 @@ You'll get a URL like:
 https://hireflow-api.YOUR-SUBDOMAIN.workers.dev
 ```
 
-Copy this — you need it next.
+Copy this, you need it next.
 
 ### 6. Workers AI
 
@@ -79,7 +79,7 @@ Workers AI is enabled automatically by the `[ai] binding = "AI"` line in `wrangl
 
 ---
 
-## Part 2 — Frontend
+## Part 2, Frontend
 
 ### 1. Point the frontend at your Worker
 
@@ -147,7 +147,7 @@ Hireflow/
 ├── export.html         PDF / HTML / TXT export
 ├── css/styles.css      All styling
 ├── js/
-│   ├── config.js       Worker URL — edit this!
+│   ├── config.js       Worker URL, edit this!
 │   ├── auth.js         Sign-in / sign-up logic
 │   └── editor.js       Editor app
 ├── worker/

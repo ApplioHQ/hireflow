@@ -509,9 +509,9 @@ function updatePills() {
   const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = (isPaid() && !_admin) ? '' : 'none';
   const adRow = document.getElementById('acct-admin-console'); if (adRow) adRow.style.display = _admin ? '' : 'none';
   if (_admin) {
-    planPill.innerHTML = `<span class="pill success" title="Admin — full access">${ICON('crown','ico ico-sm')} Admin</span>`;
+    planPill.innerHTML = `<span class="pill success" title="Admin, full access">${ICON('crown','ico ico-sm')} Admin</span>`;
     dlPill.style.display = 'none';
-    info.textContent = 'Admin — unlimited downloads';
+    info.textContent = 'Admin, unlimited downloads';
   } else if (isPaid()) {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     dlPill.style.display = 'none';

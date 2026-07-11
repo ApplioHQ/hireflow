@@ -1,4 +1,4 @@
-/* appnav.js — one shared fix for the app topbar getting crowded. Keeps the core
+/* appnav.js, one shared fix for the app topbar getting crowded. Keeps the core
    tabs flat (Home, Resume Builder, Autopilot, Admin) plus the CURRENT page's tab,
    and folds every other tool into a single "Tools ▾" dropdown. Runs on every app
    page from one file, so the nav never drifts or wraps again. Progressive: with no

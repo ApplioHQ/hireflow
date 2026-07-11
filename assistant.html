@@ -15,7 +15,7 @@
   /* Ambient aurora lives in its OWN fixed, viewport-clipped layer. Because the
      layer is inset:0 + overflow:hidden, its blurred blobs (with negative offsets)
      are clipped to the viewport and can never widen the document or shift content
-     — the earlier ::before/::after on .ca-wrap could leak overflow in some browsers. */
+, the earlier ::before/::after on .ca-wrap could leak overflow in some browsers. */
   .ca-aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
   .ca-aurora i { position: absolute; display: block; border-radius: 50%; filter: blur(72px); opacity: .55; }
   .ca-aurora i:first-child { width: 520px; height: 520px; top: -150px; left: -90px; background: radial-gradient(circle, rgba(99,102,241,.32), transparent 70%); animation: caDrift1 19s ease-in-out infinite; }

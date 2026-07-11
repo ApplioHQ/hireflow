@@ -24,7 +24,7 @@
   .dash-secondary { display: grid; gap: 18px; position: sticky; top: 84px; }
   @media (max-width: 940px) { .dash-layout { grid-template-columns: 1fr; } .dash-secondary { position: static; } }
 
-  /* Nudge cards — the "do next" list (compact, 2-up on wide) */
+  /* Nudge cards, the "do next" list (compact, 2-up on wide) */
   .dash-nudges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 1180px) { .dash-nudges { grid-template-columns: 1fr; } }
   .nudge {
@@ -50,7 +50,7 @@
   .nudge-cta:hover { text-decoration: underline; }
   .dash-allclear { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--r-md); }
 
-  /* Pipeline snapshot — full-width "at a glance" stat strip */
+  /* Pipeline snapshot, full-width "at a glance" stat strip */
   .dash-pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
   .pipe-stat { padding: 16px 12px; border-radius: var(--r-md); background: var(--bg-2); border: 1px solid var(--border); border-top: 3px solid var(--c); text-align: center; text-decoration: none; display: block; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .pipe-stat:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
@@ -212,7 +212,7 @@
         <div class="pf-field">
           <label for="pf-seniority">Seniority</label>
           <select class="pf-select" id="pf-seniority">
-            <option value="">—</option>
+            <option value="">, </option>
             <option>Internship</option><option>Entry</option><option>Mid</option>
             <option>Senior</option><option>Lead / Staff</option><option>Manager</option><option>Director+</option>
           </select>
@@ -242,7 +242,7 @@
 
     <section class="dash-panel" id="dash-wins">
       <div class="win-head"><h3>Win journal</h3><a class="win-brag" href="brag-doc">Build a brag doc →</a></div>
-      <div class="sub">Log accomplishments as they happen — ready to drop into your resume and reviews.</div>
+      <div class="sub">Log accomplishments as they happen, ready to drop into your resume and reviews.</div>
       <div class="win-ritual" id="win-ritual"></div>
       <div class="win-row">
         <input class="pf-input" id="win-input" type="text" placeholder="e.g. Cut page load time 40%" maxlength="240">

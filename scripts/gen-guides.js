@@ -23,7 +23,7 @@ const G = [
     answer:'An <strong>Applicant Tracking System (ATS)</strong> is software that employers use to collect, sort, and filter job applications before a human recruiter reviews them. When you apply online, your resume is parsed into a database and ranked against the job description; roughly 70% of resumes are screened out at this stage, usually for missing keywords or unparseable formatting.',
     sections:[
       {h:'How an ATS works', html:'<p>When you submit a resume, the ATS parses it into structured fields (name, work history, skills, education), then matches that data against the job requirements. Recruiters search and filter the database by keyword, years of experience, title, and location. If your resume is hard to parse or lacks the right keywords, it ranks low or never surfaces.</p>'},
-      {h:'Why resumes get rejected by an ATS', html:'<ul><li><strong>Missing keywords</strong> — the skills and titles in the job description aren\'t in your resume.</li><li><strong>Unparseable formatting</strong> — tables, columns, text boxes, images, or headers/footers confuse the parser.</li><li><strong>Non-standard section headings</strong> — creative labels instead of "Experience," "Education," "Skills."</li><li><strong>No measurable results</strong> — vague duties instead of quantified achievements.</li></ul>'},
+      {h:'Why resumes get rejected by an ATS', html:'<ul><li><strong>Missing keywords</strong>, the skills and titles in the job description aren\'t in your resume.</li><li><strong>Unparseable formatting</strong>, tables, columns, text boxes, images, or headers/footers confuse the parser.</li><li><strong>Non-standard section headings</strong>, creative labels instead of "Experience," "Education," "Skills."</li><li><strong>No measurable results</strong>, vague duties instead of quantified achievements.</li></ul>'},
       {h:'How to get past an ATS', html:'<p>Mirror the exact keywords in the job posting, use standard section headings, keep a single-column layout with real selectable text, start bullets with action verbs, and quantify your impact. You can score any resume against a job description with <a href="/ats-checker">Applio\'s free ATS checker</a>.</p>'},
     ],
     faq:[
@@ -60,7 +60,7 @@ const G = [
     title:'How to Tailor Your Resume to a Job Description',
     metaDesc:'Tailoring your resume to each job can dramatically raise your response rate. Learn a fast, repeatable method to match keywords and rewrite bullets for any posting.',
     kw:'how to tailor resume to job description',
-    answer:'To tailor your resume to a job, read the posting for its most-repeated skills, tools, and responsibilities, then mirror that language in your summary, skills, and bullet points — emphasizing the experience most relevant to that role. Tailoring beats a generic resume because both the ATS and the recruiter are matching you against that specific description.',
+    answer:'To tailor your resume to a job, read the posting for its most-repeated skills, tools, and responsibilities, then mirror that language in your summary, skills, and bullet points, emphasizing the experience most relevant to that role. Tailoring beats a generic resume because both the ATS and the recruiter are matching you against that specific description.',
     steps:[
       {name:'Extract the key requirements', text:'List the skills, tools, and responsibilities the posting repeats or lists first. These are your target keywords.'},
       {name:'Match and reorder your content', text:'Move the most relevant experience and bullets to the top and cut or shorten what doesn\'t apply.'},
@@ -69,11 +69,11 @@ const G = [
       {name:'Check the match', text:'Score the tailored resume against the posting to confirm you covered the important keywords.'},
     ],
     sections:[
-      {h:'Why tailoring works', html:'<p>A generic resume is optimized for no one. Tailoring aligns your resume with the exact keywords the ATS ranks on and the exact priorities the recruiter is scanning for, so you clear the filter and read as an obvious fit. You don\'t rewrite everything — you re-emphasize.</p>'},
-      {h:'Do it in seconds with AI', html:'<p>Applio\'s <strong>Tailor to Job</strong> feature reads a job description and rewrites your bullets, keywords, and summary to match — grounded only in your real experience, never inventing facts. <a href="/login?mode=signup">Try it free</a>.</p>'},
+      {h:'Why tailoring works', html:'<p>A generic resume is optimized for no one. Tailoring aligns your resume with the exact keywords the ATS ranks on and the exact priorities the recruiter is scanning for, so you clear the filter and read as an obvious fit. You don\'t rewrite everything, you re-emphasize.</p>'},
+      {h:'Do it in seconds with AI', html:'<p>Applio\'s <strong>Tailor to Job</strong> feature reads a job description and rewrites your bullets, keywords, and summary to match, grounded only in your real experience, never inventing facts. <a href="/login?mode=signup">Try it free</a>.</p>'},
     ],
     faq:[
-      {q:'Should I really tailor my resume for every job?', a:'Tailor for every role you genuinely want. At minimum, match the summary, skills, and top bullets to each posting — it meaningfully raises response rates.'},
+      {q:'Should I really tailor my resume for every job?', a:'Tailor for every role you genuinely want. At minimum, match the summary, skills, and top bullets to each posting, it meaningfully raises response rates.'},
       {q:'Isn\'t tailoring just keyword stuffing?', a:'No. Tailoring means honestly re-emphasizing relevant experience in the job\'s language. Keyword stuffing means adding skills you don\'t have, which backfires in interviews.'},
       {q:'How long should tailoring take?', a:'Manually, 10–20 minutes per role. With an AI tailoring tool, a first draft takes seconds and you refine from there.'},
     ],
@@ -86,7 +86,7 @@ const G = [
     answer:'Use about 3–6 bullet points for your most recent and relevant roles, and 2–3 for older or less relevant ones. Each bullet should be one to two lines, start with an action verb, and quantify the result. Quality and relevance matter far more than the exact count.',
     sections:[
       {h:'The general rule', html:'<ul><li><strong>Current/most relevant role:</strong> 4–6 bullets.</li><li><strong>Mid-history roles:</strong> 3–4 bullets.</li><li><strong>Older or less relevant roles:</strong> 2–3 bullets.</li><li><strong>Roles 10+ years old:</strong> 1–2 bullets, or group them.</li></ul>'},
-      {h:'What makes a strong bullet', html:'<p>Start with an action verb, describe what you did, and end with a measurable result: <em>"Increased trial-to-paid conversion 22% by redesigning the onboarding flow."</em> Numbers make bullets credible and quotable — both for recruiters and for AI screening.</p>'},
+      {h:'What makes a strong bullet', html:'<p>Start with an action verb, describe what you did, and end with a measurable result: <em>"Increased trial-to-paid conversion 22% by redesigning the onboarding flow."</em> Numbers make bullets credible and quotable, both for recruiters and for AI screening.</p>'},
       {h:'Keep it to one page (usually)', html:'<p>For most candidates with under ~10 years of experience, aim for one page. Trim weak bullets before adding a second page. A <a href="/resume-templates/compact">compact template</a> helps fit strong content cleanly.</p>'},
     ],
     faq:[
@@ -103,7 +103,7 @@ const G = [
     answer:'A resume summary is a 2–3 sentence pitch at the top of your resume that states who you are, your most relevant strengths, and the value you bring to the target role. Write it last, tailor it to each job, and lead with your title, years of experience, and one or two quantified wins.',
     sections:[
       {h:'The summary formula', html:'<p><strong>[Title + years] + [core strengths relevant to the role] + [one or two quantified achievements].</strong> Example: <em>"Product manager with 6 years in B2B SaaS, specializing in growth and onboarding. Led experiments that lifted activation 30% and drove $2M in new ARR."</em></p>'},
-      {h:'Summary vs. objective', html:'<p>Use a <strong>summary</strong> (what you offer) if you have experience. Use an <strong>objective</strong> (what you want) only when changing careers or with little history — and even then, frame it around the employer\'s needs.</p>'},
+      {h:'Summary vs. objective', html:'<p>Use a <strong>summary</strong> (what you offer) if you have experience. Use an <strong>objective</strong> (what you want) only when changing careers or with little history, and even then, frame it around the employer\'s needs.</p>'},
       {h:'Tailor it every time', html:'<p>Your summary is the most-read part of your resume, so it should mirror each job\'s priorities and keywords. Applio\'s AI can rewrite it per posting in seconds. <a href="/login?mode=signup">Start free</a>.</p>'},
     ],
     faq:[
@@ -119,7 +119,7 @@ const G = [
     kw:'best resume format',
     answer:'For almost everyone, the best resume format is <strong>reverse-chronological</strong>: your most recent role first, in a single-column layout with standard headings. It is the format recruiters expect and the one Applicant Tracking Systems parse most reliably. Use a functional or combination format only in specific cases like major career changes or employment gaps.',
     sections:[
-      {h:'The three formats', html:'<ul><li><strong>Reverse-chronological</strong> — work history newest-first. Best for most people and most ATS-friendly.</li><li><strong>Functional</strong> — organized by skills, downplaying dates. Can help with big gaps or pivots, but recruiters and ATS often distrust it.</li><li><strong>Combination</strong> — a skills summary on top of a chronological history. A reasonable middle ground for career changers.</li></ul>'},
+      {h:'The three formats', html:'<ul><li><strong>Reverse-chronological</strong>, work history newest-first. Best for most people and most ATS-friendly.</li><li><strong>Functional</strong>, organized by skills, downplaying dates. Can help with big gaps or pivots, but recruiters and ATS often distrust it.</li><li><strong>Combination</strong>, a skills summary on top of a chronological history. A reasonable middle ground for career changers.</li></ul>'},
       {h:'Formatting for ATS', html:'<p>Whatever structure you choose, keep one column, standard headings, real selectable text, and no tables or images. See <a href="/guides/how-to-pass-ats">how to make your resume ATS-friendly</a> for the full checklist.</p>'},
       {h:'Pick a proven template', html:'<p>You don\'t have to build formatting from scratch. Every <a href="/resume-templates">Applio template</a> uses a clean, ATS-safe reverse-chronological structure you can customize.</p>'},
     ],
@@ -239,7 +239,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   <div class="gd-final">
     <h2>Put this into practice</h2>
     <p>Build an ATS-optimized resume free with Applio and let AI tailor it to any job.</p>
-    <a class="btn btn-primary" href="/login?mode=signup">Start free — no credit card</a>
+    <a class="btn btn-primary" href="/login?mode=signup">Start free, no credit card</a>
   </div>
 </main>
 <script src="/js/footer.js"></script>

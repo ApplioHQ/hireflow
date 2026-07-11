@@ -1,4 +1,4 @@
-/* geo-speakable.js — add SpeakableSpecification to each guide's Article schema.
+/* geo-speakable.js, add SpeakableSpecification to each guide's Article schema.
    Speakable tells voice assistants and AI answer engines which part of the page is
    the canonical, quotable answer. We point it at the H1 and the .gd-answer lead block
    (the direct answer we already render at the top of every guide). Idempotent. */
@@ -15,7 +15,7 @@ for (const file of fs.readdirSync(GUIDES)) {
   let html = fs.readFileSync(p, 'utf8');
   if (html.includes('SpeakableSpecification')) { skipped++; continue; }
   // Insert right after the first `"inLanguage": "en",` line (which lives in the
-  // Article block on every guide) — keeps the JSON valid and the change surgical.
+  // Article block on every guide), keeps the JSON valid and the change surgical.
   const anchor = '"inLanguage": "en",\n';
   const idx = html.indexOf(anchor);
   if (idx === -1) { console.log('  no anchor:', file); skipped++; continue; }

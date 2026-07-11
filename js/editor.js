@@ -120,7 +120,7 @@ function hydrate() {
 
   const _admin = (typeof isAdmin === 'function' && isAdmin());
   if (_admin) {
-    planPill.innerHTML = `<span class="pill success" title="Admin — full access">${ICON('crown','ico ico-sm')} Admin</span>`;
+    planPill.innerHTML = `<span class="pill success" title="Admin, full access">${ICON('crown','ico ico-sm')} Admin</span>`;
     if (obadge) obadge.innerHTML = '';
   } else if (isPaid()) {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
@@ -1352,7 +1352,7 @@ function _renderTailorStructured(r) {
         </div>`).join('') + `</div>`;
   }
   if (emph.length) html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">What to emphasize</div><ul class="ai-rec-list">${emph.map(e => `<li class="ai-rec"><span class="ai-rec-ico">${ICON('sparkle', 'ico ico-sm')}</span><span>${esc(_deName(e))}</span></li>`).join('')}</ul></div>`;
-  return `<div class="tailor-result">${html || '<p class="ai-para">Tailoring complete — no changes suggested.</p>'}</div>`;
+  return `<div class="tailor-result">${html || '<p class="ai-para">Tailoring complete, no changes suggested.</p>'}</div>`;
 }
 function _copyTailorBullet(btn) {
   const t = btn.getAttribute('data-t') || '';
@@ -2083,11 +2083,11 @@ function _renderFitIndicator(ratio, pages) {
   } else if (ratio <= 2.1) {
     // Two-page resumes are fine for experienced candidates, not an error.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = pages + ' pages — good for a fuller history. All pages export. Try “One page” to read each clearly.';
+    text = pages + ' pages, good for a fuller history. All pages export. Try “One page” to read each clearly.';
   } else {
     // Long resumes are legitimate (senior / academic). Encourage, don't scold.
     bg = '#dbeafe'; border = '#3b82f6'; color = '#1e40af';
-    text = pages + ' pages — fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
+    text = pages + ' pages, fine for senior or academic profiles. All pages export. Tip: tighten spacing or trim older roles to condense.';
   }
   ind.style.cssText = 'margin-top:10px; padding:8px 10px; border-radius:6px; font-size:11px; line-height:1.45; font-weight:500; background:' + bg + '; border:1px solid ' + border + '; color:' + color + ';';
   ind.textContent = text;
@@ -2107,7 +2107,7 @@ function _breakUnits(root) {
   const units = [];
   const MAX_DEPTH = 5;   // descend at most this deep so recursion always terminates
   // Recursively descend into any block taller than a page (with >1 child to break
-  // between) so even a huge single entry — or a giant bullet list — is split at a
+  // between) so even a huge single entry, or a giant bullet list, is split at a
   // real child boundary instead of slicing across the page gutter. Blocks that fit,
   // or that can't be subdivided (a single oversized paragraph/bullet), stay whole
   // and are handled as atomic oversized units by the paginator.
@@ -2201,7 +2201,7 @@ function _paginate(doc) {
   const TAIL = 8;                                          // absorb trailing margins / rounding so a hair of overflow can't spawn a page
   const isHeading = el => el && el.nodeType === 1 && /^H[1-4]$/.test(el.tagName);
   // col's top offset is stable while we insert spacers *inside* it (the column is
-  // centered in the body and only grows downward), so read it once — this avoids a
+  // centered in the body and only grows downward), so read it once, this avoids a
   // forced reflow per unit and keeps pagination fast on very long resumes.
   const colTop = col.getBoundingClientRect().top;
   let page = 0, prevUnit = null, forceBreakNext = false;
@@ -2343,7 +2343,7 @@ let _fullFitMode = 'width';   // 'width' = whole page width fills the viewport; 
 function _fitScale() {
   const scroll = document.getElementById('full-scroll');
   if (!scroll || !scroll.clientWidth) return 1;
-  // Fit against CANVAS_W (page + gray side margins), not PAGE_W — the iframe renders
+  // Fit against CANVAS_W (page + gray side margins), not PAGE_W, the iframe renders
   // the full canvas, so fitting to PAGE_W left the content ~10% too wide (right edge clipped).
   const byWidth = (scroll.clientWidth - 56) / CANVAS_W;
   if (_fullFitMode === 'page') {
@@ -2390,7 +2390,7 @@ function _applyFullZoom() {
   if (!f || !sizer) return;
   // The iframe DOCUMENT is CANVAS_W wide (page + gray side margins). The iframe
   // ELEMENT must match, or scrolling="no" clips the right margin (and the page's
-  // right edge) and the paper sits left-of-center in the wider sizer — which reads
+  // right edge) and the paper sits left-of-center in the wider sizer, which reads
   // as a tilt. This one line is the actual "right side cut off" fix.
   f.style.width = CANVAS_W + 'px';
   f.style.transformOrigin = 'top left';
@@ -2423,7 +2423,7 @@ function _renderFullPreview() {
   });
 }
 
-// "Fit to one page" toggle — lives on the full-preview toolbar. Persists to
+// "Fit to one page" toggle, lives on the full-preview toolbar. Persists to
 // resume.customize so the mini preview AND the PDF export stay identical.
 function _updateFit1Btn() {
   if (!_fullOverlay) return;
@@ -2523,7 +2523,7 @@ function _buildFullOverlay() {
     scroll._navRaf = requestAnimationFrame(() => { scroll._navRaf = 0; _fpUpdateNav(); });
   }, { passive: true });
   // Cmd/Ctrl + wheel over the gray canvas = zoom toward the cursor. (Wheeling over
-  // the paper is handled by a forwarder inside the iframe — see _bindFullWheel.)
+  // the paper is handled by a forwarder inside the iframe, see _bindFullWheel.)
   scroll.addEventListener('wheel', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
     e.preventDefault();
@@ -2571,7 +2571,7 @@ function _bindPreviewClicks(doc) {
     'workexperience': 'experience', 'professionalexperience': 'experience',
   };
   // doc.write() recreates every element on each render, so we (re)tag + (re)bind
-  // fresh elements every time — no listener accumulation, no stale classes.
+  // fresh elements every time, no listener accumulation, no stale classes.
   const titleCase = s => s.replace(/\s+/g, ' ').trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   const setActive = (sec) => {
     if (doc._hfActive === sec) return;
@@ -3208,7 +3208,7 @@ function _extractJSON(text) {
   const a = s.indexOf('{');
   if (a === -1) return null;
   s = s.slice(a);
-  // Kill trailing commas before } or ] — the most common thing that makes an
+  // Kill trailing commas before } or ], the most common thing that makes an
   // otherwise-valid LLM JSON fail JSON.parse (e.g. ["a","b",]).
   const stripCommas = str => str.replace(/,(\s*[}\]])/g, '$1');
   const cands = [s, stripCommas(s)];

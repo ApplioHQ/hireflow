@@ -1,4 +1,4 @@
-# KV data / backups contain user emails + password hashes — never commit them.
+# KV data / backups contain user emails + password hashes, never commit them.
 backups/
 .wrangler/
 *.sqlite

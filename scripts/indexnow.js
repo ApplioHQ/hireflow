@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Submit all sitemap URLs to IndexNow (Bing, Yandex, and partners — which powers
+/* Submit all sitemap URLs to IndexNow (Bing, Yandex, and partners, which powers
    ChatGPT/Copilot search). Run after publishing:  node scripts/indexnow.js
    Re-run anytime content changes; it's safe to call repeatedly. */
 const fs = require('fs');
@@ -27,7 +27,7 @@ const req = https.request({
   let body = '';
   res.on('data', c => body += c);
   res.on('end', () => {
-    console.log(`IndexNow HTTP ${res.statusCode} — submitted ${urlList.length} URLs`);
+    console.log(`IndexNow HTTP ${res.statusCode}, submitted ${urlList.length} URLs`);
     // 200 = accepted, 202 = accepted (pending), 4xx = check key file / host
     if (res.statusCode >= 400) console.log('Response:', body || '(empty)');
     else console.log('Success. Bing will crawl these on its schedule.');

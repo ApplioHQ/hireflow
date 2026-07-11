@@ -1,4 +1,4 @@
-/* appshell.js — a persistent left navigation rail for the app (VS Code / Slack style).
+/* appshell.js, a persistent left navigation rail for the app (VS Code / Slack style).
    Additive + robust: injects a full-height fixed icon rail on the far left and shifts
    ALL page content right by padding the <body> (so it can't be defeated by inline or
    class padding on <main>). Expands on hover to reveal labels, hides the redundant

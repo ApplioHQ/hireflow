@@ -1,4 +1,4 @@
-/* resume-file.js — extract plain text from an uploaded resume file.
+/* resume-file.js, extract plain text from an uploaded resume file.
    Supports .txt/.md natively; lazy-loads pdf.js for .pdf and mammoth for .docx
    only when the user actually uploads that type (keeps the page light).
    Exposes: window.extractResumeText(file) -> Promise<string>

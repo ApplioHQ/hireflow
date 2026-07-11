@@ -1,12 +1,12 @@
 # ============================================================================
-# hireflow-api — Cloudflare Worker configuration  (CANONICAL / PRODUCTION)
+# hireflow-api, Cloudflare Worker configuration  (CANONICAL / PRODUCTION)
 #
 # ⚠️  THIS is the real production worker. Deploy ONLY from this directory:
 #         cd worker && npx wrangler deploy            (production)
 #         cd worker && npx wrangler deploy --env staging   (staging)
 #     Or from the repo root:  npm run deploy  /  npm run deploy:staging
 #
-#     Do NOT deploy the repo-root worker.js — it is a stale/divergent copy
+#     Do NOT deploy the repo-root worker.js, it is a stale/divergent copy
 #     and has been quarantined under _archive-root-worker/.
 #
 # Required secrets (set once per environment with `npx wrangler secret put NAME`;
@@ -26,13 +26,13 @@ compatibility_date = "2024-12-01"
 [ai]
 binding = "AI"
 
-# Production KV — holds real user:*, resume:*, feedback:*, stripe_event:* records.
+# Production KV, holds real user:*, resume:*, feedback:*, stripe_event:* records.
 # (Corrected 2026-07-03: previously pointed at an empty namespace fc33acc4… .)
 [[kv_namespaces]]
 binding = "HIREFLOW_KV"
 id = "84f236c3086b4ca7809be72b6969ea62"
 
-# Weekly "log your win" nudge — fires Fridays 16:00 UTC. The scheduled handler is a
+# Weekly "log your win" nudge, fires Fridays 16:00 UTC. The scheduled handler is a
 # NO-OP until env.RESEND_API_KEY is set (see runWeeklyWinNudge), so this is inert
 # and costs ~nothing until email is deliberately activated.
 [triggers]
@@ -44,14 +44,14 @@ SITE_URL = "https://appliohq.com"
 PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
 LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
 FREE_DOWNLOAD_LIMIT = "10"
-# AI Gateway id — routes Workers AI calls through the gateway for caching/analytics.
+# AI Gateway id, routes Workers AI calls through the gateway for caching/analytics.
 # OPT-IN: leave empty to call Workers AI directly (safe default). Only set this to
 # the id of a gateway you actually created (Dashboard > AI > AI Gateway); a wrong/
 # missing id makes EVERY AI call fail. "" and "default" both mean "no gateway".
 AI_GATEWAY_ID = ""
 
 # ---------------------------------------------------------------------------
-# Staging — `wrangler deploy --env staging`  (worker: hireflow-api-staging)
+# Staging, `wrangler deploy --env staging`  (worker: hireflow-api-staging)
 # Separate KV namespace so load/rate-limit tests NEVER touch production data.
 # Use Stripe TEST-mode keys + price IDs here.
 # ---------------------------------------------------------------------------
@@ -60,7 +60,7 @@ AI_GATEWAY_ID = ""
 [env.staging.ai]
 binding = "AI"
 
-# Dedicated staging KV namespace (created 2026-07-03) — empty, isolated from prod.
+# Dedicated staging KV namespace (created 2026-07-03), empty, isolated from prod.
 [[env.staging.kv_namespaces]]
 binding = "HIREFLOW_KV"
 id = "d89e0b29df9e4a30be0eb7f099d0cfc1"
@@ -68,7 +68,7 @@ id = "d89e0b29df9e4a30be0eb7f099d0cfc1"
 [env.staging.vars]
 ALLOWED_ORIGIN = "*"
 SITE_URL = "https://hireflow-api-staging.pritamavuthu7.workers.dev"
-# Stripe TEST-mode price IDs — staging must never process real payments.
+# Stripe TEST-mode price IDs, staging must never process real payments.
 PREMIUM_PRICE_ID = "price_TEST_premium"
 LIFETIME_PRICE_ID = "price_TEST_lifetime"
 FREE_DOWNLOAD_LIMIT = "10"

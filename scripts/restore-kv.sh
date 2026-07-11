@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Restore keys from a backup JSON (created by backup-kv.sh) back into a KV namespace.
-# WRITES to KV — only run this to recover. By default it restores ONLY user:* and
+# WRITES to KV, only run this to recover. By default it restores ONLY user:* and
 # resume:* keys (skips rate-limit/health/stripe-dedupe junk). Pass --all to restore
 # everything.
 # Usage:  ./scripts/restore-kv.sh backups/kv-backup-XXXX.json [NAMESPACE_ID] [--all]

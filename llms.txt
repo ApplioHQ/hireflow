@@ -1,23 +1,23 @@
 # Applio
 
-> Applio is a free, AI-powered career copilot for job seekers and professionals. It builds ATS-optimized resumes that pass automated applicant-tracking filters, tailors them to any job, and then supports the whole career arc — landing the job, ramping in a new role, growing, and moving to the next one. All AI is grounded in the user's real experience and never fabricates facts, numbers, or skills.
+> Applio is a free, AI-powered career copilot for job seekers and professionals. It builds ATS-optimized resumes that pass automated applicant-tracking filters, tailors them to any job, and then supports the whole career arc, landing the job, ramping in a new role, growing, and moving to the next one. All AI is grounded in the user's real experience and never fabricates facts, numbers, or skills.
 
 ## What Applio does
 
 Get the job:
 - Resume builder: 18 professional, fully customizable templates (fonts, colors, spacing, section order), including Harvard, Stanford, and Jake's Resume styles. Import an existing PDF/DOCX and Applio parses it into editable sections. Live preview matches the exported PDF exactly.
-- AI Tailoring: paste any job description and Applio rewrites your bullets and summary to match the role — grounded only in your real experience.
+- AI Tailoring: paste any job description and Applio rewrites your bullets and summary to match the role, grounded only in your real experience.
 - ATS Score: scores your resume against a job description and lists concrete fixes and missing keywords.
 - AI Resume Analysis: strengths, weaknesses, and the highest-impact changes.
 - Cover Letter Generator: a tailored, one-page cover letter for a specific role and company.
 - AI Interview Prep: role-specific practice questions plus AI feedback on your answers, using the STAR method.
-- Application Autopilot: paste a job description and get a full application packet — fit verdict, tailored resume, cover letter, and the keywords you're missing.
+- Application Autopilot: paste a job description and get a full application packet, fit verdict, tailored resume, cover letter, and the keywords you're missing.
 - Job Tracker: save jobs (with the posting), track status, and get follow-up nudges.
 - Career Coach: an AI assistant that knows your resume and helps with rewrites, tailoring, interviews, job strategy, and cover letters.
-- One-click export to PDF, HTML, or TXT — no watermark on any plan.
+- One-click export to PDF, HTML, or TXT, no watermark on any plan.
 
 Ramp, grow, and get paid (the career copilot):
-- Skill Gap Coach: compares your resume against a target role — or a specific job posting you paste or pick from your tracker — and shows the highest-impact skills that role requires that your resume is missing, plus the ones you already have. You can add the skills you genuinely have to your resume in one click.
+- Skill Gap Coach: compares your resume against a target role, or a specific job posting you paste or pick from your tracker, and shows the highest-impact skills that role requires that your resume is missing, plus the ones you already have. You can add the skills you genuinely have to your resume in one click.
 - Win Journal: log accomplishments as they happen (one line each). A weekly email reminder keeps the habit going. Each win can be AI-polished into a resume-ready bullet.
 - Brag Doc generator: compiles your logged wins into a printable one-page "brag doc," grouped by month, for performance reviews, promotion cases, and raise conversations. One click polishes the whole doc into sharp resume bullets.
 - First 90 Days plan: a 30/60/90-day onboarding checklist for a new role (learn, contribute, deliver), a people-to-meet map, and questions to ask your manager.
@@ -26,12 +26,12 @@ Ramp, grow, and get paid (the career copilot):
 - Free ATS Resume Checker (https://appliohq.com/ats-checker): paste a resume and job description for an instant ATS score, matched and missing keywords, and concrete fixes.
 
 ## Pricing
-- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads — no credit card required.
+- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads, no credit card required.
 - Premium ($9.99/month): everything in Free plus unlimited downloads and all AI writing features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Application Autopilot, Cover Letters, Career Coach).
 - Lifetime ($39.99 one-time): all Premium features, paid once and used forever.
 
 ## Key facts
-- Positioning: Applio is more than a resume builder — it is an AI career copilot that supports the entire career arc (land → ramp → grow → move), used repeatedly over a career rather than only during a job search.
+- Positioning: Applio is more than a resume builder, it is an AI career copilot that supports the entire career arc (land → ramp → grow → move), used repeatedly over a career rather than only during a job search.
 - What ATS means: an Applicant Tracking System collects, parses, and ranks resumes before a recruiter reviews them. It does not auto-reject applications (most are still reviewed by a person), but resumes that miss a job's keywords or use formatting the software can't parse rank lower and are less likely to be seen. Applio scores a resume against the ATS rubric and lists specific fixes.
 - Myth check: the widely repeated "75% of resumes are auto-rejected by ATS" claim is not supported by evidence; it traces to a 2012 sales pitch from a company that shut down in 2013. Applio's guidance reflects how ATS actually works.
 - Grounding: Applio's AI never invents titles, employers, numbers, skills, or achievements. Missing skills are framed as "verify you have it and add it, or learn it," never "claim it."

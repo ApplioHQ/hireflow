@@ -22,7 +22,7 @@
 .home-nav-links a:hover { color: #fff; }
 .home-nav .btn { padding: 9px 18px; font-size: 13px; }
 
-/* ===== Nav "Resources" dropdown — groups secondary links so the bar stays uncluttered ===== */
+/* ===== Nav "Resources" dropdown, groups secondary links so the bar stays uncluttered ===== */
 .nav-dd { position: relative; display: inline-flex; }
 .nav-dd-trigger {
   background: none; border: 0; padding: 0; cursor: pointer;
@@ -796,7 +796,7 @@
 .home-nav-links a:hover::after,
 .home-nav-links a.nav-active::after { width: 100%; }
 
-/* Primary buttons are solid and quiet — no shimmer sweep (reads as templated/AI). */
+/* Primary buttons are solid and quiet, no shimmer sweep (reads as templated/AI). */
 
 /* ── Feature icon glow + scale on hover ── */
 .feat-icon { transition: box-shadow .2s, transform .2s; }

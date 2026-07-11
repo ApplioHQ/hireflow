@@ -33,7 +33,7 @@ function renderOfflineScreen(untilUnix) {
   document.body.innerHTML = `
     <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:var(--bg-0); color:var(--text);">
       <svg viewBox="0 0 120 100" width="180" height="150" style="margin-bottom:32px; image-rendering:pixelated;" xmlns="http://www.w3.org/2000/svg">
-        <!-- Custom pixel robot — original art, not Chrome's dinosaur -->
+        <!-- Custom pixel robot, original art, not Chrome's dinosaur -->
         <g fill="#6366f1">
           <rect x="40" y="20" width="40" height="30"/>
           <rect x="35" y="25" width="5" height="20"/>
@@ -49,7 +49,7 @@ function renderOfflineScreen(untilUnix) {
           <rect x="35" y="88" width="20" height="5"/>
           <rect x="65" y="88" width="20" height="5"/>
         </g>
-        <!-- Eyes (X marks — sleeping/offline) -->
+        <!-- Eyes (X marks, sleeping/offline) -->
         <g fill="#fff">
           <rect x="48" y="28" width="3" height="3"/>
           <rect x="54" y="28" width="3" height="3"/>
@@ -68,7 +68,7 @@ function renderOfflineScreen(untilUnix) {
       </svg>
       <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Applio is offline</h1>
       <p style="color:var(--muted); font-size:15px; max-width:420px; line-height:1.5; margin-bottom:24px;">
-        We're temporarily down for maintenance. Hold tight — your work is safe.
+        We're temporarily down for maintenance. Hold tight, your work is safe.
       </p>
       <p style="font-size:13px; color:var(--muted);">Back in approximately <strong style="color:var(--text);" id="offline-countdown">${minsLeft} minute${minsLeft===1?'':'s'}</strong></p>
     </div>`;
@@ -87,7 +87,7 @@ function redirectIfAdmin() {
   if (!CURRENT_USER || !isAdmin()) return false;
   const here = location.pathname.split('/').pop() || 'index.html';
   if (here !== 'admin.html' && here !== 'index.html' && here !== 'login.html') {
-    // Don't force-redirect on every page — let them browse, but show the link prominently
+    // Don't force-redirect on every page, let them browse, but show the link prominently
     return false;
   }
   if (here === 'index.html' || here === '' || here === 'login.html') {
@@ -175,7 +175,7 @@ function closeAccountModal() {
   }
 }
 
-// Account menu — clicking the crown opens this
+// Account menu, clicking the crown opens this
 async function openBillingPortal() {
   if (document.getElementById('account-menu-bd')) return;
 

@@ -49,7 +49,7 @@ const T = [
   { id:'ivory', name:'Ivory', cat:'Business', kw:'sidebar resume template',
     tagline:'A clean two-column layout with a soft light-gray sidebar.',
     bestFor:['Corporate, product, and operations roles','Marketing, HR, and finance','Anyone who wants a modern two-column look that stays conservative'],
-    why:'A light sidebar holds your contact, skills, and education while the main column leads with impact — the polished two-column format most modern resumes use, kept fully ATS-parseable with real, selectable text.' },
+    why:'A light sidebar holds your contact, skills, and education while the main column leads with impact, the polished two-column format most modern resumes use, kept fully ATS-parseable with real, selectable text.' },
   { id:'jake', name:"Jake's Resume", cat:'Technology', kw:"Jake's resume template",
     tagline:'The single-page engineering favorite: centered name, pipe-separated contact, ruled sections.',
     bestFor:['Software engineers and CS students','New-grad and internship applications','Anyone who wants the popular LaTeX look without LaTeX'],
@@ -73,7 +73,7 @@ const T = [
   { id:'cascade', name:'Cascade', cat:'Business', kw:'professional resume template',
     tagline:'A clean corporate layout with a light header band and an accent baseline.',
     bestFor:['Corporate, finance, and operations roles','Product, marketing, and management','Anyone who wants a modern, conservative look'],
-    why:'A light header holds your name, role, and contact above a crisp single column — the conventional modern-professional format most resume tools use, fully legible and ATS-friendly on any accent color.' },
+    why:'A light header holds your name, role, and contact above a crisp single column, the conventional modern-professional format most resume tools use, fully legible and ATS-friendly on any accent color.' },
   { id:'compact', name:'Compact', cat:'Creative', kw:'compact resume template',
     tagline:'A dense, efficient layout that fits more on one page.',
     bestFor:['Experienced candidates with a lot to say','Roles requiring one-page resumes','Anyone consolidating a long history'],
@@ -109,7 +109,7 @@ function pageHTML(t){
   const url = `${BASE}/resume-templates/${t.id}`;
   // Avoid "Jake's Resume Resume Template" when the name already ends in "Resume"
   const label = /resume$/i.test(t.name) ? `${t.name} Template` : `${t.name} Resume Template`;
-  const title = `${label} — Free & ATS-Friendly | Applio`;
+  const title = `${label}, Free & ATS-Friendly | Applio`;
   const desc = `${t.tagline} Build a ${t.name} resume free with Applio: customize colors and fonts, keep it ATS-friendly, and export to PDF. No sign-up to start.`;
   const fq = faqs(t);
   const rel = related(t);
@@ -136,13 +136,13 @@ function pageHTML(t){
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="${esc(label)} — Free & ATS-Friendly">
+<meta property="og:title" content="${esc(label)}, Free & ATS-Friendly">
 <meta property="og:description" content="${esc(t.tagline)} Build it free with Applio and export to PDF.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${BASE}/logo.jpeg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${esc(label)} — Free & ATS-Friendly">
+<meta name="twitter:title" content="${esc(label)}, Free & ATS-Friendly">
 <meta name="twitter:description" content="${esc(t.tagline)} Build it free with Applio.">
 <meta name="twitter:image" content="${BASE}/logo.jpeg">
 ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n</script>`).join('\n')}
@@ -218,7 +218,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   </section>
 
   <section class="tp-section tp-faq">
-    <h2>${esc(t.name)} template — FAQ</h2>
+    <h2>${esc(t.name)} template, FAQ</h2>
     ${fq.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('\n    ')}
   </section>
 
@@ -232,7 +232,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   <section class="tp-final">
     <h2>Build your ${esc(t.name)} resume free</h2>
     <p>Pick the ${esc(t.name)} template, add your experience, and let Applio's AI tailor it to any job.</p>
-    <a class="btn btn-primary" href="/login?mode=signup&tpl=${t.id}">Start free — no credit card</a>
+    <a class="btn btn-primary" href="/login?mode=signup&tpl=${t.id}">Start free, no credit card</a>
   </section>
 </main>
 
@@ -272,13 +272,13 @@ function hubHTML(){
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${T.length} Free ATS-Friendly Resume Templates | Applio</title>
-<meta name="description" content="Browse ${T.length} free, ATS-friendly resume templates — Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
+<meta name="description" content="Browse ${T.length} free, ATS-friendly resume templates, Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
 <meta property="og:title" content="${T.length} Free ATS-Friendly Resume Templates | Applio">
-<meta property="og:description" content="Harvard, Stanford, Jake's Resume, FAANG, Consulting and more — free and ATS-friendly.">
+<meta property="og:description" content="Harvard, Stanford, Jake's Resume, FAANG, Consulting and more, free and ATS-friendly.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${BASE}/logo.jpeg">
@@ -316,7 +316,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
 <main class="th-wrap">
   <div class="th-head">
     <h1>Free Resume Templates</h1>
-    <p>${T.length} professional, ATS-friendly resume templates. Pick one, customize the colors and fonts, and export to PDF — free, no sign-up to start.</p>
+    <p>${T.length} professional, ATS-friendly resume templates. Pick one, customize the colors and fonts, and export to PDF, free, no sign-up to start.</p>
   </div>
   ${cats.map(c=>`
   <div class="th-cat">${c}</div>

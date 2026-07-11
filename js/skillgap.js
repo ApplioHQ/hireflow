@@ -1,4 +1,4 @@
-/* skillgap.js — Skill Gap Coach. Compares a target role against the skills already
+/* skillgap.js, Skill Gap Coach. Compares a target role against the skills already
    on the user's resume (hf_resume) and shows the highest-impact missing ones via the
    grounded /ai/skill-gap endpoint. Never claims the user has a skill they don't. */
 (function () {
@@ -45,7 +45,7 @@
 
   // Add user-affirmed skills into the resume's first skills category (dedup,
   // case-insensitive), persist, and cloud-sync. Only ever adds skills the user
-  // explicitly checked as "I have this" — never blanket-adds every gap.
+  // explicitly checked as "I have this", never blanket-adds every gap.
   function addSkillsToResume(skills) {
     if (!skills || !skills.length) return 0;
     if (!resume.skills || typeof resume.skills !== 'object') resume.skills = {};
@@ -131,7 +131,7 @@
     var html = '';
     if (relevant.length) {
       html += '<div class="sg-block"><h2>Skills you already show</h2>'
-        + '<div class="sg-sub">' + (isJD ? 'On your resume and asked for in this posting — lead with these.' : 'These are on your resume and fit a ' + esc(role) + ' — keep them front and center.') + '</div>'
+        + '<div class="sg-sub">' + (isJD ? 'On your resume and asked for in this posting, lead with these.' : 'These are on your resume and fit a ' + esc(role) + ', keep them front and center.') + '</div>'
         + '<div class="sg-chips">' + relevant.map(function (s) { return '<span class="sg-chip">' + esc(s) + '</span>'; }).join('') + '</div></div>';
     }
     html += '<div class="sg-block"><h2>Gaps to close</h2>'
@@ -142,9 +142,9 @@
           + (m.why ? '<div class="sg-why">' + esc(m.why) + '</div>' : '') + '</div>'
           + '<label class="sg-have"><input type="checkbox" class="sg-have-cb" data-skill="' + esc(m.skill) + '"> I have this</label></div>';
       }).join('')
-      + '<div class="sg-addbar"><span class="sg-addhint" id="sg-addhint">Check the ones you genuinely have, then add them — recruiters and ATS filters only catch what\'s written. Never add a skill you can\'t back up in an interview.</span>'
+      + '<div class="sg-addbar"><span class="sg-addhint" id="sg-addhint">Check the ones you genuinely have, then add them, recruiters and ATS filters only catch what\'s written. Never add a skill you can\'t back up in an interview.</span>'
       + '<button class="btn btn-primary btn-sm" id="sg-add" disabled>Add to my resume</button></div></div>';
-    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong> — the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
+    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong>, the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
     out.innerHTML = html;
     wireAdd();
   }
@@ -183,7 +183,7 @@
       if (hint) hint.textContent = 'Analyzing against this saved posting.';
       analyze(true);
     } else {
-      if (hint) hint.textContent = 'No posting saved for this job — analyzing by role. Add the job description in the tracker for a posting-specific check.';
+      if (hint) hint.textContent = 'No posting saved for this job, analyzing by role. Add the job description in the tracker for a posting-specific check.';
       analyze(false);
     }
   }
@@ -214,7 +214,7 @@
   }
   loadTrackedJobs();
 
-  // Prefill the target role and, if we have one + a resume, auto-run once — unless
+  // Prefill the target role and, if we have one + a resume, auto-run once, unless
   // a ?job= deep link is present (that takes over and analyzes the specific job).
   var pre = defaultRole();
   if (pre) document.getElementById('sg-role').value = pre;

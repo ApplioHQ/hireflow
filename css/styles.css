@@ -9,7 +9,7 @@
   --border: #2a2f55;
   --text: #e6e9f5;
   --muted: #9aa3c7;
-  --accent: #5b54e8;         /* deeper, richer indigo — less "default AI purple" */
+  --accent: #5b54e8;         /* deeper, richer indigo, less "default AI purple" */
   --accent-deep: #4840cf;    /* button depth / pressed */
   --accent-2: #8b5cf6;
   --primary: #4840cf;
@@ -25,7 +25,7 @@
   /* ---- Design tokens (Tier 1 system) ---- */
   /* Radius scale */
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-full: 999px;
-  /* Elevation — layered, low-opacity shadows read as more premium */
+  /* Elevation, layered, low-opacity shadows read as more premium */
   --sh-1: 0 1px 2px rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.16);
   --sh-2: 0 4px 12px rgba(0,0,0,.28), 0 14px 34px rgba(0,0,0,.22);
   --sh-3: 0 8px 24px rgba(0,0,0,.34), 0 24px 60px rgba(0,0,0,.30);
@@ -72,7 +72,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Real kerning + ligatures + proportional/lining figures — a subtle premium tell */
+  /* Real kerning + ligatures + proportional/lining figures, a subtle premium tell */
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
 }
 /* Headings: balanced wrapping (no orphan words) + tighter optical tracking */
@@ -82,7 +82,7 @@ h2, h3 { letter-spacing: -0.015em; }
 /* Tabular, lining numerals for anything numeric-heavy so figures align crisply */
 .stat, .stat-num, [class*="-score"], [class*="-num"], .price, table td { font-variant-numeric: tabular-nums lining-nums; }
 
-/* ===== Fine grain texture — tactile depth like premium dark UIs (Linear/Vercel) ===== */
+/* ===== Fine grain texture, tactile depth like premium dark UIs (Linear/Vercel) ===== */
 body::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .028;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -544,7 +544,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .template-thumb {
   position: relative; width: 100%; aspect-ratio: 5 / 4; overflow: hidden; border-radius: 4px;
   /* Soft fade at the cropped page bottom. Uses a mask so it fades to
-     transparent (revealing the card behind) instead of to solid white — the
+     transparent (revealing the card behind) instead of to solid white, the
      old white fade looked broken over dark templates (Tech/Slate/Onyx). */
   -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
           mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
@@ -899,7 +899,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* Score ring "draws" itself in; number pops */
 .an-ring-svg circle:last-child { animation: aiRingDraw 1.1s cubic-bezier(.3,.8,.3,1) both; }
 .an-ring-num { animation: aiPop .5s cubic-bezier(.2,.9,.3,1.2) both .25s; }
-/* Meter/progress bars grow from 0 — pure CSS (final width stays as the inline value) */
+/* Meter/progress bars grow from 0, pure CSS (final width stays as the inline value) */
 /* ===== Add custom section (sidebar) ===== */
 .sidebar-add { opacity: .8; color: var(--muted); border: 1px dashed var(--border); border-radius: var(--r-sm); margin-top: 4px; }
 .sidebar-add:hover { opacity: 1; color: var(--accent); border-color: var(--accent); background: rgba(99,102,241,.06); }

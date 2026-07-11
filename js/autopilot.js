@@ -1,4 +1,4 @@
-/* autopilot.js — Application Autopilot: one job description in, a full application
+/* autopilot.js, Application Autopilot: one job description in, a full application
    packet out (fit verdict + tailored resume + cover letter + missing keywords).
    Calls the single /ai/autopilot endpoint, which orchestrates the tuned ATS, Tailor,
    and Cover Letter analyses server-side. Premium feature (backend enforces gating). */
@@ -28,7 +28,7 @@
   function refreshResumeNote() {
     var r = readResume();
     if (!r || !Object.keys(r).length) {
-      els.resumeNote.innerHTML = '⚠ No resume found. <a href="editor">Build or import your resume</a> first — Autopilot tailors it to the job.';
+      els.resumeNote.innerHTML = '⚠ No resume found. <a href="editor">Build or import your resume</a> first, Autopilot tailors it to the job.';
       return false;
     }
     var nm = resumeName(r);
@@ -90,7 +90,7 @@
     var s = window.AtsEngine.score(resumeToText(resume), jd) || {};
     var score = typeof s.score === 'number' ? s.score : null;
     var verdict = score == null ? 'stretch' : score >= 75 ? 'apply' : score >= 55 ? 'stretch' : 'skip';
-    var label = score == null ? 'Assessed' : score >= 75 ? 'Strong fit — apply' : score >= 55 ? 'Worth a shot — a few gaps to close' : 'Long shot — close the gaps first';
+    var label = score == null ? 'Assessed' : score >= 75 ? 'Strong fit, apply' : score >= 55 ? 'Worth a shot, a few gaps to close' : 'Long shot, close the gaps first';
     var bd = s.breakdown || {};
     var packet = {
       fit: { score: score, verdict: verdict, label: label },
@@ -111,7 +111,7 @@
     parts.push(verdictCard(d));
     if ((d.missingKeywords && d.missingKeywords.length) || (d.matchedKeywords && d.matchedKeywords.length)) parts.push(keywordsCard(d));
     if (d._free) {
-      parts.push(lockedCard('Tailored resume', 'Applio rewrites your summary and bullets to match this job — grounded in your real experience.'));
+      parts.push(lockedCard('Tailored resume', 'Applio rewrites your summary and bullets to match this job, grounded in your real experience.'));
       parts.push(lockedCard('Cover letter', 'A ready-to-send cover letter written for this exact role and company.'));
     } else {
       if (d.tailor) parts.push(tailorCard(d.tailor));
@@ -131,7 +131,7 @@
     if (fails.ats || fails.tailor || fails.cover) {
       var miss = []; if (fails.ats) miss.push('fit score'); if (fails.tailor) miss.push('resume tailoring'); if (fails.cover) miss.push('cover letter');
       var note = document.createElement('div'); note.className = 'ap-fail';
-      note.textContent = '⚠ The ' + miss.join(' and ') + ' couldn\'t be generated this time — try running again.';
+      note.textContent = '⚠ The ' + miss.join(' and ') + ' couldn\'t be generated this time, try running again.';
       els.results.insertBefore(note, els.results.firstChild);
     }
   }
@@ -187,7 +187,7 @@
       body += '<div style="font-weight:700;font-size:13px;margin:14px 0 8px;">What to emphasize</div><ul class="ap-list">'
         + t.emphasize.map(function (e) { return '<li><span style="color:var(--accent);">→</span><span>' + esc(e) + '</span></li>'; }).join('') + '</ul>';
     }
-    return '<div class="ap-card"><h2>Tailored resume</h2><div class="ap-card-sub">Grounded only in your real experience — nothing invented.</div>' + body + '</div>';
+    return '<div class="ap-card"><h2>Tailored resume</h2><div class="ap-card-sub">Grounded only in your real experience, nothing invented.</div>' + body + '</div>';
   }
 
   function coverCard(text) {

@@ -22,16 +22,20 @@
   .n90-prog > i { display: block; height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width .3s ease; }
   .n90-prog-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 
-  .n90-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  .n90-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; counter-reset: phase; }
   @media (max-width: 880px) { .n90-grid { grid-template-columns: 1fr; } }
-  .n90-phase { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); padding: 16px; display: flex; flex-direction: column; }
-  .n90-phase.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--sh-1); }
-  .n90-phase h3 { font-size: 15px; font-weight: 700; }
-  .n90-phase .ph-sub { font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
-  .n90-phase .ph-count { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .n90-phase { border: 1px solid var(--border); border-top: 3px solid var(--pc, var(--accent)); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); padding: 16px 16px 18px; display: flex; flex-direction: column; }
+  .n90-grid > .n90-phase:nth-child(1) { --pc: #6366f1; }
+  .n90-grid > .n90-phase:nth-child(2) { --pc: #f59e0b; }
+  .n90-grid > .n90-phase:nth-child(3) { --pc: #22c55e; }
+  .n90-phase.active { border-color: var(--pc); box-shadow: 0 0 0 1px var(--pc), var(--sh-1); }
+  .n90-phase h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
+  .n90-grid .n90-phase h3::before { counter-increment: phase; content: counter(phase); width: 25px; height: 25px; border-radius: 50%; background: color-mix(in srgb, var(--pc) 18%, transparent); color: var(--pc); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .n90-phase .ph-sub { font-size: 12px; color: var(--muted); margin: 3px 0 4px 34px; }
+  .n90-phase .ph-count { font-size: 11px; font-weight: 700; color: var(--pc, var(--accent)); margin: 0 0 12px 34px; letter-spacing: .02em; }
   .n90-tasks { list-style: none; padding: 0; margin: 0 0 10px; }
   .n90-task { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; font-size: 13px; line-height: 1.45; }
-  .n90-task input { margin-top: 2px; accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+  .n90-task input { margin-top: 2px; accent-color: var(--pc, var(--accent)); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
   .n90-task label { cursor: pointer; flex: 1; }
   .n90-task.checked label { color: var(--muted); text-decoration: line-through; }
   .n90-task .t-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; opacity: 0; flex-shrink: 0; }

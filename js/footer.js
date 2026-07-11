@@ -36,6 +36,7 @@
     +     '<a href="/interview-preparation">Interview Prep</a>'
     +     '<a href="/resume-examples">Resume Examples</a>'
     +     '<a href="/guides">Guides</a>'
+    +     '<a href="/blog">Blog</a>'
     +     '<a href="/pricing">Pricing</a>'
     +   '</div>'
     +   '<div><h4>Get started</h4>'

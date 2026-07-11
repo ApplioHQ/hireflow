@@ -31,6 +31,13 @@
   .sg-cta a { color: var(--accent); font-weight: 600; }
   .sg-empty { text-align: center; color: var(--muted); padding: 36px 20px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); }
   .sg-empty h2 { color: var(--text); font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .sg-jd-wrap { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); margin: -8px 0 22px; }
+  .sg-jd-wrap > summary { cursor: pointer; padding: 13px 16px; font-size: 13px; font-weight: 600; color: var(--accent); list-style: none; }
+  .sg-jd-wrap > summary::-webkit-details-marker { display: none; }
+  .sg-jd-wrap[open] > summary { border-bottom: 1px solid var(--border); }
+  .sg-jd-inner { padding: 14px 16px; }
+  .sg-jd-inner textarea { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 11px 13px; font-size: 13.5px; line-height: 1.55; font-family: inherit; resize: vertical; margin-bottom: 10px; }
+  .sg-jd-inner textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
 </style>
 </head>
 <body class="app-body-scroll">

@@ -28,23 +28,24 @@
   .dash-nudges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 1180px) { .dash-nudges { grid-template-columns: 1fr; } }
   .nudge {
-    display: flex; align-items: flex-start; gap: 13px;
-    padding: 14px 15px; border-radius: var(--r-md);
+    display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 3px 13px;
+    padding: 15px 16px; border-radius: var(--r-md);
     background: var(--bg-2); border: 1px solid var(--border);
     border-left: 3px solid var(--nc, var(--accent));
     box-shadow: var(--sh-1);
     transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
   }
   .nudge:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
-  .nudge-ico { flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--nc, var(--accent)) 14%, transparent); color: var(--nc, var(--accent)); }
+  .nudge-ico { grid-row: 1 / span 2; align-self: start; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--nc, var(--accent)) 14%, transparent); color: var(--nc, var(--accent)); }
   .nudge-ico svg { width: 20px; height: 20px; }
-  .nudge-body { flex: 1; min-width: 0; }
+  .nudge-body { grid-column: 2; grid-row: 1; min-width: 0; }
   .nudge-title { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
   .nudge-text { color: var(--muted); font-size: 13px; line-height: 1.5; }
   .nudge-cta {
-    flex-shrink: 0; align-self: center; font: inherit; font-size: 13px; font-weight: 700;
+    grid-column: 2; grid-row: 2; justify-self: start; margin-top: 8px;
+    font: inherit; font-size: 13px; font-weight: 700;
     white-space: nowrap; cursor: pointer; text-decoration: none;
-    color: var(--nc, var(--accent)); background: none; border: 0; padding: 6px 2px;
+    color: var(--nc, var(--accent)); background: none; border: 0; padding: 2px 0;
   }
   .nudge-cta:hover { text-decoration: underline; }
   .dash-allclear { padding: 22px; text-align: center; color: var(--muted); font-size: 14px; background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--r-md); }

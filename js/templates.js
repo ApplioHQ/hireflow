@@ -18,14 +18,14 @@ const TEMPLATE_DEFS = [
   { id: 'classic',      name: 'Classic',        cat: 'Business' },
   { id: 'elegant',      name: 'Elegant',        cat: 'Business' },
   { id: 'ivory',        name: 'Ivory',          cat: 'Business' },
+  { id: 'cascade',      name: 'Cascade',        cat: 'Business' },
   // Technology
   { id: 'jake',         name: "Jake's Resume",  cat: 'Technology' },
   { id: 'faang',        name: 'FAANG',          cat: 'Technology' },
-  { id: 'tech',         name: 'Tech',           cat: 'Technology' },
+  { id: 'deedy',        name: 'Deedy',          cat: 'Technology' },
   // Creative
   { id: 'creative',     name: 'Creative',       cat: 'Creative' },
   { id: 'slate',        name: 'Slate',          cat: 'Creative' },
-  { id: 'onyx',         name: 'Onyx',           cat: 'Creative' },
   { id: 'compact',      name: 'Compact',        cat: 'Creative' },
   { id: 'timeline',     name: 'Timeline',       cat: 'Creative' },
 ];
@@ -878,9 +878,9 @@ const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
-  professional: tProfessional, tech: tTech, executive: tExecutive,
-  compact: tCompact, elegant: tElegant, onyx: tOnyx, slate: tSlate,
-  ivory: tIvory, timeline: tTimeline
+  professional: tProfessional, executive: tExecutive,
+  compact: tCompact, elegant: tElegant, slate: tSlate,
+  ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy
 };
 
 // Public API: render any template

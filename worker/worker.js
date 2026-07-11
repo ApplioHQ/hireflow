@@ -1340,6 +1340,51 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
   return out;
 }
 
+// ============ Skill-gap coach ============
+// Compares a target role against the skills already on the resume and surfaces the
+// highest-impact missing skills. Free (drives the career-copilot loop). Grounded:
+// "relevant" must be verbatim from the user's own list; it never invents skills the
+// candidate has, and frames gaps as "verify you have it / learn it", not "claim it".
+async function aiSkillGap(env, { role, skills, context }) {
+  const target = String(role || "").trim().slice(0, 120);
+  if (!target) return { missing: [], relevant: [], note: "no-role" };
+  const have = Array.isArray(skills) ? skills.map(s => String(s || "").slice(0, 60)).filter(Boolean).slice(0, 80) : [];
+  const ctx = String(context || "").slice(0, 1800);
+  const cacheKey = (target + "|" + have.join(",") + "|" + ctx).slice(0, 2000);
+  const cached = await aiCacheGet(env, "skillgap", cacheKey);
+  if (cached) return cached;
+  const sys = GROUNDING + "\n\n" + `You are an expert technical recruiter and career coach. Compare a candidate's TARGET ROLE against the skills currently listed on their resume, and surface the highest-impact skills/tools that strong candidates for that role usually have but that are MISSING from their list.
+
+Return STRICT JSON only, no markdown, in exactly this shape:
+{
+  "missing": [ { "skill": "<short skill or tool name>", "why": "<one concise sentence on why it matters for this role>" } ],
+  "relevant": [ "<the candidate's CURRENT skills that clearly fit this role, verbatim from their list>" ]
+}
+
+Rules:
+- 6-10 "missing" items, most-important first. Each "skill" is a concrete tool, technology, methodology, or credential — never a vague trait like "communication".
+- A skill is "missing" only if it's commonly expected for the role AND not already in the candidate's current skills. Never repeat something already listed.
+- "relevant" contains ONLY skills the candidate actually listed (verbatim) — never invent skills they didn't provide.
+- Match the seniority implied by the role. Be realistic and specific.
+- "why" is one short plain sentence, no fluff.`;
+  const user = `TARGET ROLE: ${target}
+CURRENT RESUME SKILLS: ${have.length ? have.join(", ") : "(none listed)"}
+RESUME CONTEXT: ${ctx || "(none)"}
+
+Return the JSON.`;
+  const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 750, temperature: 0.3 });
+  let data = null;
+  try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim()); }
+  catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { data = JSON.parse(m[0]); } catch {} } }
+  if (!data || !Array.isArray(data.missing)) return { missing: [], relevant: have.slice(0, 20) };
+  const out = {
+    missing: data.missing.filter(x => x && x.skill).slice(0, 10).map(x => ({ skill: String(x.skill).slice(0, 60), why: String(x.why || "").slice(0, 200) })),
+    relevant: Array.isArray(data.relevant) ? data.relevant.map(s => String(s).slice(0, 60)).filter(Boolean).slice(0, 20) : [],
+  };
+  await aiCachePut(env, "skillgap", cacheKey, out.missing.length ? out : null, 86400);
+  return out;
+}
+
 // ============ Tailor to job ============
 async function aiTailor(env, { jobDescription, resume }) {
   const sys = GROUNDING + "\n\n" + `You are a resume strategist. The candidate wants to tailor their resume to a specific job posting.

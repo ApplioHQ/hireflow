@@ -9,23 +9,31 @@
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
 <style>
-  .dash-wrap { max-width: 1000px; margin: 0 auto; padding: 30px 20px 90px; }
-  .home-masthead { margin: 6px 0 30px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
-  .home-masthead h1 { font-size: clamp(25px, 3.6vw, 33px); font-weight: 700; letter-spacing: -0.7px; margin-bottom: 6px; }
+  .dash-wrap { max-width: 1180px; margin: 0 auto; padding: 30px 22px 90px; }
+  .home-masthead { margin: 4px 0 22px; }
+  .home-masthead h1 { font-size: clamp(25px, 3.6vw, 34px); font-weight: 700; letter-spacing: -0.7px; margin-bottom: 6px; }
   .home-masthead p { color: var(--muted); font-size: 14.5px; }
   .home-masthead p strong { color: var(--text); font-weight: 600; }
 
-  .dash-h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 32px 0 14px; }
+  .dash-h2 { font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 13px; }
+  .dash-block { margin-top: 26px; }
+  .dash-block:first-child { margin-top: 0; }
 
-  /* Nudge cards — the "do next" list */
-  .dash-nudges { display: grid; gap: 12px; }
+  /* Two-column app layout: primary content + sticky sidebar */
+  .dash-layout { display: grid; grid-template-columns: minmax(0, 1fr) 366px; gap: 26px; align-items: start; margin-top: 26px; }
+  .dash-secondary { display: grid; gap: 18px; position: sticky; top: 84px; }
+  @media (max-width: 940px) { .dash-layout { grid-template-columns: 1fr; } .dash-secondary { position: static; } }
+
+  /* Nudge cards — the "do next" list (compact, 2-up on wide) */
+  .dash-nudges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 1180px) { .dash-nudges { grid-template-columns: 1fr; } }
   .nudge {
-    display: flex; align-items: flex-start; gap: 14px;
-    padding: 16px 18px; border-radius: var(--r-md);
+    display: flex; align-items: flex-start; gap: 13px;
+    padding: 14px 15px; border-radius: var(--r-md);
     background: var(--bg-2); border: 1px solid var(--border);
     border-left: 3px solid var(--nc, var(--accent));
     box-shadow: var(--sh-1);
-    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
   }
   .nudge:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
   .nudge-ico { flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--nc, var(--accent)) 14%, transparent); color: var(--nc, var(--accent)); }

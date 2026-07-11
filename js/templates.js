@@ -98,7 +98,10 @@ function customizeStyleAttr(customize, marginsKey) {
   // --app-scale) and the size control compose cleanly.
   if (scale !== 1) parts.push(`font-size:calc(16px * ${scale})`);
   // Bullet glyph: templates render `content: var(--app-bullet, '•')`.
-  if (c.bullet && BULLET_CHAR[c.bullet] !== undefined) parts.push(`--app-bullet:'${BULLET_CHAR[c.bullet]}'`);
+  if (c.bullet && BULLET_CHAR[c.bullet] !== undefined) {
+    parts.push(`--app-bullet:'${BULLET_CHAR[c.bullet]}'`);
+    if (c.bullet === 'none') parts.push('--app-bullet-pad:0'); // no marker → no hanging indent
+  }
   // Capitalization of headings/labels: templates use `var(--app-upper, uppercase)`.
   if (c.headingCase === 'normal') parts.push('--app-upper:none');
   if (font) {
@@ -908,10 +911,10 @@ const TEMPLATE_RENDERERS = {
 // lists with emphasised metrics. Inherits colour from the template root so it
 // works on both light and dark templates.
 const SHARED_TEMPLATE_CSS = `<style>
-.t-bullets { list-style: none; margin: .4em 0 0; padding: 0; font-size: .92em; line-height: 1.42; }
-.t-bullets li { position: relative; padding-left: 1.05em; margin-bottom: .28em; }
+.t-bullets { list-style: none; margin: .4em 0 0; padding: 0; font-size: .92em; line-height: var(--app-line, 1.42); }
+.t-bullets li { position: relative; padding-left: var(--app-bullet-pad, 1.05em); margin-bottom: .28em; }
 .t-bullets li:last-child { margin-bottom: 0; }
-.t-bullets li::before { content: '•'; position: absolute; left: .12em; top: 0; opacity: .65; }
+.t-bullets li::before { content: var(--app-bullet, '•'); position: absolute; left: .12em; top: 0; opacity: .65; }
 .t-bullets strong { font-weight: 700; }
 </style>`;
 

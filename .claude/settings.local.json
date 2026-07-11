@@ -462,7 +462,8 @@
       "Bash(perl -0pi -e 's/<p>16 professional, ATS-friendly resume templates\\\\./<p>\\\\${T.length} professional, ATS-friendly resume templates./' scripts/gen-template-pages.js)",
       "Bash(perl -0pi -e 's/^function tTech\\\\\\(r, accent\\\\\\) \\\\{.*?^\\\\}\\\\n//ms; s/^function tOnyx\\\\\\(r, accent\\\\\\) \\\\{.*?^\\\\}\\\\n//ms;' js/templates.js)",
       "Bash(perl -0pi -e 's/^  tech: `.*?`,\\\\n//ms; s/^  onyx: `.*?`,\\\\n//ms;' js/editor.js)",
-      "Bash(awk '/const TEMPLATE_THUMBS = \\\\{/,/^\\\\};/' js/editor.js)"
+      "Bash(awk '/const TEMPLATE_THUMBS = \\\\{/,/^\\\\};/' js/editor.js)",
+      "Bash(perl -i -pe 's/text-transform: ?uppercase/text-transform: var\\(--app-upper, uppercase\\)/g' js/templates.js)"
     ]
   }
 }

@@ -319,7 +319,7 @@ function tModern(r, accent) {
       .t-modern .name { font-size: 205%; font-weight: 700; letter-spacing: -.02em; margin-bottom: 1.4%; line-height: 1.05; }
       .t-modern .contact { font-size: 80%; opacity: .92; display:flex; flex-wrap:wrap; gap: 1% 3%; }
       .t-modern .body { padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
-      .t-modern h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid ${c}33; padding-bottom: 1%; }
+      .t-modern h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid ${c}33; padding-bottom: 1%; }
       .t-modern .body > h2:first-child { margin-top: 0; }
       .t-modern .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-modern .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
@@ -352,7 +352,7 @@ function tClassic(r, accent) {
       .t-classic { font-family: var(--app-font); color: #1a1a1a; padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); height: 100%; }
       .t-classic .name { font-size: 240%; font-weight: 700; text-align: center; letter-spacing: .02em; margin-bottom: 2%; }
       .t-classic .contact { text-align: center; font-size: 85%; padding-bottom: 3%; border-bottom: 2px solid #1a1a1a; margin-bottom: 4%; }
-      .t-classic h2 { font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; text-align: center; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid #1a1a1a; padding-bottom: 1%; }
+      .t-classic h2 { font-size: 110%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; text-align: center; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid #1a1a1a; padding-bottom: 1%; }
       .t-classic .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-classic .t-entry-head { display:flex; justify-content:space-between; font-weight: 700; font-size: 95%; }
       .t-classic .t-entry-sub { font-style: italic; font-size: 88%; }
@@ -376,10 +376,10 @@ function tCreative(r, accent) {
       .t-creative { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
       .t-creative .sidebar { background: ${c}; color: #fff; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
       .t-creative .name { font-size: 180%; font-weight: 700; line-height: 1.1; margin-bottom: 5%; }
-      .t-creative .sidebar h3 { font-size: 90%; text-transform: uppercase; letter-spacing: .12em; margin: calc(6% * var(--app-space, 1)) 0 2%; opacity: .9; }
+      .t-creative .sidebar h3 { font-size: 90%; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; margin: calc(6% * var(--app-space, 1)) 0 2%; opacity: .9; }
       .t-creative .sidebar .item { font-size: 80%; margin-bottom: 1%; opacity: .95; }
       .t-creative .main { padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
-      .t-creative h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
+      .t-creative h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
       .t-creative h2:first-child { margin-top: 0; }
       .t-creative .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); padding-left: 3%; border-left: 2px solid ${c}44; }
       .t-creative .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
@@ -413,7 +413,7 @@ function tMinimal(r, accent) {
       .t-minimal { font-family: var(--app-font); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; font-weight: 300; }
       .t-minimal .name { font-size: 220%; font-weight: 200; letter-spacing: .01em; margin-bottom: 1.5%; }
       .t-minimal .contact { font-size: 80%; color: #888; display:flex; gap: 4%; flex-wrap: wrap; margin-bottom: 5%; padding-bottom: 4%; border-bottom: 1px solid #e5e5e5; }
-      .t-minimal h2 { font-size: 80%; font-weight: 500; text-transform: uppercase; letter-spacing: .25em; color: #888; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
+      .t-minimal h2 { font-size: 80%; font-weight: 500; text-transform: var(--app-upper, uppercase); letter-spacing: .25em; color: #888; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
       .t-minimal .t-entry { margin-bottom: calc(3.5% * var(--app-space, 1)); }
       .t-minimal .t-entry-head { display:flex; justify-content:space-between; font-weight: 500; font-size: 95%; }
       .t-minimal .t-entry-sub { color: #888; font-size: 82%; margin-top: .5%; }
@@ -437,10 +437,10 @@ function tProfessional(r, accent) {
       .t-professional { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 32% 68%; grid-template-rows: 1fr; }
       .t-professional .sidebar { background: ${c}; color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
       .t-professional .name { font-size: 160%; font-weight: 700; line-height: 1.15; margin-bottom: 4%; }
-      .t-professional .sidebar h3 { font-size: 85%; text-transform: uppercase; letter-spacing: .12em; margin: calc(5% * var(--app-space, 1)) 0 2%; padding-bottom: 1%; border-bottom: 1px solid rgba(255,255,255,.3); }
+      .t-professional .sidebar h3 { font-size: 85%; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; margin: calc(5% * var(--app-space, 1)) 0 2%; padding-bottom: 1%; border-bottom: 1px solid rgba(255,255,255,.3); }
       .t-professional .sidebar .item { font-size: 78%; margin-bottom: 1%; opacity: .95; }
       .t-professional .main { padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
-      .t-professional h2 { color: ${c}; font-size: 105%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 2px solid ${c}; }
+      .t-professional h2 { color: ${c}; font-size: 105%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 2px solid ${c}; }
       .t-professional h2:first-child { margin-top: 0; }
       .t-professional .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-professional .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 92%; }
@@ -475,9 +475,9 @@ function tExecutive(r, accent) {
     <style>
       .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); min-height: 1048px; border: 4px double ${c}; box-sizing: border-box; }
       .t-executive .name { font-size: 240%; font-weight: 600; color: ${c}; text-align: center; letter-spacing: .02em; margin-bottom: 1%; }
-      .t-executive .subtitle { text-align: center; font-size: 80%; letter-spacing: .25em; text-transform: uppercase; color: #6b5a4a; margin-bottom: 4%; padding-bottom: 4%; border-bottom: 1px solid ${c}66; }
+      .t-executive .subtitle { text-align: center; font-size: 80%; letter-spacing: .25em; text-transform: var(--app-upper, uppercase); color: #6b5a4a; margin-bottom: 4%; padding-bottom: 4%; border-bottom: 1px solid ${c}66; }
       .t-executive .contact { text-align: center; font-size: 82%; margin-bottom: 4%; font-style: italic; }
-      .t-executive h2 { color: ${c}; font-size: 115%; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; text-align: center; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
+      .t-executive h2 { color: ${c}; font-size: 115%; font-weight: 600; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; text-align: center; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
       .t-executive .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-executive .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
       .t-executive .t-entry-sub { font-style: italic; font-size: 86%; color: #6b5a4a; }
@@ -502,7 +502,7 @@ function tCompact(r, accent) {
       .t-compact { font-family: var(--app-font); color: #1a1a1a; padding: calc(4% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); height: 100%; font-size: 95%; line-height: 1.25; }
       .t-compact .name { font-size: 180%; font-weight: 800; letter-spacing: -.01em; margin-bottom: 1%; color: ${c}; }
       .t-compact .contact { font-size: 78%; color: #555; margin-bottom: 3%; padding-bottom: 2%; border-bottom: 1.5px solid ${c}; }
-      .t-compact h2 { font-size: 90%; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: ${c}; margin: calc(2.5% * var(--app-space, 1)) 0 calc(1.2% * var(--app-space, 1)); }
+      .t-compact h2 { font-size: 90%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .08em; color: ${c}; margin: calc(2.5% * var(--app-space, 1)) 0 calc(1.2% * var(--app-space, 1)); }
       .t-compact .t-entry { margin-bottom: calc(1.8% * var(--app-space, 1)); }
       .t-compact .t-entry-head { display:flex; justify-content:space-between; font-weight: 700; font-size: 88%; }
       .t-compact .t-entry-sub { font-style: italic; font-size: 78%; color: #555; }
@@ -524,12 +524,12 @@ function tElegant(r, accent) {
   return `
     <style>
       .t-elegant { font-family: var(--app-font); color: #2c2c2c; padding: calc(7% * var(--app-margin, 1)) calc(8% * var(--app-margin, 1)); height: 100%; }
-      .t-elegant .subtitle { text-align: center; font-size: 75%; letter-spacing: .35em; text-transform: uppercase; color: #888; margin-bottom: 2%; }
+      .t-elegant .subtitle { text-align: center; font-size: 75%; letter-spacing: .35em; text-transform: var(--app-upper, uppercase); color: #888; margin-bottom: 2%; }
       .t-elegant .name { font-size: 260%; font-weight: 400; color: ${c}; text-align: center; letter-spacing: .01em; line-height: 1; margin-bottom: 2%; }
       .t-elegant .name-dash { text-align: center; margin: 1% 0 4%; }
       .t-elegant .name-dash::before { content: "·"; color: ${c}; font-size: 200%; }
       .t-elegant .contact { text-align: center; font-size: 82%; margin-bottom: 5%; padding-bottom: 4%; border-bottom: 1px solid ${c}44; }
-      .t-elegant h2 { color: ${c}; font-size: 105%; font-weight: 600; text-transform: uppercase; letter-spacing: .15em; text-align: center; margin: calc(5% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
+      .t-elegant h2 { color: ${c}; font-size: 105%; font-weight: 600; text-transform: var(--app-upper, uppercase); letter-spacing: .15em; text-align: center; margin: calc(5% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); }
       .t-elegant .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-elegant .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
       .t-elegant .t-entry-sub { font-style: italic; font-size: 86%; color: #666; }
@@ -556,10 +556,10 @@ function tSlate(r, accent) {
       .t-slate { font-family: var(--app-font); color: #1f2937; height: 100%; }
       .t-slate .hd { background: #0f172a; color: #fff; padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); display:flex; justify-content:space-between; align-items:flex-end; gap: 4%; }
       .t-slate .name { font-size: 195%; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
-      .t-slate .role { font-size: 80%; color: color-mix(in srgb, ${c} 45%, #fff); letter-spacing: .06em; text-transform: uppercase; margin-top: 2.5%; }
+      .t-slate .role { font-size: 80%; color: color-mix(in srgb, ${c} 45%, #fff); letter-spacing: .06em; text-transform: var(--app-upper, uppercase); margin-top: 2.5%; }
       .t-slate .hd-contact { font-size: 76%; color: #cbd5e1; text-align: right; line-height: 1.7; white-space: nowrap; }
       .t-slate .body { padding: calc(4% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); }
-      .t-slate h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); padding-left: 2.5%; border-left: 3px solid ${c}; }
+      .t-slate h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); padding-left: 2.5%; border-left: 3px solid ${c}; }
       .t-slate h2:first-child { margin-top: 0; }
       .t-slate .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); padding-left: 2.5%; }
       .t-slate .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 93%; }
@@ -600,7 +600,7 @@ function tConsulting(r, accent) {
         padding: calc(6% * var(--app-margin,1)) calc(8% * var(--app-margin,1)); line-height:1.34; }
       .t-consulting .name { text-align:center; font-size:212%; font-weight:700; letter-spacing:.01em; }
       .t-consulting .contact { text-align:center; font-size:85%; color:#333; margin-top:1.4%; }
-      .t-consulting h2 { font-size:97%; font-weight:700; text-transform:uppercase; letter-spacing:.15em;
+      .t-consulting h2 { font-size:97%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.15em;
         margin: calc(4.6% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); padding-bottom:.7%; border-bottom:1px solid #1a1a1a; }
       .t-consulting .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
       .t-consulting .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:98%; }
@@ -629,7 +629,7 @@ function tFaang(r, accent) {
         padding: calc(5.5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.35; }
       .t-faang .name { font-size:202%; font-weight:800; letter-spacing:-.02em; color:#111; }
       .t-faang .contact { font-size:84%; color:#5f6368; margin-top:1.1%; }
-      .t-faang h2 { font-size:88%; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:${c};
+      .t-faang h2 { font-size:88%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.1em; color:${c};
         margin: calc(4.2% * var(--app-space,1)) 0 calc(1.7% * var(--app-space,1)); }
       .t-faang h2::after { content:''; display:block; height:1.5px; background:${c}2e; margin-top:.7%; }
       .t-faang .t-entry { margin-bottom: calc(2.8% * var(--app-space,1)); }
@@ -658,7 +658,7 @@ function tHarvard(r, accent) {
       .t-harvard .h-name { text-align:center; font-size:210%; font-weight:700; letter-spacing:.01em; }
       .t-harvard .h-contact { text-align:center; font-size:82%; color:#333; margin-top:4px; }
       .t-harvard .h-contact span:not(:last-child)::after { content:"  \\2022  "; color:#888; }
-      .t-harvard h2 { font-size:98%; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:1.3px solid #111; padding-bottom:2px; margin: calc(4% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); }
+      .t-harvard h2 { font-size:98%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.06em; border-bottom:1.3px solid #111; padding-bottom:2px; margin: calc(4% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); }
       .t-harvard .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
       .t-harvard .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:96%; }
       .t-harvard .t-entry-date { font-weight:400; }
@@ -684,7 +684,7 @@ function tStanford(r, accent) {
       .t-stanford { font-family: "Helvetica Neue", Arial, var(--app-font), sans-serif; color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); height:100%; }
       .t-stanford .s-name { font-size:230%; font-weight:800; letter-spacing:-.02em; line-height:1; }
       .t-stanford .s-contact { font-size:81%; color:#555; margin-top:9px; display:flex; flex-wrap:wrap; gap:2.5%; }
-      .t-stanford h2 { font-size:79%; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:#111; margin: calc(5.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
+      .t-stanford h2 { font-size:79%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.18em; color:#111; margin: calc(5.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
       .t-stanford .t-entry { margin-bottom: calc(3.2% * var(--app-space,1)); }
       .t-stanford .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:97%; }
       .t-stanford .t-entry-date { font-weight:500; color:#666; }
@@ -713,7 +713,7 @@ function tJake(r, accent) {
       .t-jake .j-name { text-align:center; font-size:220%; font-weight:700; letter-spacing:-.01em; }
       .t-jake .j-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; }
       .t-jake .j-contact span:not(:last-child)::after { content:"  |  "; color:#aaa; }
-      .t-jake h2 { font-size:96%; font-weight:700; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #333; padding-bottom:2px; margin: calc(4.5% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); }
+      .t-jake h2 { font-size:96%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.05em; border-bottom:1px solid #333; padding-bottom:2px; margin: calc(4.5% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); }
       .t-jake .t-entry { margin-bottom: calc(2.4% * var(--app-space,1)); }
       .t-jake .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:96%; }
       .t-jake .t-entry-date { font-weight:400; font-style:italic; }
@@ -742,11 +742,11 @@ function tIvory(r, accent) {
       .t-ivory .sidebar { background: #f1f3f5; padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); border-right: 1px solid #e3e6ea; }
       .t-ivory .name { font-size: 168%; font-weight: 800; line-height: 1.1; letter-spacing: -.01em; color: #111827; margin-bottom: 1.5%; }
       .t-ivory .role { font-size: 82%; font-weight: 600; color: ${c}; margin-bottom: 5%; }
-      .t-ivory .sidebar h3 { font-size: 79%; text-transform: uppercase; letter-spacing: .12em; color: ${c}; margin: calc(5.5% * var(--app-space, 1)) 0 2.5%; }
+      .t-ivory .sidebar h3 { font-size: 79%; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; color: ${c}; margin: calc(5.5% * var(--app-space, 1)) 0 2.5%; }
       .t-ivory .sidebar .item { font-size: 80%; margin-bottom: 1.5%; color: #374151; word-break: break-word; line-height: 1.4; }
       .t-ivory .sidebar .item strong { color: #111827; }
       .t-ivory .main { padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); }
-      .t-ivory h2 { font-size: 104%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 2px solid ${c}; }
+      .t-ivory h2 { font-size: 104%; font-weight: 800; text-transform: var(--app-upper, uppercase); letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 2px solid ${c}; }
       .t-ivory h2:first-child { margin-top: 0; }
       .t-ivory .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-ivory .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-weight: 700; font-size: 93%; }
@@ -788,7 +788,7 @@ function tTimeline(r, accent) {
       .t-timeline .name { font-size: 215%; font-weight: 800; letter-spacing: -.02em; line-height: 1.02; color: #111827; }
       .t-timeline .contact { font-size: 80%; color: #6b7280; margin: 1.5% 0 5%; }
       .t-timeline .rail { border-left: 2px solid ${c}40; padding-left: 26px; margin-left: 4px; }
-      .t-timeline h2 { color: ${c}; font-size: 106%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
+      .t-timeline h2 { color: ${c}; font-size: 106%; font-weight: 800; text-transform: var(--app-upper, uppercase); letter-spacing: .09em; margin: calc(5% * var(--app-space, 1)) 0 calc(2.5% * var(--app-space, 1)); }
       .t-timeline h2:first-child { margin-top: 0; }
       .t-timeline .summary { font-size: 90%; margin-bottom: 2%; }
       .t-timeline .t-entry { position: relative; margin-bottom: calc(3.5% * var(--app-space, 1)); }
@@ -825,7 +825,7 @@ function tCascade(r, accent) {
       .t-cascade .role { font-size: 92%; font-weight: 600; color: ${c}; margin-top: .5%; }
       .t-cascade .contact { font-size: 80%; color: #4b5563; margin-top: 1.8%; }
       .t-cascade .body { padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
-      .t-cascade h2 { font-size: 104%; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 1.5px solid #d1d5db; }
+      .t-cascade h2 { font-size: 104%; font-weight: 800; text-transform: var(--app-upper, uppercase); letter-spacing: .09em; color: #111827; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); padding-bottom: 1%; border-bottom: 1.5px solid #d1d5db; }
       .t-cascade .body > h2:first-child { margin-top: 0; }
       .t-cascade .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
       .t-cascade .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; font-size: 95%; }
@@ -866,7 +866,7 @@ function tDeedy(r, accent) {
       .t-deedy .name span { color: ${c}; }
       .t-deedy .banner .contact { text-align: right; font-size: 76%; color: #4b5563; line-height: 1.55; white-space: nowrap; }
       .t-deedy .cols { display: grid; grid-template-columns: 34% 66%; gap: 5%; }
-      .t-deedy h2 { color: ${c}; font-size: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin: calc(3.5% * var(--app-space, 1)) 0 calc(1.6% * var(--app-space, 1)); border-bottom: 1px solid #e5e7eb; padding-bottom: .6%; }
+      .t-deedy h2 { color: ${c}; font-size: 100%; font-weight: 800; text-transform: var(--app-upper, uppercase); letter-spacing: .06em; margin: calc(3.5% * var(--app-space, 1)) 0 calc(1.6% * var(--app-space, 1)); border-bottom: 1px solid #e5e7eb; padding-bottom: .6%; }
       .t-deedy .cols > div > h2:first-child, .t-deedy > .summary + .cols h2:first-child { margin-top: 0; }
       .t-deedy .col-left h2:first-child, .t-deedy .col-right h2:first-child { margin-top: 0; }
       .t-deedy .t-entry { margin-bottom: calc(2.6% * var(--app-space, 1)); }

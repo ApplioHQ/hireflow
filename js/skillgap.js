@@ -107,6 +107,44 @@
   document.getElementById('sg-run-jd').addEventListener('click', function () { analyze(true); });
   document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(false); });
 
+  // ---- One-click gap check on a job from the tracker ----
+  var trackedJobs = [];
+  function populateJobs(list) {
+    var jobs = (list || []).filter(function (j) { return j && (j.title || j.company); });
+    trackedJobs = jobs;
+    var sel = document.getElementById('sg-job'), pick = document.getElementById('sg-jobpick');
+    if (!sel || !pick) return;
+    if (!jobs.length) { pick.style.display = 'none'; return; }
+    sel.innerHTML = '<option value="">Pick a tracked job…</option>' + jobs.map(function (j, i) {
+      return '<option value="' + i + '">' + esc((j.title || 'Role') + (j.company ? ' · ' + j.company : '')) + (j.jd && j.jd.trim() ? '  (posting saved)' : '') + '</option>';
+    }).join('');
+    pick.style.display = '';
+  }
+  document.getElementById('sg-job').addEventListener('change', function () {
+    var j = trackedJobs[+this.value]; if (!j) return;
+    var hint = document.getElementById('sg-jobpick-hint');
+    if (j.title) document.getElementById('sg-role').value = j.title;
+    if (j.jd && j.jd.trim()) {
+      document.getElementById('sg-jd-wrap').open = true;
+      document.getElementById('sg-jd').value = j.jd;
+      if (hint) hint.textContent = 'Analyzing against this saved posting.';
+      analyze(true);
+    } else {
+      if (hint) hint.textContent = 'No posting saved for this job — analyzing by role. Add the job description in the tracker for a posting-specific check.';
+      analyze(false);
+    }
+  });
+  function loadTrackedJobs() {
+    var local = readJSON('hf_jobs', []);
+    populateJobs(Array.isArray(local) ? local : []);
+    if (!API) return;
+    fetch(API + '/jobs', { headers: { 'Authorization': 'Bearer ' + TOKEN } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && Array.isArray(d.jobs)) populateJobs(d.jobs); })
+      .catch(function () {});
+  }
+  loadTrackedJobs();
+
   // Prefill the target role and, if we have one + a resume, auto-run once.
   var pre = defaultRole();
   if (pre) {

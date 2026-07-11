@@ -154,17 +154,21 @@
         </div>
       </div>
 
-      <div class="ctrl-card">
-        <h3>Test win-nudge email</h3>
-        <p>Sends one weekly "log your win" email right now — same template as the Friday cron — to confirm Resend delivery is working. Check inbox and spam.</p>
-        <div class="ctrl-row">
-          <input type="email" id="testnudge-email" placeholder="you@email.com">
-          <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
-        </div>
-      </div>
     </div>
 
   </div>
+
+  <!-- Email tools: visible to any admin (not just super) so the owner can verify delivery -->
+  <section id="email-tools-section" style="margin-top:22px;">
+    <div class="ctrl-card">
+      <h3>Test win-nudge email</h3>
+      <p>Sends one weekly "log your win" email right now — the same template as the Friday cron — to confirm Resend delivery is working end-to-end. Check your inbox and spam folder.</p>
+      <div class="ctrl-row">
+        <input type="email" id="testnudge-email" placeholder="you@email.com" style="min-width:240px;">
+        <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
+      </div>
+    </div>
+  </section>
 
   <!-- User feedback: always visible -->
   <section id="feedback-section" style="margin-top:22px;">
@@ -231,7 +235,11 @@ async function init() {
     document.body.innerHTML = '<div style="padding:60px 24px; max-width:480px; margin:0 auto; text-align:center;"><h1>Access denied</h1><p style="color:var(--muted); margin-top:8px;">This page is only available to admin accounts.</p><p style="margin-top:20px;"><a href="editor" class="btn btn-primary">Back to Editor</a></p></div>';
     return;
   }
-  document.getElementById('role-pill').innerHTML =
+  // role-pill may already have been removed by acctcenter.js (which rebuilds
+  // .topbar-right into the account dropdown while we await /me) — guard it so a
+  // missing cosmetic element never aborts the role-gating + data load below.
+  var _rp = document.getElementById('role-pill');
+  if (_rp) _rp.innerHTML =
     `<span class="pill ${ROLE==='super'?'error':''}">${ICON('crown','ico ico-sm')} ${ROLE==='super'?'SUPER ADMIN':'ADMIN'}</span>`;
   document.getElementById('banner-role').textContent = ROLE === 'super' ? 'SUPER ADMIN ACCESS' : 'ADMIN ACCESS';
   document.getElementById('banner-msg').textContent = ROLE === 'super'

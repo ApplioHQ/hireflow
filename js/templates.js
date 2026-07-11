@@ -76,6 +76,10 @@ const SPACE_MULT  = { compact: 0.65, medium: 1.0, relaxed: 1.4 };
 const MARGIN_MULT = { Narrow:  0.7,  Normal: 1.0, Wide:    1.35 };
 // Overall text-size multiplier (applied to the base font-size on the resume root).
 const SCALE_MULT  = { xs: 0.9, s: 0.95, m: 1.0, l: 1.06, xl: 1.12 };
+// Body line-height (drives --app-line; every template's bullets/prose inherit it).
+const LINE_MULT   = { tight: 1.22, normal: 1.4, relaxed: 1.6, loose: 1.8 };
+// Bullet glyph used before every list item (empty = no marker, tighter indent).
+const BULLET_CHAR = { dot: '•', dash: '–', square: '▪', chevron: '›', arrow: '→', circle: '◦', none: '' };
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
@@ -88,10 +92,15 @@ function customizeStyleAttr(customize, marginsKey) {
   // saved customize.margins — so the control works everywhere renderTemplate runs.
   const margin = MARGIN_MULT[marginsKey] ?? MARGIN_MULT[c.margins] ?? 1.0;
   const scale = SCALE_MULT[c.textSize] ?? 1.0;
-  const parts = [`--app-space:${space}`, `--app-margin:${margin}`, `--app-scale:${scale}`];
+  const line  = LINE_MULT[c.lineHeight] ?? 1.4;
+  const parts = [`--app-space:${space}`, `--app-margin:${margin}`, `--app-scale:${scale}`, `--app-line:${line}`, `line-height:${line}`];
   // Drive the base text size off a CSS var so "Fit to one page" (which reads
   // --app-scale) and the size control compose cleanly.
   if (scale !== 1) parts.push(`font-size:calc(16px * ${scale})`);
+  // Bullet glyph: templates render `content: var(--app-bullet, '•')`.
+  if (c.bullet && BULLET_CHAR[c.bullet] !== undefined) parts.push(`--app-bullet:'${BULLET_CHAR[c.bullet]}'`);
+  // Capitalization of headings/labels: templates use `var(--app-upper, uppercase)`.
+  if (c.headingCase === 'normal') parts.push('--app-upper:none');
   if (font) {
     // Font stacks contain quoted multi-word names (e.g. "Segoe UI", "Times New Roman").
     // This string is injected into a double-quoted style="" attribute, so any double

@@ -247,6 +247,7 @@
       var jobs; try { jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(jobs)) jobs = []; } catch (e) { jobs = []; }
       var now = Date.now();
       jobs.unshift({ id: now, addedAt: now, statusAt: now, title: role || 'Role', company: company || 'Company', location: '', status: 'Saved',
+        jd: (els.jd.value || '').trim().slice(0, 8000),   // keep the posting so Skill Gap can analyze it in one click
         notes: 'Added by Autopilot' + (d.fit && typeof d.fit.score === 'number' ? ' · fit ' + d.fit.score + '/100' : '') });
       try { localStorage.setItem('hf_jobs', JSON.stringify(jobs)); if (window.HFJobsSync) HFJobsSync.push(); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
       saveBtn.textContent = '✓ Saved to tracker'; saveBtn.disabled = true;

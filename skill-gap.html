@@ -38,6 +38,10 @@
   .sg-jd-inner { padding: 14px 16px; }
   .sg-jd-inner textarea { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 11px 13px; font-size: 13.5px; line-height: 1.55; font-family: inherit; resize: vertical; margin-bottom: 10px; }
   .sg-jd-inner textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .sg-jobpick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -10px 0 18px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); }
+  .sg-jobpick label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .sg-jobpick select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 8px 10px; font-size: 13px; font-family: inherit; max-width: 320px; }
+  .sg-jobpick-hint { font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -69,6 +73,12 @@
       <input id="sg-role" type="text" placeholder="e.g. Senior Product Manager" maxlength="120">
     </div>
     <button class="btn btn-primary" id="sg-run">Find my gaps</button>
+  </div>
+
+  <div class="sg-jobpick" id="sg-jobpick" style="display:none;">
+    <label for="sg-job">Or check a job you're tracking</label>
+    <select id="sg-job"><option value="">Pick a tracked job…</option></select>
+    <span class="sg-jobpick-hint" id="sg-jobpick-hint"></span>
   </div>
 
   <details class="sg-jd-wrap" id="sg-jd-wrap">

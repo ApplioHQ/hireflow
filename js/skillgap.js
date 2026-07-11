@@ -119,6 +119,7 @@
       return '<option value="' + i + '">' + esc((j.title || 'Role') + (j.company ? ' · ' + j.company : '')) + (j.jd && j.jd.trim() ? '  (posting saved)' : '') + '</option>';
     }).join('');
     pick.style.display = '';
+    maybeDeepLink();
   }
   function selectJob(j) {
     if (!j) return;
@@ -161,10 +162,11 @@
   }
   loadTrackedJobs();
 
-  // Prefill the target role and, if we have one + a resume, auto-run once.
+  // Prefill the target role and, if we have one + a resume, auto-run once — unless
+  // a ?job= deep link is present (that takes over and analyzes the specific job).
   var pre = defaultRole();
-  if (pre) {
-    document.getElementById('sg-role').value = pre;
+  if (pre) document.getElementById('sg-role').value = pre;
+  if (pre && !_deepJobId) {
     if (currentSkills().length) analyze();
     else out.innerHTML = '<div class="sg-empty"><h2>Add your skills first</h2><p>Your resume has no skills listed yet. Add them in the <a href="editor" style="color:var(--accent);font-weight:600;">Resume Builder</a>, then come back for a gap analysis.</p></div>';
   }

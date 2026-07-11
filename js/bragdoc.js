@@ -132,13 +132,14 @@
       return;
     }
     var body = g.groups.map(function (grp) {
-      return '<div class="bd-group"><h2>' + esc(grp.label) + '</h2><ul>'
+      return '<div class="bd-group"><h2>' + esc(grp.label) + '<span class="bd-mcount">' + grp.items.length + '</span></h2><ul>'
         + grp.items.map(function (w) { return '<li>' + esc(winText(w)) + '</li>'; }).join('')
         + '</ul></div>';
     }).join('');
     out.innerHTML = '<div class="bd-sheet" id="bd-sheet">'
-      + '<h1>' + esc(id.name) + '</h1>'
-      + (id.role ? '<div class="bd-role">' + esc(id.role) + '</div>' : '')
+      + '<div class="bd-head"><div><h1>' + esc(id.name) + '</h1>'
+      + (id.role ? '<div class="bd-role">' + esc(id.role) + '</div>' : '') + '</div>'
+      + '<div class="bd-head-meta"><div class="bd-head-count">' + g.count + '</div><div class="bd-head-count-l">win' + (g.count === 1 ? '' : 's') + '</div></div></div>'
       + '<div class="bd-range-label">Accomplishments · ' + esc(rangeLabel(days)) + (POLISH_ON ? ' · résumé-ready' : '') + '</div>'
       + '<div class="bd-rule"></div>'
       + body

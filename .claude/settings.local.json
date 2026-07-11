@@ -451,7 +451,8 @@
       "Bash(python3 -c \"import re; h=open\\('index.html'\\).read\\(\\); print\\('hero-sub + faq edits intact:', 'juggling five different tools' in h and 'Straight answers' in h\\)\")",
       "Bash(awk '/<section class=\"section-alt\" id=\"faq\">/,/<\\\\/section>/' index.html)",
       "Bash(LC_ALL=C perl -ne '$c+=tr/\\\\x00//; END{print \"raw NULs: \",$c+0,\"\\\\n\"}' worker/worker.js)",
-      "Bash(grep -nE 'jobs:\\\\$\\\\{|async function getJobs|async function saveJobs|async function me\\\\\\(' worker/worker.js)"
+      "Bash(grep -nE 'jobs:\\\\$\\\\{|async function getJobs|async function saveJobs|async function me\\\\\\(' worker/worker.js)",
+      "Bash(grep -nA6 \"^\\\\.app-topbar\\\\s*{\" css/styles.css)"
     ]
   }
 }

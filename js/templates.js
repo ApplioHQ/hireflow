@@ -50,14 +50,30 @@ const SAMPLE = {
   projects: [{ name: 'Project Name', tech: 'React, Node', description: 'Short summary of impact.' }],
 };
 
+// Curated, print-safe professional font stacks (every stack degrades to a font
+// present on virtually all systems, so the exported PDF renders faithfully).
 const FONT_STACKS = {
   'Inter':     'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  'Arial':     'Arial, "Helvetica Neue", Helvetica, sans-serif',
+  'Calibri':   'Calibri, "Segoe UI", Candara, "Trebuchet MS", sans-serif',
   'Helvetica': '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  'Tahoma':    'Tahoma, Verdana, Segoe, sans-serif',
+  'Verdana':   'Verdana, Geneva, Tahoma, sans-serif',
   'Georgia':   'Georgia, "Times New Roman", serif',
-  'Times':     '"Times New Roman", Times, serif'
+  'Cambria':   'Cambria, "Palatino Linotype", "Book Antiqua", Georgia, serif',
+  'Garamond':  '"EB Garamond", Garamond, "Apple Garamond", "Times New Roman", serif',
+  'Times':     '"Times New Roman", Times, serif',
+  'Palatino':  '"Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif'
+};
+// Sans vs serif grouping for the font picker (keys must exist in FONT_STACKS).
+const FONT_GROUPS = {
+  'Sans-serif': ['Inter', 'Arial', 'Calibri', 'Helvetica', 'Tahoma', 'Verdana'],
+  'Serif':      ['Georgia', 'Cambria', 'Garamond', 'Times', 'Palatino']
 };
 const SPACE_MULT  = { compact: 0.65, medium: 1.0, relaxed: 1.4 };
 const MARGIN_MULT = { Narrow:  0.7,  Normal: 1.0, Wide:    1.35 };
+// Overall text-size multiplier (applied to the base font-size on the resume root).
+const SCALE_MULT  = { xs: 0.9, s: 0.95, m: 1.0, l: 1.06, xl: 1.12 };
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
@@ -66,8 +82,14 @@ function customizeStyleAttr(customize, marginsKey) {
   const c = customize || {};
   const font = FONT_STACKS[c.font];
   const space = SPACE_MULT[c.spacing] ?? 1.0;
-  const margin = MARGIN_MULT[marginsKey] ?? 1.0;
-  const parts = [`--app-space:${space}`, `--app-margin:${margin}`];
+  // Margins can come via the render arg (marginsKey) or, more reliably, from the
+  // saved customize.margins — so the control works everywhere renderTemplate runs.
+  const margin = MARGIN_MULT[marginsKey] ?? MARGIN_MULT[c.margins] ?? 1.0;
+  const scale = SCALE_MULT[c.textSize] ?? 1.0;
+  const parts = [`--app-space:${space}`, `--app-margin:${margin}`, `--app-scale:${scale}`];
+  // Drive the base text size off a CSS var so "Fit to one page" (which reads
+  // --app-scale) and the size control compose cleanly.
+  if (scale !== 1) parts.push(`font-size:calc(16px * ${scale})`);
   if (font) {
     // Font stacks contain quoted multi-word names (e.g. "Segoe UI", "Times New Roman").
     // This string is injected into a double-quoted style="" attribute, so any double

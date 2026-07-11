@@ -8,7 +8,7 @@ Last updated: 2026-07-09. All statistics below are attributed to their original 
 Applio is a web application (no download required) that combines a resume builder with AI career tools. The core promise: create a resume that is both recruiter-ready and ATS-friendly, then adapt it quickly to each job you apply to. Applio positions itself as an "AI career copilot" rather than only a resume builder.
 
 ## Features
-- Resume builder: 16 professional, fully customizable templates (fonts, colors, spacing, sections). Styles include Harvard, Stanford, Jake's Resume, modern, minimal, consulting, executive, professional, classic, elegant, FAANG, tech, creative, slate, onyx, and compact.
+- Resume builder: 18 professional, fully customizable templates (fonts, colors, spacing, sections). Styles include Harvard, Stanford, Jake's Resume, modern, minimal, consulting, executive, professional, classic, elegant, FAANG, tech, creative, slate, onyx, and compact.
 - AI Tailoring: paste a job description and Applio rewrites bullets and the summary to match the role, grounded only in the user's real experience. It does not invent employers, titles, metrics, or credentials.
 - ATS Score: scores a resume against a job description (or general best practices) and lists concrete fixes, matched keywords, and missing keywords.
 - AI Resume Analysis: strengths, weaknesses, and the highest-impact changes, with example rewrites.
@@ -22,7 +22,7 @@ Applio is a web application (no download required) that combines a resume builde
 - Free ATS Resume Checker: https://appliohq.com/ats-checker — paste a resume and a job description for an instant ATS score, matched and missing keywords, and concrete fixes. Runs in the browser.
 
 ## Pricing
-- Free forever: full resume builder, all 16 templates, job tracker, AI Interview Prep, and 10 PDF downloads per month. No credit card required.
+- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, and 10 PDF downloads per month. No credit card required.
 - Premium, $9.99/month: everything in Free plus unlimited downloads and all AI features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Career Coach).
 - Lifetime, $39.99 one-time: all Premium features, paid once.
 

@@ -5,7 +5,7 @@
 ## What Applio does
 
 Get the job:
-- Resume builder: 16 professional, fully customizable templates (fonts, colors, spacing, section order), including Harvard, Stanford, and Jake's Resume styles. Import an existing PDF/DOCX and Applio parses it into editable sections. Live preview matches the exported PDF exactly.
+- Resume builder: 18 professional, fully customizable templates (fonts, colors, spacing, section order), including Harvard, Stanford, and Jake's Resume styles. Import an existing PDF/DOCX and Applio parses it into editable sections. Live preview matches the exported PDF exactly.
 - AI Tailoring: paste any job description and Applio rewrites your bullets and summary to match the role — grounded only in your real experience.
 - ATS Score: scores your resume against a job description and lists concrete fixes and missing keywords.
 - AI Resume Analysis: strengths, weaknesses, and the highest-impact changes.
@@ -26,7 +26,7 @@ Ramp, grow, and get paid (the career copilot):
 - Free ATS Resume Checker (https://appliohq.com/ats-checker): paste a resume and job description for an instant ATS score, matched and missing keywords, and concrete fixes.
 
 ## Pricing
-- Free forever: full resume builder, all 16 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads — no credit card required.
+- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads — no credit card required.
 - Premium ($9.99/month): everything in Free plus unlimited downloads and all AI writing features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Application Autopilot, Cover Letters, Career Coach).
 - Lifetime ($39.99 one-time): all Premium features, paid once and used forever.
 

@@ -93,7 +93,10 @@ function customizeStyleAttr(customize, marginsKey) {
   const margin = MARGIN_MULT[marginsKey] ?? MARGIN_MULT[c.margins] ?? 1.0;
   const scale = SCALE_MULT[c.textSize] ?? 1.0;
   const line  = LINE_MULT[c.lineHeight] ?? 1.4;
-  const parts = [`--app-space:${space}`, `--app-margin:${margin}`, `--app-scale:${scale}`, `--app-line:${line}`, `line-height:${line}`];
+  // Full-height sidebar/panel templates fill the page via min-height; keep it just
+  // under the sheet height so it never spills into a phantom second page.
+  const pageH = c.paperSize === 'A4' ? 1115 : 1048;
+  const parts = [`--app-space:${space}`, `--app-margin:${margin}`, `--app-scale:${scale}`, `--app-line:${line}`, `--app-page-h:${pageH}px`, `line-height:${line}`];
   // Drive the base text size off a CSS var so "Fit to one page" (which reads
   // --app-scale) and the size control compose cleanly.
   if (scale !== 1) parts.push(`font-size:calc(16px * ${scale})`);
@@ -373,7 +376,7 @@ function tCreative(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-creative { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
+      .t-creative { font-family: var(--app-font); color: #1f2937; min-height: var(--app-page-h, 1048px); display: grid; grid-template-columns: 35% 65%; grid-template-rows: 1fr; }
       .t-creative .sidebar { background: ${c}; color: #fff; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
       .t-creative .name { font-size: 180%; font-weight: 700; line-height: 1.1; margin-bottom: 5%; }
       .t-creative .sidebar h3 { font-size: 90%; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; margin: calc(6% * var(--app-space, 1)) 0 2%; opacity: .9; }
@@ -434,7 +437,7 @@ function tProfessional(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-professional { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 32% 68%; grid-template-rows: 1fr; }
+      .t-professional { font-family: var(--app-font); color: #1f2937; min-height: var(--app-page-h, 1048px); display: grid; grid-template-columns: 32% 68%; grid-template-rows: 1fr; }
       .t-professional .sidebar { background: ${c}; color: #fff; padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); }
       .t-professional .name { font-size: 160%; font-weight: 700; line-height: 1.15; margin-bottom: 4%; }
       .t-professional .sidebar h3 { font-size: 85%; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; margin: calc(5% * var(--app-space, 1)) 0 2%; padding-bottom: 1%; border-bottom: 1px solid rgba(255,255,255,.3); }
@@ -473,7 +476,7 @@ function tExecutive(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); min-height: 1048px; border: 4px double ${c}; box-sizing: border-box; }
+      .t-executive { font-family: var(--app-font); color: #1a1a1a; background: #faf7f2; padding: calc(6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); min-height: var(--app-page-h, 1048px); border: 4px double ${c}; box-sizing: border-box; }
       .t-executive .name { font-size: 240%; font-weight: 600; color: ${c}; text-align: center; letter-spacing: .02em; margin-bottom: 1%; }
       .t-executive .subtitle { text-align: center; font-size: 80%; letter-spacing: .25em; text-transform: var(--app-upper, uppercase); color: #6b5a4a; margin-bottom: 4%; padding-bottom: 4%; border-bottom: 1px solid ${c}66; }
       .t-executive .contact { text-align: center; font-size: 82%; margin-bottom: 4%; font-style: italic; }
@@ -738,7 +741,7 @@ function tIvory(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-ivory { font-family: var(--app-font); color: #1f2937; min-height: 1048px; display: grid; grid-template-columns: 33% 67%; grid-template-rows: 1fr; }
+      .t-ivory { font-family: var(--app-font); color: #1f2937; min-height: var(--app-page-h, 1048px); display: grid; grid-template-columns: 33% 67%; grid-template-rows: 1fr; }
       .t-ivory .sidebar { background: #f1f3f5; padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); border-right: 1px solid #e3e6ea; }
       .t-ivory .name { font-size: 168%; font-weight: 800; line-height: 1.1; letter-spacing: -.01em; color: #111827; margin-bottom: 1.5%; }
       .t-ivory .role { font-size: 82%; font-weight: 600; color: ${c}; margin-bottom: 5%; }

@@ -80,6 +80,7 @@ export default {
       if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
+      if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {

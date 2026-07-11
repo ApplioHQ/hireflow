@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(git *)",
       "Bash(gh *)",
@@ -37,7 +36,10 @@
       "Glob",
       "WebSearch",
       "WebFetch(domain:appliohq.com)",
-      "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)"
-    ]
+      "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)",
+      "WebFetch(domain:substack.com)",
+      "WebFetch(domain:appliohq.substack.com)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

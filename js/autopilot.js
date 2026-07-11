@@ -208,7 +208,7 @@
       + '<a class="btn btn-primary btn-sm" href="pricing" style="white-space:nowrap;">Unlock the full packet</a></div>';
   }
   function lockedCard(title, desc) {
-    return '<div class="ap-card ap-locked"><h2>' + esc(title) + ' <span class="ap-lock">🔒 Premium</span></h2>'
+    return '<div class="ap-card ap-locked"><h2>' + esc(title) + ' <span class="ap-lock"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Premium</span></h2>'
       + '<div class="ap-card-sub">' + esc(desc) + '</div>'
       + '<div class="ap-locked-preview"><div class="ap-blur">Senior product designer with 7+ years shipping user-loved products at scale, specializing in design systems and growth. Led a redesign that lifted activation 30% and cut support tickets 22%…</div></div>'
       + '<a class="btn btn-primary btn-sm" href="pricing">Unlock with Premium</a></div>';

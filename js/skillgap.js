@@ -120,8 +120,8 @@
     }).join('');
     pick.style.display = '';
   }
-  document.getElementById('sg-job').addEventListener('change', function () {
-    var j = trackedJobs[+this.value]; if (!j) return;
+  function selectJob(j) {
+    if (!j) return;
     var hint = document.getElementById('sg-jobpick-hint');
     if (j.title) document.getElementById('sg-role').value = j.title;
     if (j.jd && j.jd.trim()) {
@@ -133,7 +133,23 @@
       if (hint) hint.textContent = 'No posting saved for this job — analyzing by role. Add the job description in the tracker for a posting-specific check.';
       analyze(false);
     }
-  });
+  }
+  document.getElementById('sg-job').addEventListener('change', function () { selectJob(trackedJobs[+this.value]); });
+
+  // Deep link from a Job Tracker card: /skill-gap?job=<id> auto-selects & analyzes it.
+  var _deepJobId = (function () { try { return new URLSearchParams(location.search).get('job'); } catch (e) { return null; } })();
+  var _deepDone = false;
+  function maybeDeepLink() {
+    if (_deepDone || !_deepJobId) return;
+    for (var i = 0; i < trackedJobs.length; i++) {
+      if (String(trackedJobs[i].id) === String(_deepJobId)) {
+        _deepDone = true;
+        var sel = document.getElementById('sg-job'); if (sel) sel.value = String(i);
+        selectJob(trackedJobs[i]);
+        return;
+      }
+    }
+  }
   function loadTrackedJobs() {
     var local = readJSON('hf_jobs', []);
     populateJobs(Array.isArray(local) ? local : []);

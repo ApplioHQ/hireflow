@@ -265,7 +265,8 @@ function render(){
           <select onchange="updateStatus(${j.id}, this.value)" style="padding:5px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
             ${STATUSES.map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
-          <div style="display:flex;gap:4px;">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+            <a class="btn btn-ghost btn-xs" href="skill-gap?job=${j.id}" title="See what this job wants that your résumé is missing">${ICON('target','ico ico-sm')} Skill gap</a>
             <button class="btn btn-ghost btn-xs" onclick="editJob(${j.id})">${ICON('settings','ico ico-sm')} Edit</button>
             <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
           </div>

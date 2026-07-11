@@ -60,6 +60,59 @@
       : days === '365' || days === 365 ? 'Last 12 months' : 'All time';
   }
 
+  // ---- AI polish (non-destructive: caches w.polished, keeps w.text) ----
+  var POLISH_ON = false, polishing = false;
+  function polishRole() { return String(PROFILE.currentRole || PROFILE.targetRole || identity().role || '').slice(0, 120); }
+  function winText(w) { return (POLISH_ON && w.polished) ? w.polished : w.text; }
+  function currentRangeWins() {
+    var days = parseInt(document.getElementById('bd-range').value, 10) || 0;
+    return grouped(days).groups.reduce(function (a, g) { return a.concat(g.items); }, []);
+  }
+  function pushProfile() {
+    PROFILE.updatedAt = Date.now();
+    try { localStorage.setItem('hf_profile', JSON.stringify(PROFILE)); } catch (e) {}
+    if (API) fetch(API + '/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ profile: PROFILE }) }).catch(function () {});
+  }
+  function polishOne(w) {
+    if (w.polished) return Promise.resolve();
+    return fetch(API + '/ai/win', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify({ text: w.text, context: { role: polishRole() } }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.text && d.text.trim()) w.polished = String(d.text).slice(0, 240); })
+      .catch(function () {});
+  }
+  // Run tasks with a small concurrency cap so we don't hammer the AI rate limit.
+  function runLimited(items, worker, limit, onEach) {
+    return new Promise(function (resolve) {
+      var i = 0, active = 0, done = 0, n = items.length;
+      if (!n) return resolve();
+      (function next() {
+        while (active < limit && i < n) {
+          var it = items[i++]; active++;
+          Promise.resolve(worker(it)).then(function () { active--; done++; if (onEach) onEach(done, n); if (done === n) resolve(); else next(); });
+        }
+      })();
+    });
+  }
+  function updatePolishBtn(total) {
+    var b = document.getElementById('bd-polish'); if (!b) return;
+    if (polishing) { b.disabled = true; b.classList.remove('on'); b.textContent = 'Polishing… 0/' + total; }
+    else { b.disabled = false; b.classList.toggle('on', POLISH_ON); b.textContent = POLISH_ON ? '✓ Polished — show originals' : 'Polish into résumé bullets'; }
+  }
+  function togglePolish() {
+    if (polishing) return;
+    if (POLISH_ON) { POLISH_ON = false; updatePolishBtn(); render(); return; }
+    if (!API) { if (window.toast) toast('AI is unavailable right now — try again shortly.', { type: 'error' }); return; }
+    var pending = currentRangeWins().filter(function (w) { return !w.polished; });
+    POLISH_ON = true;
+    if (!pending.length) { updatePolishBtn(); render(); return; }
+    polishing = true; updatePolishBtn(pending.length);
+    runLimited(pending, polishOne, 4, function (done, n) { var b = document.getElementById('bd-polish'); if (b && polishing) b.textContent = 'Polishing… ' + done + '/' + n; })
+      .then(function () {
+        polishing = false; pushProfile(); updatePolishBtn(); render();
+        if (window.toast) toast('Polished into résumé bullets — your original notes are kept.', { type: 'success' });
+      });
+  }
+
   function render() {
     var days = parseInt(document.getElementById('bd-range').value, 10) || 0;
     var g = grouped(days);
@@ -80,13 +133,13 @@
     }
     var body = g.groups.map(function (grp) {
       return '<div class="bd-group"><h2>' + esc(grp.label) + '</h2><ul>'
-        + grp.items.map(function (w) { return '<li>' + esc(w.text) + '</li>'; }).join('')
+        + grp.items.map(function (w) { return '<li>' + esc(winText(w)) + '</li>'; }).join('')
         + '</ul></div>';
     }).join('');
     out.innerHTML = '<div class="bd-sheet" id="bd-sheet">'
       + '<h1>' + esc(id.name) + '</h1>'
       + (id.role ? '<div class="bd-role">' + esc(id.role) + '</div>' : '')
-      + '<div class="bd-range-label">Accomplishments · ' + esc(rangeLabel(days)) + '</div>'
+      + '<div class="bd-range-label">Accomplishments · ' + esc(rangeLabel(days)) + (POLISH_ON ? ' · résumé-ready' : '') + '</div>'
       + '<div class="bd-rule"></div>'
       + body
       + '<div class="bd-foot">Compiled with Applio · appliohq.com</div>'
@@ -102,7 +155,7 @@
     lines.push('');
     g.groups.forEach(function (grp) {
       lines.push(grp.label.toUpperCase());
-      grp.items.forEach(function (w) { lines.push('• ' + w.text); });
+      grp.items.forEach(function (w) { lines.push('• ' + winText(w)); });
       lines.push('');
     });
     return lines.join('\n').trim();
@@ -110,6 +163,7 @@
 
   function wire() {
     document.getElementById('bd-range').addEventListener('change', render);
+    document.getElementById('bd-polish').addEventListener('click', togglePolish);
     document.getElementById('bd-print').addEventListener('click', function () { window.print(); });
     document.getElementById('bd-copy').addEventListener('click', function () {
       var txt = plainText();

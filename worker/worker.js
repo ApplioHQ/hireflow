@@ -968,7 +968,7 @@ async function sendWinNudgeEmail(env, email, winCount) {
   const SUBJECTS = [
     "What did you get done this week?",
     "Don't let this week's wins slip away",
-    "2 minutes now saves you hours at résumé time",
+    "2 minutes now saves you hours at resume time",
     "Quick — what went well this week?",
   ];
   const subject = SUBJECTS[Math.floor(Date.now() / (7 * 86400000)) % SUBJECTS.length];
@@ -979,7 +979,7 @@ async function sendWinNudgeEmail(env, email, winCount) {
 
     <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">Before the week gets away from you&nbsp;— what went well?</p>
 
-    <p style="margin:0 0 16px;color:#3a4150;">When it's finally time to update your résumé or ask for a raise, hardly anyone can remember what they actually did months ago. The fix is almost embarrassingly simple: <strong>jot down one win a week, while it's fresh.</strong></p>
+    <p style="margin:0 0 16px;color:#3a4150;">When it's finally time to update your resume or ask for a raise, hardly anyone can remember what they actually did months ago. The fix is almost embarrassingly simple: <strong>jot down one win a week, while it's fresh.</strong></p>
 
     <p style="margin:0 0 10px;color:#3a4150;">Think back on this week — did you&hellip;</p>
     <ul style="margin:0 0 22px;padding-left:22px;color:#3a4150;">
@@ -992,7 +992,7 @@ async function sendWinNudgeEmail(env, email, winCount) {
 
     <p style="margin:0 0 28px;"><a href="${dash}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Log this week's win &rarr;</a></p>
 
-    <p style="margin:0 0 4px;color:#3a4150;">Here's the payoff: every win you log becomes a ready-to-use résumé bullet and hard proof for your next review, promotion case, or raise — and it all compiles into a <a href="${brag}" style="color:#4f46e5;">one-page brag doc</a> the moment you need it. Miss the week and the memory's usually gone for good.</p>
+    <p style="margin:0 0 4px;color:#3a4150;">Here's the payoff: every win you log becomes a ready-to-use resume bullet and hard proof for your next review, promotion case, or raise — and it all compiles into a <a href="${brag}" style="color:#4f46e5;">one-page brag doc</a> the moment you need it. Miss the week and the memory's usually gone for good.</p>
 
     <p style="margin:24px 0 0;color:#3a4150;">See you next week,<br>The Applio team</p>
 

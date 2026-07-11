@@ -266,7 +266,7 @@ function render(){
             ${STATUSES.map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
           <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
-            <a class="btn btn-ghost btn-xs" href="skill-gap?job=${j.id}" title="See what this job wants that your résumé is missing">${ICON('target','ico ico-sm')} Skill gap</a>
+            <a class="btn btn-ghost btn-xs" href="skill-gap?job=${j.id}" title="See what this job wants that your resume is missing">${ICON('target','ico ico-sm')} Skill gap</a>
             <button class="btn btn-ghost btn-xs" onclick="editJob(${j.id})">${ICON('settings','ico ico-sm')} Edit</button>
             <button class="btn btn-ghost btn-xs" onclick="removeJob(${j.id})">${ICON('trash','ico ico-sm')} Remove</button>
           </div>

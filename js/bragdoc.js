@@ -96,7 +96,7 @@
   function updatePolishBtn(total) {
     var b = document.getElementById('bd-polish'); if (!b) return;
     if (polishing) { b.disabled = true; b.classList.remove('on'); b.textContent = 'Polishing… 0/' + total; }
-    else { b.disabled = false; b.classList.toggle('on', POLISH_ON); b.textContent = POLISH_ON ? '✓ Polished — show originals' : 'Polish into résumé bullets'; }
+    else { b.disabled = false; b.classList.toggle('on', POLISH_ON); b.textContent = POLISH_ON ? '✓ Polished — show originals' : 'Polish into resume bullets'; }
   }
   function togglePolish() {
     if (polishing) return;
@@ -109,7 +109,7 @@
     runLimited(pending, polishOne, 4, function (done, n) { var b = document.getElementById('bd-polish'); if (b && polishing) b.textContent = 'Polishing… ' + done + '/' + n; })
       .then(function () {
         polishing = false; pushProfile(); updatePolishBtn(); render();
-        if (window.toast) toast('Polished into résumé bullets — your original notes are kept.', { type: 'success' });
+        if (window.toast) toast('Polished into resume bullets — your original notes are kept.', { type: 'success' });
       });
   }
 
@@ -140,7 +140,7 @@
       + '<div class="bd-head"><div><h1>' + esc(id.name) + '</h1>'
       + (id.role ? '<div class="bd-role">' + esc(id.role) + '</div>' : '') + '</div>'
       + '<div class="bd-head-meta"><div class="bd-head-count">' + g.count + '</div><div class="bd-head-count-l">win' + (g.count === 1 ? '' : 's') + '</div></div></div>'
-      + '<div class="bd-range-label">Accomplishments · ' + esc(rangeLabel(days)) + (POLISH_ON ? ' · résumé-ready' : '') + '</div>'
+      + '<div class="bd-range-label">Accomplishments · ' + esc(rangeLabel(days)) + (POLISH_ON ? ' · resume-ready' : '') + '</div>'
       + '<div class="bd-rule"></div>'
       + body
       + '<div class="bd-foot">Compiled with Applio · appliohq.com</div>'

@@ -28,11 +28,11 @@
   function refreshResumeNote() {
     var r = readResume();
     if (!r || !Object.keys(r).length) {
-      els.resumeNote.innerHTML = '⚠ No résumé found. <a href="editor">Build or import your résumé</a> first — Autopilot tailors it to the job.';
+      els.resumeNote.innerHTML = '⚠ No resume found. <a href="editor">Build or import your resume</a> first — Autopilot tailors it to the job.';
       return false;
     }
     var nm = resumeName(r);
-    els.resumeNote.innerHTML = '✓ Using your saved résumé' + (nm ? ' (<strong>' + esc(nm) + '</strong>)' : '') + '. <a href="editor">Edit</a>';
+    els.resumeNote.innerHTML = '✓ Using your saved resume' + (nm ? ' (<strong>' + esc(nm) + '</strong>)' : '') + '. <a href="editor">Edit</a>';
     return true;
   }
 
@@ -48,10 +48,10 @@
     var jd = (els.jd.value || '').trim();
     if (jd.length < 40) { if (window.toast) toast('Paste the full job description first', { type: 'warn' }); els.jd.focus(); return; }
     var resume = readResume();
-    if (!resume || !Object.keys(resume).length) { refreshResumeNote(); if (window.toast) toast('Build your résumé first', { type: 'warn' }); return; }
+    if (!resume || !Object.keys(resume).length) { refreshResumeNote(); if (window.toast) toast('Build your resume first', { type: 'warn' }); return; }
 
     // Free users get a real fit check computed client-side (no AI, no cost): the fit
-    // verdict + matched/missing keywords. The tailored résumé + cover letter stay Premium.
+    // verdict + matched/missing keywords. The tailored resume + cover letter stay Premium.
     var admin = (typeof isAdmin === 'function' && isAdmin());
     var paid = (typeof isPaid === 'function' && isPaid());
     if (!paid && !admin) { runFree(jd, resume); els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -111,7 +111,7 @@
     parts.push(verdictCard(d));
     if ((d.missingKeywords && d.missingKeywords.length) || (d.matchedKeywords && d.matchedKeywords.length)) parts.push(keywordsCard(d));
     if (d._free) {
-      parts.push(lockedCard('Tailored résumé', 'Applio rewrites your summary and bullets to match this job — grounded in your real experience.'));
+      parts.push(lockedCard('Tailored resume', 'Applio rewrites your summary and bullets to match this job — grounded in your real experience.'));
       parts.push(lockedCard('Cover letter', 'A ready-to-send cover letter written for this exact role and company.'));
     } else {
       if (d.tailor) parts.push(tailorCard(d.tailor));
@@ -129,7 +129,7 @@
     }
     var fails = d.failed || {};
     if (fails.ats || fails.tailor || fails.cover) {
-      var miss = []; if (fails.ats) miss.push('fit score'); if (fails.tailor) miss.push('résumé tailoring'); if (fails.cover) miss.push('cover letter');
+      var miss = []; if (fails.ats) miss.push('fit score'); if (fails.tailor) miss.push('resume tailoring'); if (fails.cover) miss.push('cover letter');
       var note = document.createElement('div'); note.className = 'ap-fail';
       note.textContent = '⚠ The ' + miss.join(' and ') + ' couldn\'t be generated this time — try running again.';
       els.results.insertBefore(note, els.results.firstChild);
@@ -175,7 +175,7 @@
     if (t.summary) {
       body += '<div style="font-weight:700;font-size:13px;margin-bottom:6px;">Tailored summary</div>'
         + '<div class="ap-diff"><div class="ap-diff-after" id="ap-new-summary">' + esc(t.summary) + '</div></div>'
-        + '<div class="ap-actions" style="margin-bottom:16px;"><button class="btn btn-secondary btn-sm" id="ap-apply-summary">Apply to my résumé</button></div>';
+        + '<div class="ap-actions" style="margin-bottom:16px;"><button class="btn btn-secondary btn-sm" id="ap-apply-summary">Apply to my resume</button></div>';
     }
     if (t.bulletSuggestions && t.bulletSuggestions.length) {
       body += '<div style="font-weight:700;font-size:13px;margin:6px 0 8px;">Bullet rewrites</div>';
@@ -187,7 +187,7 @@
       body += '<div style="font-weight:700;font-size:13px;margin:14px 0 8px;">What to emphasize</div><ul class="ap-list">'
         + t.emphasize.map(function (e) { return '<li><span style="color:var(--accent);">→</span><span>' + esc(e) + '</span></li>'; }).join('') + '</ul>';
     }
-    return '<div class="ap-card"><h2>Tailored résumé</h2><div class="ap-card-sub">Grounded only in your real experience — nothing invented.</div>' + body + '</div>';
+    return '<div class="ap-card"><h2>Tailored resume</h2><div class="ap-card-sub">Grounded only in your real experience — nothing invented.</div>' + body + '</div>';
   }
 
   function coverCard(text) {
@@ -204,7 +204,7 @@
   }
 
   function freeBanner() {
-    return '<div class="ap-banner"><div class="ap-banner-txt"><strong>Your free fit check.</strong> Upgrade to Premium and Autopilot writes the tailored résumé and cover letter for you.</div>'
+    return '<div class="ap-banner"><div class="ap-banner-txt"><strong>Your free fit check.</strong> Upgrade to Premium and Autopilot writes the tailored resume and cover letter for you.</div>'
       + '<a class="btn btn-primary btn-sm" href="pricing" style="white-space:nowrap;">Unlock the full packet</a></div>';
   }
   function lockedCard(title, desc) {
@@ -215,7 +215,7 @@
   }
   function renderUpgrade() {
     els.results.innerHTML = '<div class="ap-card ap-upgrade"><h3>Application Autopilot is a Premium feature</h3>'
-      + '<p>Upgrade to run the full one-shot flow: fit verdict, tailored résumé, and a cover letter for every job.</p>'
+      + '<p>Upgrade to run the full one-shot flow: fit verdict, tailored resume, and a cover letter for every job.</p>'
       + '<a class="btn btn-primary" href="pricing">See plans</a></div>';
     els.results.classList.add('show');
   }
@@ -229,7 +229,7 @@
       r.personal = r.personal || {}; r.personal.summary = el.textContent; r.updatedAt = Date.now();
       try { localStorage.setItem('hf_resume', JSON.stringify(r)); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
       applyBtn.textContent = '✓ Applied'; applyBtn.disabled = true;
-      if (window.toast) toast('Summary applied to your résumé', { type: 'success' });
+      if (window.toast) toast('Summary applied to your resume', { type: 'success' });
     });
 
     var copyBtn = document.getElementById('ap-copy-cover');

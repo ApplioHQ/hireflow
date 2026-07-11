@@ -1823,13 +1823,13 @@ function navRow(prev, next) {
 
 // ============ Preview (uses template renderer) ============
 // ============ Preview: single source of truth ============
-// Both the mini panel and the full-screen overlay render the résumé into an
+// Both the mini panel and the full-screen overlay render the resume into an
 // iframe at TRUE page width (816px = US-Letter at 96dpi), the exact document
 // the PDF prints, and scale it with CSS transform. This guarantees the preview
 // is pixel-identical to the export, instead of the old lossy font-size scaling.
 const PAGE_PX = 1056; // one US-Letter page at 96dpi, full scale
 
-// Render the résumé into `frame`, wait for web fonts to load (so measurements
+// Render the resume into `frame`, wait for web fonts to load (so measurements
 // aren't taken against the fallback font), then hand back the live document.
 // `cb` may run more than once (initial + after fonts settle) and must be idempotent.
 function _mountResume(frame, mini, cb) {
@@ -1978,7 +1978,7 @@ function _scaleMini(wrap, sizer, frame, doc) {
     wrap.style.height = '70vh';
     wrap.style.overflow = 'auto';
   } else {
-    // Fit width: panel grows to the full résumé, no scrollbars.
+    // Fit width: panel grows to the full resume, no scrollbars.
     wrap.style.height = Math.round(h * s) + 'px';
     wrap.style.overflow = 'hidden';
   }
@@ -2065,11 +2065,11 @@ const CANVAS_PAD = 40;     // gray canvas margin around the page column (true px
 const CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins
 const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
-// Google-Docs-style pagination: lay the résumé out as discrete white page sheets
+// Google-Docs-style pagination: lay the resume out as discrete white page sheets
 // on a gray canvas. When a block won't fit on the current sheet, a spacer pushes
 // it to the top of the next one (so a page "fills up" and a fresh page begins).
 // Runs inside the preview iframe only, so the export/PDF stays a clean flow.
-// Raise the résumé's real content (every body child except <style> and our own
+// Raise the resume's real content (every body child except <style> and our own
 // sheets) above the painted sheets. Note body.firstElementChild is a <style> tag,
 // so we can't target a single "root" element.
 function _contentEls(body) {
@@ -2101,7 +2101,7 @@ function _paginate(doc) {
   // fonts-ready re-run, when the body was already paginated on entry).
   doc._lastRatio = (body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
 
-  // --- Wrap the résumé (everything except the <style> tag) into a centered 816px
+  // --- Wrap the resume (everything except the <style> tag) into a centered 816px
   // page column, and turn the body into a gray canvas around it. This gives the
   // pages gray margins on all four sides + an all-around shadow, like Google Docs. ---
   const col = doc.createElement('div');
@@ -2410,7 +2410,7 @@ function _buildFullOverlay() {
         '<span class="fp-nav" id="fp-nav"><button id="fp-prev" title="Previous page" aria-label="Previous page">‹</button>' +
         '<span class="fp-pageno" id="fp-pageno">1 page</span>' +
         '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span>' +
-        '<button class="fp-fit1" id="fp-fit1" title="Compress the résumé to fit exactly one page"><span class="dot"></span>Fit to 1 page</button></div>' +
+        '<button class="fp-fit1" id="fp-fit1" title="Compress the resume to fit exactly one page"><span class="dot"></span>Fit to 1 page</button></div>' +
       '<div class="fp-zoom">' +
         '<button class="fp-zbtn" id="fz-out" title="Zoom out (−)" aria-label="Zoom out">−</button>' +
         '<span class="fp-zlabel" id="full-zoom-label" title="Reset to fit (press 0)">100%</span>' +
@@ -2927,7 +2927,7 @@ async function aiTailor() {
     resume.tailor.tailoredSummary = r.text || '';   // legacy fallback text
     const summaryChanged = r.summary && r.summary !== resume.personal.summary;
     if (summaryChanged) {
-      // Tailoring rewrites the summary in place. Snapshot the current résumé first so
+      // Tailoring rewrites the summary in place. Snapshot the current resume first so
       // the user's original summary is always recoverable from version history.
       if ((resume.personal.summary || '').trim()) {
         resume.versions = resume.versions || [];
@@ -3503,8 +3503,8 @@ function _closeMobileDrawers() {
 // ============ Boot ============
 // ---- First-signup welcome screen (plays once) ----
 function _maybeShowWelcome() {
-  // Arrived from the free ATS checker with a résumé to import? Skip the generic
-  // welcome and go straight to importing their résumé (handled after first render).
+  // Arrived from the free ATS checker with a resume to import? Skip the generic
+  // welcome and go straight to importing their resume (handled after first render).
   if ((localStorage.getItem('hf_pending_import') || '').trim()) { localStorage.removeItem('hf_welcome'); return; }
   if (localStorage.getItem('hf_welcome') !== '1') return;
   localStorage.removeItem('hf_welcome');
@@ -3542,9 +3542,9 @@ function _welImport() {
   setTimeout(() => { if (typeof openModal === 'function') openModal('import'); }, 180);
 }
 
-// Funnel from the free ATS checker: it stashes the résumé the visitor pasted, so on
+// Funnel from the free ATS checker: it stashes the resume the visitor pasted, so on
 // their first editor load we pre-fill the import box and run the free AI import
-// automatically. They land on a résumé already built from what they pasted, instead
+// automatically. They land on a resume already built from what they pasted, instead
 // of a blank editor, the single highest-intent onboarding path.
 function _maybePendingImport() {
   let pending = '';
@@ -3579,7 +3579,7 @@ async function _hydrateFromCloud() {
       const adopting = HAD_LOCAL_RESUME && cloudTs > localTs;
       resume = cloud;
       localStorage.setItem('hf_resume', JSON.stringify(resume));
-      if (adopting && typeof toast === 'function') toast('Loaded the latest version of your résumé from another device.', { type: 'info', duration: 4000 });
+      if (adopting && typeof toast === 'function') toast('Loaded the latest version of your resume from another device.', { type: 'info', duration: 4000 });
     }
   } catch (_) { /* offline / transient, keep the local copy */ }
 }

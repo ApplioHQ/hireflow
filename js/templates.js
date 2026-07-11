@@ -840,7 +840,7 @@ function writeResumeFrame(frame, bodyHTML, pageWidth) {
   return doc;
 }
 
-// "Fit to one page": if the résumé is only slightly over a page, shrink the base
+// "Fit to one page": if the resume is only slightly over a page, shrink the base
 // font-size and the --app-space spacing multiplier together (both scale content
 // height ~proportionally) until it fits, clamped to a readable floor so it never
 // becomes unreadable. Runs on the SAME rendered doc used by the preview and the
@@ -850,7 +850,7 @@ const FIT_ONE_PAGE_FLOOR = 0.72;   // never shrink text below 72% (~11.5px base 
 const FIT_ONE_PAGE_MARGIN_FLOOR = 0.58;   // margins may go tighter than text; they cost height without hurting legibility
 function fitDocToOnePage(doc, pageH) {
   if (!doc || !doc.body) return false;
-  // The body starts with the shared + template <style> blocks, so the résumé root
+  // The body starts with the shared + template <style> blocks, so the resume root
   // (.t-modern, .t-onyx, …) is the first DIV child, NOT firstElementChild.
   const root = doc.body.querySelector('div[class^="t-"]')
     || Array.from(doc.body.children).find(el => el.tagName === 'DIV');

@@ -1,6 +1,6 @@
-// Client-side ATS résumé checker, pure logic, runs entirely in the browser
+// Client-side ATS resume checker, pure logic, runs entirely in the browser
 // (no network, no auth, no AI). Powers the public ats-checker tool. Scores
-// raw résumé text against a job description: keyword coverage, formatting,
+// raw resume text against a job description: keyword coverage, formatting,
 // quantified impact, and completeness. Node-testable via globalThis.AtsEngine.
 (function (g) {
   const STOP = new Set("a an the and or but for nor of to in on at by with from as is are was were be been being this that these those you your our we they it its their will would can could should may might must do does did have has had not no if then than so into over under more most very who whom which what when where why how about after again all also any because before between both during each few here own same some too up out off down only just via per etc using use used uses including include includes work works working role roles team teams ability strong excellent good great new ideal candidate join help build builds building plus years year experience experienced required preferred responsibilities requirements skills".split(/\s+/));
@@ -77,13 +77,13 @@
     if (quantRatio >= 0.4) wins.push(`${Math.round(quantRatio * 100)}% of your lines include measurable results`);
     if (actionRatio >= 0.5) wins.push(`Most lines start with a strong action verb`);
     if (hasEmail && hasPhone) wins.push(`Contact details are clear and easy for an ATS to read`);
-    if (compScore >= 80) wins.push(`All the core résumé sections are present`);
+    if (compScore >= 80) wins.push(`All the core resume sections are present`);
     if (hasJD && missing.length) issues.push(`Add these terms from the posting where they truly apply: ${missing.slice(0, 8).join(', ')}`);
     if (quantRatio < 0.4) issues.push(`Only ${Math.round(quantRatio * 100)}% of lines include numbers, add metrics like %, $, time saved, or scale`);
     if (actionRatio < 0.5) issues.push(`Start more bullet points with strong action verbs (Led, Built, Improved…)`);
     if (!hasEmail || !hasPhone) issues.push(`Add clear contact info, email and phone, near the top`);
     if (!hasSummary) issues.push(`Add a short professional summary at the top`);
-    if (!lenOk) issues.push(wordCount < 150 ? `Your résumé looks short, add more detail to your experience` : `Your résumé is long, trim to your most relevant, recent experience`);
+    if (!lenOk) issues.push(wordCount < 150 ? `Your resume looks short, add more detail to your experience` : `Your resume is long, trim to your most relevant, recent experience`);
     if (!wins.length) wins.push(`You have a solid base to build on`);
     if (!issues.length) issues.push(`Looking strong, polish the wording and keep it concise`);
 

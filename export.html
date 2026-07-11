@@ -144,7 +144,7 @@ const resume = (function () {
 let _exportFrame = null;
 
 // ===== Google-Docs-style paginated preview =====
-// The preview shows the résumé as discrete white page sheets on a gray canvas.
+// The preview shows the resume as discrete white page sheets on a gray canvas.
 // The SAME iframe is the print/export source, so anything that produces a file
 // (PDF print, HTML, TXT) first re-renders it CLEAN via _renderClean(), so the
 // output never contains the canvas/sheets/page-number chrome.
@@ -272,7 +272,7 @@ function _renderClean() {
   }
   // WYSIWYG: force the PDF to break at the SAME units the preview shows, rather
   // than relying on the browser's native heuristics (which can disagree by a block
-  // near a boundary). Résumé fonts are system fonts, so this fresh doc measures
+  // near a boundary). Resume fonts are system fonts, so this fresh doc measures
   // accurately and synchronously, matching what _expPaginate computed.
   try {
     const pageH = _expPageH();

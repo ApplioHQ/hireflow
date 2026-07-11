@@ -11,7 +11,7 @@ const BASE = 'https://appliohq.com';
 // Per-template SEO copy. name/cat mirror TEMPLATE_DEFS in js/templates.js.
 const T = [
   { id:'harvard', name:'Harvard', cat:'Students', kw:'Harvard resume template',
-    tagline:'The clean, centered, serif format used in the Harvard Business School résumé guide.',
+    tagline:'The clean, centered, serif format used in the Harvard Business School resume guide.',
     bestFor:['Students and new grads','MBA and graduate applications','Consulting and finance internships','Anyone who wants a timeless, no-frills look'],
     why:'A centered name, full-width ruled section headers, and a classic serif typeface make this the most widely recommended academic format. It is deliberately plain so recruiters and ATS parsers focus on your content, not the design.' },
   { id:'stanford', name:'Stanford', cat:'Students', kw:'Stanford resume template',
@@ -49,7 +49,7 @@ const T = [
   { id:'jake', name:"Jake's Resume", cat:'Technology', kw:"Jake's resume template",
     tagline:'The single-page engineering favorite: centered name, pipe-separated contact, ruled sections.',
     bestFor:['Software engineers and CS students','New-grad and internship applications','Anyone who wants the popular LaTeX look without LaTeX'],
-    why:'Inspired by the widely shared engineering résumé, it packs experience, projects, and skills into one clean, ATS-friendly page.' },
+    why:'Inspired by the widely shared engineering resume, it packs experience, projects, and skills into one clean, ATS-friendly page.' },
   { id:'faang', name:'FAANG', cat:'Technology', kw:'FAANG resume template',
     tagline:'A metrics-first layout built for big-tech hiring bars.',
     bestFor:['Software, data, and ML engineers','Big-tech and high-growth startup roles','Anyone optimizing for impact and scale'],
@@ -72,7 +72,7 @@ const T = [
     why:'High contrast makes your name and headline pop while keeping the body readable.' },
   { id:'compact', name:'Compact', cat:'Creative', kw:'compact resume template',
     tagline:'A dense, efficient layout that fits more on one page.',
-    bestFor:['Experienced candidates with a lot to say','Roles requiring one-page résumés','Anyone consolidating a long history'],
+    bestFor:['Experienced candidates with a lot to say','Roles requiring one-page resumes','Anyone consolidating a long history'],
     why:'Tight spacing fits more experience per page without sacrificing readability.' },
 ];
 
@@ -83,9 +83,9 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 function faqs(t){
   return [
     { q:`Is the ${t.name} resume template free?`,
-      a:`Yes. You can build a résumé with the ${t.name} template completely free in Applio, customize the colors and fonts, and download it. No credit card is required to start.` },
+      a:`Yes. You can build a resume with the ${t.name} template completely free in Applio, customize the colors and fonts, and download it. No credit card is required to start.` },
     { q:`Is the ${t.name} template ATS-friendly?`,
-      a:`Yes. The ${t.name} template uses a clean, single-flow structure with standard section headings, so Applicant Tracking Systems can parse every line. Applio also includes a free ATS checker to score your résumé against any job.` },
+      a:`Yes. The ${t.name} template uses a clean, single-flow structure with standard section headings, so Applicant Tracking Systems can parse every line. Applio also includes a free ATS checker to score your resume against any job.` },
     { q:`Who should use the ${t.name} resume template?`,
       a:`${t.bestFor.slice(0,3).join(', ')}. ${t.why}` },
     { q:`Can I customize the ${t.name} template?`,
@@ -102,7 +102,7 @@ function pageHTML(t){
   // Avoid "Jake's Resume Resume Template" when the name already ends in "Resume"
   const label = /resume$/i.test(t.name) ? `${t.name} Template` : `${t.name} Resume Template`;
   const title = `${label} — Free & ATS-Friendly | Applio`;
-  const desc = `${t.tagline} Build a ${t.name} résumé free with Applio: customize colors and fonts, keep it ATS-friendly, and export to PDF. No sign-up to start.`;
+  const desc = `${t.tagline} Build a ${t.name} resume free with Applio: customize colors and fonts, keep it ATS-friendly, and export to PDF. No sign-up to start.`;
   const fq = faqs(t);
   const rel = related(t);
   const ld = [
@@ -115,7 +115,7 @@ function pageHTML(t){
       {"@type":"Question","name":f.q,"acceptedAnswer":{"@type":"Answer","text":f.a}}))},
     { "@context":"https://schema.org","@type":"WebPage","name":title,"url":url,"description":desc,
       "isPartOf":{"@type":"WebSite","name":"Applio","url":`${BASE}/`},
-      "about":{"@type":"CreativeWork","name":`${t.name} résumé template`} }
+      "about":{"@type":"CreativeWork","name":`${t.name} resume template`} }
   ];
   return `<!DOCTYPE html>
 <html lang="en">
@@ -206,7 +206,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   <section class="tp-section tp-body">
     <h2>Why the ${esc(t.name)} template works</h2>
     <p>${esc(t.why)}</p>
-    <p>Every Applio template is built to pass Applicant Tracking Systems: standard section headings, a clean single flow, and real selectable text (never an image), so recruiters' software reads every line. Around 70% of résumés are filtered out before a human sees them, so a parseable layout like this one matters as much as what you write.</p>
+    <p>Every Applio template is built to pass Applicant Tracking Systems: standard section headings, a clean single flow, and real selectable text (never an image), so recruiters' software reads every line. Around 70% of resumes are filtered out before a human sees them, so a parseable layout like this one matters as much as what you write.</p>
   </section>
 
   <section class="tp-section tp-faq">
@@ -222,7 +222,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   </section>
 
   <section class="tp-final">
-    <h2>Build your ${esc(t.name)} résumé free</h2>
+    <h2>Build your ${esc(t.name)} resume free</h2>
     <p>Pick the ${esc(t.name)} template, add your experience, and let Applio's AI tailor it to any job.</p>
     <a class="btn btn-primary" href="/login?mode=signup&tpl=${t.id}">Start free — no credit card</a>
   </section>
@@ -255,8 +255,8 @@ function hubHTML(){
       {"@type":"ListItem","position":2,"name":"Resume Templates","item":url}
     ]},
     { "@context":"https://schema.org","@type":"CollectionPage","name":"Free Resume Templates","url":url,
-      "description":"16 free, ATS-friendly résumé templates you can customize and download.",
-      "hasPart": T.map(t=>({"@type":"CreativeWork","name":`${t.name} résumé template`,"url":`${BASE}/resume-templates/${t.id}`})) }
+      "description":"16 free, ATS-friendly resume templates you can customize and download.",
+      "hasPart": T.map(t=>({"@type":"CreativeWork","name":`${t.name} resume template`,"url":`${BASE}/resume-templates/${t.id}`})) }
   ];
   return `<!DOCTYPE html>
 <html lang="en">
@@ -264,7 +264,7 @@ function hubHTML(){
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>16 Free ATS-Friendly Resume Templates | Applio</title>
-<meta name="description" content="Browse 16 free, ATS-friendly résumé templates — Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
+<meta name="description" content="Browse 16 free, ATS-friendly resume templates — Harvard, Stanford, Jake's Resume, FAANG, Consulting and more. Customize colors and fonts and export to PDF, no sign-up to start.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
@@ -308,7 +308,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
 <main class="th-wrap">
   <div class="th-head">
     <h1>Free Resume Templates</h1>
-    <p>16 professional, ATS-friendly résumé templates. Pick one, customize the colors and fonts, and export to PDF — free, no sign-up to start.</p>
+    <p>16 professional, ATS-friendly resume templates. Pick one, customize the colors and fonts, and export to PDF — free, no sign-up to start.</p>
   </div>
   ${cats.map(c=>`
   <div class="th-cat">${c}</div>

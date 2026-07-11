@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Free ATS Resume Checker, Scan Your Resume Against Any Job | Applio</title>
-<meta name="description" content="Free ATS resume checker. Paste your résumé and a job description to get an instant ATS score, matched and missing keywords, and specific fixes. No sign-up, runs right in your browser.">
+<meta name="description" content="Free ATS resume checker. Paste your resume and a job description to get an instant ATS score, matched and missing keywords, and specific fixes. No sign-up, runs right in your browser.">
 <link rel="canonical" href="https://appliohq.com/ats-checker">
 <meta property="og:title" content="Free ATS Resume Checker | Applio">
-<meta property="og:description" content="Get an instant ATS score for your résumé against any job description, matched & missing keywords plus concrete fixes. Free, no sign-up.">
+<meta property="og:description" content="Get an instant ATS score for your resume against any job description, matched & missing keywords plus concrete fixes. Free, no sign-up.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://appliohq.com/ats-checker">
 <meta property="og:image" content="https://appliohq.com/logo.jpeg">
@@ -24,7 +24,7 @@
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "url": "https://appliohq.com/ats-checker",
-  "description": "A free tool that scores your résumé against a job description like an Applicant Tracking System, showing matched and missing keywords and specific improvements.",
+  "description": "A free tool that scores your resume against a job description like an Applicant Tracking System, showing matched and missing keywords and specific improvements.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
 }
 </script>
@@ -33,10 +33,10 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "What is an ATS resume checker?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS (Applicant Tracking System) resume checker scores your résumé the way the software recruiters use does, by matching keywords from the job description, checking that your résumé is structured and parseable, and rewarding quantified, action-driven bullet points. Applio's checker gives you a 0–100 score plus the exact keywords you're missing." } },
-    { "@type": "Question", "name": "Is the ATS checker free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The ATS checker is completely free and requires no sign-up. It runs entirely in your browser, so your résumé text never leaves your device." } },
+    { "@type": "Question", "name": "What is an ATS resume checker?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS (Applicant Tracking System) resume checker scores your resume the way the software recruiters use does, by matching keywords from the job description, checking that your resume is structured and parseable, and rewarding quantified, action-driven bullet points. Applio's checker gives you a 0–100 score plus the exact keywords you're missing." } },
+    { "@type": "Question", "name": "Is the ATS checker free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The ATS checker is completely free and requires no sign-up. It runs entirely in your browser, so your resume text never leaves your device." } },
     { "@type": "Question", "name": "How do I make my resume ATS-friendly?", "acceptedAnswer": { "@type": "Answer", "text": "Mirror the keywords in the job description, use standard section headings (Experience, Education, Skills), start bullet points with action verbs, quantify your impact with numbers, and keep formatting simple. Applio's checker shows you exactly which of these you're missing." } },
-    { "@type": "Question", "name": "Why do resumes get filtered out by ATS?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS ranks and organizes applications rather than auto-rejecting them, but résumés that miss the keywords a role asks for, use formatting the software can't parse, or list vague duties instead of measurable results rank lower and are less likely to be reviewed. The checker flags each of these." } }
+    { "@type": "Question", "name": "Why do resumes get filtered out by ATS?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS ranks and organizes applications rather than auto-rejecting them, but resumes that miss the keywords a role asks for, use formatting the software can't parse, or list vague duties instead of measurable results rank lower and are less likely to be reviewed. The checker flags each of these." } }
   ]
 }
 </script>
@@ -79,47 +79,47 @@
 <main class="ac-wrap">
   <div class="ac-hero">
     <h1>Free ATS Resume Checker</h1>
-    <p>Upload or paste your résumé and a job description to see your ATS score, the keywords you're matching and missing, and exactly what to fix. No sign-up, it runs right in your browser.</p>
+    <p>Upload or paste your resume and a job description to see your ATS score, the keywords you're matching and missing, and exactly what to fix. No sign-up, it runs right in your browser.</p>
   </div>
 
   <div class="section-card">
     <div class="ac-grid">
       <div class="ac-field">
-        <label for="ac-resume">Your résumé <span class="hint">(upload a file or paste the text)</span></label>
+        <label for="ac-resume">Your resume <span class="hint">(upload a file or paste the text)</span></label>
         <div class="rf-upload" id="ac-drop" style="margin-bottom:10px;">
           <div class="rf-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
           <div class="rf-upload-txt"><strong>Upload PDF, DOCX, or TXT</strong> or <button type="button" class="rf-pick">browse</button><br><span>Drag &amp; drop, it stays in your browser</span></div>
-          <input type="file" id="ac-file" aria-label="Upload your résumé file" accept=".pdf,.docx,.txt,.md,application/pdf,text/plain" style="display:none;">
+          <input type="file" id="ac-file" aria-label="Upload your resume file" accept=".pdf,.docx,.txt,.md,application/pdf,text/plain" style="display:none;">
         </div>
         <div id="ac-drop-status" class="rf-status" style="margin:-4px 0 8px;"></div>
-        <textarea id="ac-resume" class="ac-ta" placeholder="…or paste your résumé text here"></textarea>
+        <textarea id="ac-resume" class="ac-ta" placeholder="…or paste your resume text here"></textarea>
       </div>
       <div class="ac-field">
         <label for="ac-jd">Job description <span class="hint">(optional, for keyword matching)</span></label>
         <textarea id="ac-jd" class="ac-ta" placeholder="Paste the job posting here for a targeted score…"></textarea>
       </div>
     </div>
-    <button class="btn btn-primary btn-block" id="ac-run" style="margin-top:14px;">Check my résumé →</button>
-    <p id="ac-priv" style="text-align:center; color:var(--muted); font-size:12px; margin-top:10px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.8;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private, your résumé never leaves your browser.</p>
+    <button class="btn btn-primary btn-block" id="ac-run" style="margin-top:14px;">Check my resume →</button>
+    <p id="ac-priv" style="text-align:center; color:var(--muted); font-size:12px; margin-top:10px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.8;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private, your resume never leaves your browser.</p>
   </div>
 
   <div id="ac-results" style="margin-top:18px;"></div>
 
   <!-- Indexable content for SEO + AI engines -->
   <section class="ac-seo">
-    <h2>What is an ATS, and why does your résumé score matter?</h2>
-    <p>An <strong>Applicant Tracking System (ATS)</strong> is the software most mid-size and large companies use to collect, parse, and rank résumés before a recruiter reads them. It doesn't automatically reject you, most applications are still reviewed by a person, but a résumé that <strong>doesn't match the job's keywords, isn't structured in a way the software can parse, or lists duties instead of measurable results</strong> ranks lower and is far less likely to be seen.</p>
-    <p>This free checker scores your résumé the way an ATS would, across four dimensions:</p>
+    <h2>What is an ATS, and why does your resume score matter?</h2>
+    <p>An <strong>Applicant Tracking System (ATS)</strong> is the software most mid-size and large companies use to collect, parse, and rank resumes before a recruiter reads them. It doesn't automatically reject you, most applications are still reviewed by a person, but a resume that <strong>doesn't match the job's keywords, isn't structured in a way the software can parse, or lists duties instead of measurable results</strong> ranks lower and is far less likely to be seen.</p>
+    <p>This free checker scores your resume the way an ATS would, across four dimensions:</p>
     <h3>1. Keyword match</h3>
-    <p>The single biggest factor. The tool extracts the important skills and terms from the job description and checks which ones appear in your résumé, then lists the exact keywords you're missing so you can add the ones that genuinely apply to you.</p>
+    <p>The single biggest factor. The tool extracts the important skills and terms from the job description and checks which ones appear in your resume, then lists the exact keywords you're missing so you can add the ones that genuinely apply to you.</p>
     <h3>2. Formatting &amp; parseability</h3>
-    <p>ATS software needs clear contact details, standard section headings, and simple bullet points. The checker verifies your résumé is easy for the software to read.</p>
+    <p>ATS software needs clear contact details, standard section headings, and simple bullet points. The checker verifies your resume is easy for the software to read.</p>
     <h3>3. Quantified impact</h3>
-    <p>Strong résumés lead with action verbs and back up claims with numbers (percentages, dollars, time saved, scale). The checker measures how many of your bullet points include real, measurable results.</p>
+    <p>Strong resumes lead with action verbs and back up claims with numbers (percentages, dollars, time saved, scale). The checker measures how many of your bullet points include real, measurable results.</p>
     <h3>4. Completeness</h3>
-    <p>It confirms your résumé has the core sections recruiters and ATS systems expect: summary, experience, education, and skills.</p>
+    <p>It confirms your resume has the core sections recruiters and ATS systems expect: summary, experience, education, and skills.</p>
 
-    <h2>How to make your résumé ATS-friendly</h2>
+    <h2>How to make your resume ATS-friendly</h2>
     <ul>
       <li>Mirror the language of the job description, use the exact keywords where they truly apply.</li>
       <li>Use standard headings: <em>Experience</em>, <em>Education</em>, <em>Skills</em>.</li>
@@ -128,8 +128,8 @@
       <li>Keep formatting simple, no tables, text boxes, or images in the body.</li>
       <li>Include a clear email and phone number at the top.</li>
     </ul>
-    <p style="margin-top:20px;"><strong>Want Applio to fix all of this for you automatically?</strong> The full résumé builder tailors your bullets to any job, scores your ATS match, and exports a recruiter-ready PDF, free to start.</p>
-    <a href="login?mode=signup" class="btn btn-primary btn-lg" style="margin-top:8px;">Build my résumé free →</a>
+    <p style="margin-top:20px;"><strong>Want Applio to fix all of this for you automatically?</strong> The full resume builder tailors your bullets to any job, scores your ATS match, and exports a recruiter-ready PDF, free to start.</p>
+    <a href="login?mode=signup" class="btn btn-primary btn-lg" style="margin-top:8px;">Build my resume free →</a>
   </section>
 </main>
 
@@ -152,8 +152,8 @@
         : score >= 65
         ? "You're close. Applio can close the last gaps automatically."
         : score >= 45
-        ? "Your résumé has fixable gaps. Applio fixes them for you."
-        : "Your résumé is losing you interviews. Let's fix that.";
+        ? "Your resume has fixable gaps. Applio fixes them for you."
+        : "Your resume is losing you interviews. Let's fix that.";
       var perks = [
         'Auto-rewrites every bullet to the ATS "Strong" bar — with your real numbers',
         'One-click tailoring to any job description, plus a live ATS score as you edit',
@@ -166,8 +166,8 @@
       return '<div style="margin-top:20px;padding:16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-2);">'
         + '<div style="font-weight:800;font-size:15px;margin-bottom:10px;">' + esc(head) + '</div>'
         + '<ul style="list-style:none;padding:0;margin:0 0 14px;">' + list + '</ul>'
-        + '<a href="login?mode=signup" class="btn btn-primary btn-block">Fix my résumé free — it imports what you pasted →</a>'
-        + '<div style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:7px;">Free to start · no credit card · your résumé carries over</div>'
+        + '<a href="login?mode=signup" class="btn btn-primary btn-block">Fix my resume free — it imports what you pasted →</a>'
+        + '<div style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:7px;">Free to start · no credit card · your resume carries over</div>'
         + '</div>';
     }
 
@@ -189,7 +189,7 @@
         + '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">'
         +   '<div style="text-align:center;min-width:120px;"><div class="ac-score-num" data-countup="' + r.score + '" style="color:' + c + ';">' + r.score + '</div><div style="color:var(--muted);font-size:12px;">out of 100</div></div>'
         +   '<div style="flex:1;min-width:200px;"><div style="font-size:18px;font-weight:800;color:' + c + ';">' + verdict(r.score) + '</div>'
-        +   '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + (r.hasJD ? 'Scored against the job description you pasted.' : 'Scored against general résumé best practices. Paste a job description for a targeted keyword match.') + '</div></div>'
+        +   '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + (r.hasJD ? 'Scored against the job description you pasted.' : 'Scored against general resume best practices. Paste a job description for a targeted keyword match.') + '</div></div>'
         + '</div>'
         + '<div class="ac-bars">' + bars + '</div>'
         + (r.hasJD ? ('<div style="margin-top:16px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">Matched keywords</div>' + matched
@@ -220,7 +220,7 @@
       });
     }
 
-    // File upload → fills the résumé textarea with extracted text.
+    // File upload → fills the resume textarea with extracted text.
     if (window.initResumeDrop) {
       window.initResumeDrop({
         zone: document.getElementById('ac-drop'),
@@ -237,15 +237,15 @@
       var resume = document.getElementById('ac-resume').value;
       var jd = document.getElementById('ac-jd').value;
       if (resume.trim().length < 60) {
-        out.innerHTML = '<div class="section-card" style="color:var(--warning,#f59e0b);">Paste a bit more of your résumé to get an accurate score.</div>';
+        out.innerHTML = '<div class="section-card" style="color:var(--warning,#f59e0b);">Paste a bit more of your resume to get an accurate score.</div>';
         return;
       }
       render(window.AtsEngine.score(resume, jd));
     });
 
     // Funnel: before any "build free / fix these automatically" link sends the visitor
-    // to sign-up, stash the résumé (and job description) they pasted so the editor
-    // auto-imports it. They land on a résumé already built, not a blank editor.
+    // to sign-up, stash the resume (and job description) they pasted so the editor
+    // auto-imports it. They land on a resume already built, not a blank editor.
     document.addEventListener('click', function (e) {
       var a = e.target.closest && e.target.closest('a[href*="mode=signup"]');
       if (!a) return;

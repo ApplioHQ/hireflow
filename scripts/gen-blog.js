@@ -248,14 +248,14 @@ function hubHTML(){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Applio Blog, Resume & Career Advice</title>
+<title>Applio Blog | Resume & Career Advice</title>
 <meta name="description" content="Resume tips, interview strategies, and AI-powered guidance for every stage of your career, from the team building Applio.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
 <meta property="og:site_name" content="Applio">
-<meta property="og:title" content="Applio Blog, Resume & Career Advice">
+<meta property="og:title" content="Applio Blog | Resume & Career Advice">
 <meta property="og:description" content="Resume tips, interview strategies, and AI-powered guidance for every stage of your career.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">

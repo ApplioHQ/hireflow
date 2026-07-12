@@ -304,6 +304,7 @@ function _showPremiumGate(){
 }
 
 async function send(){
+  if (IS_ANON) { promptSignup('chat with your AI career coach'); return; }
   if (_isFreeUser()) { _showPremiumGate(); return; }
   const input = document.getElementById('ca-input');
   const text = (input.value || '').trim();

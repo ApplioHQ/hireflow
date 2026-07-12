@@ -217,6 +217,7 @@ function _renderLetter(text){
 }
 
 async function generate(){
+  if (IS_ANON) { promptSignup('generate your tailored cover letter'); return; }
   const company = document.getElementById('cl-company').value.trim();
   const role = document.getElementById('cl-role').value.trim();
   const jd = document.getElementById('cl-jd').value.trim();

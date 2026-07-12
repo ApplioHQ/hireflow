@@ -218,6 +218,7 @@ function _noteTrial(t){
 
 // ── Run the match ──
 async function runMatch(){
+  if (IS_ANON) { promptSignup('run the best-match analysis'); return; }
   const jd = document.getElementById('bm-jd').value.trim();
   if (jd.length < 40) { toast('Paste a fuller job description first (a few lines).', {type:'warn'}); return; }
   // Valid candidates: saved resume, or pasted text with enough content.

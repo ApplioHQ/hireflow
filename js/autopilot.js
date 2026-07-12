@@ -45,6 +45,7 @@
 
   els.run.addEventListener('click', run);
   function run() {
+    if (IS_ANON) { if (window.promptSignup) promptSignup('run Application Autopilot on your resume'); return; }
     var jd = (els.jd.value || '').trim();
     if (jd.length < 40) { if (window.toast) toast('Paste the full job description first', { type: 'warn' }); els.jd.focus(); return; }
     var resume = readResume();

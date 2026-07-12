@@ -179,6 +179,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;",
 function pickRole(btn){ var r = document.getElementById('role'); r.value = btn.textContent; r.focus(); }
 
 async function generate() {
+  if (IS_ANON) { promptSignup('generate your interview questions'); return; }
   const role = document.getElementById('role').value.trim();
   const jd = document.getElementById('jd').value.trim();
   if (!role) return toast('Enter a role first', { type: 'warn' });

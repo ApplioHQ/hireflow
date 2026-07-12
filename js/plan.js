@@ -501,3 +501,40 @@ function closeUpgradeModal() {
   const m = document.getElementById('upgrade-modal-bd');
   if (m) m.remove();
 }
+
+// ---- Anonymous conversion prompt (shared across feature pages) ----
+// Let signed-out visitors explore a feature and fill in their inputs; call this only
+// at the value moment (Generate / Run / Send) so signing up feels earned, not a wall.
+function promptSignup(action) {
+  if (document.getElementById('signup-prompt-bd')) return;
+  const bd = document.createElement('div');
+  bd.id = 'signup-prompt-bd';
+  bd.className = 'modal-backdrop open';
+  bd.innerHTML =
+    '<div class="modal" style="max-width:440px; text-align:center;">' +
+      '<button class="modal-close" onclick="closeSignupPrompt()">×</button>' +
+      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
+      '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Sign up free to ' + (action || 'continue') + ', no credit card, takes 20 seconds.</p>' +
+      '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +
+      '<button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="closeSignupPrompt()">Not now</button>' +
+      '<div style="margin-top:12px;font-size:12px;color:var(--muted);">Already have an account? <a href="login" style="color:var(--accent);">Sign in</a></div>' +
+    '</div>';
+  document.body.appendChild(bd);
+}
+function closeSignupPrompt() { const m = document.getElementById('signup-prompt-bd'); if (m) m.remove(); }
+
+// Swap account/sign-out chrome for clear Sign in / Sign up CTAs on a feature page
+// being viewed without an account.
+function initAnonTopbar() {
+  ['acct-center', 'download-pill'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  document.querySelectorAll('[onclick*="signOut"], .theme-toggle').forEach(b => { b.style.display = 'none'; });
+  const host = document.querySelector('.topbar-right') || document.querySelector('.app-topbar');
+  if (host && !document.getElementById('anon-topbar-cta')) {
+    const wrap = document.createElement('span');
+    wrap.id = 'anon-topbar-cta';
+    wrap.style.cssText = 'display:inline-flex;gap:6px;align-items:center;';
+    wrap.innerHTML = '<a href="login" class="btn btn-ghost btn-sm">Sign in</a><a href="login?mode=signup" class="btn btn-primary btn-sm">Sign up free</a>';
+    host.appendChild(wrap);
+  }
+}

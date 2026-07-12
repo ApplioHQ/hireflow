@@ -2827,11 +2827,18 @@ async function ai(endpoint, body) {
   if (data && data._trial && CURRENT_USER) {
     CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
     CURRENT_USER.aiTrials[data._trial.feature] = data._trial.used;
-    const left = data._trial.remaining;
-    toast(left > 0
-      ? `Free trial used, ${left} left for this feature`
-      : 'Last free trial used, upgrade for unlimited AI', { type: left > 0 ? 'info' : 'warn', duration: 3500 });
+    const left = (typeof data._trial.remaining === 'number')
+      ? data._trial.remaining
+      : Math.max(0, (data._trial.limit || 0) - data._trial.used);
     _refreshTrialUI();
+    if (left > 0) {
+      toast(`✨ That's a Premium AI feature. ${left} free ${left === 1 ? 'try' : 'tries'} left, then upgrade for unlimited.`, { type: 'info', duration: 4200 });
+    } else {
+      // They've now seen the value and used their last free try, make the upgrade ask,
+      // but AFTER the result renders (short delay) so they read it first.
+      toast('That was your last free try for this feature.', { type: 'warn', duration: 3500 });
+      setTimeout(() => { if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', data._trial.feature); }, 1100);
+    }
   }
   return data;
 }

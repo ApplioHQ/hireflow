@@ -1160,12 +1160,17 @@ section[id] { scroll-margin-top: 80px; }
   background:
     radial-gradient(60% 50% at 80% 30%, rgba(99,102,241,.14), transparent 60%),
     radial-gradient(50% 50% at 10% 80%, rgba(139,92,246,.12), transparent 60%),
+    /* Ease the navy IN from the top so the dark side of the blend arrives gradually
+       (white -> soft slate -> deep navy) instead of hitting a flat near-black. */
+    linear-gradient(180deg, #172041 0px, #0a0e27 420px),
     #0a0e27;
-  padding: 130px 0; position: relative; overflow: hidden;
+  /* Extra top padding so the (now much taller) scrim fully resolves above the
+     heading and never washes it. */
+  padding: 210px 0 140px; position: relative; overflow: hidden;
 }
 /* Long, finely-eased "scrim" fades for a very gradual blend. Padding (130px)
    keeps them clear of the content so they never wash the text. */
-.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:190px; z-index:0; pointer-events:none;
+.spotlights::before { content:''; position:absolute; top:0; left:0; right:0; height:340px; z-index:0; pointer-events:none;
   /* Smooth ease-out fade with a soft top knee: gentle at the very edge so it
      melts into the light section above, no bright plateau/bar, then a long low
      tail into the navy. Fine stops keep the ramp continuous (no visible band). */

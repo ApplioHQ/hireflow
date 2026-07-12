@@ -486,12 +486,28 @@ async function adminAnalytics(req, env) {
     pvByDay[day] = v; pageViewsLast7 += v;
   }
 
+  // AI feature usage (real successful uses, from _bumpAiUsage on the /ai/ endpoints).
+  const aiUses = await num("stats:ai:total");
+  const aiToday = await num(`stats:ai:${todayStr}`);
+  let aiLast7 = 0;
+  for (let i = 6; i >= 0; i--) {
+    aiLast7 += await num(`stats:ai:${new Date(now - i * DAY).toISOString().slice(0, 10)}`);
+  }
+  const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "interview",
+    "assistant", "autopilot", "skills", "skill-gap", "win", "parse"];
+  const aiByAction = {};
+  for (const a of AI_ACTIONS) {
+    const v = await num(`stats:ai:action:${a}`);
+    if (v) aiByAction[a] = v;
+  }
+
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
     activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
     signupsByDay, attribution,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
+    aiUses, aiToday, aiLast7, aiByAction,
   };
 }
 

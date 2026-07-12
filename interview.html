@@ -173,7 +173,7 @@ function hideAILoading() { aiLoadingDone(); }
 
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-const IS_ANON = !TOKEN; if (IS_ANON) initAnonTopbar();
+const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 function pickRole(btn){ var r = document.getElementById('role'); r.value = btn.textContent; r.focus(); }

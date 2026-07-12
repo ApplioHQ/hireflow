@@ -31,6 +31,13 @@ const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "impr
 // Career Coach (assistant) is Premium/Lifetime only, it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
+// Free users get a few real tries of each PRO AI feature before the paywall, so they
+// actually experience the AI (the biggest driver of activation + paid conversion).
+// Tracked per feature on the user record; the daily cap still applies on top.
+// Per-feature overrides (0 = fully Premium, no free try). MUST mirror the client's
+// FEATURE_TRIAL_LIMITS in js/plan.js so the UI and backend agree.
+const FREE_AI_TRIALS = 2;
+const FREE_TRIAL_LIMITS = { assistant: 0, autopilot: 0, skills: 1 };
 // Per-account daily AI call caps, a soft backstop against runaway usage/abuse
 // driving up Workers AI cost. Deliberately far above what a genuine user does in a
 // day (free users can only reach parse / interview / summary-improve; paid do heavier

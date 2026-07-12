@@ -79,6 +79,11 @@ body {
 h1, h2, h3, h4 { text-wrap: balance; }
 h1, .hero-title, .section-title { letter-spacing: -0.022em; }
 h2, h3 { letter-spacing: -0.015em; }
+/* Display typography (Sora) across the whole app, matching the homepage. Body,
+   inputs and resume content stay on the system stack for dense-text legibility. */
+h1, h2, h3, h4, h5, h6,
+.brand, .btn, .section-title, .section-head h3, .topbar-tab, .nav-item span,
+.card-title, .modal-title, .price, .stat-num { font-family: var(--font-display); }
 /* Tabular, lining numerals for anything numeric-heavy so figures align crisply */
 .stat, .stat-num, [class*="-score"], [class*="-num"], .price, table td { font-variant-numeric: tabular-nums lining-nums; }
 

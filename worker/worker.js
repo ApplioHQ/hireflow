@@ -62,6 +62,7 @@ export default {
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
+      if (path === "/pageview")                return json(await trackPageview(req, env), 200, cors);
       if (path === "/demo/session" && req.method === "POST") return json(await demoSession(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
@@ -372,6 +373,26 @@ async function adminListUsers(req, env) {
 }
 
 // Aggregate user stats for the admin dashboard. Available to admin + super.
+// Anonymous website traffic counter. No PII, no cookies, no auth. The front-end
+// (js/theme.js) beacons this on every page load with two hint flags:
+//   nv=1  -> this browser has never been seen before (unique visitor, all-time)
+//   nd=1  -> first view from this browser today (unique visitor, today)
+// KV has no atomic increment, so this is read-modify-write: fine for an approximate
+// traffic metric at this scale (occasional same-second collisions may undercount).
+async function trackPageview(req, env) {
+  const u = new URL(req.url);
+  const today = new Date().toISOString().slice(0, 10);
+  const bump = async (key) => {
+    const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
+    await env.HIREFLOW_KV.put(key, String(cur + 1));
+  };
+  await bump("stats:pv:total");
+  await bump(`stats:pv:${today}`);
+  if (u.searchParams.get("nv") === "1") await bump("stats:uv:total");
+  if (u.searchParams.get("nd") === "1") await bump(`stats:uv:${today}`);
+  return { ok: true };
+}
+
 async function adminAnalytics(req, env) {
   await requireAdmin(req, env);
   const now = Date.now();

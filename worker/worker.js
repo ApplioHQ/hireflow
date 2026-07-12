@@ -446,11 +446,26 @@ async function adminAnalytics(req, env) {
   // Week-over-week signup momentum (last 7d vs the 7 days before that).
   const signupTrend = prev7Signups ? Math.round(((last7Signups - prev7Signups) / prev7Signups) * 100) : (last7Signups ? 100 : 0);
 
+  // Anonymous website traffic (from the page-view beacon in js/theme.js).
+  const num = async (key) => parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
+  const pageViews = await num("stats:pv:total");
+  const visitors = await num("stats:uv:total");
+  const pageViewsToday = await num(`stats:pv:${todayStr}`);
+  const visitorsToday = await num(`stats:uv:${todayStr}`);
+  let pageViewsLast7 = 0;
+  const pvByDay = {};
+  for (let i = 6; i >= 0; i--) {
+    const day = new Date(now - i * DAY).toISOString().slice(0, 10);
+    const v = await num(`stats:pv:${day}`);
+    pvByDay[day] = v; pageViewsLast7 += v;
+  }
+
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
     activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
     signupsByDay, attribution,
+    pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
   };
 }
 

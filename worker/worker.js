@@ -518,7 +518,7 @@ async function adminAnalytics(req, env) {
   for (let i = 6; i >= 0; i--) {
     aiLast7 += await num(`stats:ai:${new Date(now - i * DAY).toISOString().slice(0, 10)}`);
   }
-  const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "interview",
+  const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
     "assistant", "autopilot", "skills", "skill-gap", "win", "parse"];
   const aiByAction = {};
   for (const a of AI_ACTIONS) {

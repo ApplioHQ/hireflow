@@ -166,7 +166,7 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login';
+const IS_ANON = !TOKEN; if (IS_ANON) initAnonTopbar();
 const STORE = 'hf_assistant_chat';
 const AV = '✦';
 

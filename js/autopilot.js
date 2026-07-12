@@ -7,7 +7,7 @@
 
   var API = (window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL) || '';
   var TOKEN = localStorage.getItem('hf_token');
-  if (!TOKEN) { location.href = 'login'; return; }
+  var IS_ANON = !TOKEN; if (IS_ANON && window.initAnonTopbar) initAnonTopbar();
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
   function readResume() { try { var r = JSON.parse(localStorage.getItem('hf_resume') || 'null'); return (r && typeof r === 'object') ? r : null; } catch (e) { return null; } }

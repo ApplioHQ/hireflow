@@ -102,7 +102,10 @@
             <h3 style="margin:0;">All Users</h3>
             <p style="margin:4px 0 0;" id="user-summary">–</p>
           </div>
-          <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-ghost btn-xs" id="email-toggle" onclick="toggleEmails()" title="Show or hide user emails">Show emails</button>
+            <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
+          </div>
         </div>
         <div style="max-height:65vh; overflow-y:auto;" class="no-scrollbar">
           <table class="user-table">
@@ -282,6 +285,25 @@ async function refresh() {
 function scrollToId(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Emails are masked by default (privacy / screen-sharing safe); toggle to reveal.
+let SHOW_EMAILS = false;
+function _maskEmail(e) {
+  e = String(e || '');
+  if (SHOW_EMAILS || !e) return e;
+  const at = e.indexOf('@');
+  if (at < 1) return '•••••';
+  const domain = e.slice(at + 1), dot = domain.lastIndexOf('.');
+  const dn = dot > 0 ? domain.slice(0, dot) : domain, tld = dot > 0 ? domain.slice(dot) : '';
+  return e[0] + '•••@' + (dn ? dn[0] : '') + '•••' + tld;
+}
+function toggleEmails() {
+  SHOW_EMAILS = !SHOW_EMAILS;
+  const b = document.getElementById('email-toggle');
+  if (b) b.textContent = SHOW_EMAILS ? 'Hide emails' : 'Show emails';
+  renderUsers();
+  if (typeof renderFeedback === 'function') renderFeedback();
 }
 
 function renderUsers() {

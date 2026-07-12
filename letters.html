@@ -268,6 +268,10 @@ document.getElementById('cl-types').addEventListener('click', function(e){
   document.querySelectorAll('.cl-type').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   _syncType();
+  // Switching letter type clears any letter that's already showing so the preview
+  // doesn't hold a retirement letter while "Promotion" is selected.
+  lastLetter = '';
+  _emptyState();
 });
 
 document.getElementById('cl-tones').addEventListener('click', function(e){

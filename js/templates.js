@@ -328,7 +328,7 @@ function tModern(r, accent) {
       .t-modern .body > h2:first-child { margin-top: 0; }
       .t-modern .t-entry { margin-bottom: calc(3.2% * var(--app-space, 1)); }
       .t-modern .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 700; font-size: 96%; color: #111827; }
-      .t-modern .t-entry-head span { font-weight: 500; color: #6b7280; font-size: 90%; white-space: nowrap; padding-left: 4%; }
+      .t-modern .t-entry-head .t-entry-date { font-weight: 500; color: #6b7280; font-size: 90%; white-space: nowrap; padding-left: 4%; }
       .t-modern .t-entry-sub { color: #6b7280; font-size: 85%; margin-top: .4%; }
       .t-modern .t-entry-desc { font-size: 88%; margin-top: 1.2%; }
       .t-modern .summary { font-size: 88%; line-height: 1.6; }

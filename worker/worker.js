@@ -59,6 +59,7 @@ export default {
     try {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
+      if (path === "/auth/google")             return json(await googleAuth(req, env), 200, cors);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
@@ -216,6 +217,31 @@ async function signup(req, env) {
   const user = { email, salt, hash, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
   await putUser(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
+  return { token, email };
+}
+// Google Sign-In: the browser sends the Google ID token (JWT). We verify it with
+// Google (signature + expiry), confirm it was issued for OUR client id, then
+// find-or-create the user and mint the SAME session token the rest of the app uses,
+// so an OAuth user is indistinguishable from an email/password user downstream.
+async function googleAuth(req, env) {
+  const { credential } = await req.json();
+  if (!credential) throw err(400, "Missing Google credential");
+  const clientId = env.GOOGLE_CLIENT_ID;
+  if (!clientId) throw err(500, "Google sign-in is not configured");
+  const resp = await fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(credential));
+  if (!resp.ok) throw err(401, "Google sign-in failed");
+  const p = await resp.json();
+  if (p.aud !== clientId) throw err(401, "Google sign-in failed");
+  if (p.iss !== "accounts.google.com" && p.iss !== "https://accounts.google.com") throw err(401, "Google sign-in failed");
+  if (p.email_verified !== "true" && p.email_verified !== true) throw err(401, "Google email not verified");
+  const email = (p.email || "").toLowerCase();
+  if (!email) throw err(401, "Google sign-in failed");
+  let user = await getUser(env, email);
+  if (!user) {
+    user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+    await putUser(env, user);
+  }
+  const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
   return { token, email };
 }
 async function login(req, env) {

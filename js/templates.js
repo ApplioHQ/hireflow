@@ -318,21 +318,25 @@ function tModern(r, accent) {
   return `
     <style>
       .t-modern { font-family: var(--app-font); color: #1f2937; height: 100%; }
-      .t-modern .header { background: linear-gradient(135deg, ${c}, ${c}cc); color: #fff; padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
-      .t-modern .name { font-size: 205%; font-weight: 700; letter-spacing: -.02em; margin-bottom: 1.4%; line-height: 1.05; }
-      .t-modern .contact { font-size: 80%; opacity: .92; display:flex; flex-wrap:wrap; gap: 1% 3%; }
-      .t-modern .body { padding: calc(4.5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
-      .t-modern h2 { color: ${c}; font-size: 110%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .08em; margin: calc(4% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1px solid ${c}33; padding-bottom: 1%; }
+      /* Solid accent with a diagonal sheen->shade overlay for depth (no flat band). */
+      .t-modern .header { background-color: ${c}; background-image: linear-gradient(150deg, rgba(255,255,255,.13), rgba(255,255,255,0) 46%, rgba(0,0,0,.20)); color: #fff; padding: calc(5% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)) calc(4.2% * var(--app-margin, 1)); }
+      .t-modern .name { font-size: 212%; font-weight: 700; letter-spacing: -.02em; line-height: 1.03; }
+      .t-modern .role { font-size: 80%; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; opacity: .82; margin-top: 2.2%; }
+      .t-modern .contact { font-size: 80%; opacity: .9; display:flex; flex-wrap:wrap; gap: 1% 3.4%; margin-top: 3.6%; }
+      .t-modern .body { padding: calc(4.6% * var(--app-margin, 1)) calc(7% * var(--app-margin, 1)); }
+      .t-modern h2 { color: ${c}; font-size: 103%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; margin: calc(4.2% * var(--app-space, 1)) 0 calc(2% * var(--app-space, 1)); border-bottom: 1.5px solid ${c}2b; padding-bottom: 1.2%; }
       .t-modern .body > h2:first-child { margin-top: 0; }
-      .t-modern .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
-      .t-modern .t-entry-head { display:flex; justify-content:space-between; font-weight: 600; font-size: 95%; }
-      .t-modern .t-entry-sub { color: #4b5563; font-style: italic; font-size: 85%; }
-      .t-modern .t-entry-desc { font-size: 88%; margin-top: 1%; }
-      .t-modern .summary { font-size: 88%; }
+      .t-modern .t-entry { margin-bottom: calc(3.2% * var(--app-space, 1)); }
+      .t-modern .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 700; font-size: 96%; color: #111827; }
+      .t-modern .t-entry-head span { font-weight: 500; color: #6b7280; font-size: 90%; white-space: nowrap; padding-left: 4%; }
+      .t-modern .t-entry-sub { color: #6b7280; font-size: 85%; margin-top: .4%; }
+      .t-modern .t-entry-desc { font-size: 88%; margin-top: 1.2%; }
+      .t-modern .summary { font-size: 88%; line-height: 1.6; }
     </style>
     <div class="t-modern" style="${st}">
       <div class="header">
         <div class="name">${esc(p.fullName)}</div>
+        ${(r.experience && r.experience[0] && r.experience[0].title) ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
         <div class="contact">
           ${p.email?`<span>${esc(p.email)}</span>`:''}
           ${p.phone?`<span>${esc(p.phone)}</span>`:''}

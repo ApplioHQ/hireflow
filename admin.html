@@ -306,6 +306,23 @@ function toggleEmails() {
   if (typeof renderFeedback === 'function') renderFeedback();
 }
 
+// Per-user AI feature breakdown for the Users table. Shows total AI uses plus the
+// features that user has actually used, sorted by count, with the full list on hover.
+function _aiUseCell(u) {
+  const f = u.aiFeatures || {};
+  const entries = Object.entries(f).filter(e => (Number(e[1]) || 0) > 0)
+    .sort((a, b) => b[1] - a[1]);
+  const totalRaw = u.aiTotal != null ? u.aiTotal : entries.reduce((s, e) => s + (Number(e[1]) || 0), 0);
+  const total = Number(totalRaw) || 0;
+  if (!total) return '<span class="user-meta">–</span>';
+  const full = entries.map(e => _aiLabel(e[0]) + ' ' + e[1]).join(', ');
+  const top = entries.slice(0, 3).map(e =>
+    '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _aiLabel(e[0]) + ' ' + e[1] + '</span>').join(' ');
+  const more = entries.length > 3 ? ' <span class="user-meta">+' + (entries.length - 3) + '</span>' : '';
+  const last = u.aiLastAt ? '<div class="user-meta" style="margin-top:3px;">last: ' + _aiLabel(u.aiLastFeature || '') + ' · ' + fmtDate(u.aiLastAt) + '</div>' : '';
+  return '<div title="' + esc(full) + '"><strong>' + total + '</strong> ' + top + more + last + '</div>';
+}
+
 function renderUsers() {
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
   const list = ALL_USERS.filter(u => !q || (u.email||'').toLowerCase().includes(q));

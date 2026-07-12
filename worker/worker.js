@@ -937,7 +937,7 @@ async function ai(req, env, action) {
     if (trialFeature) {
       user.aiTrials = user.aiTrials || {};
       user.aiTrials[trialFeature] = (user.aiTrials[trialFeature] || 0) + 1;
-      _trial = { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit };
+      _trial = { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit, remaining: Math.max(0, trialLimit - user.aiTrials[trialFeature]) };
     }
     if (!wasUsed || trialFeature) await putUser(env, user);
     return _trial ? { ...result, _trial } : result;

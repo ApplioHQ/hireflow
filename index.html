@@ -612,6 +612,75 @@
   </div>
 </section>
 
+<!-- ============ CAREER ARC (copilot for the whole career) ============ -->
+<style>
+  #career-arc { padding: 100px 0; background:
+      radial-gradient(1100px 380px at 50% -8%, rgba(99,102,241,.10), transparent 70%), #f7f8fc; }
+  #career-arc .ca-eyebrow { display:block; text-align:center; font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6366f1; margin-bottom:12px; }
+  #career-arc .section-sub { text-align:center; color:#6b7280; max-width:600px; margin:0 auto 52px; font-size:16px; line-height:1.6; }
+  #career-arc .ca-grid { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:18px; max-width:1080px; margin:0 auto; }
+  /* connecting arc line behind the cards (desktop) */
+  #career-arc .ca-grid::before { content:''; position:absolute; top:46px; left:12%; right:12%; height:2px;
+      background:linear-gradient(90deg,#6366f1,#0ea5e9,#10b981,#f59e0b); opacity:.30; z-index:0; }
+  #career-arc .ca-stage { position:relative; z-index:1; background:#fff; border:1px solid #eef0f4; border-radius:18px; padding:26px 22px 24px; box-shadow:0 1px 2px rgba(20,30,70,.05); transition:transform .18s cubic-bezier(.4,0,.2,1), box-shadow .18s, border-color .18s; }
+  #career-arc .ca-stage:hover { transform:translateY(-4px); box-shadow:0 16px 38px rgba(20,30,70,.11); border-color:#c7ccf5; }
+  #career-arc .ca-ico { width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; color:#fff; box-shadow:0 6px 16px rgba(20,30,70,.14); }
+  #career-arc .ca-ico svg { width:23px; height:23px; }
+  #career-arc .ca-stage:nth-child(1) .ca-ico { background:linear-gradient(135deg,#6366f1,#818cf8); }
+  #career-arc .ca-stage:nth-child(2) .ca-ico { background:linear-gradient(135deg,#0ea5e9,#38bdf8); }
+  #career-arc .ca-stage:nth-child(3) .ca-ico { background:linear-gradient(135deg,#10b981,#34d399); }
+  #career-arc .ca-stage:nth-child(4) .ca-ico { background:linear-gradient(135deg,#f59e0b,#fbbf24); }
+  #career-arc .ca-step { font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#9ca3af; }
+  #career-arc .ca-stage h3 { font-size:18px; font-weight:800; color:#111827; margin:2px 0 8px; }
+  #career-arc .ca-stage p { font-size:13.5px; line-height:1.6; color:#6b7280; }
+  #career-arc .ca-foot { text-align:center; margin-top:40px; }
+  #career-arc .ca-foot a { color:#6366f1; font-weight:700; font-size:15px; }
+  #career-arc .ca-foot a:hover { text-decoration:underline; }
+  @media (max-width:900px){ #career-arc .ca-grid { grid-template-columns:repeat(2,1fr); } #career-arc .ca-grid::before { display:none; } }
+  @media (max-width:520px){ #career-arc .ca-grid { grid-template-columns:1fr; } }
+</style>
+<section id="career-arc">
+  <div class="container">
+    <span class="ca-eyebrow">More than a resume builder</span>
+    <h2 class="section-title">One copilot for your whole career</h2>
+    <p class="section-sub">Most tools stop the day you get hired. Applio keeps going, from your first application to your next promotion, so you build on the same profile instead of starting over.</p>
+    <div class="ca-grid">
+
+      <div class="ca-stage">
+        <div class="ca-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <div class="ca-step">Stage 01</div>
+        <h3>Land the job</h3>
+        <p>ATS-ready resume, one-click tailoring for each posting, cover letters, voice mock interviews, and a job tracker that nudges your follow-ups.</p>
+      </div>
+
+      <div class="ca-stage">
+        <div class="ca-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="ca-step">Stage 02</div>
+        <h3>Ramp up fast</h3>
+        <p>A 30/60/90-day First 90 Days plan, the people to meet, and the questions to ask your manager, so you start strong in a new role.</p>
+      </div>
+
+      <div class="ca-stage">
+        <div class="ca-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+        <div class="ca-step">Stage 03</div>
+        <h3>Grow &amp; get recognized</h3>
+        <p>Log wins as they happen, turn them into a one-click Brag Doc for reviews, and see the exact skills that unlock your next level.</p>
+      </div>
+
+      <div class="ca-stage">
+        <div class="ca-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></div>
+        <div class="ca-step">Stage 04</div>
+        <h3>Make your next move</h3>
+        <p>Re-tailor in seconds, spot the skills your target role wants, and get AI coaching for the jump, without rebuilding from scratch.</p>
+      </div>
+
+    </div>
+    <div class="ca-foot">
+      <a href="login?mode=signup">Start with your resume, grow into the rest &rarr;</a>
+    </div>
+  </div>
+</section>
+
 <!-- ============ COMPLETE TOOLKIT ============ -->
 <style>
   #toolkit { padding: 100px 0; }
@@ -634,8 +703,8 @@
 <section class="section-light" id="toolkit">
   <div class="container">
     <span class="tk-eyebrow">The complete toolkit</span>
-    <h2 class="section-title">Everything you need to land the job</h2>
-    <p class="section-sub">One login covers your whole search, from a first draft to the final interview.</p>
+    <h2 class="section-title">Everything you need, every stage of the way</h2>
+    <p class="section-sub">One login covers it all, from a first draft and the final interview to your reviews, raises, and next move.</p>
     <div class="tk-grid">
 
       <div class="tk-card">

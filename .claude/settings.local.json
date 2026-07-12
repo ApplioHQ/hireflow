@@ -38,7 +38,8 @@
       "WebFetch(domain:appliohq.com)",
       "WebFetch(domain:hireflow-api.pritamavuthu7.workers.dev)",
       "WebFetch(domain:substack.com)",
-      "WebFetch(domain:appliohq.substack.com)"
+      "WebFetch(domain:appliohq.substack.com)",
+      "Bash(sips -g pixelWidth -g pixelHeight -g hasAlpha /Users/pritamavuthu/Downloads/Icon.png)"
     ],
     "defaultMode": "bypassPermissions"
   }

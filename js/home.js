@@ -1,5 +1,18 @@
 // ============ Applio home page interactivity ============
 
+// Coalesce high-frequency events (scroll / mousemove) to at most one call per
+// animation frame, with the latest event. Prevents layout thrash + wasted paints
+// from handlers firing 100+ times a second.
+function rafThrottle(fn) {
+  var queued = false, lastArg = null;
+  return function (arg) {
+    lastArg = arg;
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; fn(lastArg); });
+  };
+}
+
 // ----- Typewriter hero word -----
 const ROTATOR_WORDS = ['Interviews', 'Offers', 'Promotions', 'Raises'];
 const rotEl = document.getElementById('hero-rotator');

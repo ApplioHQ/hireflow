@@ -1306,10 +1306,13 @@ section[id] { scroll-margin-top: 80px; }
     inset 0 0 2px 2px rgba(255,255,255,0.04),
     0 0 12px rgba(99,102,241,0.25);
 }
-/* Refraction: distorts the background behind the button (the "liquid glass"). */
+/* Frosted glass sheen. NOTE: this deliberately does NOT use an SVG displacement
+   backdrop-filter — the buttons sit over the animated hero waves, so a
+   backdrop-filter re-ran the turbulence/displacement filter every frame and
+   tanked scroll/paint performance. A static gradient sheen looks glassy for free. */
 .liquid-btn-blur {
   position: absolute; inset: 0; z-index: -1; border-radius: inherit; overflow: hidden; pointer-events: none;
-  backdrop-filter: url("#container-glass"); -webkit-backdrop-filter: url("#container-glass");
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 55%);
 }
 .liquid-btn-label { position: relative; z-index: 10; }
 @media (prefers-reduced-motion: reduce) { .liquid-btn { transition: none; } .liquid-btn:hover { transform: none; } }

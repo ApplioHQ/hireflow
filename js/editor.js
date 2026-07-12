@@ -3387,6 +3387,46 @@ function _updateImportHint(){
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
+// ---- Anonymous "try it" conversion prompt ----
+// Shown when a signed-out visitor hits a gated action (AI / export / cloud save).
+// Their resume is already in localStorage, so it's waiting after they sign up.
+function _promptSignup(action) {
+  if (document.getElementById('signup-prompt-bd')) return;
+  const bd = document.createElement('div');
+  bd.id = 'signup-prompt-bd';
+  bd.className = 'modal-backdrop open';
+  bd.innerHTML =
+    '<div class="modal" style="max-width:440px; text-align:center;">' +
+      '<button class="modal-close" onclick="document.getElementById(\'signup-prompt-bd\').remove()">×</button>' +
+      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
+      '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ' — no credit card, takes 20 seconds.</p>' +
+      '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +
+      '<button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="document.getElementById(\'signup-prompt-bd\').remove()">Keep editing</button>' +
+      '<div style="margin-top:12px;font-size:12px;color:var(--muted);">Already have an account? <a href="login" style="color:var(--accent);">Sign in</a></div>' +
+    '</div>';
+  document.body.appendChild(bd);
+}
+
+// Swap the account avatar for clear Sign in / Sign up CTAs while anonymous, and
+// intercept export so it prompts a free signup instead of bouncing to a login page.
+function _initAnonUI() {
+  const acct = document.getElementById('acct-center'); if (acct) acct.style.display = 'none';
+  const pill = document.getElementById('download-pill'); if (pill) pill.style.display = 'none';
+  const right = document.querySelector('.topbar-right');
+  if (right && !document.getElementById('anon-signup-btn')) {
+    const si = document.createElement('a');
+    si.href = 'login'; si.className = 'btn btn-ghost btn-sm'; si.textContent = 'Sign in';
+    const su = document.createElement('a');
+    su.id = 'anon-signup-btn'; su.href = 'login?mode=signup'; su.className = 'btn btn-primary btn-sm'; su.textContent = 'Sign up free';
+    right.appendChild(si); right.appendChild(su);
+  }
+  // Export buttons -> signup prompt (their work is local; sign up to download).
+  document.querySelectorAll('a[href="export"], #btn-export, #rp-export').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); _promptSignup('download your resume as a PDF'); }, true);
+  });
+}
+
 function _relTime(ts) {
   const secs = Math.floor((Date.now() - ts) / 1000);
   if (secs < 60) return 'just now';

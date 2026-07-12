@@ -1310,7 +1310,7 @@ section[id] { scroll-margin-top: 80px; }
     0 0 12px rgba(99,102,241,0.25);
 }
 /* Frosted glass sheen. NOTE: this deliberately does NOT use an SVG displacement
-   backdrop-filter — the buttons sit over the animated hero waves, so a
+   backdrop-filter, because the buttons sit over the animated hero waves, so a
    backdrop-filter re-ran the turbulence/displacement filter every frame and
    tanked scroll/paint performance. A static gradient sheen looks glassy for free. */
 .liquid-btn-blur {

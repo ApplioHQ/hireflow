@@ -143,6 +143,37 @@
   <script src="js/config.js"></script>
   <script src="js/notify.js"></script>
   <script src="js/auth.js"></script>
+  <!-- Google Identity Services (only initializes if a Client ID is configured) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    (function () {
+      var CFG = window.HIREFLOW_CONFIG || {};
+      var CID = CFG.GOOGLE_CLIENT_ID || '';
+      if (!CID) return;   // not configured yet -> leave the .oauth-block hidden
+      function onGoogle(resp) {
+        fetch(CFG.API_URL + '/auth/google', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: resp.credential })
+        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (x) {
+            if (!x.ok) { notify({ title: 'Google sign-in failed', body: (x.d && x.d.error) || 'Please try again.' }); return; }
+            localStorage.setItem('hf_token', x.d.token);
+            if (x.d.email) localStorage.setItem('hf_email', x.d.email);
+            location.href = (x.d.role === 'admin' || x.d.role === 'super') ? 'admin' : 'editor';
+          }).catch(function () { notify({ title: 'Google sign-in failed', body: 'Network error, please try again.' }); });
+      }
+      function init() {
+        if (!(window.google && google.accounts && google.accounts.id)) { return setTimeout(init, 250); }
+        google.accounts.id.initialize({ client_id: CID, callback: onGoogle });
+        ['gbtn-signin', 'gbtn-signup'].forEach(function (id) {
+          var el = document.getElementById(id); if (!el) return;
+          google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', width: 300, text: 'continue_with', shape: 'rectangular' });
+        });
+        document.querySelectorAll('.oauth-block').forEach(function (b) { b.style.display = 'block'; });
+      }
+      init();
+    })();
+  </script>
   <script>
     // initial view from ?mode=signup
     const params = new URLSearchParams(location.search);

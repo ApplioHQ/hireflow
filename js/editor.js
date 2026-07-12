@@ -3400,7 +3400,7 @@ function _promptSignup(action) {
       '<button class="modal-close" onclick="document.getElementById(\'signup-prompt-bd\').remove()">×</button>' +
       '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
       '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
-      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ' — no credit card, takes 20 seconds.</p>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ' , no credit card, takes 20 seconds.</p>' +
       '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +
       '<button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="document.getElementById(\'signup-prompt-bd\').remove()">Keep editing</button>' +
       '<div style="margin-top:12px;font-size:12px;color:var(--muted);">Already have an account? <a href="login" style="color:var(--accent);">Sign in</a></div>' +

@@ -433,6 +433,12 @@ async function loadAnalytics() {
       + '<span class="pill success">Premium: ' + d.plans.premium + '</span>'
       + '<span class="pill success">Lifetime: ' + d.plans.lifetime + '</span>'
       + '</div>'
+      + (Object.keys(d.aiByAction || {}).length
+          ? '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">AI Feature Usage (all-time)</div>'
+            + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
+            + Object.entries(d.aiByAction).sort(function(a,b){return b[1]-a[1];}).map(function(e){return '<span class="pill">' + _aiLabel(e[0]) + ': ' + e[1] + '</span>';}).join('')
+            + '</div>'
+          : '')
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Page Views, Last 7 Days</div>'
       + _sparkline(d.pvByDay, 'view')
       + '<div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;">Signups, Last 30 Days</div>'
@@ -451,6 +457,9 @@ function _statBox(label, value, color, sub, subColor) {
     + (sub ? '<div style="font-size:10.5px;color:' + (subColor || 'var(--muted)') + ';margin-top:4px;">' + sub + '</div>' : '')
     + '</div>';
 }
+
+const _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', interview: 'Interview Prep', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', win: 'Win Polish', parse: 'Resume Import' };
+function _aiLabel(k) { return _AI_LABELS[k] || k; }
 
 function _sparkline(byDay, label) {
   label = label || 'signup';

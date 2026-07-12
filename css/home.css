@@ -434,6 +434,9 @@
 .home-nav-solid {
   background: rgba(7,9,26,.97) !important;
   box-shadow: 0 2px 20px rgba(0,0,0,.4);
+  /* Nav is near-opaque once scrolled, so the backdrop blur is invisible but would
+     still recompute every scroll frame. Drop it while scrolling to cut paint cost. */
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
 
 /* ===== Scroll-triggered fade-in ===== */

@@ -920,14 +920,21 @@ async function ai(req, env, action) {
     }
     trialFeature = action;
   }
-  // Consume one free trial after a successful call and report the new count so the
-  // client can update its "N free tries left" UI.
-  const consumeTrial = async () => {
-    if (!trialFeature) return null;
-    user.aiTrials = user.aiTrials || {};
-    user.aiTrials[trialFeature] = (user.aiTrials[trialFeature] || 0) + 1;
-    await putUser(env, user);
-    return { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit };
+  // On a SUCCESSFUL AI call: mark the account as activated (first-ever AI use, for the
+  // activation metric) and consume a free trial if this was a trial feature. Reports the
+  // new trial count so the client can update its "N free tries left" UI. One KV write,
+  // and only when something actually changed.
+  const finishAiCall = async (result) => {
+    const wasUsed = user.aiUsed;
+    user.aiUsed = true;
+    let _trial = null;
+    if (trialFeature) {
+      user.aiTrials = user.aiTrials || {};
+      user.aiTrials[trialFeature] = (user.aiTrials[trialFeature] || 0) + 1;
+      _trial = { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit };
+    }
+    if (!wasUsed || trialFeature) await putUser(env, user);
+    return _trial ? { ...result, _trial } : result;
   };
 
   // Per-account daily AI cap: soft cost/abuse guard. Count is per UTC day, expires

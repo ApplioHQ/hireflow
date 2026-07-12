@@ -1,7 +1,7 @@
 // ============ Applio home page interactivity ============
 
 // ----- Typewriter hero word -----
-const ROTATOR_WORDS = ['Interviews', 'Offers', 'Callbacks', 'Opportunities'];
+const ROTATOR_WORDS = ['Interviews', 'Offers', 'Promotions', 'Raises'];
 const rotEl = document.getElementById('hero-rotator');
 (function typewriter() {
   if (!rotEl) return;

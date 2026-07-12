@@ -35,6 +35,18 @@ async function apiPost(path, body) {
   return data;
 }
 
+// Where to land after auth. Resumes whatever a guest was trying to do before we
+// asked them to sign up (e.g. clicked Export) so signing up completes the action
+// instead of dumping them on a blank editor.
+function _afterAuthDest(role, fallback) {
+  if (role === 'admin' || role === 'super') return 'admin';
+  let after = '';
+  try { after = localStorage.getItem('hf_after_signup') || ''; localStorage.removeItem('hf_after_signup'); } catch (e) {}
+  if (after === 'export') return 'export';
+  if (localStorage.getItem('hf_pending_import')) return 'editor';
+  return fallback;
+}
+
 document.getElementById('form-signin').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
@@ -50,8 +62,7 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
     // Admin / super-admin → admin console; regular users → the Career Home dashboard.
     // A pending import (from the ATS checker funnel) must land in the editor, which
     // is where that import gets consumed.
-    location.href = (data.role === 'admin' || data.role === 'super') ? 'admin'
-      : (localStorage.getItem('hf_pending_import') ? 'editor' : 'dashboard');
+    location.href = _afterAuthDest(data.role, 'dashboard');
   } catch (err) {
     setMsg('signin','error', err.message);
   }

@@ -129,7 +129,8 @@ function isFree() { return !isPaid(); }
 // ---- Free AI trials (free users get N free uses per premium feature) ----
 const FREE_AI_TRIALS = 2;
 // Per-feature free-trial overrides (must mirror the worker's FREE_TRIAL_LIMITS).
-const FEATURE_TRIAL_LIMITS = { parse: 1 };
+// 0 = fully Premium (no free try). tailor/ats/analyze/improve use the default (2).
+const FEATURE_TRIAL_LIMITS = { parse: 1, assistant: 0, autopilot: 0, skills: 1 };
 function _trialLimit() { return (CURRENT_USER && CURRENT_USER.freeAiTrials) || FREE_AI_TRIALS; }
 function _featureLimit(feature) { return FEATURE_TRIAL_LIMITS[feature] != null ? FEATURE_TRIAL_LIMITS[feature] : _trialLimit(); }
 function trialsUsed(feature) { return (CURRENT_USER && CURRENT_USER.aiTrials && CURRENT_USER.aiTrials[feature]) || 0; }

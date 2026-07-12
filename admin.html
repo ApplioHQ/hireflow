@@ -323,7 +323,7 @@ function renderUsers() {
     const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
     return `
       <tr>
-        <td><div class="user-email">${esc(u.email)}</div></td>
+        <td><div class="user-email">${esc(_maskEmail(u.email))}</div></td>
         <td>${fmtPlan(u.plan)}</td>
         <td>${fmtDate(u.createdAt)}</td>
         <td>${esc(notes)} ${stripe}</td>
@@ -556,7 +556,7 @@ function renderFeedback() {
           ? '<p style="font-size:13.5px;line-height:1.6;margin:0;word-break:break-word;">' + esc(f.message) + '</p>'
           : '<p style="font-size:13px;color:var(--muted);font-style:italic;margin:0;">(rating only, no message)</p>')
       + '<div style="display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11px;color:var(--muted);margin-top:8px;">'
-      + '<span>👤 ' + esc(f.email || 'unknown') + ' (' + esc(f.plan || 'free') + ')</span>'
+      + '<span>👤 ' + (esc(_maskEmail(f.email)) || 'unknown') + ' (' + esc(f.plan || 'free') + ')</span>'
       + (where ? '<span>📍 ' + where + '</span>' : '')
       + '<span>🕓 ' + _fbDate(f.ts) + '</span>'
       + '</div></div></div></div>';

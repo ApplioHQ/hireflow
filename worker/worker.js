@@ -931,15 +931,14 @@ async function ai(req, env, action) {
   // new trial count so the client can update its "N free tries left" UI. One KV write,
   // and only when something actually changed.
   const finishAiCall = async (result) => {
-    const wasUsed = user.aiUsed;
-    user.aiUsed = true;
+    _recordUserFeature(user, action);
     let _trial = null;
     if (trialFeature) {
       user.aiTrials = user.aiTrials || {};
       user.aiTrials[trialFeature] = (user.aiTrials[trialFeature] || 0) + 1;
       _trial = { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit, remaining: Math.max(0, trialLimit - user.aiTrials[trialFeature]) };
     }
-    if (!wasUsed || trialFeature) await putUser(env, user);
+    await putUser(env, user);
     return _trial ? { ...result, _trial } : result;
   };
 
@@ -969,7 +968,7 @@ async function ai(req, env, action) {
     const result = await aiDispatch(env, action, body);
     await _bumpAiUsage(env, action);
     user.coverLettersUsed = used + 1;
-    user.aiUsed = true;
+    _recordUserFeature(user, action);
     await putUser(env, user);
     return { ...result, freeRemaining: Math.max(0, FREE_COVER_LETTERS - user.coverLettersUsed) };
   }

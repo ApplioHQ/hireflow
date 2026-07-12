@@ -3473,7 +3473,38 @@ function _initAnonUI() {
   document.querySelectorAll('a[href="export"], #btn-export, #rp-export').forEach(el => {
     el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); _promptSignup('download your resume as a PDF'); }, true);
   });
+  _anonBarInject();
+  _refreshAnonBar();
 }
+
+// True once a guest has actually started building (so the nudge is earned, not nagging).
+function _hasResumeContent() {
+  const p = resume.personal || {};
+  if ((p.fullName || '').trim() || (p.summary || '').trim()) return true;
+  return ['experience', 'education', 'projects'].some(k => Array.isArray(resume[k]) && resume[k].length) ||
+    ((resume.skills && resume.skills.categories) || []).some(c => c && (c.items || []).length);
+}
+let _anonBarDismissed = false;
+function _anonBarInject() {
+  if (document.getElementById('anon-bar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'anon-bar';
+  bar.className = 'anon-bar';
+  bar.innerHTML =
+    '<div class="anon-bar-in">' +
+      '<span class="anon-bar-dot"></span>' +
+      '<span class="anon-bar-msg"><strong>Looking good.</strong> Sign up free to save it, unlock all templates &amp; customization, and download a PDF.</span>' +
+      '<a href="login?mode=signup" class="btn btn-primary btn-sm">Sign up free &rarr;</a>' +
+      '<button class="anon-bar-x" aria-label="Dismiss" onclick="_dismissAnonBar()">&times;</button>' +
+    '</div>';
+  document.body.appendChild(bar);
+}
+function _refreshAnonBar() {
+  if (!IS_ANON) return;
+  const bar = document.getElementById('anon-bar'); if (!bar) return;
+  bar.classList.toggle('show', !_anonBarDismissed && _hasResumeContent());
+}
+function _dismissAnonBar() { _anonBarDismissed = true; _refreshAnonBar(); }
 
 function _relTime(ts) {
   const secs = Math.floor((Date.now() - ts) / 1000);

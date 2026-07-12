@@ -917,7 +917,24 @@ async function ai(req, env, action) {
   }
 
   await bumpRate();
-  return await aiDispatch(env, action, body);
+  const result = await aiDispatch(env, action, body);
+  await _bumpAiUsage(env, action);
+  return result;
+}
+
+// Count real, successful AI feature uses (per-action + total + per-day) so the admin
+// can see how much the AI is actually used. Admin/test calls aren't counted (they
+// return before reaching here). Fail-open: a KV hiccup never breaks the AI response.
+async function _bumpAiUsage(env, action) {
+  try {
+    const bump = async (key) => {
+      const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
+      await env.HIREFLOW_KV.put(key, String(cur + 1));
+    };
+    await bump("stats:ai:total");
+    await bump(`stats:ai:action:${action}`);
+    await bump(`stats:ai:${new Date().toISOString().slice(0, 10)}`);
+  } catch (_) {}
 }
 
 // ============ Feedback ============

@@ -403,6 +403,10 @@ async function adminListUsers(req, env) {
     downloadsUsed: u.downloadsUsed || 0,
     hasStripeCustomer: !!u.stripeCustomerId,
     updatedAt: u.updatedAt || u.createdAt || null,
+    aiFeatures: u.aiFeatures || {},
+    aiTotal: u.aiFeatures ? Object.values(u.aiFeatures).reduce((a, b) => a + (Number(b) || 0), 0) : 0,
+    aiLastFeature: u.aiLastFeature || null,
+    aiLastAt: u.aiLastAt || null,
   }));
   users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));   // newest first
   return { users, total: users.length };
@@ -449,10 +453,16 @@ async function adminAnalytics(req, env) {
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
   const attribution = {};
+  const usersByFeature = {};   // distinct users who have used each AI feature at least once
   const records = await _readAllUserRecords(env);
   for (const u of records) {
     total++;
     if (u.attribution) attribution[u.attribution] = (attribution[u.attribution] || 0) + 1;
+    if (u.aiFeatures) {
+      for (const k in u.aiFeatures) {
+        if ((Number(u.aiFeatures[k]) || 0) > 0) usersByFeature[k] = (usersByFeature[k] || 0) + 1;
+      }
+    }
     const plan = (u.plan === "premium" || u.plan === "lifetime") ? u.plan : "free";
     plans[plan]++;
     const dl = Number(u.downloadsUsed) || 0;
@@ -523,7 +533,7 @@ async function adminAnalytics(req, env) {
     usedAi, activated,
     signupsByDay, attribution,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
-    aiUses, aiToday, aiLast7, aiByAction,
+    aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
   };
 }
 
@@ -982,6 +992,17 @@ async function ai(req, env, action) {
 // Count real, successful AI feature uses (per-action + total + per-day) so the admin
 // can see how much the AI is actually used. Admin/test calls aren't counted (they
 // return before reaching here). Fail-open: a KV hiccup never breaks the AI response.
+// Record per-USER AI feature usage on the user record so the admin can see WHO uses
+// WHICH feature (site-wide totals live in _bumpAiUsage). Mutates the user; the caller
+// is responsible for the putUser write.
+function _recordUserFeature(user, action) {
+  user.aiUsed = true;
+  user.aiFeatures = user.aiFeatures || {};
+  user.aiFeatures[action] = (user.aiFeatures[action] || 0) + 1;
+  user.aiLastFeature = action;
+  user.aiLastAt = Date.now();
+}
+
 async function _bumpAiUsage(env, action) {
   try {
     const bump = async (key) => {

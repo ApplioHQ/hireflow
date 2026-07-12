@@ -2,7 +2,11 @@
 const API = window.HIREFLOW_CONFIG.API_URL;
 
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login';
+// Anonymous "try it" mode: visitors can build + preview a full resume with NO
+// account (everything runs from localStorage). Signing up is only asked for at the
+// moments it's actually needed — saving to the cloud, AI features, and export —
+// which removes the up-front signup wall that was killing conversion.
+const IS_ANON = !TOKEN;
 
 // ---- Default state ----
 const DEFAULT_RESUME = {

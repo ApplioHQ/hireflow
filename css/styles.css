@@ -542,14 +542,19 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* ===== Template card footer & thumb ===== */
 .template-thumb {
-  position: relative; width: 100%; aspect-ratio: 5 / 4; overflow: hidden; border-radius: 4px;
-  /* Soft fade at the cropped page bottom. Uses a mask so it fades to
-     transparent (revealing the card behind) instead of to solid white, the
-     old white fade looked broken over dark templates (Tech/Slate/Onyx). */
-  -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
-          mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+  position: relative; width: 100%; aspect-ratio: 5 / 4; overflow: hidden; border-radius: 5px;
+  background: #fff;                    /* every thumbnail is a white resume page */
+  box-shadow: inset 0 0 0 1px rgba(20,30,70,.06);
 }
 .template-thumb svg { width: 100%; height: auto; display: block; }
+/* Soft fade at the cropped page bottom, into the page's own white so it reads as a
+   continuing sheet. Fading to white (not transparent) keeps it clean in BOTH themes,
+   the old transparent mask revealed the gray card behind and looked muddy in light mode. */
+.template-thumb::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff);
+  pointer-events: none;
+}
 .template-card-foot {
   display: flex; justify-content: space-between; align-items: center;
   padding: 6px 3px 1px;

@@ -419,6 +419,7 @@ async function loadAnalytics() {
       + _statBox('AI Uses', (d.aiUses || 0).toLocaleString(), '#14b8a6', (d.aiToday || 0) + ' today · ' + (d.aiLast7 || 0) + ' this week')
       + _statBox('Total Users', d.total, '#6366f1')
       + _statBox('Active Paid', d.activeSubs, '#22c55e', (d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime'))
+      + _statBox('Activation', (d.activationRate || 0) + '%', '#f59e0b', (d.activated || 0) + ' of ' + d.total + ' used AI or exported')
       + _statBox('Conversion', d.conversionRate + '%', '#8b5cf6', (d.plans.premium + d.plans.lifetime) + ' of ' + d.total + ' paid')
       + _statBox('Signups Today', d.signupsToday, '#06b6d4')
       + _statBox('Signups (7d)', d.last7Signups, '#06b6d4', trendStr, trendColor)

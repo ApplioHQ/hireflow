@@ -2913,7 +2913,16 @@ function _aiErrMsg(e) {
 
 // Polished AI suggestion modal with an optional Apply button.
 let _aiSuggestState = null;
-function showAiSuggestion({ title, text, apply, hint }) {
+// Render the ORIGINAL text (the "before") as plain, muted lines for the diff view.
+function _renderPlainLines(text) {
+  const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return '<p class="ai-ba-empty">You hadn\'t written anything here yet.</p>';
+  return lines.map(l => {
+    const m = l.match(/^([•\-\*–]|\d+[.)])\s+(.*)$/);
+    return `<p>${esc(m ? m[2] : l)}</p>`;
+  }).join('');
+}
+function showAiSuggestion({ title, text, original, apply, hint }) {
   closeAiSuggest();
   const bd = document.createElement('div');
   bd.id = 'ai-suggest-bd';
@@ -2921,6 +2930,20 @@ function showAiSuggestion({ title, text, apply, hint }) {
   document.body.appendChild(bd);
   requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
   _aiSuggestState = { text, apply };
+  // Show a before -> after comparison when we have the original, so the user sees
+  // exactly what the AI sharpened, not just a block of new text.
+  const hasBefore = original != null && String(original).trim().length > 0;
+  const bodyInner = hasBefore ? `
+        <div class="ai-ba">
+          <div class="ai-ba-block ai-ba-before">
+            <div class="ai-ba-label">Your original</div>
+            <div class="ai-ba-text">${_renderPlainLines(original)}</div>
+          </div>
+          <div class="ai-ba-divider"><span>${ICON('sparkle','ico ico-sm')} Improved with AI</span></div>
+          <div class="ai-ba-block ai-ba-after">
+            <div class="ai-body">${_renderAiBody(text)}</div>
+          </div>
+        </div>` : `<div class="ai-body">${_renderAiBody(text)}</div>`;
   bd.innerHTML = `
     <div class="app-dialog ai-suggest">
       <div class="ai-suggest-head">
@@ -2928,12 +2951,12 @@ function showAiSuggestion({ title, text, apply, hint }) {
         <h3>${esc(title || 'AI Suggestion')}</h3>
         <button class="modal-close" onclick="closeAiSuggest()" aria-label="Close">×</button>
       </div>
-      <div class="ai-suggest-body ai-body">${_renderAiBody(text)}</div>
+      <div class="ai-suggest-body">${bodyInner}</div>
       ${hint ? `<p class="ai-suggest-hint">${esc(hint)}</p>` : ''}
       <div class="ai-suggest-actions">
-        ${apply ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Apply Changes</span></button>` : ''}
+        ${apply ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Use improved version</span></button>` : ''}
         <button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>
-        <button class="btn btn-ghost" onclick="closeAiSuggest()">${apply ? 'Keep Original' : 'Close'}</button>
+        <button class="btn btn-ghost" onclick="closeAiSuggest()">${apply ? 'Keep original' : 'Close'}</button>
       </div>
     </div>`;
   bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });
@@ -3002,7 +3025,7 @@ async function aiImprove(target) {
         }
       }
     }
-    showAiSuggestion({ title: 'AI Suggestion · ' + _titleCase(target), text: suggestion, apply, hint });
+    showAiSuggestion({ title: 'Improved ' + (target === 'summary' ? 'summary' : _titleCase(target)), text: suggestion, original: text, apply, hint });
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }

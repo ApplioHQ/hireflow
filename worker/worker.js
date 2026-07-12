@@ -963,6 +963,7 @@ async function ai(req, env, action) {
     const result = await aiDispatch(env, action, body);
     await _bumpAiUsage(env, action);
     user.coverLettersUsed = used + 1;
+    user.aiUsed = true;
     await putUser(env, user);
     return { ...result, freeRemaining: Math.max(0, FREE_COVER_LETTERS - user.coverLettersUsed) };
   }
@@ -970,8 +971,7 @@ async function ai(req, env, action) {
   await bumpRate();
   const result = await aiDispatch(env, action, body);
   await _bumpAiUsage(env, action);
-  const _trial = await consumeTrial();
-  return _trial ? { ...result, _trial } : result;
+  return await finishAiCall(result);
 }
 
 // Count real, successful AI feature uses (per-action + total + per-day) so the admin

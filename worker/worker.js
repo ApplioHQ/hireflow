@@ -481,7 +481,9 @@ async function adminAnalytics(req, env) {
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
   const avgDownloads = total ? Math.round((totalDownloads / total) * 10) / 10 : 0;
-  const activationRate = total ? Math.round((everDownloaded / total) * 1000) / 10 : 0;
+  // Activation = signed-up users who actually reached a value moment (used any AI
+  // feature OR exported a resume). The number to watch to know onboarding is working.
+  const activationRate = total ? Math.round((activated / total) * 1000) / 10 : 0;
   // Week-over-week signup momentum (last 7d vs the 7 days before that).
   const signupTrend = prev7Signups ? Math.round(((last7Signups - prev7Signups) / prev7Signups) * 100) : (last7Signups ? 100 : 0);
 
@@ -518,6 +520,7 @@ async function adminAnalytics(req, env) {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
     activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
+    usedAi, activated,
     signupsByDay, attribution,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction,

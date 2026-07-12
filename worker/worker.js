@@ -438,6 +438,7 @@ async function adminAnalytics(req, env) {
   let total = 0, totalDownloads = 0;
   let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
   let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
+  let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
   const todayStr = new Date(now).toISOString().slice(0, 10);
 
   // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
@@ -457,6 +458,8 @@ async function adminAnalytics(req, env) {
     const dl = Number(u.downloadsUsed) || 0;
     totalDownloads += dl;
     if (dl > 0) everDownloaded++;
+    if (u.aiUsed) usedAi++;
+    if (u.aiUsed || dl > 0) activated++;
     if (u.stripeCustomerId) stripeLinked++;
     // Active paid: lifetime never expires; premium counts if its period end is in the future.
     if (plan === "lifetime") activeSubs++;

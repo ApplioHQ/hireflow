@@ -151,26 +151,31 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 // ----- Nav: solidify background on scroll -----
 const homeNav = document.querySelector('.home-nav');
 const scrollProgress = document.getElementById('scroll-progress');
-window.addEventListener('scroll', () => {
-  const scrolled = window.scrollY > 60;
-  homeNav && homeNav.classList.toggle('home-nav-solid', scrolled);
-  const btt = document.getElementById('back-to-top');
-  if (btt) btt.classList.toggle('visible', window.scrollY > 500);
+const bttEl = document.getElementById('back-to-top');
+const stickyEl = document.getElementById('sticky-cta');
+// Cache layout-dependent values so the scroll handler never forces a reflow.
+// getBoundingClientRect/offsetHeight/scrollHeight are recomputed only on resize.
+let _heroH = 600, _maxScroll = 1;
+function _recalcScrollMetrics() {
+  const hero = document.querySelector('.hero');
+  _heroH = (hero && hero.offsetHeight) || 600;
+  const h = document.documentElement;
+  _maxScroll = Math.max(1, h.scrollHeight - h.clientHeight);
+}
+_recalcScrollMetrics();
+window.addEventListener('resize', rafThrottle(_recalcScrollMetrics), { passive: true });
+window.addEventListener('load', _recalcScrollMetrics);
+window.addEventListener('scroll', rafThrottle(() => {
+  const y = window.scrollY;
+  homeNav && homeNav.classList.toggle('home-nav-solid', y > 60);
+  if (bttEl) bttEl.classList.toggle('visible', y > 500);
   // Sticky mini-CTA: show after the hero, hide near the footer/final CTA
-  const sticky = document.getElementById('sticky-cta');
-  if (sticky) {
-    const heroH = (document.querySelector('.hero') || {}).offsetHeight || 600;
-    const nearEnd = window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 700;
-    sticky.classList.toggle('visible', window.scrollY > heroH && !nearEnd);
+  if (stickyEl) {
+    const nearEnd = y + window.innerHeight > document.documentElement.scrollHeight - 700;
+    stickyEl.classList.toggle('visible', y > _heroH && !nearEnd);
   }
-  // Scroll progress bar
-  if (scrollProgress) {
-    const h = document.documentElement;
-    const max = h.scrollHeight - h.clientHeight;
-    const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
-    scrollProgress.style.width = pct + '%';
-  }
-}, { passive: true });
+  if (scrollProgress) scrollProgress.style.width = (y / _maxScroll) * 100 + '%';
+}), { passive: true });
 
 // ----- Scroll-triggered fade-in animations -----
 const fadeObserver = new IntersectionObserver((entries) => {
@@ -358,12 +363,12 @@ document.querySelectorAll('.faq details').forEach(detail => {
   const kw   = document.querySelector('.float-keywords');
   const mock = document.querySelector('.mock-resume');
   if (!ats && !kw) return;
-  window.addEventListener('scroll', function () {
+  window.addEventListener('scroll', rafThrottle(function () {
     const y = window.scrollY;
     if (ats)  ats.style.transform  = `translateY(${-y * .055}px)`;
     if (kw)   kw.style.transform   = `translateY(${y * .038}px)`;
     if (mock) mock.style.transform = `rotate(2deg) translateY(${-y * .025}px)`;
-  }, { passive: true });
+  }), { passive: true });
 })();
 
 // ── Feature card 3D tilt on mousemove ──

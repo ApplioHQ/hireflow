@@ -44,6 +44,9 @@ SITE_URL = "https://appliohq.com"
 PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
 LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
 FREE_DOWNLOAD_LIMIT = "10"
+# Google OAuth Client ID (public value, safe here). Paste the SAME id you put in
+# js/config.js GOOGLE_CLIENT_ID, then redeploy, to activate Google sign-in.
+GOOGLE_CLIENT_ID = ""
 # AI Gateway id, routes Workers AI calls through the gateway for caching/analytics.
 # OPT-IN: leave empty to call Workers AI directly (safe default). Only set this to
 # the id of a gateway you actually created (Dashboard > AI > AI Gateway); a wrong/

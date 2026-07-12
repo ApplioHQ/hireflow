@@ -135,7 +135,7 @@
 <script src="js/templates.js"></script>
 <script>
 const TOKEN = localStorage.getItem('hf_token');
-if (!TOKEN) location.href = 'login?mode=signup'; // anon builds first; export prompts a free signup
+if (!TOKEN) { try { localStorage.setItem('hf_after_signup','export'); } catch(_){} location.href = 'login?mode=signup'; }
 const resume = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
   catch { return {}; }  // corrupt storage must not white-screen the export page

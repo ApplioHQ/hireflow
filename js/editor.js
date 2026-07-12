@@ -3472,7 +3472,7 @@ function _initAnonUI() {
   }
   // Export buttons -> signup prompt (their work is local; sign up to download).
   document.querySelectorAll('a[href="export"], #btn-export, #rp-export').forEach(el => {
-    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); _promptSignup('download your resume as a PDF'); }, true);
+    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {} _promptSignup('download your resume as a PDF'); }, true);
   });
   _anonBarInject();
   _refreshAnonBar();

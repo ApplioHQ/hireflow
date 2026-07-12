@@ -168,9 +168,10 @@
   88%     { opacity: .95; }
   100%    { transform: translateY(580px); opacity: 0; }
 }
-.mock-header { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; padding: 20px 24px; }
-.mock-header h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.mock-contact { display: flex; gap: 16px; font-size: 12px; opacity: .9; }
+.mock-header { background: linear-gradient(140deg, #191d33 0%, #2b3155 100%); color: #fff; padding: 22px 26px 18px; border-bottom: 2px solid rgba(99,102,241,.6); }
+.mock-header h3 { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 700; letter-spacing: .2px; margin-bottom: 3px; color: #fff; }
+.mock-role { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.6); font-weight: 600; margin-bottom: 9px; }
+.mock-contact { display: flex; gap: 15px; font-size: 11.5px; color: rgba(255,255,255,.62); }
 .mock-body { padding: 16px 24px 22px; }
 .mock-body h4 { font-size: 11px; letter-spacing: .12em; color: #4f46e5; font-weight: 700; margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
 .mock-body h4:first-child { margin-top: 0; }

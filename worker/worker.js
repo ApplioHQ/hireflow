@@ -319,6 +319,9 @@ async function me(req, env) {
     downloadLimit: limit,
     currentPeriodEnd: user.currentPeriodEnd || null,
     hasStripeCustomer: !!user.stripeCustomerId,
+    aiTrials: user.aiTrials || {},
+    freeAiTrials: FREE_AI_TRIALS,
+    coverLettersUsed: user.coverLettersUsed || 0,
   };
 }
 
@@ -904,11 +907,28 @@ async function ai(req, env, action) {
   // action requires Premium.
   const freeForAll = action === "parse" || action === "interview" ||
     (action === "improve" && (body.target === "summary" || body.target === "personal"));
+  // PRO features: free users get a few free tries (mirrors the client). Only block
+  // once they're out. The trial is consumed on SUCCESS (below), never on an error.
+  let trialFeature = null, trialLimit = 0;
   if (PRO_AI.has(action) && !paid && !freeForAll) {
-    throw err(402, "Upgrade to Premium to use AI features");
+    trialLimit = (FREE_TRIAL_LIMITS[action] != null) ? FREE_TRIAL_LIMITS[action] : FREE_AI_TRIALS;
+    const trialUsed = (user.aiTrials && user.aiTrials[action]) || 0;
+    if (trialUsed >= trialLimit) {
+      throw err(402, trialLimit > 0
+        ? "You've used your free tries of this feature. Upgrade to Premium for unlimited AI."
+        : "Upgrade to Premium to use this AI feature.");
+    }
+    trialFeature = action;
   }
-
-  // Career Coach (assistant) is Premium-only, enforced by the PRO_AI gate above.
+  // Consume one free trial after a successful call and report the new count so the
+  // client can update its "N free tries left" UI.
+  const consumeTrial = async () => {
+    if (!trialFeature) return null;
+    user.aiTrials = user.aiTrials || {};
+    user.aiTrials[trialFeature] = (user.aiTrials[trialFeature] || 0) + 1;
+    await putUser(env, user);
+    return { feature: trialFeature, used: user.aiTrials[trialFeature], limit: trialLimit };
+  };
 
   // Per-account daily AI cap: soft cost/abuse guard. Count is per UTC day, expires
   // after 2 days, and is checked/incremented per request. Failures are fail-open
@@ -943,7 +963,8 @@ async function ai(req, env, action) {
   await bumpRate();
   const result = await aiDispatch(env, action, body);
   await _bumpAiUsage(env, action);
-  return result;
+  const _trial = await consumeTrial();
+  return _trial ? { ...result, _trial } : result;
 }
 
 // Count real, successful AI feature uses (per-action + total + per-day) so the admin

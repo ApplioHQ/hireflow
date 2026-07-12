@@ -240,6 +240,24 @@ function _renderSidebarProgress() {
 }
 
 // ============ Section: Templates ============
+// ---- Anonymous "try it" limits ----
+// Guests can enter their content and preview it in a couple of starter templates,
+// but the polished output (all templates, customization, AI, save, export) needs a
+// free account, so building the resume becomes a reason to sign up.
+const ANON_FREE_TEMPLATES = ['harvard', 'modern'];
+function _tplLocked(id) { return IS_ANON && ANON_FREE_TEMPLATES.indexOf(id) === -1; }
+const _LOCK_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+// A locked feature panel shown to guests in place of a premium/account-only section.
+function _lockedPanel(title, desc, action) {
+  return `<div class="section-card" style="text-align:center; padding:44px 28px;">
+    <div style="width:58px;height:58px;border-radius:16px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;background:var(--bg-2);color:var(--accent);">${_LOCK_SVG}</div>
+    <h3 style="margin-bottom:8px;">${title}</h3>
+    <p style="color:var(--muted); font-size:14px; max-width:400px; margin:0 auto 22px; line-height:1.65;">${desc}</p>
+    <button class="btn btn-primary" onclick="_promptSignup('${action}')">Sign up free to unlock &rarr;</button>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);">Free forever &middot; No credit card</div>
+  </div>`;
+}
+
 function renderTemplateSection() {
   return `
     <div class="section-card">
@@ -255,11 +273,11 @@ function renderTemplateSection() {
         ${cat ? `<div class="tpl-cat-label">${cat}</div>` : ''}
         <div class="template-grid">
           ${items.map(t => `
-            <div class="template-card ${resume.template===t.id?'selected':''}" onclick="selectTemplate('${t.id}')">
-              <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}</div>
+            <div class="template-card ${resume.template===t.id?'selected':''} ${_tplLocked(t.id)?'tpl-locked':''}" onclick="selectTemplate('${t.id}')">
+              <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}${_tplLocked(t.id)?'<span class="tpl-lock">'+_LOCK_SVG.replace('width="22" height="22"','width="12" height="12"')+'</span>':''}</div>
               <div class="template-card-foot">
                 <span class="t-name">${t.name}</span>
-                ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : ''}
+                ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : (_tplLocked(t.id) ? '<span class="t-badge" style="color:var(--muted);">Sign up</span>' : '')}
               </div>
             </div>`).join('')}
         </div>`;
@@ -270,7 +288,10 @@ function renderTemplateSection() {
       </div>
     </div>`;
 }
-function selectTemplate(id) { resume.template = id; save(); renderMain(); }
+function selectTemplate(id) {
+  if (_tplLocked(id)) { _promptSignup('unlock all ' + TEMPLATE_DEFS.length + ' templates'); return; }
+  resume.template = id; save(); renderMain();
+}
 
 
 // ── Illustrated template thumbnails ──

@@ -110,7 +110,8 @@
 }
 .mock-resume .mock-body { flex: 1; overflow: hidden; }
 .mock-summary { font-size: 11px; line-height: 1.55; color: #4b5563; margin-bottom: 4px; }
-.mock-summary strong { color: #4f46e5; font-weight: 700; }
+.mock-summary strong { color: #0f1222; font-weight: 700; }
+.mock-job-sub { font-size: 11px; color: #6b7280; margin: 0 0 5px; }
 .mock-edu-sub { font-size: 11px; color: #6b7280; }
 .mock-job--edu { margin-bottom: 8px; }
 
@@ -128,9 +129,10 @@
 .mock-avatar {
   flex-shrink: 0;
   width: 50px; height: 50px; border-radius: 50%;
-  background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.45);
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.26);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .5px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px; font-weight: 700; color: #fff; letter-spacing: .5px;
 }
 
 /* Bottom fade so the clipped skills row reads as intentional */
@@ -173,11 +175,12 @@
 .mock-role { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.6); font-weight: 600; margin-bottom: 9px; }
 .mock-contact { display: flex; gap: 15px; font-size: 11.5px; color: rgba(255,255,255,.62); }
 .mock-body { padding: 16px 24px 22px; }
-.mock-body h4 { font-size: 11px; letter-spacing: .12em; color: #4f46e5; font-weight: 700; margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+.mock-body h4 { font-size: 10px; letter-spacing: .18em; color: #9aa1af; font-weight: 700; margin: 16px 0 9px; padding-bottom: 5px; border-bottom: 1px solid #eef0f4; }
 .mock-body h4:first-child { margin-top: 0; }
-.mock-job { margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #4f46e5; }
-.mock-job-head { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px; }
-.mock-job-head span { color: #6b7280; font-size: 11px; font-weight: 500; }
+.mock-job { margin-bottom: 13px; }
+.mock-job-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1px; }
+.mock-job-head strong { font-size: 13px; font-weight: 700; color: #0f1222; }
+.mock-job-head span { color: #9ca3af; font-size: 11px; font-weight: 500; }
 .mock-job ul { list-style: none; }
 .mock-job li { font-size: 11px; line-height: 1.5; color: #4b5563; margin-bottom: 3px;
   border-radius: 4px; animation: li-scan 4.5s ease-in-out infinite; }
@@ -192,8 +195,11 @@
   3%  { background: rgba(34,197,94,.20); box-shadow: -6px 0 0 rgba(34,197,94,.20); }
   14% { background: rgba(34,197,94,0); box-shadow: none; }
 }
-.mock-job em { color: #4f46e5; font-style: normal; font-weight: 600; }
-.mock-job strong { color: #4f46e5; font-weight: 700; }
+.mock-job em { color: #0f1222; font-style: normal; font-weight: 600; }
+.mock-job strong { color: #0f1222; font-weight: 700; }
+/* Reserve the accent for quantified results only, so it reads as intentional
+   emphasis (like a well-designed resume) rather than everything-highlighted. */
+.mock-job .mock-metric { color: #4f46e5; }
 .mock-skills { display: flex; flex-wrap: wrap; gap: 5px; }
 .mock-skills span { padding: 3px 9px; background: #eef2ff; color: #4f46e5; border-radius: 4px; font-size: 11px; font-weight: 500; }
 

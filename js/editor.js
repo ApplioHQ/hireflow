@@ -2709,14 +2709,16 @@ async function saveResume(silent) {
   resume.versions = resume.versions.slice(0, 10);
   save();
   let cloudOk = false;
-  try {
-    const r = await fetch(API + '/resume', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-      body: JSON.stringify({ resume })
-    });
-    cloudOk = r.ok;
-  } catch (_) {}
+  if (!IS_ANON) {
+    try {
+      const r = await fetch(API + '/resume', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body: JSON.stringify({ resume })
+      });
+      cloudOk = r.ok;
+    } catch (_) {}
+  }
   _setSaveStatus('✓ Saved', 'var(--success)');
   // Open version history (button save) so users can restore versions. A keyboard
   // save (⌘S) stays quiet so it doesn't yank focus into a modal mid-edit.

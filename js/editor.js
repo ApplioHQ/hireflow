@@ -3719,5 +3719,6 @@ async function _hydrateFromCloud() {
   hydrate();
   renderCustomNav();
   renderMain();
+  if (IS_ANON) _initAnonUI();
   _maybePendingImport();
 })();

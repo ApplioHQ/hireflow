@@ -220,6 +220,7 @@
     { href: 'match', icon: 'gauge', title: 'Best Match', desc: 'Score your resume vs a job' },
     { href: 'interview', icon: 'mic', title: 'Interview Prep', desc: 'Practice and get scored' },
     { href: 'cover-letter', icon: 'pen', title: 'Cover Letter', desc: 'Generate a tailored letter' },
+    { href: 'letters', icon: 'pen', title: 'Letter Writer', desc: 'Retirement, promotion & thank-you letters' },
     { href: 'brag-doc', icon: 'trophy', title: 'Brag Doc', desc: 'Turn your wins into a review-ready one-pager' },
     { href: 'first-90-days', icon: 'compass', title: 'First 90 Days', desc: 'Ramp fast in a new role with a 30/60/90 plan' },
     { href: 'skill-gap', icon: 'gauge', title: 'Skill Gap Coach', desc: 'See what your target role wants that you\'re missing' },

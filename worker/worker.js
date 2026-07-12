@@ -911,6 +911,7 @@ async function ai(req, env, action) {
     }
     await bumpRate();
     const result = await aiDispatch(env, action, body);
+    await _bumpAiUsage(env, action);
     user.coverLettersUsed = used + 1;
     await putUser(env, user);
     return { ...result, freeRemaining: Math.max(0, FREE_COVER_LETTERS - user.coverLettersUsed) };

@@ -1746,6 +1746,7 @@ const LINE_OPTS = [['tight','Tight'],['normal','Normal'],['relaxed','Relaxed'],[
 const BULLET_OPTS = [['dot','• Dot'],['dash','– Dash'],['square','▪ Square'],['chevron','› Chevron'],['arrow','→ Arrow'],['circle','◦ Circle'],['none','No bullets']];
 
 function renderCustomize() {
+  if (IS_ANON) return _lockedPanel('Customize your resume', 'Change colors, fonts, spacing, line height, margins, bullets and paper size, then make it truly yours. All free with an account.', 'customize your resume');
   const c = resume.customize;
   return `
     <div class="section-card">
@@ -2723,6 +2724,7 @@ async function _cloudSaveNow() {
 }
 
 async function saveResume(silent) {
+  if (IS_ANON) { _promptSignup('save your resume and pick up on any device'); return; }
   resume.versions = resume.versions || [];
   // Snapshot excludes versions array to prevent recursive nesting
   const { versions: _v, ...snap } = resume;

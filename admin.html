@@ -111,7 +111,7 @@
           <table class="user-table">
             <thead>
               <tr>
-                <th>Email</th><th>Plan</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th id="actions-col" style="display:none;">Actions</th>
+                <th>Email</th><th>Plan</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th id="actions-col" style="display:none;">Actions</th>
               </tr>
             </thead>
             <tbody id="users-tbody"></tbody>
@@ -328,6 +328,7 @@ function renderUsers() {
         <td>${fmtDate(u.createdAt)}</td>
         <td>${esc(notes)} ${stripe}</td>
         <td>${u.downloadsUsed}</td>
+        <td>${_aiUseCell(u)}</td>
         <td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>
       </tr>`;
   }).join('');
@@ -456,12 +457,7 @@ async function loadAnalytics() {
       + '<span class="pill success">Premium: ' + d.plans.premium + '</span>'
       + '<span class="pill success">Lifetime: ' + d.plans.lifetime + '</span>'
       + '</div>'
-      + (Object.keys(d.aiByAction || {}).length
-          ? '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">AI Feature Usage (all-time)</div>'
-            + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
-            + Object.entries(d.aiByAction).sort(function(a,b){return b[1]-a[1];}).map(function(e){return '<span class="pill">' + _aiLabel(e[0]) + ': ' + e[1] + '</span>';}).join('')
-            + '</div>'
-          : '')
+      + _aiFeatureBlock(d.aiByAction || {}, d.usersByFeature || {})
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Page Views, Last 7 Days</div>'
       + _sparkline(d.pvByDay, 'view')
       + '<div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;">Signups, Last 30 Days</div>'
@@ -471,6 +467,25 @@ async function loadAnalytics() {
   } catch (e) {
     body.innerHTML = '<span style="color:var(--danger);">Couldn\'t load analytics: ' + esc(e.message) + '</span>';
   }
+}
+
+// AI feature usage: total successful uses + how many distinct users touched each
+// feature, sorted by uses. Answers "who uses which AI feature" at the aggregate level;
+// the per-user breakdown lives in the Users table ("AI use" column).
+function _aiFeatureBlock(byAction, byUser) {
+  var keys = Object.keys(byAction).concat(Object.keys(byUser))
+    .filter(function (k, i, a) { return a.indexOf(k) === i; });
+  if (!keys.length) return '';
+  keys.sort(function (a, b) { return (byAction[b] || 0) - (byAction[a] || 0); });
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">AI Feature Usage (all-time) · uses · unique users</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
+    + keys.map(function (k) {
+        var uses = byAction[k] || 0, users = byUser[k] || 0;
+        return '<span class="pill" title="' + users + ' distinct user' + (users === 1 ? '' : 's') + '">'
+          + _aiLabel(k) + ': ' + uses.toLocaleString()
+          + ' <span style="opacity:.6;">· ' + users + ' user' + (users === 1 ? '' : 's') + '</span></span>';
+      }).join('')
+    + '</div>';
 }
 
 function _statBox(label, value, color, sub, subColor) {

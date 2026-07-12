@@ -2707,6 +2707,7 @@ function save() {
   // Debounced cloud autosave so work is never stranded on one device.
   clearTimeout(_cloudTimer);
   _cloudTimer = setTimeout(_cloudSaveNow, 1400);
+  if (IS_ANON) _refreshAnonBar();   // surface the signup nudge once there's real content
 }
 async function _cloudSaveNow() {
   if (IS_ANON) { _setSaveStatus('Saved on this device · Sign up to save it forever', 'var(--muted)'); return; }

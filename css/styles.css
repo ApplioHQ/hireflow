@@ -364,6 +364,20 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .template-card:hover { transform: translateY(-2px); border-color: var(--accent); }
 .template-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.25); }
+
+/* Guest "your resume is ready" signup nudge (anonymous editor only) */
+.anon-bar { position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 160%); z-index: 60; opacity: 0; transition: transform .32s cubic-bezier(.2,.9,.3,1), opacity .3s ease; pointer-events: none; max-width: calc(100vw - 28px); }
+.anon-bar.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.anon-bar-in { display: flex; align-items: center; gap: 14px; padding: 11px 13px 11px 18px; border-radius: 14px; background: linear-gradient(135deg, rgba(26,27,58,.97), rgba(45,44,110,.97)); border: 1px solid rgba(139,92,246,.42); box-shadow: 0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.anon-bar-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: anonPulse 2.2s infinite; }
+@keyframes anonPulse { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,.55); } 70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
+.anon-bar-msg { font-size: 13.5px; color: #dfe2f2; line-height: 1.4; }
+.anon-bar-msg strong { color: #fff; font-weight: 700; }
+.anon-bar .btn { flex: none; white-space: nowrap; }
+.anon-bar-x { flex: none; background: none; border: none; color: rgba(255,255,255,.55); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; transition: color .15s; }
+.anon-bar-x:hover { color: #fff; }
+@media (max-width: 600px) { .anon-bar-msg { font-size: 12.5px; } .anon-bar-msg strong { display: block; } }
+@media (prefers-reduced-motion: reduce) { .anon-bar { transition: opacity .2s; } .anon-bar-dot { animation: none; } }
 .template-card.tpl-locked .template-thumb { opacity: .82; }
 .template-thumb .tpl-lock { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(15,18,34,.74); color: #fff; display: flex; align-items: center; justify-content: center; z-index: 3; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
 .template-preview {

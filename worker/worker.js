@@ -528,7 +528,7 @@ async function adminAnalytics(req, env) {
 }
 
 async function adminDeleteUser(req, env) {
-  await requireAdmin(req, env, true);
+  await requireAdmin(req, env);   // any admin (not super-only) can delete users
   const { email } = await req.json();
   if (!email) throw err(400, "Email required");
   const key = email.toLowerCase();

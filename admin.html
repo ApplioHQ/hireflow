@@ -247,10 +247,10 @@ async function init() {
   document.getElementById('banner-role').textContent = ROLE === 'super' ? 'SUPER ADMIN ACCESS' : 'ADMIN ACCESS';
   document.getElementById('banner-msg').textContent = ROLE === 'super'
     ? 'Full control: view, delete users, disable AI, take site offline.'
-    : 'View-only access: see users and plans.';
+    : 'Manage users: view and delete. System controls are super-admin only.';
+  document.getElementById('actions-col').style.display = '';   // any admin can delete users
   if (ROLE === 'super') {
     document.getElementById('super-controls').style.display = '';
-    document.getElementById('actions-col').style.display = '';
     document.getElementById('admin-grid').classList.remove('single');
   } else {
     document.getElementById('admin-grid').classList.add('single');
@@ -328,7 +328,7 @@ function renderUsers() {
         <td>${fmtDate(u.createdAt)}</td>
         <td>${esc(notes)} ${stripe}</td>
         <td>${u.downloadsUsed}</td>
-        ${ROLE === 'super' ? `<td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>` : ''}
+        <td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>
       </tr>`;
   }).join('');
 }

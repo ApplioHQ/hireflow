@@ -278,13 +278,13 @@ document.querySelectorAll('.faq details').forEach(detail => {
 (function () {
   const hero = document.querySelector('.hero');
   if (!hero) return;
-  hero.addEventListener('mousemove', function (e) {
+  hero.addEventListener('mousemove', rafThrottle(function (e) {
     const r = hero.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
     const y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
     hero.style.setProperty('--mx', x + '%');
     hero.style.setProperty('--my', y + '%');
-  });
+  }));
   hero.addEventListener('mouseleave', function () {
     hero.style.setProperty('--mx', '50%');
     hero.style.setProperty('--my', '40%');
@@ -505,12 +505,12 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   document.querySelectorAll('.hero-ctas .btn').forEach(function (btn) {
-    btn.addEventListener('mousemove', function (e) {
+    btn.addEventListener('mousemove', rafThrottle(function (e) {
       const r = btn.getBoundingClientRect();
       const x = e.clientX - r.left - r.width / 2;
       const y = e.clientY - r.top - r.height / 2;
       btn.style.transform = `translate(${x * 0.18}px, ${y * 0.3}px)`;
-    });
+    }));
     btn.addEventListener('mouseleave', function () {
       btn.style.transform = '';
     });
@@ -556,11 +556,11 @@ document.querySelectorAll('.problem-card').forEach(function (card) {
 
 // ── Feature cards: cursor-tracking spotlight glow ──
 document.querySelectorAll('.feat-card').forEach(function (card) {
-  card.addEventListener('mousemove', function (e) {
+  card.addEventListener('mousemove', rafThrottle(function (e) {
     var r = card.getBoundingClientRect();
     card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
     card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
-  });
+  }));
 });
 
 // ── Hero mockup: count-up metrics + cursor parallax tilt ──
@@ -598,13 +598,13 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
   if (reduce) return;
   var card = hero.querySelector('.mock-resume');
   var stack = hero.querySelector('.mock-resume-stack');
-  hero.addEventListener('mousemove', function (e) {
+  hero.addEventListener('mousemove', rafThrottle(function (e) {
     var r = hero.getBoundingClientRect();
     var px = (e.clientX - r.left) / r.width - 0.5;
     var py = (e.clientY - r.top) / r.height - 0.5;
     if (card) card.style.transform = 'rotate(2deg) rotateX(' + (-py * 7).toFixed(2) + 'deg) rotateY(' + (px * 7).toFixed(2) + 'deg)';
     if (stack) stack.style.transform = 'rotate(5deg) translate(' + (px * 9).toFixed(1) + 'px,' + (py * 9).toFixed(1) + 'px)';
-  });
+  }));
   hero.addEventListener('mouseleave', function () {
     if (card) card.style.transform = 'rotate(2deg)';
     if (stack) stack.style.transform = 'rotate(5deg)';

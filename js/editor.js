@@ -2687,6 +2687,7 @@ function save() {
   _cloudTimer = setTimeout(_cloudSaveNow, 1400);
 }
 async function _cloudSaveNow() {
+  if (IS_ANON) { _setSaveStatus('Saved on this device · Sign up to save it forever', 'var(--muted)'); return; }
   _setSaveStatus('Saving…', 'var(--muted)');
   try {
     const r = await fetch(API + '/resume', {
@@ -2764,6 +2765,8 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
+  // Anonymous users can build freely, but AI features need a (free) account.
+  if (IS_ANON) { _promptSignup('use AI features like tailoring, ATS scoring and analysis'); throw new Error('Sign up required'); }
   // Resume Import (parse) is free for everyone, never gate it.
   // Every other AI feature gives free users a limited number of free trials,
   // ENFORCED BY THE BACKEND (per-feature, default 2). We only pre-check the
@@ -3646,6 +3649,7 @@ function _maybePendingImport() {
 // so the user doesn't see a blank editor and overwrite their real resume. We only
 // do this when there was NO local resume, so unsaved local edits are never clobbered.
 async function _hydrateFromCloud() {
+  if (IS_ANON) return;   // nothing in the cloud for anonymous users
   try {
     const r = await fetch(API + '/resume', { headers: { Authorization: 'Bearer ' + TOKEN } });
     if (!r.ok) return;

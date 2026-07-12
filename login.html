@@ -15,6 +15,11 @@
   .auth-perks li { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text); }
   .auth-perks li svg { flex:none; color:#10b981; }
   .auth-socialproof { text-align:center; font-size:12px; color:var(--muted); margin:16px 0 0; }
+  /* Google sign-in block (hidden until GOOGLE_CLIENT_ID is configured) */
+  .oauth-block { display:none; margin:4px 0 6px; }
+  .gbtn { display:flex; justify-content:center; }
+  .oauth-divider { display:flex; align-items:center; gap:12px; margin:16px 0 4px; color:var(--muted); font-size:12px; }
+  .oauth-divider::before, .oauth-divider::after { content:""; flex:1; height:1px; background:var(--border); }
   /* Show/hide password + Caps Lock warning */
   .pw-wrap { position:relative; }
   .pw-wrap input { padding-right:58px !important; }
@@ -87,6 +92,7 @@
       <h2>Welcome back</h2>
       <p class="sub">Sign in to continue</p>
       <div id="msg-signin" class="auth-msg"></div>
+      <div class="oauth-block"><div id="gbtn-signin" class="gbtn"></div><div class="oauth-divider"><span>or</span></div></div>
       <form id="form-signin">
         <div class="form-field">
           <label for="si-email">Email or username</label>
@@ -112,6 +118,7 @@
       <h2>Create your free account</h2>
       <p class="sub">Free forever · No credit card · Takes 30 seconds</p>
       <div id="msg-signup" class="auth-msg"></div>
+      <div class="oauth-block"><div id="gbtn-signup" class="gbtn"></div><div class="oauth-divider"><span>or</span></div></div>
       <form id="form-signup">
         <div class="form-field">
           <label for="su-email">Email</label>

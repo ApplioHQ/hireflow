@@ -27,7 +27,7 @@ Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here, importing is free for everyone.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot", "letter"]);
 // Career Coach (assistant) is Premium/Lifetime only, it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
@@ -1201,6 +1201,7 @@ async function aiDispatch(env, action, body) {
     case "interview": return aiInterview(env, body);
     case "interview-feedback": return aiInterviewFeedback(env, body);
     case "cover-letter": return aiCoverLetter(env, body);
+    case "letter":       return aiLetter(env, body);
     case "assistant": return aiAssistant(env, body);
     case "autopilot": return aiAutopilot(env, body);
     default: throw err(404, "Unknown AI action");
@@ -2022,6 +2023,88 @@ Requirements:
   ].filter(Boolean).join("\n");
 
   const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
+  const cleaned = out
+    .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
+    .trim();
+  return { text: cleaned };
+}
+
+// ============ Letter Writer ============
+// Personal professional letters that aren't cover letters: retirement, promotion
+// requests, resignation, thank-you, reference requests, and more. Grounded in the
+// details the user provides (and their resume for name/history if available), never
+// inventing facts. Plain text, ready to send.
+const LETTER_TYPES = {
+  retirement: {
+    label: "Retirement Letter",
+    guide: "A gracious retirement announcement to an employer or manager. State the intent to retire and the intended last working day, express genuine gratitude for the years and the people, reflect briefly and warmly on the experience, and offer to help with the transition. Dignified, appreciative, forward-looking, never bitter.",
+    words: "220-320",
+  },
+  promotion: {
+    label: "Promotion Request",
+    guide: "A confident, evidence-based letter asking to be considered for a promotion (or a specific higher role). Open with the ask, make the case with concrete accomplishments, added responsibilities, and measurable impact, show readiness for the next level, and close by inviting a conversation. Assertive but respectful, never entitled.",
+    words: "220-320",
+  },
+  resignation: {
+    label: "Resignation Letter",
+    guide: "A short, professional two-weeks'-notice resignation. State that you are resigning and your last working day, keep the tone positive and appreciative regardless of the reason, offer to help transition, and burn no bridges. Brief and clean.",
+    words: "140-220",
+  },
+  "thank-you": {
+    label: "Thank-You Letter",
+    guide: "A warm post-interview or professional thank-you note. Thank them specifically, reaffirm interest or appreciation, reference something concrete from the interaction, and close graciously. Sincere and concise.",
+    words: "120-200",
+  },
+  reference: {
+    label: "Reference Request",
+    guide: "A polite letter asking someone to serve as a professional reference or write a recommendation. Remind them of your shared work, say what the reference is for, make it easy to say yes (offer to share your resume and details), and thank them warmly.",
+    words: "150-230",
+  },
+  recommendation: {
+    label: "Recommendation Letter",
+    guide: "A letter recommending someone (that the author writes on another person's behalf). Establish the relationship and its length, give specific evidence of the person's strengths and impact, and give a clear, confident endorsement for the role or opportunity.",
+    words: "220-320",
+  },
+};
+
+async function aiLetter(env, { letterType, recipient, senderName, tone, details, resume }) {
+  const spec = LETTER_TYPES[letterType] || LETTER_TYPES.retirement;
+  const toneMap = {
+    professional: "polished and professional",
+    warm:         "warm, personable, and heartfelt",
+    grateful:     "deeply grateful and gracious",
+    confident:    "confident and direct",
+    formal:       "formal and respectful",
+  };
+  const toneDesc = toneMap[tone] || toneMap.professional;
+  const name = senderName ||
+    (resume && (resume.name || (resume.personal && resume.personal.name))) || "";
+
+  const sys = GROUNDING + "\n\n" +
+`You are an expert letter writer. Write a complete, ready-to-send ${spec.label.toLowerCase()}.
+
+What this letter is: ${spec.guide}
+
+Requirements:
+- Tone: ${toneDesc}.
+- Length: ${spec.words} words.
+- Ground every fact ONLY in the details and resume provided. NEVER invent dates, names, job titles, companies, numbers, or reasons that weren't given. If a needed detail (like a last working day) is missing, write around it gracefully rather than guessing.
+- Address it to ${recipient ? `"${String(recipient).slice(0, 80)}"` : '"Dear [appropriate recipient]," using a natural, specific greeting if the recipient is clear from the details, otherwise "Dear Hiring Manager," or "To whom it may concern,"'}.
+- Sign off warmly (e.g. "Sincerely," or "With gratitude,") followed by the sender's name${name ? ` (${name})` : ""}.
+- NO markdown, NO headings, NO placeholders or brackets like [Company] or [Date] unless the user left that detail blank and it truly must be filled in by hand.
+- Output ONLY the letter, no preamble like "Here's your letter".`;
+
+  const userMsg = [
+    `Letter type: ${spec.label}`,
+    name ? `Sender's name: ${name}` : "",
+    recipient ? `Recipient: ${String(recipient).slice(0, 120)}` : "",
+    `\nDetails the sender provided (use these, don't invent beyond them):\n${String(details || "(none, infer a sensible, generic version from the letter type)").slice(0, 2500)}`,
+    resume && Object.keys(resume || {}).length
+      ? `\nSender's resume (for name, roles, and history, optional context):\n${JSON.stringify(resume).slice(0, 4000)}`
+      : "",
+  ].filter(Boolean).join("\n");
+
+  const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.35 });
   const cleaned = out
     .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
     .trim();

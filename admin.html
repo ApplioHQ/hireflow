@@ -416,14 +416,12 @@ async function loadAnalytics() {
     body.innerHTML =
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
       + _statBox('Page Views', (d.pageViews || 0).toLocaleString(), '#ec4899', (d.pageViewsToday || 0) + ' today · ' + (d.pageViewsLast7 || 0) + ' this week')
-      + _statBox('Visitors', (d.visitors || 0).toLocaleString(), '#d946ef', (d.visitorsToday || 0) + ' unique today')
       + _statBox('Total Users', d.total, '#6366f1')
       + _statBox('Active Paid', d.activeSubs, '#22c55e', (d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime'))
       + _statBox('Conversion', d.conversionRate + '%', '#8b5cf6', (d.plans.premium + d.plans.lifetime) + ' of ' + d.total + ' paid')
       + _statBox('Signups Today', d.signupsToday, '#06b6d4')
       + _statBox('Signups (7d)', d.last7Signups, '#06b6d4', trendStr, trendColor)
       + _statBox('Signups (30d)', d.last30Signups, '#06b6d4')
-      + _statBox('Activation', d.activationRate + '%', '#f59e0b', d.everDownloaded + ' downloaded ≥1')
       + _statBox('Avg Downloads', d.avgDownloads, '#f59e0b', d.totalDownloads + ' total')
       + _statBox('Stripe Linked', d.stripeLinked, '#635bff')
       + _statBox('Dormant', d.dormant, '#ef4444', 'joined >7d ago, 0 downloads')

@@ -41,7 +41,9 @@
       "WebFetch(domain:appliohq.substack.com)",
       "Bash(sips -g pixelWidth -g pixelHeight -g hasAlpha /Users/pritamavuthu/Downloads/Icon.png)",
       "Bash(sed -i '' \"s|pvByDay:pv};|pvByDay:pv,aiUses:2847,aiToday:63,aiLast7:412,aiByAction:{improve:1120,tailor:640,ats:410,analyze:280,'cover-letter':190,interview:120,autopilot:87}};|\" /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/adminspark.js)",
-      "Bash(sed -i '' 's|clip:{x:100,y:520,width:1000,height:340}|clip:{x:90,y:300,width:1250,height:560}|' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/adminspark.js)"
+      "Bash(sed -i '' 's|clip:{x:100,y:520,width:1000,height:340}|clip:{x:90,y:300,width:1250,height:560}|' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/adminspark.js)",
+      "Bash(mkdir -p /Users/pritamavuthu/aura-waitlist)",
+      "Read(//Users/pritamavuthu/**)"
     ],
     "defaultMode": "bypassPermissions"
   }

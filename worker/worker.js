@@ -279,6 +279,7 @@ async function googleAuth(req, env) {
     user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
     await putUser(env, user);
   }
+  await touchActivity(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
   return { token, email };
 }
@@ -316,6 +317,7 @@ async function login(req, env) {
   const user = await getUser(env, email);
   if (!user) throw err(401, "Invalid email or password");
   if (!await verifyPassword(password, user.salt, user.hash)) throw err(401, "Invalid email or password");
+  await touchActivity(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
   return { token, email };
 }
@@ -1033,6 +1035,8 @@ function _recordUserFeature(user, action) {
   user.aiFeatures[action] = (user.aiFeatures[action] || 0) + 1;
   user.aiLastFeature = action;
   user.aiLastAt = Date.now();
+  user.aiUseCount = (Number(user.aiUseCount) || 0) + 1;   // total AI actions ever (repeat-usage signal)
+  _touchActivity(user);   // AI use is real activity; caller already persists the user
 }
 
 async function _bumpAiUsage(env, action) {

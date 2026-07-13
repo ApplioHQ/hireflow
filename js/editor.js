@@ -3509,6 +3509,21 @@ async function aiAnalyze() {
   }
 }
 
+async function aiModernize() {
+  const host = document.getElementById('modernize-result');
+  const prev = host ? host.innerHTML : null;
+  if (host) host.innerHTML = _analysisSkeleton();
+  try {
+    const r = await ai('modernize', { resume });
+    resume.modernize = r;           // persist so it's restored when revisiting the section
+    save();
+    if (host) host.innerHTML = _modernizePanel(r);
+  } catch(e) {
+    if (host && prev != null) host.innerHTML = prev;   // restore (paywall throws before any repaint)
+    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
+  }
+}
+
 function openModal(id) {
   document.getElementById('modal-'+id).classList.add('open');
   if(id==='version') renderVersions();

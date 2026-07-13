@@ -477,7 +477,13 @@ async function adminAnalytics(req, env) {
   let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
   let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
   let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
+  // Retention / repeat usage (the metrics investors flagged as missing).
+  let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
+  let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
   const todayStr = new Date(now).toISOString().slice(0, 10);
+  // Monthly prices (mirror the pricing page). MRR counts recurring Premium only; Lifetime
+  // is one-time revenue, reported separately so the two aren't conflated.
+  const PREMIUM_MO = 9.99, LIFETIME_ONCE = 39.99;
 
   // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
   const signupsByDay = {};
@@ -506,8 +512,24 @@ async function adminAnalytics(req, env) {
     if (u.aiUsed || dl > 0) activated++;
     if (u.stripeCustomerId) stripeLinked++;
     // Active paid: lifetime never expires; premium counts if its period end is in the future.
+    const premiumActive = plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now;
     if (plan === "lifetime") activeSubs++;
-    else if (plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now) activeSubs++;
+    else if (premiumActive) { activeSubs++; activePremiumSubs++; }
+
+    // ---- Retention / repeat usage ----
+    // `lastSeen`/`days`/`activeDayCount` come from touchActivity on /me, login, and AI use.
+    const lastSeen = Number(u.lastSeen) || 0;
+    const days = Array.isArray(u.days) ? u.days : [];
+    const seenInWindow = (w) => lastSeen && (now - lastSeen) <= w * DAY
+      || days.some(d => { const t = Date.parse(d + "T00:00:00Z"); return t && (now - t) <= w * DAY; });
+    if (days.includes(todayStr) || (lastSeen && new Date(lastSeen).toISOString().slice(0, 10) === todayStr)) activeToday++;
+    if (seenInWindow(7)) wau++;
+    if (seenInWindow(30)) mau++;
+    // Returning = active on 2+ distinct days (came back at least once after signup day).
+    if ((Number(u.activeDayCount) || 0) >= 2) returning++;
+    const aiCount = Number(u.aiUseCount) || 0;
+    totalAiUses += aiCount;
+    if (aiCount >= 2) aiRepeat++;   // used AI more than once = repeat value, not one-and-done
     const created = Number(u.createdAt) || 0;
     if (created) {
       const age = now - created;

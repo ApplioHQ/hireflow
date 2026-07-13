@@ -547,6 +547,15 @@ async function adminAnalytics(req, env) {
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
   const avgDownloads = total ? Math.round((totalDownloads / total) * 10) / 10 : 0;
+  // Retention rates. returnRate = share of all users who came back on a 2nd day.
+  const returnRate = total ? Math.round((returning / total) * 1000) / 10 : 0;
+  const aiRepeatRate = usedAi ? Math.round((aiRepeat / usedAi) * 1000) / 10 : 0;
+  const stickiness = mau ? Math.round((wau / mau) * 1000) / 10 : 0;   // WAU/MAU
+  const avgAiPerUser = usedAi ? Math.round((totalAiUses / usedAi) * 10) / 10 : 0;
+  // Revenue. MRR is recurring Premium only; Lifetime is one-time, reported separately.
+  const mrr = Math.round(activePremiumSubs * PREMIUM_MO * 100) / 100;
+  const lifetimeRevenue = Math.round(plans.lifetime * LIFETIME_ONCE * 100) / 100;
+  const payingCustomers = activeSubs;
   // Activation = signed-up users who actually reached a value moment (used any AI
   // feature OR exported a resume). The number to watch to know onboarding is working.
   const activationRate = total ? Math.round((activated / total) * 1000) / 10 : 0;
@@ -587,6 +596,11 @@ async function adminAnalytics(req, env) {
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
     activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
     usedAi, activated,
+    // Retention / repeat usage
+    activeToday, wau, mau, returning, returnRate, stickiness,
+    aiRepeat, aiRepeatRate, avgAiPerUser, totalAiUses,
+    // Revenue
+    payingCustomers, activePremiumSubs, mrr, lifetimeRevenue,
     signupsByDay, attribution,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,

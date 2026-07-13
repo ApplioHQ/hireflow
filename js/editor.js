@@ -1522,9 +1522,87 @@ function renderAnalysis() {
       <div class="ai-card-body">
         ${freeAiBanner('analysis')}
         <div id="analysis-result">${resume.analysis ? _analysisPanel(resume.analysis) : _analysisEmptyState()}</div>
-        ${navRow('ats','dashboard')}
+        ${navRow('ats','modernize')}
       </div>
     </div>`;
+}
+
+// ---- Age-Proof: present decades of experience as current, defuse age-bias signals ----
+function renderModernize() {
+  return `
+    <div class="section-card ai-card ai-card-violet">
+      <div class="ai-card-header">
+        <div class="ai-card-icon ai-icon-violet">${ICON('clock')}</div>
+        <div>
+          <h3 class="ai-card-title">Age-Proof Your Resume</h3>
+          <p class="ai-card-sub">Spot details that read as dated or reveal age unnecessarily, and get concrete fixes.</p>
+        </div>
+        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <button class="btn btn-violet btn-sm" onclick="aiModernize()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Age-proof</button>
+          ${freeAiLabel('modernize')}
+        </div>
+      </div>
+      <div class="ai-card-body">
+        ${freeAiBanner('modernize')}
+        <div id="modernize-result">${resume.modernize ? _modernizePanel(resume.modernize) : _modernizeEmptyState()}</div>
+        ${navRow('analysis','dashboard')}
+      </div>
+    </div>`;
+}
+function _modernizeEmptyState() {
+  const tile = (ico, title, sub) =>
+    `<div class="an-pre-tile an-pre-emerald">
+      <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
+      <div><b>${title}</b><span>${sub}</span></div>
+    </div>`;
+  return `
+    <div class="an-pre">
+      <p class="an-pre-lead">Decades of experience is an asset, but a few details can make a resume read as dated or invite age bias. Get a quick review and the exact fixes, plus a modernized summary.</p>
+      <div class="an-pre-grid">
+        ${tile('clock', 'Dated signals', 'Old dates, graduation years, "20+ years"')}
+        ${tile('bolt', 'Currency check', 'Outdated tools, terms & phrasing')}
+        ${tile('check', 'Concrete fixes', 'What to change, and a modernized summary')}
+      </div>
+    </div>`;
+}
+function _modernizePanel(r) {
+  if (r && r.text && !Array.isArray(r.signals)) {
+    return `<div class="ai-result-panel"><div class="ai-result-head"><span class="ai-suggest-spark">${ICON('clock')}</span><h4>Age-Proof Review</h4></div><div class="ai-body" style="padding:16px;">${_renderAiBody(r.text)}</div></div>`;
+  }
+  const level = r.riskLevel || 'moderate';
+  const col = level === 'low' ? '#16a34a' : level === 'high' ? '#ef4444' : '#f59e0b';
+  const lbl = level === 'low' ? 'Low age-bias risk' : level === 'high' ? 'High age-bias risk' : 'Moderate age-bias risk';
+  const sev = s => s === 'high' ? '#ef4444' : s === 'low' ? '#16a34a' : '#f59e0b';
+  const signals = (r.signals || []).map(s => `
+    <li class="ai-rec" style="align-items:flex-start;border-left:3px solid ${sev(s.severity)};">
+      <div>
+        <div style="font-weight:650;color:var(--text);">${esc(s.issue || '')}${s.where ? ` <span style="color:var(--muted);font-weight:500;">· ${esc(s.where)}</span>` : ''}</div>
+        ${s.why ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55;">${esc(s.why)}</div>` : ''}
+        ${s.fix ? `<div style="font-size:13px;margin-top:6px;line-height:1.55;"><span style="color:var(--accent);font-weight:600;">Fix:</span> ${esc(s.fix)}</div>` : ''}
+      </div>
+    </li>`).join('');
+  return `
+    <div class="ai-result-panel">
+      <div class="ai-result-head"><span class="ai-suggest-spark">${ICON('clock')}</span><h4>Age-Proof Review</h4></div>
+      <div style="padding:16px;">
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:${col}1a;border:1px solid ${col}55;color:${col};font-weight:700;font-size:12.5px;">${esc(lbl)}</span>
+        ${r.summary ? `<p style="color:var(--text);font-size:14px;line-height:1.6;margin:12px 0 14px;">${esc(r.summary)}</p>` : ''}
+        ${signals ? `<ul class="ai-rec-list">${signals}</ul>` : ''}
+        ${r.modernSummary ? `
+          <div class="ai-ba-block ai-ba-after" style="margin-top:16px;">
+            <div class="ai-ba-label">Modernized summary</div>
+            <div style="font-size:13.5px;line-height:1.6;color:var(--text);">${esc(r.modernSummary)}</div>
+            <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="_applyModernSummary()">${ICON('check','ico ico-sm')} Use this summary</button>
+          </div>` : ''}
+      </div>
+    </div>`;
+}
+function _applyModernSummary() {
+  const r = resume.modernize;
+  if (!r || !r.modernSummary) return;
+  resume.personal.summary = r.modernSummary;
+  save(); renderMain();
+  toast('Summary updated ✓', { type: 'success' });
 }
 
 // Appealing pre-run state for ATS, previews the score + what gets graded.

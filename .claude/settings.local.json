@@ -50,7 +50,8 @@
       "Bash(PORT=3100 npm run dev)",
       "Bash(npm run *)",
       "Bash(pkill -f \"next dev\")",
-      "Bash(rm -rf .next .open-next)"
+      "Bash(rm -rf .next .open-next)",
+      "Bash(cd /Users/pritamavuthu/aura-waitlist *)"
     ],
     "defaultMode": "bypassPermissions"
   }

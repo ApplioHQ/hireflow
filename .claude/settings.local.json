@@ -51,7 +51,8 @@
       "Bash(npm run *)",
       "Bash(pkill -f \"next dev\")",
       "Bash(rm -rf .next .open-next)",
-      "Bash(cd /Users/pritamavuthu/aura-waitlist *)"
+      "Bash(cd /Users/pritamavuthu/aura-waitlist *)",
+      "mcp__7e789e86-816d-4fe1-95e7-8d2829720771__generate_image"
     ],
     "defaultMode": "bypassPermissions"
   }

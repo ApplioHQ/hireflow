@@ -205,6 +205,37 @@ async function getUser(env, email) {
 async function putUser(env, user) {
   await env.HIREFLOW_KV.put(`user:${user.email.toLowerCase()}`, JSON.stringify(user));
 }
+
+// ---- Retention / activity tracking ----
+// Records that a user was active. This is what powers the returning-user, WAU, and MAU
+// metrics the admin needs (repeat usage, not just signups). `days` is a bounded list of
+// distinct active UTC days (kept for the 7/30-day windows); `activeDayCount` is the total
+// distinct days ever active (>= 2 means they came back at least once); `lastSeen` is recency.
+// Pure mutation, no KV write, so callers that already persist the user fold it into their
+// existing write. Returns true when this is the user's first activity of the day.
+function _touchActivity(user) {
+  const now = Date.now();
+  const today = new Date(now).toISOString().slice(0, 10);
+  user.days = Array.isArray(user.days) ? user.days : [];
+  const newDay = user.days[user.days.length - 1] !== today && !user.days.includes(today);
+  if (newDay) {
+    user.days.push(today);
+    if (user.days.length > 60) user.days = user.days.slice(-60);
+    user.activeDayCount = (Number(user.activeDayCount) || 0) + 1;
+  }
+  user.lastSeen = now;
+  return newDay;
+}
+
+// Same, but persists when worthwhile: a new active day, or when lastSeen has gone stale
+// (> 1h). Used on endpoints like /me and /auth/login that don't otherwise write the user,
+// so activity is captured while keeping KV writes to ~once/hour/user.
+async function touchActivity(env, user) {
+  if (!user) return;
+  const wasStale = !user.lastSeen || (Date.now() - Number(user.lastSeen)) > 3600000;
+  const newDay = _touchActivity(user);
+  if (newDay || wasStale) await putUser(env, user);
+}
 function isPaidPlan(user) {
   if (!user) return false;
   if (user.plan === "lifetime") return true;
@@ -309,6 +340,7 @@ async function me(req, env) {
 
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
+  await touchActivity(env, user);   // returning-session signal (this endpoint runs on every app load)
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
   return {
     email: user.email,

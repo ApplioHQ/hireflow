@@ -53,7 +53,8 @@
       "Bash(rm -rf .next .open-next)",
       "Bash(cd /Users/pritamavuthu/aura-waitlist *)",
       "mcp__7e789e86-816d-4fe1-95e7-8d2829720771__generate_image",
-      "mcp__7e789e86-816d-4fe1-95e7-8d2829720771__show_generations"
+      "mcp__7e789e86-816d-4fe1-95e7-8d2829720771__show_generations",
+      "Bash(file public/samples/*.png)"
     ],
     "defaultMode": "bypassPermissions"
   }

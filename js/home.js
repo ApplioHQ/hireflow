@@ -14,7 +14,7 @@ function rafThrottle(fn) {
 }
 
 // ----- Typewriter hero word -----
-const ROTATOR_WORDS = ['Interviews', 'Offers', 'Promotions', 'Raises'];
+const ROTATOR_WORDS = ['interviews', 'callbacks', 'offers'];
 const rotEl = document.getElementById('hero-rotator');
 (function typewriter() {
   if (!rotEl) return;

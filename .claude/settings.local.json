@@ -46,7 +46,8 @@
       "Read(//Users/pritamavuthu/**)",
       "Bash(rm /Users/pritamavuthu/aura-waitlist/components/ScoreCard.tsx && echo \"removed ScoreCard.tsx\")",
       "WebFetch(domain:opennext.js.org)",
-      "Bash(rm /Users/pritamavuthu/aura-waitlist/next.config.js && echo \"removed next.config.js\")"
+      "Bash(rm /Users/pritamavuthu/aura-waitlist/next.config.js && echo \"removed next.config.js\")",
+      "Bash(PORT=3100 npm run dev)"
     ],
     "defaultMode": "bypassPermissions"
   }

@@ -48,7 +48,9 @@
       "WebFetch(domain:opennext.js.org)",
       "Bash(rm /Users/pritamavuthu/aura-waitlist/next.config.js && echo \"removed next.config.js\")",
       "Bash(PORT=3100 npm run dev)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(rm -rf .next .open-next)"
     ],
     "defaultMode": "bypassPermissions"
   }

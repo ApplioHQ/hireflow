@@ -871,13 +871,13 @@
 .step-line { opacity: 0; transition: opacity .7s ease .4s; }
 .step.fade-in-up .step-line { opacity: 1; }
 
-/* ── Hero typewriter cursor on rotator ── */
+/* ── Hero rotating word: smooth whole-word crossfade (never shows a half-typed word) ── */
 .rotator {
-  border-right: 3px solid rgba(167,139,250,.85);
-  padding-right: 5px;
-  animation: caret-blink 1.1s steps(1) infinite;
+  display: inline-block;
+  transition: opacity .3s ease, transform .3s cubic-bezier(.2,.7,.2,1);
+  will-change: opacity, transform;
 }
-@keyframes caret-blink { 0%,100% { border-color: rgba(167,139,250,.85); } 50% { border-color: transparent; } }
+.rotator.rot-out { opacity: 0; transform: translateY(-0.16em); }
 
 /* ── Pricing: sliding pill toggle ── */
 .price-toggle { position: relative; }

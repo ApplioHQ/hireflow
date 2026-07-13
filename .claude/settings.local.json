@@ -44,7 +44,8 @@
       "Bash(sed -i '' 's|clip:{x:100,y:520,width:1000,height:340}|clip:{x:90,y:300,width:1250,height:560}|' /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/972c451b-e215-425b-87f4-3a801f8669b2/scratchpad/adminspark.js)",
       "Bash(mkdir -p /Users/pritamavuthu/aura-waitlist)",
       "Read(//Users/pritamavuthu/**)",
-      "Bash(rm /Users/pritamavuthu/aura-waitlist/components/ScoreCard.tsx && echo \"removed ScoreCard.tsx\")"
+      "Bash(rm /Users/pritamavuthu/aura-waitlist/components/ScoreCard.tsx && echo \"removed ScoreCard.tsx\")",
+      "WebFetch(domain:opennext.js.org)"
     ],
     "defaultMode": "bypassPermissions"
   }

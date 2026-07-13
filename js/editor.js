@@ -66,6 +66,7 @@ const SECTION_INFO = {
   tailor:        { label: 'Tailor to Job',  icon: 'target' },
   ats:           { label: 'ATS Check',      icon: 'check' },
   analysis:      { label: 'AI Analysis',    icon: 'beaker' },
+  modernize:     { label: 'Age-Proof',      icon: 'clock' },
   dashboard:     { label: 'Dashboard',      icon: 'chart' },
   quickfix:      { label: 'Quick Fixes',    icon: 'check' },
   customize:     { label: 'Customize',      icon: 'settings' }
@@ -166,7 +167,7 @@ function hydrate() {
 }
 
 // ---- Sidebar (with plan gating) ----
-const PRO_SECTIONS = new Set(['tailor','ats','analysis']);
+const PRO_SECTIONS = new Set(['tailor','ats','analysis','modernize']);
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.section;

@@ -1775,6 +1775,48 @@ Rules:
   return out;
 }
 
+// ============ Age-Proof / Modernize ============
+// Helps experienced, late-career candidates present as current and avoid the details
+// that quietly trigger age bias in screening. Reviews the resume for dated signals and
+// returns concrete, respectful fixes + a modernized summary. Grounded, never invents.
+async function aiModernize(env, { resume }) {
+  const cacheKey = JSON.stringify(resume || {}).slice(0, 9000);
+  const cached = await aiCacheGet(env, "modernize", cacheKey);
+  if (cached) return cached;
+  const sys = GROUNDING + "\n\n" + `You help experienced professionals present their resume so it reads as current and relevant and does not invite age discrimination in screening. Review ONLY what is actually present and flag signals that can make the candidate look dated or reveal age unnecessarily, plus outdated phrasing.
+
+Consider: graduation years and other age-revealing dates; roles older than ~15 years that could be trimmed or summarized; "20+ years"/"seasoned"/"proven track record" style phrasing; duty-based, passive wording ("responsible for"); outdated tools/terminology; dated resume conventions (objective statement, "References available on request", full mailing address); and excessive length/full multi-decade history.
+
+Output STRICT JSON:
+{
+  "riskLevel": "low|moderate|high",
+  "riskScore": <0-100, higher = more age-bias signals present>,
+  "summary": "<2-3 encouraging sentences on how the resume currently reads on currency/age>",
+  "signals": [
+    {"issue": "<the specific thing in THEIR resume>", "where": "<section/role/phrase>", "why": "<why it can read as dated or reveal age>", "fix": "<the concrete change>", "severity": "high|medium|low"}
+  ],
+  "modernSummary": "<a rewritten, age-neutral professional summary they can paste in: 2-3 sentences, leading with recent impact, grounded ONLY in their real experience, no invented facts or numbers>"
+}
+
+Rules:
+- 3 to 6 signals, most impactful first. Always cite the candidate's ACTUAL content. Never invent facts.
+- Respectful and constructive: this is about presentation, not hiding who they are or lying about dates.
+- OUTPUT ONLY THE JSON OBJECT. No markdown fences.`;
+  const { obj: j, raw } = await runAIJSON(env, sys,
+    `Candidate Resume:\n${JSON.stringify(resume).slice(0, 9000)}`,
+    { model: SMART_MODEL, max_tokens: 1800, temperature: 0.15 });
+  if (!j) return { text: raw };
+  const out = {
+    riskLevel: (["low", "moderate", "high"].includes(j.riskLevel) ? j.riskLevel : "moderate"),
+    riskScore: typeof j.riskScore === "number" ? j.riskScore : 50,
+    summary: j.summary || "",
+    signals: Array.isArray(j.signals) ? j.signals.slice(0, 6) : [],
+    modernSummary: j.modernSummary || "",
+  };
+  await aiCachePut(env, "modernize", cacheKey, out, 86400);
+  return out;
+}
+
 // ============ Parse (resume import, most important!) ============
 async function aiParse(env, { text }) {
   if (!text || text.trim().length < 30) {

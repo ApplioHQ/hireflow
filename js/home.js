@@ -13,64 +13,25 @@ function rafThrottle(fn) {
   };
 }
 
-// ----- Typewriter hero word -----
+// ----- Hero rotating word: smooth whole-word crossfade -----
+// Fades the current word up and out, swaps to the next COMPLETE word while it's hidden,
+// then fades it back in. Never shows a half-typed word, so it can't be caught mid-glitch.
 const ROTATOR_WORDS = ['interviews', 'callbacks', 'offers'];
-const rotEl = document.getElementById('hero-rotator');
-(function typewriter() {
-  if (!rotEl) return;
-  let wordIdx = 0, charIdx = ROTATOR_WORDS[0].length, erasing = false;
-  rotEl.textContent = ROTATOR_WORDS[0];
-  function tick() {
-    const word = ROTATOR_WORDS[wordIdx];
-    if (!erasing) {
-      // Hold then start erasing
-      erasing = true;
-      setTimeout(tick, 1800);
-      return;
-    }
-    // Erasing
-    charIdx--;
-    rotEl.textContent = word.slice(0, charIdx);
-    if (charIdx <= 0) {
-      erasing = false;
-      wordIdx = (wordIdx + 1) % ROTATOR_WORDS.length;
-      charIdx = 0;
-      setTimeout(tick, 250);
-      return;
-    }
-    setTimeout(tick, 38);
-    return;
-    // (typing branch, reached when charIdx < word.length)
-  }
-  // Also need typing branch, restructure:
-  rotEl.textContent = '';
-  charIdx = 0; erasing = false; wordIdx = 0;
-  function step() {
-    const word = ROTATOR_WORDS[wordIdx];
-    if (!erasing) {
-      // Typing
-      charIdx++;
-      rotEl.textContent = word.slice(0, charIdx);
-      if (charIdx >= word.length) {
-        erasing = true;
-        setTimeout(step, 1800);
-      } else {
-        setTimeout(step, 65);
-      }
-    } else {
-      // Erasing
-      charIdx--;
-      rotEl.textContent = word.slice(0, charIdx);
-      if (charIdx <= 0) {
-        erasing = false;
-        wordIdx = (wordIdx + 1) % ROTATOR_WORDS.length;
-        setTimeout(step, 260);
-      } else {
-        setTimeout(step, 38);
-      }
-    }
-  }
-  setTimeout(step, 600);
+(function rotateHeroWord() {
+  const el = document.getElementById('hero-rotator');
+  if (!el) return;
+  el.textContent = ROTATOR_WORDS[0];
+  // Respect reduced-motion: leave the first word static, no animation.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let i = 0;
+  setInterval(function () {
+    el.classList.add('rot-out');
+    setTimeout(function () {
+      i = (i + 1) % ROTATOR_WORDS.length;
+      el.textContent = ROTATOR_WORDS[i];   // swap while hidden
+      el.classList.remove('rot-out');
+    }, 300);                               // matches the CSS transition duration
+  }, 2600);
 })();
 
 // ----- Pricing toggle (Monthly / Lifetime) -----

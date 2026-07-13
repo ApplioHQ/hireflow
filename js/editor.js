@@ -186,7 +186,7 @@ const SECTIONS = {
   education: renderEducation, skills: renderSkills, projects: renderProjects,
   certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
   volunteer: renderVolunteer, publications: renderPublications,
-  tailor: renderTailor, ats: renderATS, analysis: renderAnalysis,
+  tailor: renderTailor, ats: renderATS, analysis: renderAnalysis, modernize: renderModernize,
   dashboard: renderDashboard, quickfix: renderQuickFix, customize: renderCustomize
 };
 

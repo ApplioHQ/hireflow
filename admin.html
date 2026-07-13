@@ -468,6 +468,19 @@ async function loadAnalytics() {
       + _statBox('Stripe Linked', d.stripeLinked, '#635bff')
       + _statBox('Dormant', d.dormant, '#ef4444', 'joined >7d ago, 0 downloads')
       + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Retention &amp; Repeat Usage</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
+      + _statBox('Returning Users', (d.returning || 0), '#10b981', (d.returnRate || 0) + '% came back a 2nd day')
+      + _statBox('Weekly Active', (d.wau || 0), '#10b981', (d.activeToday || 0) + ' active today')
+      + _statBox('Monthly Active', (d.mau || 0), '#10b981', (d.stickiness || 0) + '% stickiness (WAU/MAU)')
+      + _statBox('Repeat AI Users', (d.aiRepeat || 0), '#14b8a6', (d.aiRepeatRate || 0) + '% of AI users · ' + (d.avgAiPerUser || 0) + ' avg uses')
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Revenue <span style="font-weight:400;opacity:.7;">(estimated from list price)</span></div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
+      + _statBox('MRR', '$' + (d.mrr || 0).toLocaleString(), '#22c55e', (d.activePremiumSubs || 0) + ' active premium sub' + (d.activePremiumSubs === 1 ? '' : 's'))
+      + _statBox('Lifetime Revenue', '$' + (d.lifetimeRevenue || 0).toLocaleString(), '#635bff', (d.plans.lifetime || 0) + ' one-time purchase' + (d.plans.lifetime === 1 ? '' : 's'))
+      + _statBox('Paying Customers', (d.payingCustomers || 0), '#22c55e', (d.total ? Math.round((d.payingCustomers / d.total) * 1000) / 10 : 0) + '% of users')
+      + '</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Plan Breakdown</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
       + '<span class="pill">Free: ' + d.plans.free + '</span>'

@@ -993,10 +993,15 @@ async function ai(req, env, action) {
   // action requires Premium.
   const freeForAll = action === "parse" || action === "interview" ||
     (action === "improve" && (body.target === "summary" || body.target === "personal"));
+  // One-time free "instant score": the ATS score the editor auto-runs right after a resume
+  // is built or imported, so EVERY user reaches a real AI value moment without spending a
+  // trial. Free exactly once per account (guarded by user.autoScoreUsed); after that, ATS
+  // follows normal gating. It still counts as activation + a real AI use in the metrics.
+  const isFirstScore = action === "ats" && body && body.auto === true && !user.autoScoreUsed;
   // PRO features: free users get a few free tries (mirrors the client). Only block
   // once they're out. The trial is consumed on SUCCESS (below), never on an error.
   let trialFeature = null, trialLimit = 0;
-  if (PRO_AI.has(action) && !paid && !freeForAll) {
+  if (PRO_AI.has(action) && !paid && !freeForAll && !isFirstScore) {
     trialLimit = (FREE_TRIAL_LIMITS[action] != null) ? FREE_TRIAL_LIMITS[action] : FREE_AI_TRIALS;
     const trialUsed = (user.aiTrials && user.aiTrials[action]) || 0;
     if (trialUsed >= trialLimit) {
@@ -1012,6 +1017,7 @@ async function ai(req, env, action) {
   // and only when something actually changed.
   const finishAiCall = async (result) => {
     _recordUserFeature(user, action);
+    if (isFirstScore) user.autoScoreUsed = true;   // one-time free score consumed
     let _trial = null;
     if (trialFeature) {
       user.aiTrials = user.aiTrials || {};

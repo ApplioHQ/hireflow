@@ -56,7 +56,8 @@
       "mcp__7e789e86-816d-4fe1-95e7-8d2829720771__show_generations",
       "Bash(file public/samples/*.png)",
       "Bash(command -v rsvg-convert)",
-      "Bash(rsvg-convert -w 128 -h 128 public/favicon.svg -o /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/2a072d7e-27ea-4aba-92ac-4feead3daea7/scratchpad/fav.png)"
+      "Bash(rsvg-convert -w 128 -h 128 public/favicon.svg -o /private/tmp/claude-501/-Users-pritamavuthu-hireflow-main/2a072d7e-27ea-4aba-92ac-4feead3daea7/scratchpad/fav.png)",
+      "Bash(rm -rf .next)"
     ],
     "defaultMode": "bypassPermissions"
   }

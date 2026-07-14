@@ -378,6 +378,51 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .anon-bar-x:hover { color: #fff; }
 @media (max-width: 600px) { .anon-bar-msg { font-size: 12.5px; } .anon-bar-msg strong { display: block; } }
 @media (prefers-reduced-motion: reduce) { .anon-bar { transition: opacity .2s; } .anon-bar-dot { animation: none; } }
+
+/* ── One-time "instant score" reveal (activation aha) ── */
+.score-reveal-backdrop {
+  position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+  padding: 20px; background: rgba(8, 10, 24, .58); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  opacity: 0; transition: opacity .26s ease;
+}
+.score-reveal-backdrop.show { opacity: 1; }
+.score-reveal-card {
+  position: relative; width: 100%; max-width: 420px; text-align: center;
+  background: var(--bg-1, #fff); border: 1px solid var(--border, #e6e8f0); border-radius: 20px;
+  padding: 30px 28px 22px; box-shadow: 0 30px 80px rgba(8, 10, 24, .5);
+  transform: translateY(14px) scale(.97); transition: transform .3s cubic-bezier(.2, .8, .3, 1);
+}
+.score-reveal-backdrop.show .score-reveal-card { transform: translateY(0) scale(1); }
+.score-reveal-x {
+  position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--muted, #9aa0b4);
+  font-size: 24px; line-height: 1; cursor: pointer; padding: 2px 6px; transition: color .15s;
+}
+.score-reveal-x:hover { color: var(--text, #1a1c2e); }
+.score-reveal-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--accent, #6366f1); margin-bottom: 14px;
+}
+.score-reveal-ring { position: relative; width: 132px; height: 132px; margin: 0 auto 6px; }
+.score-reveal-num {
+  position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; gap: 1px;
+  font-weight: 800; line-height: 1;
+}
+.score-reveal-num > span:first-child { font-size: 42px; }
+.score-reveal-den { font-size: 15px; color: var(--muted, #9aa0b4); font-weight: 700; }
+.score-reveal-label { font-size: 17px; font-weight: 800; margin: 2px 0 8px; }
+.score-reveal-feedback { font-size: 13.5px; line-height: 1.55; color: var(--muted, #6b7280); margin: 0 auto 16px; max-width: 340px; }
+.score-reveal-fixes { text-align: left; background: var(--bg-2, #f6f7fb); border: 1px solid var(--border, #e6e8f0); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+.score-reveal-fixes .srf-title { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted, #9aa0b4); margin-bottom: 10px; }
+.score-reveal-fixes ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.score-reveal-fixes li { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; line-height: 1.5; color: var(--text, #1f2937); }
+.score-reveal-fixes li .ico { flex: none; color: var(--accent, #6366f1); margin-top: 2px; }
+.score-reveal-cta { margin-bottom: 12px; }
+.score-reveal-note { font-size: 11.5px; color: var(--muted, #9aa0b4); }
+@media (prefers-reduced-motion: reduce) {
+  .score-reveal-backdrop, .score-reveal-card { transition: opacity .15s; }
+  #sr-ring { transition: none !important; }
+}
+
 .template-card.tpl-locked .template-thumb { opacity: .82; }
 .template-thumb .tpl-lock { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(15,18,34,.74); color: #fff; display: flex; align-items: center; justify-content: center; z-index: 3; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
 .template-preview {

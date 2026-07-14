@@ -3715,6 +3715,111 @@ async function importResume() {
     }
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
+  setTimeout(_maybeAutoScore, 600);   // reveal the instant score once the import toast settles
+}
+
+// ======================================================================
+// One-time "instant score" aha
+// Auto-runs a FREE ATS score the moment a real resume exists (imported, loaded, or built),
+// then reveals it. This is the activation hook: it guarantees every user sees a concrete AI
+// result instead of leaving without ever using a feature. The backend grants the first score
+// free (no trial spent); ai() skips its gates for it; and it can only ever fire once.
+// ======================================================================
+let _autoScoreRunning = false, _autoScoreTimer = null;
+
+// Debounced trigger for people building manually: waits for a typing pause and never fires
+// while an input is focused, so it can't interrupt someone mid-sentence.
+function _scheduleAutoScore() {
+  if (IS_ANON || (resume && resume._autoScored)) return;
+  clearTimeout(_autoScoreTimer);
+  _autoScoreTimer = setTimeout(function () {
+    const a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
+    _maybeAutoScore();
+  }, 3000);
+}
+
+function _autoScoreEligible() {
+  if (IS_ANON) return false;                              // AI needs an account; anon gets the signup nudge instead
+  if (_autoScoreRunning || (resume && resume._autoScored)) return false;
+  try { if (localStorage.getItem('hf_seen_score')) return false; } catch (_) {}
+  // Need a resume substantial enough for a meaningful score: some identity + at least one role.
+  const p = (resume && resume.personal) || {};
+  const hasName = ((p.fullName || p.name || '').trim().length > 1);
+  const hasExp = Array.isArray(resume.experience) && resume.experience.length > 0;
+  return hasName && hasExp;
+}
+
+async function _maybeAutoScore() {
+  if (!_autoScoreEligible()) return;
+  _autoScoreRunning = true;
+  try {
+    const r = await ai('ats', { resume, auto: true });   // backend: first score is free, no trial spent
+    resume._autoScored = true; save();
+    try { localStorage.setItem('hf_seen_score', '1'); } catch (_) {}
+    if (r && Number.isFinite(+r.score)) {
+      AI_RESULTS.ats = { score: +r.score, ts: Date.now() };
+      try { localStorage.setItem('hf_ai_results', JSON.stringify(AI_RESULTS)); } catch (_) {}
+      if (window.renderHealthBadge) window.renderHealthBadge();
+      _showScoreReveal(r);
+    }
+  } catch (_) {
+    // Offline / declined / out of daily cap: never nag. Mark attempted so we don't loop.
+    if (resume) { resume._autoScored = true; try { save(); } catch (_) {} }
+  } finally { _autoScoreRunning = false; }
+}
+
+function _showScoreReveal(r) {
+  const score = Math.max(0, Math.min(100, Math.round(+r.score || 0)));
+  const color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  const label = score >= 70 ? 'Strong start' : score >= 50 ? 'Solid, with room to grow' : 'Needs some work';
+  const issues = (Array.isArray(r.issues) ? r.issues : []).filter(Boolean).slice(0, 3);
+  const circ = 2 * Math.PI * 52;
+  const off = circ * (1 - score / 100);
+  const showFeedback = typeof r.feedback === 'string' && r.feedback.trim() && r.feedback.trim()[0] !== '{';
+  const old = document.getElementById('score-reveal'); if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'score-reveal';
+  el.className = 'score-reveal-backdrop';
+  el.innerHTML =
+    '<div class="score-reveal-card" role="dialog" aria-label="Your ATS score">' +
+      '<button class="score-reveal-x" aria-label="Close" onclick="_closeScoreReveal()">&times;</button>' +
+      '<div class="score-reveal-eyebrow">' + ICON('sparkle', 'ico ico-sm') + ' Your resume’s ATS score</div>' +
+      '<div class="score-reveal-ring">' +
+        '<svg viewBox="0 0 120 120" width="132" height="132" aria-hidden="true">' +
+          '<circle cx="60" cy="60" r="52" fill="none" stroke="rgba(148,163,184,.18)" stroke-width="10"/>' +
+          '<circle id="sr-ring" cx="60" cy="60" r="52" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + circ.toFixed(1) + '" stroke-dashoffset="' + circ.toFixed(1) + '" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s cubic-bezier(.2,.7,.2,1);"/>' +
+        '</svg>' +
+        '<div class="score-reveal-num"><span id="sr-num" style="color:' + color + ';">0</span><span class="score-reveal-den">/100</span></div>' +
+      '</div>' +
+      '<div class="score-reveal-label" style="color:' + color + ';">' + esc(label) + '</div>' +
+      (showFeedback ? '<p class="score-reveal-feedback">' + esc(r.feedback.trim()) + '</p>' : '') +
+      (issues.length
+        ? '<div class="score-reveal-fixes"><div class="srf-title">Top fixes to raise your score</div><ul>' +
+            issues.map(function (i) { return '<li>' + ICON('arrowRight', 'ico ico-sm') + '<span>' + esc(i) + '</span></li>'; }).join('') +
+          '</ul></div>'
+        : '') +
+      '<button class="btn btn-primary btn-block score-reveal-cta" onclick="_closeScoreReveal()">Let’s improve it ' + ICON('arrowRight', 'ico ico-sm') + '</button>' +
+      '<div class="score-reveal-note">Free instant score · no credit card needed</div>' +
+    '</div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(function () {
+    el.classList.add('show');
+    const ring = document.getElementById('sr-ring'); if (ring) ring.style.strokeDashoffset = off.toFixed(1);
+    const numEl = document.getElementById('sr-num');
+    const t0 = performance.now(), dur = 950;
+    (function tick(t) {
+      const k = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - k, 3);
+      if (numEl) numEl.textContent = Math.round(eased * score);
+      if (k < 1) requestAnimationFrame(tick);
+    })(t0);
+  });
+}
+function _closeScoreReveal() {
+  const el = document.getElementById('score-reveal'); if (!el) return;
+  el.classList.remove('show');
+  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 260);
 }
 
 
@@ -3908,4 +4013,5 @@ async function _hydrateFromCloud() {
   renderMain();
   if (IS_ANON) _initAnonUI();
   _maybePendingImport();
+  setTimeout(_maybeAutoScore, 1200);   // returning users with a real resume get their instant score on load
 })();

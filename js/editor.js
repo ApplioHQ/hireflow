@@ -2870,14 +2870,18 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 
 // ============ AI calls ============
 async function ai(endpoint, body) {
+  // The auto-run "instant score" (ATS with auto:true) is a one-time free gift the backend
+  // grants without spending a trial, so it must skip BOTH client gates below: never prompt
+  // signup/upgrade for it, and if the backend ever declines, fail silently (the caller swallows it).
+  const isAutoScore = endpoint === 'ats' && body && body.auto === true;
   // Anonymous users can build freely, but AI features need a (free) account.
-  if (IS_ANON) { _promptSignup('use AI features like tailoring, ATS scoring and analysis'); throw new Error('Sign up required'); }
+  if (IS_ANON && !isAutoScore) { _promptSignup('use AI features like tailoring, ATS scoring and analysis'); throw new Error('Sign up required'); }
   // Resume Import (parse) is free for everyone, never gate it.
   // Every other AI feature gives free users a limited number of free trials,
   // ENFORCED BY THE BACKEND (per-feature, default 2). We only pre-check the
   // server-tracked count to show the upgrade modal without a wasted request,   // and we never consume a local counter here, so a network/error/402 can't
   // burn a trial (the backend consumes only on a real, successful result).
-  if (isFree() && endpoint !== 'parse' && !canUseAi(endpoint)) {
+  if (isFree() && endpoint !== 'parse' && !isAutoScore && !canUseAi(endpoint)) {
     showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
     throw new Error('Premium required');
   }
@@ -2895,7 +2899,8 @@ async function ai(endpoint, body) {
       CURRENT_USER.aiTrials[endpoint] = (typeof _trialLimit === 'function' ? _trialLimit() : ((CURRENT_USER && CURRENT_USER.freeAiTrials) || 2));
       _refreshTrialUI();
     }
-    showUpgradeModal('ai'); throw new Error('Premium required');
+    if (!isAutoScore) showUpgradeModal('ai');   // never surprise the user with an upgrade modal from the auto-score
+    throw new Error('Premium required');
   }
   if (!r.ok) {
     const data = await r.json().catch(() => ({}));

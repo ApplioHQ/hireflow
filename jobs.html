@@ -180,18 +180,27 @@ function saveJob(){
     status: document.getElementById('j-status').value,
     notes: document.getElementById('j-notes').value.trim(),
     jd: document.getElementById('j-jd').value.trim().slice(0, 8000) };
+  let addedJob = null;
   if (editingId) {
     const j = jobs.find(x=>x.id===editingId);
     if (j) { const changed = j.status !== fields.status; Object.assign(j, fields); if (changed || !j.statusAt) j.statusAt = Date.now(); }
     toast('Job updated', { type:'success' });
   } else {
-    jobs.unshift(Object.assign({ id: _uid(), addedAt: Date.now(), statusAt: Date.now() }, fields));
-    toast('Job added', { type:'success' });
+    addedJob = Object.assign({ id: _uid(), addedAt: Date.now(), statusAt: Date.now() }, fields);
+    jobs.unshift(addedJob);
   }
   _save();
   ['j-title','j-company','j-location','j-notes','j-jd'].forEach(id=>document.getElementById(id).value='');
   editingId = null;
   toggleForm(); render();
+  // Close the loop: a freshly-tracked job with a posting is the ideal moment to tailor the
+  // resume for it. One tap takes them straight into the AI tailor with the JD pre-loaded.
+  if (addedJob && addedJob.jd) {
+    toast('Job added. Tailor your resume for this role?', { type:'success', duration: 7000,
+      action: { label:'Tailor now →', onClick: function(){ location.href = 'editor?section=tailor&job=' + addedJob.id; } } });
+  } else if (addedJob) {
+    toast('Job added. Add the posting anytime to tailor your resume to it.', { type:'success' });
+  }
 }
 
 function editJob(id){

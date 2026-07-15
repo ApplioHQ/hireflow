@@ -3822,6 +3822,46 @@ function _closeScoreReveal() {
   setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 260);
 }
 
+// Deep link from the Job Tracker: editor?section=tailor&job=<id> opens the AI Tailor with
+// that job's saved posting pre-loaded, so a tracked job is one tap from a tailored resume.
+// This is the retention loop: every application is a reason to come back and tailor.
+// Returns true if it navigated (so the caller can skip other first-load popups).
+function _maybeDeepLinkTailor() {
+  let params; try { params = new URLSearchParams(location.search); } catch (_) { return false; }
+  const section = params.get('section');
+  const jobId = params.get('job');
+  if (!section && !jobId) return false;
+  let jobLabel = '';
+  if (jobId) {
+    try {
+      const jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]');
+      const j = Array.isArray(jobs) ? jobs.find(x => String(x.id) === String(jobId)) : null;
+      if (j) {
+        jobLabel = [j.title, j.company].filter(Boolean).join(' at ');
+        if (j.jd && String(j.jd).trim()) {
+          resume.tailor = resume.tailor || { jobDescription: '', tailoredSummary: '' };
+          resume.tailor.jobDescription = String(j.jd);
+          save();
+        }
+      }
+    } catch (_) {}
+  }
+  const target = (section && SECTION_INFO[section]) ? section : (jobId ? 'tailor' : null);
+  try { history.replaceState(null, '', 'editor'); } catch (_) {}   // don't re-trigger on refresh
+  if (!target) return false;
+  nextSection(target);
+  if (target === 'tailor') {
+    const hasJd = resume.tailor && (resume.tailor.jobDescription || '').trim();
+    setTimeout(function () {
+      toast(hasJd
+        ? ('Loaded the posting' + (jobLabel ? ' for ' + jobLabel : '') + '. Click "Tailor with AI" to rewrite your resume for it.')
+        : 'Paste the job posting, then "Tailor with AI" matches your resume to it.',
+        { type: 'info', duration: 6000 });
+    }, 500);
+  }
+  return true;
+}
+
 
 // ── Drag-to-reorder wiring ──
 function _bindDragReorder() {
@@ -4013,5 +4053,8 @@ async function _hydrateFromCloud() {
   renderMain();
   if (IS_ANON) _initAnonUI();
   _maybePendingImport();
-  setTimeout(_maybeAutoScore, 1200);   // returning users with a real resume get their instant score on load
+  const _deepLinked = _maybeDeepLinkTailor();   // Job Tracker "Tailor resume" deep link
+  // Returning users with a real resume get their instant score on load, unless we just
+  // deep-linked them into the tailor flow (don't stack a score modal over that).
+  if (!_deepLinked) setTimeout(_maybeAutoScore, 1200);
 })();

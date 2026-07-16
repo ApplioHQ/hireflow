@@ -858,6 +858,12 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
      freed space (it scrolls horizontally on its own). */
   .topbar-right #btn-save,
   .topbar-right #btn-export { display: none; }
+
+  /* The actions must never be squeezed: .topbar-right defaults to flex-shrink:1, so
+     flex compressed its BOX below its content width and the buttons spilled out and
+     got clipped. Pin it to its natural size and let the tab strip absorb the squeeze
+     instead, it already scrolls horizontally (min-width:0 + overflow-x:auto). */
+  .topbar-right { flex-shrink: 0; }
   .topbar-right > * { flex-shrink: 0; }
 
   /* grid-2 stacks on mobile */

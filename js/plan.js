@@ -44,6 +44,52 @@ async function loadCurrentUser() {
   return CURRENT_USER;
 }
 
+// ============ Expired-session guard (shared by every page) ============
+// Tokens last 30 days, so a returning user routinely arrives with a dead one. Each
+// page makes its own authed fetches and almost none checked for 401, so a dead
+// session surfaced as whatever that page's generic error said, usually "Something
+// went wrong, please try again", which can never succeed and leaves people retrying
+// a session that is gone. Handle it once here, so every current and future page
+// inherits it.
+let _sessionExpiredHandled = false;
+function handleSessionExpired(returnTo) {
+  if (_sessionExpiredHandled) return;          // one redirect, even if calls 401 in parallel
+  _sessionExpiredHandled = true;
+  try { localStorage.removeItem('hf_token'); localStorage.removeItem(_ME_CACHE_KEY); } catch (e) {}
+  CURRENT_USER = null;
+  const here = returnTo || (location.pathname.replace(/^\//, '').replace(/\.html$/, '') || 'dashboard');
+  try { localStorage.setItem('hf_after_signup', here); } catch (e) {}
+  if (typeof toast === 'function') toast('Your session expired. Please sign in again.', { type: 'warn' });
+  setTimeout(function () { location.href = 'login'; }, 1200);
+}
+
+// Endpoints that answer 401/403 for reasons that are NOT a dead session, and must
+// never trigger the redirect:
+//   /auth/*  a wrong password on sign-in is a 401, not an expired session
+//   /me      loadCurrentUser already handles this, and plan.js also loads on the
+//            public home/pricing pages, where a stale token must not bounce a
+//            browsing visitor to a login screen
+//   /status  unauthenticated probe
+const _SESSION_GUARD_EXEMPT = /\/(auth\/|me$|status$)/;
+(function installSessionGuard() {
+  if (typeof window.fetch !== 'function') return;
+  const _origFetch = window.fetch;
+  window.fetch = function (input, init) {
+    return _origFetch.apply(this, arguments).then(function (res) {
+      try {
+        const url = String((input && input.url) ? input.url : (input || ''));
+        if ((res.status === 401 || res.status === 403) &&
+            url.indexOf(API_BASE) === 0 &&
+            !_SESSION_GUARD_EXEMPT.test(url) &&
+            localStorage.getItem('hf_token')) {
+          handleSessionExpired();
+        }
+      } catch (e) {}
+      return res;
+    });
+  };
+})();
+
 function isAdmin()      { return CURRENT_USER && (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super'); }
 function isSuperAdmin() { return CURRENT_USER && CURRENT_USER.role === 'super'; }
 

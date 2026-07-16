@@ -318,6 +318,14 @@ function printFrame() {
 }
 
 async function tryExport(fmt) {
+  // No identity = we don't know their quota, so never claim they've spent it.
+  // downloadsLeft() returns 0 for an unknown user, which reads as "exhausted" and
+  // would push an upgrade that wouldn't fix anything. Ask them to sign in instead.
+  if (!CURRENT_USER) {
+    try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {}
+    location.href = 'login';
+    return;
+  }
   // Free users have a download limit. Premium/Lifetime: unlimited.
   if (isFree()) {
     if (downloadsLeft() <= 0) { showUpgradeModal('downloads'); return; }
@@ -537,6 +545,19 @@ function updatePills() {
   if (psSel) psSel.value = (resume.customize && resume.customize.paperSize === 'A4') ? 'a4' : 'letter';
   render();
   await loadCurrentUser();
+  // The guard at the top of this file only catches a MISSING token. An expired or
+  // revoked one (they last 30 days) sails past it; loadCurrentUser then clears the
+  // dead token and leaves CURRENT_USER null, and the page carries on as an unknown
+  // user, where downloadsLeft() reads 0 and Export tells someone who has downloaded
+  // nothing that they've "used all 10 free downloads" and should upgrade. Send them
+  // to sign in and bring them straight back here instead.
+  // (A transient API blip does NOT land here: loadCurrentUser falls back to the
+  // cached identity, so a null user really does mean the session is gone.)
+  if (TOKEN && !CURRENT_USER) {
+    try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {}
+    location.href = 'login';
+    return;
+  }
   updatePills();
 })();
 </script>

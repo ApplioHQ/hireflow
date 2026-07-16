@@ -12,9 +12,16 @@
   var PRIMARY = ['dashboard', 'editor', 'autopilot', 'admin'];
   function hrefKey(a) { return (a.getAttribute('href') || '').replace(/^\//, '').replace(/[?#].*$/, '').replace(/\.html$/, ''); }
 
+  // Under 900px the rail is hidden and this strip is the only nav, but it has ~160px
+  // to work with, less than the primary tabs alone need. Since consolidating un-clips
+  // overflow (below), leaving any tab flat here spills it across the topbar actions.
+  // So on narrow screens fold EVERY tab into the one dropdown.
+  var NARROW = window.matchMedia('(max-width: 900px)').matches;
+
   var links = Array.prototype.slice.call(tabs.querySelectorAll('a.topbar-tab'));
   // Move to dropdown: everything that isn't primary and isn't the active tab.
   var toMenu = links.filter(function (a) {
+    if (NARROW) return true;
     return PRIMARY.indexOf(hrefKey(a)) === -1 && !a.classList.contains('active');
   });
   if (toMenu.length < 2) { tabs.setAttribute('data-appnav', '1'); return; } // not crowded enough to bother
@@ -28,7 +35,7 @@
   trigger.className = 'tb-dd-trigger';
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.innerHTML = 'Tools <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+  trigger.innerHTML = (NARROW ? 'Menu' : 'Tools') + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
   var menu = document.createElement('div');
   menu.className = 'tb-dd-menu';
   menu.setAttribute('role', 'menu');

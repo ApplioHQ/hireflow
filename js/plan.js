@@ -535,7 +535,7 @@ function initAnonTopbar() {
     const wrap = document.createElement('span');
     wrap.id = 'anon-topbar-cta';
     wrap.style.cssText = 'display:inline-flex;gap:6px;align-items:center;';
-    wrap.innerHTML = '<a href="login" class="btn btn-ghost btn-sm">Sign in</a><a href="login?mode=signup" class="btn btn-primary btn-sm">Sign up free</a>';
+    wrap.innerHTML = '<a href="login" id="anon-signin-btn" class="btn btn-ghost btn-sm">Sign in</a><a href="login?mode=signup" class="btn btn-primary btn-sm">Sign up free</a>';
     host.appendChild(wrap);
   }
 }

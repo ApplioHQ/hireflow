@@ -843,9 +843,18 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   }
   .right-panel.mob-open { transform: translateX(0); }
 
-  /* Topbar: hide secondary items on very small screens */
+  /* Topbar: hide secondary items on very small screens.
+     The topbar has no room to wrap, so anything non-essential is dropped here.
+     Target items explicitly, NOT by position: an anonymous visitor's trailing
+     button is "Sign up free", so a :last-child rule silently matches nothing
+     and the whole bar overflows. */
   .topbar-tabs { display: none; }
-  .topbar-right .btn-ghost:last-child { display: none; }
+  .topbar-right [onclick*="signOut"] { display: none; }   /* signed in: Sign out */
+  .topbar-right #anon-signin-btn { display: none; }       /* anon: keep only "Sign up free" */
+
+  /* Belt-and-braces: never let the bar spill past the viewport, whatever it holds. */
+  .app-topbar { overflow: hidden; }
+  .topbar-right { min-width: 0; flex-shrink: 1; }
 
   /* grid-2 stacks on mobile */
   .grid-2 { grid-template-columns: 1fr; }

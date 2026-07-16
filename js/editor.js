@@ -3572,6 +3572,7 @@ function _initAnonUI() {
   const right = document.querySelector('.topbar-right');
   if (right && !document.getElementById('anon-signup-btn')) {
     const si = document.createElement('a');
+    si.id = 'anon-signin-btn';
     si.href = 'login'; si.className = 'btn btn-ghost btn-sm'; si.textContent = 'Sign in';
     const su = document.createElement('a');
     su.id = 'anon-signup-btn'; su.href = 'login?mode=signup'; su.className = 'btn btn-primary btn-sm'; su.textContent = 'Sign up free';

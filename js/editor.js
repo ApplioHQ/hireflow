@@ -2912,6 +2912,18 @@ async function ai(endpoint, body) {
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
     body: JSON.stringify(body)
   });
+  // Session expired or revoked (tokens last 30 days, so returning users hit this).
+  // Without this it falls through to the generic error and tells them "Something went
+  // wrong, please try again", which can never succeed and leaves them retrying a dead
+  // session. Send them to sign in and bring them back to the editor; their resume
+  // lives in localStorage, so nothing they typed is lost.
+  if (r.status === 401 || r.status === 403) {
+    try { localStorage.removeItem('hf_token'); } catch (_) {}
+    if (typeof toast === 'function') toast('Your session expired. Please sign in again.', { type: 'warn' });
+    try { localStorage.setItem('hf_after_signup', 'editor'); } catch (_) {}
+    setTimeout(() => { location.href = 'login'; }, 1200);
+    throw new Error('Session expired');
+  }
   if (r.status === 402) {
     // Backend (source of truth) says this feature is out of free trials. Our local
     // count was stale, so mark it exhausted and refresh the banners/labels, that's

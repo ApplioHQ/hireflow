@@ -3587,9 +3587,18 @@ function _initAnonUI() {
     right.appendChild(si); right.appendChild(su);
   }
   // Export buttons -> signup prompt (their work is local; sign up to download).
-  document.querySelectorAll('a[href="export"], #btn-export, #rp-export').forEach(el => {
-    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {} _promptSignup('download your resume as a PDF'); }, true);
-  });
+  // Delegated on purpose: this file is loaded before the mobile bottom nav markup
+  // further down editor.html, so binding each element directly missed the mobile
+  // Export link entirely (a phone's ONLY export button) and hard-bounced guests to
+  // the login page. Delegation also survives the preview panel re-rendering #rp-export.
+  document.addEventListener('click', e => {
+    if (!e.target.closest) return;
+    const el = e.target.closest('a[href="export"], #btn-export, #rp-export');
+    if (!el) return;
+    e.preventDefault(); e.stopPropagation();
+    try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {}
+    _promptSignup('download your resume as a PDF');
+  }, true);
   _anonBarInject();
   _refreshAnonBar();
 }

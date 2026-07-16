@@ -210,9 +210,17 @@ function renderMain() {
   // Wire drag-to-reorder
   setTimeout(_bindDragReorder, 0);
   setTimeout(_bindSectionDrag, 0);
-  // Update sidebar completion indicators
-  document.querySelectorAll('.sidebar-item').forEach(function(el) {
+  _refreshCompletion();
+}
+
+// Sidebar completion dots + the overall progress meter. Called on navigation AND on
+// every edit: the meter is the main "how far along am I" signal, so it must not sit
+// at 0/5 while someone fills the form in front of it and only catch up once they
+// happen to click another section.
+function _refreshCompletion() {
+  document.querySelectorAll('.sidebar-item').forEach(function (el) {
     var sec = el.dataset.section;
+    if (!sec) return;
     var done = _sectionComplete(sec);
     el.classList.toggle('has-content', done);
     var dot = el.querySelector('.s-dot');
@@ -2763,7 +2771,7 @@ function bindAutoSave() {
       let obj = resume;
       for (let i=0;i<path.length-1;i++) obj = obj[path[i]];
       obj[path[path.length-1]] = el.value;
-      save(); schedulePreview();
+      save(); schedulePreview(); _refreshCompletion();
     });
   });
 }

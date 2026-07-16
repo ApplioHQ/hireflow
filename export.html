@@ -318,16 +318,13 @@ function printFrame() {
 }
 
 async function tryExport(fmt) {
-  // No identity = we don't know their quota, so never claim they've spent it.
-  // downloadsLeft() returns 0 for an unknown user, which reads as "exhausted" and
-  // would push an upgrade that wouldn't fix anything. Ask them to sign in instead.
-  if (!CURRENT_USER) {
-    try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {}
-    location.href = 'login';
-    return;
-  }
   // Free users have a download limit. Premium/Lifetime: unlimited.
-  if (isFree()) {
+  // Only enforce it when we actually know who they are: downloadsLeft() returns 0 for
+  // an unknown user, which reads as "exhausted" and would tell someone who has
+  // downloaded nothing to upgrade. If the server never answered, fail open (the same
+  // choice the increment call below already makes) and let the server enforce the
+  // real entitlement.
+  if (CURRENT_USER && isFree()) {
     if (downloadsLeft() <= 0) { showUpgradeModal('downloads'); return; }
     // Increment server-side
     try {
@@ -551,9 +548,11 @@ function updatePills() {
   // user, where downloadsLeft() reads 0 and Export tells someone who has downloaded
   // nothing that they've "used all 10 free downloads" and should upgrade. Send them
   // to sign in and bring them straight back here instead.
-  // (A transient API blip does NOT land here: loadCurrentUser falls back to the
-  // cached identity, so a null user really does mean the session is gone.)
-  if (TOKEN && !CURRENT_USER) {
+  // Detect it by the token disappearing, NOT by a null user: loadCurrentUser clears
+  // hf_token only on a real 401/403. A network blip with no cached identity also
+  // leaves CURRENT_USER null, and bouncing those users to sign in would log them out
+  // over a dropped request.
+  if (TOKEN && !localStorage.getItem('hf_token')) {
     try { localStorage.setItem('hf_after_signup', 'export'); } catch (_) {}
     location.href = 'login';
     return;

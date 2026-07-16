@@ -852,9 +852,13 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .topbar-right [onclick*="signOut"] { display: none; }   /* signed in: Sign out */
   .topbar-right #anon-signin-btn { display: none; }       /* anon: keep only "Sign up free" */
 
-  /* Belt-and-braces: never let the bar spill past the viewport, whatever it holds. */
-  .app-topbar { overflow: hidden; }
-  .topbar-right { min-width: 0; flex-shrink: 1; }
+  /* The editor's bottom .mobile-nav already owns Save and Export down here, so the
+     topbar copies of them are pure duplicates, and together they overflowed the bar
+     and clipped the primary CTA. Drop the duplicates and let the tab strip take the
+     freed space (it scrolls horizontally on its own). */
+  .topbar-right #btn-save,
+  .topbar-right #btn-export { display: none; }
+  .topbar-right > * { flex-shrink: 0; }
 
   /* grid-2 stacks on mobile */
   .grid-2 { grid-template-columns: 1fr; }

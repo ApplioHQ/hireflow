@@ -74,18 +74,31 @@ const SECTION_INFO = {
 
 // ---- Hydrate icons in static markup ----
 
+// A list entry only counts once it actually says something. "Add Experience" inserts
+// a blank row, and counting that as done let the progress meter jump to 1/5 for a
+// resume with nothing in it. Field-name agnostic, so it holds for every list section.
+function _entryHasContent(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  return Object.keys(entry).some(function (k) {
+    var v = entry[k];
+    if (Array.isArray(v)) return v.length > 0;
+    return String(v == null ? '' : v).trim() !== '';
+  });
+}
+function _listComplete(arr) { return Array.isArray(arr) && arr.some(_entryHasContent); }
+
 function _sectionComplete(sec) {
   switch(sec) {
     case 'personal':      return !!(resume.personal.fullName && resume.personal.email);
-    case 'experience':    return resume.experience.length > 0;
-    case 'education':     return resume.education.length > 0;
+    case 'experience':    return _listComplete(resume.experience);
+    case 'education':     return _listComplete(resume.education);
     case 'skills':        return resume.skills.categories.flatMap(c=>c.items).length > 0;
-    case 'projects':      return resume.projects.length > 0;
-    case 'certifications':return resume.certifications.length > 0;
-    case 'awards':        return resume.awards.length > 0;
-    case 'leadership':    return resume.leadership.length > 0;
-    case 'volunteer':     return resume.volunteer.length > 0;
-    case 'publications':  return resume.publications.length > 0;
+    case 'projects':      return _listComplete(resume.projects);
+    case 'certifications':return _listComplete(resume.certifications);
+    case 'awards':        return _listComplete(resume.awards);
+    case 'leadership':    return _listComplete(resume.leadership);
+    case 'volunteer':     return _listComplete(resume.volunteer);
+    case 'publications':  return _listComplete(resume.publications);
     default:              return false;
   }
 }

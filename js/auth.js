@@ -75,7 +75,8 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     setMsg('signup','success','Creating account…');
     const data = await apiPost('/auth/signup', {
       email: f.get('email'),
-      password: f.get('password')
+      password: f.get('password'),
+      category: f.get('category')
     });
     _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);

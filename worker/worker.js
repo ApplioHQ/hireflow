@@ -247,12 +247,14 @@ function isPaidPlan(user) {
 
 // ============ Auth ============
 async function signup(req, env) {
-  const { email, password } = await req.json();
+  const { email, password, category } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
   if (password.length < 8) throw err(400, "Password must be at least 8 characters");
+  const ALLOWED_CATEGORIES = ["student","internship","no-experience","software-engineer","finance","project-manager","nurse","teacher","career-changer","other"];
+  if (!category || !ALLOWED_CATEGORIES.includes(category)) throw err(400, "Please select a category");
   if (await getUser(env, email)) throw err(409, "Account already exists");
   const { salt, hash } = await hashPassword(password);
-  const user = { email, salt, hash, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+  const user = { email, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
   await putUser(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
   return { token, email };

@@ -62,7 +62,9 @@
       "Bash(disown)",
       "Bash(tee /tmp/auralize_d1.txt)",
       "Bash(tail -30 /tmp/aura-dev3.log)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)"
     ],
     "defaultMode": "bypassPermissions"
   }

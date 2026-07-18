@@ -128,6 +128,22 @@
           <label for="su-pw">Password</label>
           <input id="su-pw" type="password" name="password" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
         </div>
+        <div class="form-field">
+          <label for="su-category">What best describes you?</label>
+          <select id="su-category" name="category" required>
+            <option value="" disabled selected>Select one…</option>
+            <option value="student">Student</option>
+            <option value="internship">Internship seeker</option>
+            <option value="no-experience">Entry-level / no experience</option>
+            <option value="software-engineer">Software engineer</option>
+            <option value="finance">Finance</option>
+            <option value="project-manager">Project manager</option>
+            <option value="nurse">Nurse / healthcare</option>
+            <option value="teacher">Teacher / education</option>
+            <option value="career-changer">Career changer</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary btn-block">Create free account →</button>
       </form>
       <ul class="auth-perks">

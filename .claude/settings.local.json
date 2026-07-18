@@ -61,7 +61,8 @@
       "Bash(nohup env PORT=3100 npm run start)",
       "Bash(disown)",
       "Bash(tee /tmp/auralize_d1.txt)",
-      "Bash(tail -30 /tmp/aura-dev3.log)"
+      "Bash(tail -30 /tmp/aura-dev3.log)",
+      "Read(//tmp/**)"
     ],
     "defaultMode": "bypassPermissions"
   }

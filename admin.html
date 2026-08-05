@@ -455,7 +455,7 @@ async function loadAnalytics() {
     const trendColor = trend > 0 ? '#22c55e' : trend < 0 ? '#ef4444' : 'var(--muted)';
     body.innerHTML =
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
-      + _statBox('Page Views', (d.pageViews || 0).toLocaleString(), '#ec4899', (d.pageViewsToday || 0) + ' today · ' + (d.pageViewsLast7 || 0) + ' this week')
+      + _statBox('Unique Visitors', (d.visitors || 0).toLocaleString(), '#ec4899', (d.visitorsToday || 0) + ' today')
       + _statBox('AI Uses', (d.aiUses || 0).toLocaleString(), '#14b8a6', (d.aiToday || 0) + ' today · ' + (d.aiLast7 || 0) + ' this week')
       + _statBox('Total Users', d.total, '#6366f1')
       + _statBox('Active Paid', d.activeSubs, '#22c55e', (d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime'))

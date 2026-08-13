@@ -253,18 +253,25 @@ function isPaidPlan(user) {
 const EARLYBIRD_DEFAULTS = {
   enabled: true,
   limit: 100,
-  // End of the current month (UTC) by default: everyone who signs up from now until
-  // then, up to `limit`, gets the comp. Adjustable in the admin panel.
-  endsAt: Math.floor(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, 1) / 1000) - 1,
+  endsAt: 0,       // 0 = "end of current month", resolved per-request (see below)
   grantDays: 60,   // 2 months of free Premium
   granted: 0,
 };
+// End of the current UTC month, in unix seconds. Computed at REQUEST time, never at
+// module top level: Cloudflare Workers evaluate Date as 0 during global-scope init,
+// so a precomputed default would land in Jan 1970 and the promo would read as closed.
+function _endOfThisMonth() {
+  const d = new Date();
+  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000) - 1;
+}
 async function _getEarlyBird(env) {
+  let cfg = { ...EARLYBIRD_DEFAULTS };
   try {
     const raw = await env.HIREFLOW_KV.get("promo:earlybird");
-    if (raw) return { ...EARLYBIRD_DEFAULTS, ...JSON.parse(raw) };
+    if (raw) cfg = { ...cfg, ...JSON.parse(raw) };
   } catch (_) {}
-  return { ...EARLYBIRD_DEFAULTS };
+  if (!cfg.endsAt) cfg.endsAt = _endOfThisMonth();   // resolve the "end of month" default
+  return cfg;
 }
 function _earlyBirdOpen(cfg, now) {
   return !!cfg.enabled && (cfg.granted || 0) < cfg.limit && Math.floor(now / 1000) <= cfg.endsAt;

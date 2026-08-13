@@ -489,8 +489,40 @@ async function _applioPageBoot() {
   if (localStorage.getItem('hf_token')) await loadCurrentUser();
   if (!isLogin) await checkSiteStatus();
 
+  // Founding-member promo: a one-time celebration when a new signup was granted free
+  // Premium. Flag is set at signup (auth.js / Google handler); shown once, then cleared.
+  if (!isLogin && localStorage.getItem('hf_promo_earlybird') === '1') {
+    localStorage.removeItem('hf_promo_earlybird');
+    setTimeout(showEarlyBirdCelebration, 700);   // let the page settle first
+  }
+
   // Admin Console is now surfaced inside the account menu/dropdown (see the account
   // dropdown in editor.html and openBillingPortal below), not as a topbar button.
+}
+
+// One-time celebratory modal telling a founding member they got free Premium.
+function showEarlyBirdCelebration() {
+  if (document.getElementById('eb-celebrate-bd')) return;
+  const bd = document.createElement('div');
+  bd.id = 'eb-celebrate-bd';
+  bd.className = 'modal-backdrop open';
+  bd.innerHTML =
+    '<div class="modal" style="max-width:440px;text-align:center;position:relative;overflow:hidden;">' +
+      '<button class="modal-close" onclick="_closeEarlyBird()" aria-label="Close">×</button>' +
+      '<div style="font-size:46px;line-height:1;margin:6px 0 12px;">🎉</div>' +
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Founding member</div>' +
+      '<h3 style="margin-bottom:8px;">You\'ve got Premium, free</h3>' +
+      '<p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px;">' +
+        'You\'re one of our first 100 members, so the next <strong>2 months of Premium are on us</strong>. ' +
+        'Unlimited AI, every template, and unlimited downloads, no card needed.</p>' +
+      '<button class="btn btn-primary btn-block" onclick="_closeEarlyBird()">Start using Premium →</button>' +
+    '</div>';
+  document.body.appendChild(bd);
+  bd.addEventListener('click', e => { if (e.target === bd) _closeEarlyBird(); });
+}
+function _closeEarlyBird() {
+  const bd = document.getElementById('eb-celebrate-bd');
+  if (bd) bd.remove();
 }
 // Run after DOM is ready
 if (document.readyState === 'loading') {

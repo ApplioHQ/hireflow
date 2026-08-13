@@ -175,6 +175,7 @@
             if (!x.ok) { notify({ title: 'Google sign-in failed', body: (x.d && x.d.error) || 'Please try again.' }); return; }
             localStorage.setItem('hf_token', x.d.token);
             if (x.d.email) localStorage.setItem('hf_email', x.d.email);
+            if (x.d.promoEarlyBird) localStorage.setItem('hf_promo_earlybird', '1');
             location.href = (x.d.role === 'admin' || x.d.role === 'super') ? 'admin' : 'editor';
           }).catch(function () { notify({ title: 'Google sign-in failed', body: 'Network error, please try again.' }); });
       }

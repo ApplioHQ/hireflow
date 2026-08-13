@@ -342,14 +342,15 @@ async function googleAuth(req, env) {
   const email = (p.email || "").toLowerCase();
   if (!email) throw err(401, "Google sign-in failed");
   let user = await getUser(env, email);
+  let gotPromo = false;
   if (!user) {
     user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
-    await _grantEarlyBirdIfEligible(env, user);   // new Google signups qualify too
+    gotPromo = await _grantEarlyBirdIfEligible(env, user);   // new Google signups qualify too
     await putUser(env, user);
   }
   await touchActivity(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
-  return { token, email };
+  return { token, email, promoEarlyBird: gotPromo };
 }
 async function login(req, env) {
   const { email, password } = await req.json();

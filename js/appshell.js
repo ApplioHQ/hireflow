@@ -21,7 +21,8 @@
     coach:   '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     brag:    '<path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/>',
     days90:  '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    skill:   '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>'
+    skill:   '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+    salary:  '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
   };
   var NAV = [
     ['dashboard',   'Home',           '/dashboard',    'home'],
@@ -37,6 +38,7 @@
     ['jobs',        'Job Tracker',    '/jobs',         'jobs'],
     ['SEP'],
     ['skill-gap',    'Skill Gap',     '/skill-gap',     'skill'],
+    ['salary',       'Salary Insights','/salary',       'salary'],
     ['brag-doc',     'Brag Doc',      '/brag-doc',      'brag'],
     ['first-90-days','First 90 Days', '/first-90-days', 'days90']
   ];

@@ -27,7 +27,7 @@ Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here, importing is free for everyone.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot", "letter", "modernize"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot", "letter", "modernize", "salary"]);
 // Career Coach (assistant) is Premium/Lifetime only, it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
@@ -70,6 +70,7 @@ export default {
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
+      if (path === "/promo/earlybird")         return json(await getEarlyBirdStatus(req, env), 200, cors);
       if (path === "/pageview")                return json(await trackPageview(req, env), 200, cors);
       if (path === "/demo/session" && req.method === "POST") return json(await demoSession(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
@@ -245,6 +246,62 @@ function isPaidPlan(user) {
   return false;
 }
 
+// ============ Early-bird promo: first N signups get free Premium ============
+// Config lives in KV ("promo:earlybird") so the cap, deadline, and on/off can be
+// tuned from the admin panel with no redeploy. These are the defaults used until an
+// admin saves a config. endsAt/limit are the gate; `granted` is the running count.
+const EARLYBIRD_DEFAULTS = {
+  enabled: true,
+  limit: 100,
+  // End of the current month (UTC) by default: everyone who signs up from now until
+  // then, up to `limit`, gets the comp. Adjustable in the admin panel.
+  endsAt: Math.floor(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, 1) / 1000) - 1,
+  grantDays: 60,   // 2 months of free Premium
+  granted: 0,
+};
+async function _getEarlyBird(env) {
+  try {
+    const raw = await env.HIREFLOW_KV.get("promo:earlybird");
+    if (raw) return { ...EARLYBIRD_DEFAULTS, ...JSON.parse(raw) };
+  } catch (_) {}
+  return { ...EARLYBIRD_DEFAULTS };
+}
+function _earlyBirdOpen(cfg, now) {
+  return !!cfg.enabled && (cfg.granted || 0) < cfg.limit && Math.floor(now / 1000) <= cfg.endsAt;
+}
+// Grant the comp to a freshly-created user if a spot is still open. Mutates `user`
+// (caller writes it) and bumps the KV counter. NOTE: KV has no atomic increment, so a
+// burst of simultaneous signups could over-grant by a handful; harmless for a promo,
+// and real volume never approaches it. Tagged promoEarlyBird so analytics can keep
+// these OUT of revenue (they're comped, not paying).
+async function _grantEarlyBirdIfEligible(env, user) {
+  try {
+    const cfg = await _getEarlyBird(env);
+    const now = Date.now();
+    if (!_earlyBirdOpen(cfg, now)) return false;
+    user.plan = "premium";
+    user.currentPeriodEnd = Math.floor(now / 1000) + (cfg.grantDays || 60) * 86400;
+    user.promoEarlyBird = true;
+    user.promoGrantedAt = now;
+    cfg.granted = (cfg.granted || 0) + 1;
+    await env.HIREFLOW_KV.put("promo:earlybird", JSON.stringify(cfg));
+    return true;
+  } catch (_) { return false; }   // never let a promo hiccup break signup
+}
+// Public: how many early-bird spots remain (drives the scarcity banner). No auth.
+async function getEarlyBirdStatus(req, env) {
+  const cfg = await _getEarlyBird(env);
+  const open = _earlyBirdOpen(cfg, Date.now());
+  return {
+    active: open,
+    limit: cfg.limit,
+    claimed: Math.min(cfg.granted || 0, cfg.limit),
+    remaining: Math.max(0, cfg.limit - (cfg.granted || 0)),
+    endsAt: cfg.endsAt,
+    grantDays: cfg.grantDays || 60,
+  };
+}
+
 // ============ Auth ============
 async function signup(req, env) {
   const { email, password, category } = await req.json();
@@ -255,9 +312,10 @@ async function signup(req, env) {
   if (await getUser(env, email)) throw err(409, "Account already exists");
   const { salt, hash } = await hashPassword(password);
   const user = { email, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+  const gotPromo = await _grantEarlyBirdIfEligible(env, user);
   await putUser(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
-  return { token, email };
+  return { token, email, promoEarlyBird: gotPromo };
 }
 // Google Sign-In: the browser sends the Google ID token (JWT). We verify it with
 // Google (signature + expiry), confirm it was issued for OUR client id, then
@@ -279,6 +337,7 @@ async function googleAuth(req, env) {
   let user = await getUser(env, email);
   if (!user) {
     user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+    await _grantEarlyBirdIfEligible(env, user);   // new Google signups qualify too
     await putUser(env, user);
   }
   await touchActivity(env, user);
@@ -482,6 +541,7 @@ async function adminAnalytics(req, env) {
   // Retention / repeat usage (the metrics investors flagged as missing).
   let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
   let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
+  let compedPremium = 0;       // early-bird comps: active Premium but NOT paying
   const todayStr = new Date(now).toISOString().slice(0, 10);
   // Monthly prices (mirror the pricing page). MRR counts recurring Premium only; Lifetime
   // is one-time revenue, reported separately so the two aren't conflated.
@@ -516,7 +576,13 @@ async function adminAnalytics(req, env) {
     // Active paid: lifetime never expires; premium counts if its period end is in the future.
     const premiumActive = plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now;
     if (plan === "lifetime") activeSubs++;
-    else if (premiumActive) { activeSubs++; activePremiumSubs++; }
+    else if (premiumActive) {
+      activeSubs++;
+      // Early-bird comps are Premium but not paying, keep them OUT of MRR/paying counts
+      // so revenue isn't overstated. Tally them separately.
+      if (u.promoEarlyBird && !u.stripeCustomerId) compedPremium++;
+      else activePremiumSubs++;
+    }
 
     // ---- Retention / repeat usage ----
     // `lastSeen`/`days`/`activeDayCount` come from touchActivity on /me, login, and AI use.
@@ -557,7 +623,7 @@ async function adminAnalytics(req, env) {
   // Revenue. MRR is recurring Premium only; Lifetime is one-time, reported separately.
   const mrr = Math.round(activePremiumSubs * PREMIUM_MO * 100) / 100;
   const lifetimeRevenue = Math.round(plans.lifetime * LIFETIME_ONCE * 100) / 100;
-  const payingCustomers = activeSubs;
+  const payingCustomers = Math.max(0, activeSubs - compedPremium);   // comps aren't paying
   // Activation = signed-up users who actually reached a value moment (used any AI
   // feature OR exported a resume). The number to watch to know onboarding is working.
   const activationRate = total ? Math.round((activated / total) * 1000) / 10 : 0;
@@ -586,12 +652,15 @@ async function adminAnalytics(req, env) {
     aiLast7 += await num(`stats:ai:${new Date(now - i * DAY).toISOString().slice(0, 10)}`);
   }
   const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
-    "assistant", "autopilot", "skills", "skill-gap", "win", "parse"];
+    "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse"];
   const aiByAction = {};
   for (const a of AI_ACTIONS) {
     const v = await num(`stats:ai:action:${a}`);
     if (v) aiByAction[a] = v;
   }
+
+  // Early-bird promo status for the admin panel.
+  const eb = await _getEarlyBird(env);
 
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
@@ -602,7 +671,15 @@ async function adminAnalytics(req, env) {
     activeToday, wau, mau, returning, returnRate, stickiness,
     aiRepeat, aiRepeatRate, avgAiPerUser, totalAiUses,
     // Revenue
-    payingCustomers, activePremiumSubs, mrr, lifetimeRevenue,
+    payingCustomers, activePremiumSubs, compedPremium, mrr, lifetimeRevenue,
+    // Early-bird promo
+    earlyBird: {
+      enabled: !!eb.enabled, limit: eb.limit,
+      claimed: Math.min(eb.granted || 0, eb.limit),
+      remaining: Math.max(0, eb.limit - (eb.granted || 0)),
+      endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
+      open: _earlyBirdOpen(eb, now),
+    },
     signupsByDay, attribution,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
@@ -1274,6 +1351,7 @@ async function aiDispatch(env, action, body) {
     case "win":       return aiWin(env, body);
     case "skills":    return aiSkills(env, body);
     case "skill-gap": return aiSkillGap(env, body);
+    case "salary":    return aiSalary(env, body);
     case "tailor":    return aiTailor(env, body);
     case "ats":       return aiATS(env, body);
     case "analyze":   return aiAnalyze(env, body);
@@ -1608,6 +1686,85 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
 // highest-impact missing skills. Free (drives the career-copilot loop). Grounded:
 // "relevant" must be verbatim from the user's own list; it never invents skills the
 // candidate has, and frames gaps as "verify you have it / learn it", not "claim it".
+// ============ Salary insights ============
+// Estimated pay ranges for a role + location, to help decide if an opportunity is
+// worth pursuing. These are MODEL ESTIMATES from general knowledge, not a live market
+// feed, so the output always carries that caveat and the frontend shows it plainly.
+async function aiSalary(env, { role, location, level, resume }) {
+  const target = String(role || "").trim().slice(0, 120);
+  if (!target) throw err(400, "Enter a job title to see salary ranges.");
+  const loc = String(location || "").trim().slice(0, 120);
+  const lvl = String(level || "").trim().slice(0, 40);
+  // Light resume context (seniority signal only) improves the estimate without PII.
+  let years = "";
+  try {
+    const exp = (resume && Array.isArray(resume.experience)) ? resume.experience : [];
+    if (exp.length) years = `${exp.length} listed role(s)`;
+  } catch (_) {}
+
+  const cacheKey = (target + "|" + loc + "|" + lvl).toLowerCase().slice(0, 300);
+  const cached = await aiCacheGet(env, "salary", cacheKey);
+  if (cached) return cached;
+
+  const sys = GROUNDING + "\n\n" + `You are a compensation analyst. Give a realistic ESTIMATED annual pay range for a role, based on your general knowledge of typical market compensation. You do not have live market data, so these are informed estimates, be honest about that.
+
+Return STRICT JSON only, no markdown, in exactly this shape:
+{
+  "role": "<normalized role title>",
+  "location": "<normalized location, or 'Not specified'>",
+  "currency": "<ISO code appropriate to the location, e.g. USD, GBP, EUR, INR>",
+  "period": "year",
+  "low": <integer, ~10th-25th percentile base pay>,
+  "median": <integer, typical base pay>,
+  "high": <integer, ~75th-90th percentile base pay>,
+  "level": "<seniority you assumed, e.g. Entry / Mid / Senior>",
+  "factors": [ "<3-5 short bullets on what moves pay up or down for this role>" ],
+  "negotiation": "<one concrete, specific negotiation tip for this role>",
+  "confidence": "<low | medium | high, based on how standardized pay is for this role/market>"
+}
+
+Rules:
+- Numbers are BASE salary (exclude bonus/equity) unless the role is normally quoted with tips/commission, then note that in factors.
+- Keep low < median < high, all realistic and internally consistent for the stated location's cost of living and currency.
+- If no location is given, estimate a national average for a major English-speaking market and set location to "Not specified (national average)".
+- Never fabricate a false precision; round to sensible increments.
+- factors are specific to THIS role, not generic ("years of experience" alone is too vague).`;
+
+  const user = `ROLE: ${target}
+LOCATION: ${loc || "(not specified)"}
+SENIORITY HINT: ${lvl || years || "(infer from role title)"}
+
+Return the JSON.`;
+
+  const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 600, temperature: 0.2 });
+  let data = null;
+  try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim()); }
+  catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { data = JSON.parse(m[0]); } catch {} } }
+  if (!data || typeof data.median !== "number") {
+    throw err(502, "Couldn't estimate a range for that role, try a more common job title.");
+  }
+  const int = (v) => { const n = Math.round(Number(v) || 0); return n > 0 ? n : 0; };
+  let low = int(data.low), median = int(data.median), high = int(data.high);
+  // Guarantee low <= median <= high even if the model slips.
+  const sorted = [low, median, high].filter(n => n > 0).sort((a, b) => a - b);
+  if (sorted.length === 3) { low = sorted[0]; median = sorted[1]; high = sorted[2]; }
+  const out = {
+    role: String(data.role || target).slice(0, 120),
+    location: String(data.location || (loc || "Not specified")).slice(0, 120),
+    currency: String(data.currency || "USD").slice(0, 8).toUpperCase(),
+    period: "year",
+    low, median, high,
+    level: String(data.level || lvl || "").slice(0, 40),
+    factors: Array.isArray(data.factors) ? data.factors.map(f => String(f).slice(0, 200)).filter(Boolean).slice(0, 5) : [],
+    negotiation: String(data.negotiation || "").slice(0, 300),
+    confidence: ["low", "medium", "high"].includes(String(data.confidence)) ? data.confidence : "medium",
+    estimate: true,
+    disclaimer: "AI estimate from general market knowledge, not live data. Verify against listings and sites like Levels.fyi, Glassdoor, or the BLS before deciding.",
+  };
+  await aiCachePut(env, "salary", cacheKey, out, 86400);
+  return out;
+}
+
 async function aiSkillGap(env, { role, skills, context, jobDescription }) {
   const target = String(role || "").trim().slice(0, 120);
   const jd = String(jobDescription || "").trim().slice(0, 6000);

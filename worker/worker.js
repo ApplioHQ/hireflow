@@ -504,6 +504,10 @@ async function adminListUsers(req, env) {
     createdAt: u.createdAt || null,
     currentPeriodEnd: u.currentPeriodEnd || null,
     downloadsUsed: u.downloadsUsed || 0,
+    // Onboarding answers: "What best describes you?" (signup) and "Where did you hear
+    // about us?" (post-signup prompt), so the admin can see who's signing up and how.
+    category: u.category || null,
+    attribution: u.attribution || null,
     hasStripeCustomer: !!u.stripeCustomerId,
     updatedAt: u.updatedAt || u.createdAt || null,
     aiFeatures: u.aiFeatures || {},

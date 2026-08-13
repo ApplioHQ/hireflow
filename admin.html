@@ -111,7 +111,7 @@
           <table class="user-table">
             <thead>
               <tr>
-                <th>Email</th><th>Plan</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th id="actions-col" style="display:none;">Actions</th>
+                <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th id="actions-col" style="display:none;">Actions</th>
               </tr>
             </thead>
             <tbody id="users-tbody"></tbody>
@@ -306,6 +306,24 @@ function toggleEmails() {
   if (typeof renderFeedback === 'function') renderFeedback();
 }
 
+// Signup onboarding answers for the Users table:
+//   category    = "What best describes you?" (from the signup form)
+//   attribution = "Where did you hear about us?" (post-signup prompt)
+const _CATEGORY_LABELS = {
+  'student': 'Student', 'internship': 'Seeking internship', 'no-experience': 'No experience yet',
+  'software-engineer': 'Software Engineer', 'finance': 'Finance', 'project-manager': 'Project Manager',
+  'nurse': 'Nurse', 'teacher': 'Teacher', 'career-changer': 'Career changer', 'other': 'Other'
+};
+function _profileCell(u) {
+  const cat = u.category ? (_CATEGORY_LABELS[u.category] || u.category) : '';
+  const src = u.attribution || '';
+  if (!cat && !src) return '<span class="user-meta">–</span>';
+  var html = '';
+  if (cat) html += '<div>' + esc(cat) + '</div>';
+  if (src) html += '<div class="user-meta" title="Where they heard about us">via ' + esc(src) + '</div>';
+  return html;
+}
+
 // Per-user AI feature breakdown for the Users table. Shows total AI uses plus the
 // features that user has actually used, sorted by count, with the full list on hover.
 function _aiUseCell(u) {
@@ -342,6 +360,7 @@ function renderUsers() {
       <tr>
         <td><div class="user-email">${esc(_maskEmail(u.email))}</div></td>
         <td>${fmtPlan(u.plan)}</td>
+        <td>${_profileCell(u)}</td>
         <td>${fmtDate(u.createdAt)}</td>
         <td>${esc(notes)} ${stripe}</td>
         <td>${u.downloadsUsed}</td>

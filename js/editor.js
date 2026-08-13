@@ -2319,65 +2319,25 @@ function _paginate(doc) {
   body.style.padding = CANVAS_PAD + 'px 0';
   body.style.margin = '0';
 
-  // --- Paginate: bump any block that overflows the current sheet to the top of
-  // the next one (a page fills, a fresh page begins). Measured within the column. ---
-  const flow = _bestFlowRoot(col);
-  const units = _breakUnits(flow);
+  // --- Paginate via the SHARED decision (HFPaginate in templates.js), the exact
+  // same code that shapes the exported PDF, so the preview is true WYSIWYG. Measure
+  // continuously within the column, decide breaks, then push each break unit to the
+  // top of its sheet with a spacer. ---
+  const flow = HFPaginate.flowRoot(col);
+  const units = HFPaginate.breakUnits(flow, PAGE_PX);
   const step = PAGE_PX + SHEET_GAP;
-  const TAIL = 8;                                          // absorb trailing margins / rounding so a hair of overflow can't spawn a page
-  const isHeading = el => el && el.nodeType === 1 && /^H[1-4]$/.test(el.tagName);
-  // col's top offset is stable while we insert spacers *inside* it (the column is
-  // centered in the body and only grows downward), so read it once, this avoids a
-  // forced reflow per unit and keeps pagination fast on very long resumes.
-  const colTop = col.getBoundingClientRect().top;
-  let page = 0, prevUnit = null, forceBreakNext = false;
-  for (const unit of units) {
-    if (page >= MAX_SHEETS - 1) break;
-    const r = unit.getBoundingClientRect();
-    if (r.height < 1) { prevUnit = unit; continue; }       // skip empty units so they never create a phantom page
-    let top = r.top - colTop;
-
-    // Re-anchor: after an atomic (>1 page) block the continuous content has drifted
-    // off the gapped sheet grid, so snap the next unit to a fresh page top.
-    if (forceBreakNext) {
-      forceBreakNext = false;
-      if (top > page * step + 1) {
-        const sp = doc.createElement('div');
-        sp.className = 'hf-pagebreak';
-        sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - top)) + 'px;';
-        (unit.parentNode || flow).insertBefore(sp, unit);
-        page++;
-        top = page * step;                                 // unit now sits at the new page top
-      }
-    }
-
-    const bottom = top + r.height;
-    const sheetTop = page * step;
-    const sheetBottom = sheetTop + PAGE_PX;
-    if (bottom > sheetBottom + TAIL && top > sheetTop + 1) {
-      // Orphan control: carry a preceding section heading to the next page so a
-      // heading never strands alone at the bottom of a page without its content.
-      let target = unit, targetTop = top;
-      if (isHeading(prevUnit)) {
-        const pTop = prevUnit.getBoundingClientRect().top - colTop;
-        if (pTop > sheetTop + 1) { target = prevUnit; targetTop = pTop; }
-      }
-      const sp = doc.createElement('div');
-      sp.className = 'hf-pagebreak';
-      sp.style.cssText = 'height:' + Math.max(0, Math.round((page + 1) * step - targetTop)) + 'px;';
-      (target.parentNode || flow).insertBefore(sp, target);
-      page++;
-    }
-    // Atomic block taller than a full page (an unsplittable giant paragraph/bullet):
-    // reserve the extra sheets it spans so everything after it stays page-aligned
-    // instead of cascading over the gutters, then force a fresh page after it.
-    if (r.height > PAGE_PX + TAIL) {
-      page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((r.height - TAIL) / PAGE_PX) - 1);
-      forceBreakNext = true;
-    }
-    prevUnit = unit;
+  const measured = HFPaginate.measure(units, col);
+  const dec = HFPaginate.decide(measured, PAGE_PX);
+  let accGap = 0;
+  for (const b of dec.breaks) {
+    const spH = Math.max(0, Math.round(b.page * step - (b.top + accGap)));
+    const sp = doc.createElement('div');
+    sp.className = 'hf-pagebreak';
+    sp.style.cssText = 'height:' + spH + 'px;';
+    (b.el.parentNode || flow).insertBefore(sp, b.el);
+    accGap += spH;
   }
-  const totalPages = Math.min(MAX_SHEETS, page + 1);
+  const totalPages = dec.pages;
 
   // --- Raise the content above the sheets (within the column). ---
   Array.from(col.children).forEach(el => {

@@ -1020,3 +1020,116 @@ function fitDocToOnePage(doc, pageH) {
   return h <= pageH;
 }
 if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
+
+/* ============================================================================
+   HFPaginate — ONE shared page-break decision for BOTH the editor's live
+   preview and the exported PDF, so what a user sees is exactly what an employer
+   receives (true WYSIWYG). Previously the two had separate paginators that
+   drifted (different page-height tolerance, page caps, and oversized-block
+   handling), so the preview and the PDF could disagree. This is the single
+   source of truth; each surface keeps its own rendering (gray sheets on canvas
+   vs. clean flow with CSS page-breaks) but asks THIS for where the breaks go.
+
+   The decision runs on CONTINUOUS (un-paginated) coordinates, measured at the
+   real page width, so it's identical whether it drives on-screen sheets or the
+   print break-before markers. Logic is ported from the editor's proven
+   paginator: an 8px tail tolerance, section-heading orphan control, oversized
+   atomic blocks that span multiple sheets, and a 40-page safety cap.
+   ============================================================================ */
+(function () {
+  var DIMS = { Letter: { w: 816, h: 1056 }, A4: { w: 794, h: 1123 } }; // 96dpi
+  var GAP = 24;          // gray gap between page sheets (preview only)
+  var PAD = 40;          // gray canvas margin around the page column (preview only)
+  var MAX_SHEETS = 40;   // safety cap: covers even long academic CVs
+  var TAIL = 8;          // absorb trailing margins/rounding so a hair of overflow can't spawn a page
+
+  function dims(paper) { return (paper === 'A4') ? DIMS.A4 : DIMS.Letter; }
+  function isHeading(el) { return el && el.nodeType === 1 && /^H[1-4]$/.test(el.tagName); }
+
+  // Best "flow root": the element that actually holds the resume's top-level blocks.
+  function flowRoot(root) {
+    var named = root.querySelector('.body');
+    if (named) return named;
+    var best = root.firstElementChild || root, bn = best.children ? best.children.length : 0;
+    root.querySelectorAll('div, section, main').forEach(function (el) {
+      if (el.children.length > bn) { best = el; bn = el.children.length; }
+    });
+    return best;
+  }
+
+  // Break-units: descend into any block taller than a page (with >1 child) so a
+  // huge entry or long bullet list breaks at a real child boundary, not mid-line.
+  function breakUnits(root, pageH) {
+    var units = [], MAX_DEPTH = 5;
+    function collect(el, depth) {
+      if (el.classList && el.classList.contains('hf-pagebreak')) return;
+      var kids = el.children
+        ? Array.prototype.slice.call(el.children).filter(function (c) { return !(c.classList && c.classList.contains('hf-pagebreak')); })
+        : [];
+      var tooTall = el.getBoundingClientRect().height > pageH;
+      if (tooTall && kids.length > 1 && depth < MAX_DEPTH) { kids.forEach(function (gc) { collect(gc, depth + 1); }); }
+      else units.push(el);
+    }
+    Array.prototype.slice.call(root.children).forEach(function (c) { collect(c, 0); });
+    return units;
+  }
+
+  // Content children of the iframe body (everything except the <style> and our sheets).
+  function contentEls(body) {
+    return Array.prototype.slice.call(body.children).filter(function (el) {
+      return el.tagName !== 'STYLE' && !(el.classList && el.classList.contains('hf-sheet'));
+    });
+  }
+
+  // Measure each unit's continuous top + height relative to `ref`'s top.
+  function measure(units, ref) {
+    var base = ref.getBoundingClientRect().top;
+    return units.map(function (u) { var r = u.getBoundingClientRect(); return { el: u, top: r.top - base, h: r.height }; });
+  }
+
+  // THE decision. Given continuously-measured units, return the ordered set of
+  // units that begin a new page (each with the sheet index it lands on + its
+  // continuous top), plus the total page count. Faithful port of the editor loop.
+  function decide(measured, pageH) {
+    var breaks = [];
+    if (!measured.length) return { breaks: breaks, pages: 1 };
+    var page = 0, pageStartY = measured[0].top, forceBreakNext = false, prev = null;
+    for (var i = 0; i < measured.length; i++) {
+      if (page >= MAX_SHEETS - 1) break;
+      var m = measured[i];
+      if (m.h < 1) { prev = m; continue; }   // skip phantom units (no height)
+      if (forceBreakNext) {
+        forceBreakNext = false;
+        if (m.top - pageStartY > 1) { breaks.push({ el: m.el, page: page + 1, top: m.top }); pageStartY = m.top; page++; }
+      }
+      if ((m.top + m.h - pageStartY > pageH + TAIL) && (m.top - pageStartY > 1)) {
+        // Orphan control: carry a preceding section heading to the next page.
+        var targetEl = m.el, targetTop = m.top;
+        if (prev && isHeading(prev.el) && (prev.top - pageStartY > 1)) { targetEl = prev.el; targetTop = prev.top; }
+        breaks.push({ el: targetEl, page: page + 1, top: targetTop });
+        pageStartY = targetTop; page++;
+      }
+      // Atomic block taller than a page: reserve the extra sheets it spans.
+      if (m.h > pageH + TAIL) {
+        page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((m.h - TAIL) / pageH) - 1);
+        forceBreakNext = true;
+      }
+      prev = m;
+    }
+    return { breaks: breaks, pages: Math.min(MAX_SHEETS, page + 1) };
+  }
+
+  // Convenience: reset any prior pagination artifacts a surface left behind.
+  function reset(doc) {
+    doc.querySelectorAll('.hf-sheet, .hf-pagebreak').forEach(function (e) { e.remove(); });
+    var body = doc.body;
+    var prevCol = Array.prototype.slice.call(body.children).find(function (el) { return el.classList && el.classList.contains('hf-doc'); });
+    if (prevCol) { while (prevCol.firstChild) body.insertBefore(prevCol.firstChild, prevCol); prevCol.remove(); }
+  }
+
+  window.HFPaginate = {
+    DIMS: DIMS, GAP: GAP, PAD: PAD, MAX_SHEETS: MAX_SHEETS, TAIL: TAIL,
+    dims: dims, isHeading: isHeading, flowRoot: flowRoot,
+    breakUnits: breakUnits, contentEls: contentEls, measure: measure, decide: decide, reset: reset,
+  };
+})();

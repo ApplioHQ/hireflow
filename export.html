@@ -211,22 +211,20 @@ function _expPaginate(doc) {
   _expContentEls(body).forEach(el => col.appendChild(el));
   body.appendChild(col);
   body.style.background = '#e9eaef'; body.style.width = canvasW + 'px'; body.style.padding = EXP_PAD + 'px 0'; body.style.margin = '0';
-  const flow = _expFlowRoot(col), units = _expBreakUnits(flow, pageH), step = pageH + EXP_GAP;
-  // Measure ONCE on continuous coords, then compute the break set (same as print).
-  const measured = _expMeasure(units, col);
-  const breaks = _expComputeBreaks(measured, pageH);
-  // Push each break unit to the top of its sheet with a spacer.
-  let accGap = 0, k = 0;
-  for (const m of measured) {
-    if (!breaks.has(m.el)) continue;
-    const target = (k + 1) * step;
-    const spH = Math.max(0, Math.round(target - (m.top + accGap)));
+  const flow = HFPaginate.flowRoot(col), units = HFPaginate.breakUnits(flow, pageH), step = pageH + EXP_GAP;
+  // Shared decision (same code the editor preview uses) → identical breaks = true WYSIWYG.
+  const measured = HFPaginate.measure(units, col);
+  const dec = HFPaginate.decide(measured, pageH);
+  // Push each break unit to the top of ITS sheet (b.page accounts for oversized blocks).
+  let accGap = 0;
+  for (const b of dec.breaks) {
+    const spH = Math.max(0, Math.round(b.page * step - (b.top + accGap)));
     const sp = doc.createElement('div'); sp.className = 'hf-pagebreak';
     sp.style.cssText = 'height:' + spH + 'px;';
-    (m.el.parentNode || flow).insertBefore(sp, m.el);
-    accGap += spH; k++;
+    (b.el.parentNode || flow).insertBefore(sp, b.el);
+    accGap += spH;
   }
-  const total = k + 1;
+  const total = dec.pages;
   Array.from(col.children).forEach(el => {
     if (el.classList.contains('hf-pagebreak')) return;
     if (doc.defaultView.getComputedStyle(el).position === 'static') el.style.position = 'relative';
@@ -276,10 +274,12 @@ function _renderClean() {
   // accurately and synchronously, matching what _expPaginate computed.
   try {
     const pageH = _expPageH();
-    const units = _expBreakUnits(_expFlowRoot(doc.body), pageH);
-    _expComputeBreaks(_expMeasure(units, doc.body), pageH).forEach(el => {
-      el.style.breakBefore = 'page';
-      el.style.pageBreakBefore = 'always';
+    const flow = HFPaginate.flowRoot(doc.body);
+    const units = HFPaginate.breakUnits(flow, pageH);
+    const dec = HFPaginate.decide(HFPaginate.measure(units, flow), pageH);
+    dec.breaks.forEach(b => {
+      b.el.style.breakBefore = 'page';
+      b.el.style.pageBreakBefore = 'always';
     });
   } catch (_) {}
   return doc;

@@ -962,7 +962,6 @@
   color: #fff; border-radius: 12px; z-index: 10;
   opacity: 0; transition: opacity .28s ease; pointer-events: none;
 }
-.mock-resume:hover .mock-resume-stamp { opacity: 1; }
 .mock-resume-stamp-icon { font-size: 44px; line-height: 1; }
 .mock-resume-stamp-text { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
 .mock-resume-stamp-sub  { font-size: 12px; opacity: .8; }

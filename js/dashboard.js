@@ -215,7 +215,7 @@
 
   // ---------- quick actions ----------
   var ACTIONS = [
-    { href: 'autopilot', icon: 'target', title: 'Application Autopilot', desc: 'Paste a job → full application, ready' },
+    // Autopilot intentionally omitted here — it's the hero banner above the grid.
     { href: 'editor', icon: 'edit', title: 'Resume Builder', desc: 'Edit and perfect your resume' },
     { href: 'jobs', icon: 'list', title: 'Job Tracker', desc: 'Track every application' },
     { href: 'match', icon: 'gauge', title: 'Best Match', desc: 'Score your resume vs a job' },

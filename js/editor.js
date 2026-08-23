@@ -193,6 +193,47 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   });
 });
 
+// The ATS score is the one screen with a user's full attention, and most people stop
+// there. Turn it into a springboard to the next feature: a score-aware headline + a
+// clear primary action + a couple of related tools. This is the main lever for getting
+// users past "import + ATS" into tailoring, cover letters, and Autopilot.
+function _atsNextSteps(score, missingCount) {
+  const strong = score >= 70 && !missingCount;
+  const head = strong
+    ? "You're interview-ready. Finish the application."
+    : score >= 70
+      ? 'Strong score. Lock in the keyword match by tailoring to this job.'
+      : score >= 50
+        ? "You're close. A few targeted moves will push this over the line."
+        : "Let's raise this score. Here's the fastest path.";
+  // Primary action: below "strong", tailoring is the biggest lever; when strong, move
+  // them toward applying (cover letter).
+  const primary = strong
+    ? `<a class="btn btn-primary" href="/cover-letter">${ICON('doc','ico ico-sm')} Generate a matching cover letter</a>`
+    : `<button class="btn btn-primary" onclick="goSection('tailor')">${ICON('target','ico ico-sm')} Tailor to this job</button>`;
+  // Secondary, related tools. De-dupe the primary.
+  const chips = [];
+  if (!strong) chips.push(`<a class="btn btn-secondary btn-sm" href="/cover-letter">${ICON('doc','ico ico-sm')} Cover letter</a>`);
+  chips.push(`<a class="btn btn-secondary btn-sm" href="/skill-gap">${ICON('chart','ico ico-sm')} Skills I'm missing</a>`);
+  chips.push(`<a class="btn btn-secondary btn-sm" href="/autopilot">${ICON('sparkle','ico ico-sm')} Full application (Autopilot)</a>`);
+  if (score < 70) chips.unshift(`<button class="btn btn-secondary btn-sm" onclick="goSection('analysis')">${ICON('beaker','ico ico-sm')} Deep AI analysis</button>`);
+  return `<div class="ats-next">
+      <div class="ats-next-head">${esc(head)}</div>
+      <div class="ats-next-primary">${primary}</div>
+      <div class="ats-next-chips">${chips.join('')}</div>
+    </div>`;
+}
+
+// Programmatically open an editor section (used by the ATS "next step" springboard
+// and other in-app cross-links). Mirrors a sidebar-item click.
+function goSection(key) {
+  currentSection = key;
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.toggle('active', i.dataset.section === key));
+  renderMain();
+  const m = document.querySelector('.main-area'); if (m) m.scrollTo({ top: 0, behavior: 'smooth' });
+  _closeMobileDrawers && _closeMobileDrawers();
+}
+
 // ---- Renderers ----
 const SECTIONS = {
   template: renderTemplateSection, personal: renderPersonal, experience: renderExperience,
@@ -3304,6 +3345,7 @@ function _renderATSResult(r) {
       ${feedbackText ? `<div class="ats-feedback-text ai-body">${_renderAiBody(feedbackText)}</div>` : ''}
       ${wins.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ What's working</div><ul class="ai-rec-list" id="ats-wins"></ul></div>` : ''}
       ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing keywords</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
+      ${_atsNextSteps(score, missing.length)}
     </div>`;
 
   // Animate ring + counter

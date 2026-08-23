@@ -902,6 +902,13 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .ats-bd-fill { height: 100%; border-radius: 4px; transition: width .9s cubic-bezier(.2,0,.2,1); }
 .ats-kw-section { width: 100%; }
 .ats-kw-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+/* ATS "next step" springboard — turns the score into a route to the next feature. */
+.ats-next { width: 100%; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+.ats-next-head { font-size: 15px; font-weight: 800; margin-bottom: 12px; letter-spacing: -.2px; }
+.ats-next-primary { margin-bottom: 10px; }
+.ats-next-primary .btn { width: 100%; }
+.ats-next-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ats-next-chips .btn { flex: 1 1 auto; }
 .ats-kw-list  { display: flex; flex-wrap: wrap; gap: 6px; }
 @keyframes pill-pop {
   from { opacity: 0; transform: scale(.7); }

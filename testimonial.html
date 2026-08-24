@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Testimonial Approval | Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .tt-wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px 80px; }
+  .tt-wrap h1 { font-size: clamp(24px,4vw,30px); font-weight: 800; letter-spacing:-.4px; }
+  .tt-sub { color: var(--muted); font-size: 14px; margin-top: 6px; line-height:1.55; }
+  .tt-note { margin-top:16px; padding:12px 14px; border-radius:10px; background:var(--bg-1); border:1px solid var(--border); border-left:3px solid var(--accent); font-size:13px; line-height:1.55; color:var(--text); }
+  .tt-card { margin-top: 20px; }
+  .tt-field { margin-bottom: 16px; }
+  .tt-field label { display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; }
+  .tt-field input[type=text], .tt-field textarea { width:100%; box-sizing:border-box; padding:10px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-size:14px; font-family:inherit; }
+  .tt-field textarea { resize:vertical; line-height:1.55; }
+  .tt-inline { display:flex; gap:9px; align-items:flex-start; font-size:13.5px; line-height:1.45; margin-bottom:8px; cursor:pointer; }
+  .tt-inline input { margin-top:2px; flex-shrink:0; accent-color:var(--accent); }
+  .tt-two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .tt-two { grid-template-columns:1fr; } }
+  .tt-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .tt-status-pill { display:inline-block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:4px 10px; border-radius:999px; }
+  .tt-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+  .tt-msg { margin-top:14px; font-size:13.5px; }
+  .tt-msg.ok { color:var(--success); } .tt-msg.err { color:var(--danger); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/dashboard" class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/email-preferences">Email preferences</a>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="tt-wrap">
+  <h1>Testimonial approval</h1>
+  <p class="tt-sub">If you'd like to share your Applio experience, this is where you approve exactly what we may publish, and where. <span id="tt-statuswrap"></span></p>
+  <div class="tt-note">Nothing here is published unless you explicitly approve it below with a quote and at least one channel. You can revise, decline, or withdraw approval at any time before it's used.</div>
+
+  <div class="section-card tt-card">
+    <div class="tt-field">
+      <label for="tt-quote">The quote you're approving</label>
+      <textarea id="tt-quote" rows="4" placeholder="e.g. Applio helped me tailor my resume and I landed three interviews in two weeks."></textarea>
+    </div>
+
+    <div class="tt-field">
+      <label>How should we attribute it?</label>
+      <label class="tt-inline"><input type="radio" name="attr" value="name" checked> Use my name and details below</label>
+      <label class="tt-inline"><input type="radio" name="attr" value="anonymous"> Keep me anonymous</label>
+    </div>
+
+    <div id="tt-named">
+      <div class="tt-two">
+        <div class="tt-field"><label for="tt-name">Name</label><input id="tt-name" type="text" placeholder="Jane Doe"></div>
+        <div class="tt-field"><label for="tt-title">Job title (optional)</label><input id="tt-title" type="text" placeholder="Product Manager"></div>
+      </div>
+      <div class="tt-field"><label for="tt-company">Company (optional)</label><input id="tt-company" type="text" placeholder="Acme Inc."></div>
+      <label class="tt-inline"><input type="checkbox" id="tt-photo"> You may use my photo (we'll confirm which one before publishing).</label>
+    </div>
+
+    <div class="tt-field">
+      <label for="tt-outcome">Outcome claim (optional)</label>
+      <input id="tt-outcome" type="text" placeholder="e.g. Landed a role at Acme after 3 weeks">
+      <div class="tt-sub" style="margin-top:5px;">Only an outcome you approve here may ever be published.</div>
+    </div>
+
+    <div class="tt-field">
+      <label>Where do you approve publishing this?</label>
+      <div class="tt-chips">
+        <label class="tt-inline" style="margin:0;"><input type="checkbox" class="tt-chan" value="website"> Website</label>
+        <label class="tt-inline" style="margin:0;"><input type="checkbox" class="tt-chan" value="social"> Social media</label>
+        <label class="tt-inline" style="margin:0;"><input type="checkbox" class="tt-chan" value="sales"> Sales materials</label>
+        <label class="tt-inline" style="margin:0;"><input type="checkbox" class="tt-chan" value="ads"> Ads</label>
+      </div>
+    </div>
+
+    <div class="tt-actions">
+      <button class="btn btn-primary" id="tt-approve">Approve for publication</button>
+      <button class="btn btn-secondary" id="tt-save">Save draft</button>
+      <button class="btn btn-ghost" id="tt-decline">Decline</button>
+      <button class="btn btn-ghost" id="tt-withdraw" style="color:var(--danger);display:none;">Withdraw approval</button>
+    </div>
+    <div class="tt-msg" id="tt-msg"></div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/notify.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login';
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+function $(id){ return document.getElementById(id); }
+
+function syncNamed(){ $('tt-named').style.display = document.querySelector('input[name=attr]:checked').value === 'anonymous' ? 'none' : ''; }
+document.querySelectorAll('input[name=attr]').forEach(r => r.addEventListener('change', syncNamed));
+
+function statusPill(s){
+  const map = { approved:['Approved','var(--success)','rgba(34,197,94,.15)'], submitted:['Draft saved','var(--warning)','rgba(245,158,11,.15)'],
+    declined:['Declined','var(--muted)','var(--bg-2)'], withdrawn:['Withdrawn','var(--danger)','rgba(239,68,68,.15)'] };
+  const m = map[s]; if (!m) return '';
+  return '<span class="tt-status-pill" style="color:'+m[1]+';background:'+m[2]+';">'+m[0]+'</span>';
+}
+
+function fill(t){
+  if (!t) return;
+  if (t.quote) $('tt-quote').value = t.quote;
+  if (t.attribution === 'anonymous') document.querySelector('input[name=attr][value=anonymous]').checked = true;
+  if (t.name) $('tt-name').value = t.name;
+  if (t.title) $('tt-title').value = t.title;
+  if (t.company) $('tt-company').value = t.company;
+  $('tt-photo').checked = !!t.photoConsent;
+  if (t.outcomeClaim) $('tt-outcome').value = t.outcomeClaim;
+  (t.channels||[]).forEach(c => { const b = document.querySelector('.tt-chan[value="'+c+'"]'); if (b) b.checked = true; });
+  $('tt-statuswrap').innerHTML = statusPill(t.status);
+  $('tt-withdraw').style.display = (t.status === 'approved') ? '' : 'none';
+  syncNamed();
+}
+
+function payload(action){
+  return {
+    action,
+    quote: $('tt-quote').value.trim(),
+    attribution: document.querySelector('input[name=attr]:checked').value,
+    name: $('tt-name').value.trim(),
+    title: $('tt-title').value.trim(),
+    company: $('tt-company').value.trim(),
+    photoConsent: $('tt-photo').checked,
+    outcomeClaim: $('tt-outcome').value.trim(),
+    channels: [...document.querySelectorAll('.tt-chan:checked')].map(b => b.value),
+  };
+}
+
+async function send(action){
+  const msg = $('tt-msg'); msg.className = 'tt-msg'; msg.textContent = 'Saving…';
+  try {
+    const r = await fetch(API + '/testimonial', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization: 'Bearer ' + TOKEN },
+      body: JSON.stringify(payload(action))
+    });
+    const d = await r.json().catch(()=>({}));
+    if (!r.ok) { msg.className='tt-msg err'; msg.textContent = d.error || "Couldn't save. Please try again."; return; }
+    fill(d.testimonial);
+    msg.className = 'tt-msg ok';
+    msg.textContent = action === 'approve' ? 'Approved for publication ✓  You can withdraw anytime before it\'s used.'
+      : action === 'withdraw' ? 'Approval withdrawn.' : action === 'decline' ? 'Noted, we won\'t use a testimonial from you.' : 'Draft saved.';
+  } catch(e){ msg.className='tt-msg err'; msg.textContent = "Couldn't save. Please try again."; }
+}
+
+$('tt-approve').addEventListener('click', ()=>send('approve'));
+$('tt-save').addEventListener('click', ()=>send('revise'));
+$('tt-decline').addEventListener('click', ()=>send('decline'));
+$('tt-withdraw').addEventListener('click', ()=>send('withdraw'));
+
+(async ()=>{
+  try {
+    const r = await fetch(API + '/testimonial', { headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (r.status === 401 || r.status === 403) { location.href = 'login'; return; }
+    const d = await r.json();
+    fill(d.testimonial);
+  } catch(e){}
+})();
+</script>
+<script src="js/footer.js"></script>
+</body>
+</html>

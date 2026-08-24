@@ -79,7 +79,7 @@ const SCALE_MULT  = { xs: 0.9, s: 0.95, m: 1.0, l: 1.06, xl: 1.12 };
 // Body line-height (drives --app-line; every template's bullets/prose inherit it).
 const LINE_MULT   = { tight: 1.22, normal: 1.4, relaxed: 1.6, loose: 1.8 };
 // Bullet glyph used before every list item (empty = no marker, tighter indent).
-const BULLET_CHAR = { dot: '•', dash: '–', square: '▪', chevron: '›', arrow: '→', circle: '◦', none: '' };
+const BULLET_CHAR = { dot: '•', dash: '-', square: '▪', chevron: '›', arrow: '→', circle: '◦', none: '' };
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
@@ -187,9 +187,9 @@ function metricBold(rawText) {
 function bulletHTML(text) {
   const raw = String(text || '');
   if (!raw.trim()) return '';
-  const lines = raw.split('\n').map(l => l.replace(/^\s*[•\-*–▪◦·]\s*/, '').trim()).filter(Boolean);
+  const lines = raw.split('\n').map(l => l.replace(/^\s*[•\-*\u2013▪◦·]\s*/, '').trim()).filter(Boolean);
   if (!lines.length) return '';
-  const hadBullets = /(^|\n)\s*[•\-*–▪◦·]\s+/.test(raw);
+  const hadBullets = /(^|\n)\s*[•\-*\u2013▪◦·]\s+/.test(raw);
   if (lines.length === 1 && !hadBullets) {
     return `<div class="t-entry-desc">${metricBold(lines[0])}</div>`;
   }
@@ -203,7 +203,7 @@ function expBlocks(exp) {
     const sub = [e.company, e.location].filter(Boolean).map(esc).join(' · ');
     return `
     <div class="t-entry">
-      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)}</span><span class="t-entry-date">${esc(e.start)} – ${esc(e.end)}</span></div>
+      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)}</span><span class="t-entry-date">${esc(e.start)} - ${esc(e.end)}</span></div>
       ${sub ? `<div class="t-entry-sub">${sub}</div>` : ''}
       ${bulletHTML(e.description)}
     </div>`;
@@ -212,7 +212,7 @@ function expBlocks(exp) {
 function eduBlocks(edu) {
   return (edu||[]).map(e => `
     <div class="t-entry">
-      <div class="t-entry-head"><span class="t-entry-title">${esc(e.school)}</span><span class="t-entry-date">${esc(e.start)} – ${esc(e.end)}</span></div>
+      <div class="t-entry-head"><span class="t-entry-title">${esc(e.school)}</span><span class="t-entry-date">${esc(e.start)} - ${esc(e.end)}</span></div>
       <div class="t-entry-sub">${esc(e.degree)} ${esc(e.field)}${e.gpa?' · GPA '+esc(e.gpa):''}</div>
     </div>`).join('');
 }
@@ -773,7 +773,7 @@ function tIvory(r, accent) {
         ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
         ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
         ${skillsLine(r.skills) ? `<h3>Skills</h3><div class="item">${skillsLine(r.skills)}</div>` : ''}
-        ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' – ' + esc(e.end) : ''}</div>`).join('')}` : ''}
+        ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' - ' + esc(e.end) : ''}</div>`).join('')}` : ''}
       </div>
       <div class="main">
         ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
@@ -893,7 +893,7 @@ function tDeedy(r, accent) {
       ${p.summary ? `<div class="summary">${esc(p.summary)}</div>` : ''}
       <div class="cols">
         <div class="col-left">
-          ${r.education.length ? `<h2>Education</h2>${r.education.map(e => `<div class="side-item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' – ' + esc(e.end) : ''}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
+          ${r.education.length ? `<h2>Education</h2>${r.education.map(e => `<div class="side-item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' - ' + esc(e.end) : ''}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
           ${skillsLine(r.skills) ? `<h2>Skills</h2><div class="side-item">${skillsLine(r.skills)}</div>` : ''}
         </div>
         <div class="col-right">
@@ -1022,7 +1022,7 @@ function fitDocToOnePage(doc, pageH) {
 if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
 
 /* ============================================================================
-   HFPaginate — ONE shared page-break decision for BOTH the editor's live
+   HFPaginate, ONE shared page-break decision for BOTH the editor's live
    preview and the exported PDF, so what a user sees is exactly what an employer
    receives (true WYSIWYG). Previously the two had separate paginators that
    drifted (different page-height tolerance, page caps, and oversized-block

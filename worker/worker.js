@@ -78,6 +78,12 @@ export default {
       if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
       if (path === "/profile" && req.method === "POST") return json(await saveProfile(req, env), 200, cors);
       if (path === "/attribution" && req.method === "POST") return json(await saveAttribution(req, env), 200, cors);
+      if (path === "/consent/config")                  return json(await getConsentConfig(), 200, cors);
+      if (path === "/consent" && req.method === "GET")  return json(await getConsent(req, env), 200, cors);
+      if (path === "/consent" && req.method === "POST") return json(await setConsent(req, env), 200, cors);
+      if (path === "/testimonial" && req.method === "GET")  return json(await getTestimonial(req, env), 200, cors);
+      if (path === "/testimonial" && req.method === "POST") return json(await setTestimonial(req, env), 200, cors);
+      if (path === "/admin/testimonials")              return json(await adminListTestimonials(req, env), 200, cors);
       if (path === "/jobs" && req.method === "GET")  return json(await getJobs(req, env), 200, cors);
       if (path === "/jobs" && req.method === "POST") return json(await saveJobs(req, env), 200, cors);
       if (path === "/downloads/increment")     return json(await incrementDownload(req, env), 200, cors);
@@ -309,20 +315,74 @@ async function getEarlyBirdStatus(req, env) {
   };
 }
 
+// ============ Signup email validation ============
+// Block junk, disposable, and unreachable emails at account creation. Google signups
+// skip all of this (Google has already verified the address). Everything fails OPEN on
+// an infrastructure hiccup so a DNS blip never blocks a legitimate user.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Known disposable / throwaway / placeholder domains. A static list of the common ones
+// catches the large majority of burner signups (and the @test.com junk) at zero cost.
+const DISPOSABLE_DOMAINS = new Set([
+  "test.com", "example.com", "example.org", "example.net", "hireflow.test", "test.test",
+  "mailinator.com", "guerrillamail.com", "guerrillamailblock.com", "sharklasers.com",
+  "10minutemail.com", "tempmail.com", "temp-mail.org", "tempmail.net", "throwawaymail.com",
+  "yopmail.com", "getnada.com", "nada.email", "trashmail.com", "trashmail.de", "maildrop.cc",
+  "dispostable.com", "fakeinbox.com", "mailnesia.com", "mintemail.com", "mohmal.com",
+  "spamgourmet.com", "emailondeck.com", "mytemp.email", "tempinbox.com", "33mail.com",
+  "getairmail.com", "tempr.email", "moakt.com", "inboxbear.com", "email-temp.com",
+  "tmailor.com", "burnermail.io", "harakirimail.com", "discard.email", "spam4.me",
+  "grr.la", "pokemail.net", "byom.de", "mailcatch.com", "tempmailo.com", "1secmail.com",
+]);
+// DNS-over-HTTPS check (Cloudflare 1.1.1.1): does the domain actually accept mail?
+// True if it has MX records, or A/AAAA as a lenient fallback (some small domains accept
+// mail on the A record). Only returns false when DoH answers cleanly with nothing usable.
+async function _domainAcceptsMail(domain) {
+  try {
+    const q = (type) => fetch(
+      "https://cloudflare-dns.com/dns-query?name=" + encodeURIComponent(domain) + "&type=" + type,
+      { headers: { accept: "application/dns-json" } }
+    ).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const mx = await q("MX");
+    if (mx && Array.isArray(mx.Answer) && mx.Answer.some((a) => a.type === 15)) return true;
+    const a = await q("A");
+    if (a && Array.isArray(a.Answer) && a.Answer.length) return true;
+    // Both queries came back cleanly with nothing usable. Reject only when the answer is
+    // definitive: Status 0 (domain exists, no mail records) or Status 3 (NXDOMAIN, no such
+    // domain). Anything else (null fetch, SERVFAIL, etc.) fails OPEN so a blip never blocks.
+    if (mx && a && (mx.Status === 0 || mx.Status === 3)) return false;
+    return true;
+  } catch (_) { return true; }
+}
+// Validate + normalize (trim/lowercase) an email for signup, or throw a friendly 400.
+async function _validateSignupEmail(email) {
+  const norm = String(email || "").trim().toLowerCase();
+  if (!EMAIL_RE.test(norm) || norm.length > 254) throw err(400, "Please enter a valid email address.");
+  const domain = norm.slice(norm.lastIndexOf("@") + 1);
+  if (DISPOSABLE_DOMAINS.has(domain)) throw err(400, "Please use a permanent email address. Disposable inboxes aren't allowed.");
+  if (!(await _domainAcceptsMail(domain))) throw err(400, "That email domain doesn't seem to accept mail. Please check for a typo.");
+  return norm;
+}
+
 // ============ Auth ============
 async function signup(req, env) {
-  const { email, password, category } = await req.json();
+  const { email, password, category, consent } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
   if (password.length < 8) throw err(400, "Password must be at least 8 characters");
+  const cleanEmail = await _validateSignupEmail(email);   // blocks junk/disposable/unreachable
   const ALLOWED_CATEGORIES = ["student","internship","no-experience","software-engineer","finance","project-manager","nurse","teacher","career-changer","other"];
   if (!category || !ALLOWED_CATEGORIES.includes(category)) throw err(400, "Please select a category");
-  if (await getUser(env, email)) throw err(409, "Account already exists");
+  if (await getUser(env, cleanEmail)) throw err(409, "Account already exists");
   const { salt, hash } = await hashPassword(password);
-  const user = { email, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+  const user = { email: cleanEmail, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
   const gotPromo = await _grantEarlyBirdIfEligible(env, user);
   await putUser(env, user);
-  const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
-  return { token, email, promoEarlyBird: gotPromo };
+  // Record the three OPTIONAL marketing/research/testimonial consents captured on the
+  // signup form (each stored with wording+version+source, fully auditable). This never
+  // sends any email; it only records what the user chose. Failure here must not break
+  // signup, so it's best-effort.
+  try { await applySignupConsent(env, cleanEmail, consent); } catch (_) {}
+  const token = await signToken({ email: cleanEmail, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
+  return { token, email: cleanEmail, promoEarlyBird: gotPromo };
 }
 // Google Sign-In: the browser sends the Google ID token (JWT). We verify it with
 // Google (signature + expiry), confirm it was issued for OUR client id, then
@@ -789,6 +849,253 @@ async function saveAttribution(req, env) {
   return { ok: true };
 }
 
+// ============================================================================
+// Email consent + testimonial permission
+// ----------------------------------------------------------------------------
+// FOUR distinct classes of email, kept separate on purpose:
+//   1. ESSENTIAL (transactional): verification, password reset, security notices,
+//      receipts, account-status, user-requested actions. Always operational, never
+//      requires consent, and MUST NOT carry promotional content. Not a category
+//      below (there is nothing to opt out of).
+//   2. MARKETING: product updates, offers, newsletters, career tips, re-engagement.
+//   3. RESEARCH: feedback/survey/user-interview/early-testing invitations.
+//   4. TESTIMONIAL_CONTACT: permission to *contact* someone about sharing their
+//      experience. This is ONLY permission to reach out, it is NOT permission to
+//      publish anything (see the testimonial approval flow further down).
+//
+// Categories 2-4 are strictly OPT-IN (unchecked by default, never a condition of
+// using the account). Every consent change is written to a fast current-state doc
+// (consent:<email>) for enforcement AND appended to an immutable audit log
+// (consentlog:<email>:<ts>:<category>) that is never overwritten.
+// ============================================================================
+
+// The exact wording shown to users, versioned. Store this verbatim with each
+// consent event so we can always prove what a user agreed to and when. Bump
+// CONSENT_VERSION whenever any wording changes (old records keep their old text).
+const CONSENT_VERSION = "2026-08-01";
+const CONSENT_COPY = {
+  marketing:           "Send me Applio career tips, product updates, and offers by email.",
+  research:            "Contact me about feedback, research, or early product testing.",
+  testimonial_contact: "Contact me about sharing my Applio experience as a testimonial or case study.",
+};
+const CONSENT_CATEGORIES = ["marketing", "research", "testimonial_contact"];
+
+// Record a single consent decision: update the current-state doc AND append an
+// immutable audit-log entry. status=false records a withdrawal (with its timestamp).
+async function _recordConsent(env, email, category, status, source) {
+  email = String(email || "").toLowerCase();
+  if (!email || !CONSENT_CATEGORIES.includes(category)) return;
+  const now = Date.now();
+  const wording = CONSENT_COPY[category];
+  let doc;
+  try { doc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null"); } catch { doc = null; }
+  doc = doc || { email };
+  const entry = { status: !!status, ts: now, version: CONSENT_VERSION, wording, source: String(source || "").slice(0, 40) };
+  if (!status) entry.withdrawnAt = now;   // explicit withdrawal timestamp
+  doc[category] = entry;
+  doc.updatedAt = now;
+  await env.HIREFLOW_KV.put(`consent:${email}`, JSON.stringify(doc));
+  // Append-only audit trail, one row per decision, keyed by timestamp+category so
+  // history is preserved rather than overwritten.
+  await env.HIREFLOW_KV.put(
+    `consentlog:${email}:${now}:${category}`,
+    JSON.stringify({ email, category, status: !!status, ts: now, version: CONSENT_VERSION, wording, source: entry.source })
+  );
+}
+
+// THE enforcement gate. Any non-essential email job MUST call this and skip users
+// whose category status is not explicitly true. Absence of a record = no consent.
+async function hasConsent(env, email, category) {
+  try {
+    const doc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${String(email).toLowerCase()}`) || "null");
+    return !!(doc && doc[category] && doc[category].status === true);
+  } catch { return false; }
+}
+
+// Apply the three optional consents captured on the signup form. We record ALL three
+// (true if the box was checked, false if shown-and-left-unchecked) so the signup-time
+// choice is fully auditable. source = "signup".
+async function applySignupConsent(env, email, consent) {
+  if (!consent || typeof consent !== "object") consent = {};
+  for (const cat of CONSENT_CATEGORIES) {
+    await _recordConsent(env, email, cat, consent[cat] === true, "signup");
+  }
+}
+
+// Public: the current wording + version, so the signup form renders the exact text
+// we store (guarantees the displayed and recorded wording match).
+async function getConsentConfig() {
+  return { version: CONSENT_VERSION, copy: CONSENT_COPY, categories: CONSENT_CATEGORIES };
+}
+
+// Authenticated: read the current consent state for the preferences page.
+async function getConsent(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  let doc = {};
+  try { doc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "{}") || {}; } catch { doc = {}; }
+  const state = {};
+  for (const c of CONSENT_CATEGORIES) state[c] = !!(doc[c] && doc[c].status);
+  return {
+    email,
+    version: CONSENT_VERSION,
+    copy: CONSENT_COPY,
+    state,
+    // Essential email is always on and cannot be disabled; surfaced for clarity only.
+    essential: { alwaysOn: true, description: "Account-critical emails (verification, password reset, security, receipts). These are never promotional and cannot be turned off." },
+  };
+}
+
+// Authenticated: update one or more categories from the preferences page. Each change
+// is recorded + audit-logged. Unsubscribes take effect immediately.
+async function setConsent(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  const body = await req.json().catch(() => ({}));
+  const updates = (body && typeof body.updates === "object" && body.updates) ? body.updates : {};
+  const source = String(body.source || "preferences").slice(0, 40);
+  for (const cat of CONSENT_CATEGORIES) {
+    if (cat in updates) await _recordConsent(env, email, cat, updates[cat] === true, source);
+  }
+  return await getConsent(req, env);
+}
+
+// ---- Category-aware one-click unsubscribe -----------------------------------
+// Stable, unguessable per-(email,category) token derived from JWT_SECRET.
+async function consentUnsubToken(env, email, category) {
+  return (await hmacHex(env.JWT_SECRET || "x", `unsub:${category}:${String(email).toLowerCase()}`)).slice(0, 32);
+}
+
+// ---- Outreach rate-limiting / duplicate prevention --------------------------
+// Before sending any outreach in a category, confirm we haven't recently emailed
+// this person in it. Prevents repeated/duplicate outreach across job runs.
+async function canSendOutreach(env, email, category) {
+  return !(await env.HIREFLOW_KV.get(`outreach_last:${category}:${String(email).toLowerCase()}`));
+}
+async function markOutreachSent(env, email, category, minDays) {
+  await env.HIREFLOW_KV.put(
+    `outreach_last:${category}:${String(email).toLowerCase()}`,
+    String(Date.now()),
+    { expirationTtl: Math.max(3600, (minDays || 7) * 86400) }
+  );
+}
+
+// Required footer for any NON-ESSENTIAL commercial email: sender identity, a valid
+// postal address, and a working one-click unsubscribe for THIS category. Transactional
+// emails must never include this (they carry no promotional content and no unsub).
+async function commercialEmailFooter(env, email, category) {
+  const addr = env.MAILING_ADDRESS || "Applio";
+  const base = env.API_BASE_URL || "https://hireflow-api.pritamavuthu7.workers.dev";
+  const unsub = `${base}/unsubscribe?e=${encodeURIComponent(email)}&t=${await consentUnsubToken(env, email, category)}&c=${category}`;
+  return `<hr style="border:0;border-top:1px solid #e9ebf1;margin:30px 0 14px;">
+    <p style="color:#9aa0ad;font-size:12px;line-height:1.6;margin:0;">
+      You're receiving this because you opted in to ${category.replace("_", " ")} emails from Applio.
+      <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe</a>, takes effect immediately.<br>${addr}
+    </p>`;
+}
+
+// ============================================================================
+// Testimonial / case-study PUBLICATION approval
+// ----------------------------------------------------------------------------
+// CRITICAL RULE: a user's quote, name, title, company, photo, or outcome claim is
+// NEVER publishable based on an email reply, marketing consent, or "testimonial_contact"
+// permission. Those only allow us to ASK. Publication requires an explicit, itemized
+// approval recorded here, naming exactly what may be published and on which channels.
+// canPublishTestimonial() is the single gate; nothing should publish without it.
+// ============================================================================
+const TESTIMONIAL_CHANNELS = ["website", "social", "sales", "ads"];
+
+async function getTestimonial(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  let doc = null;
+  try { doc = JSON.parse(await env.HIREFLOW_KV.get(`testimonial:${email}`) || "null"); } catch { doc = null; }
+  return { email, testimonial: doc || { status: "none" }, channels: TESTIMONIAL_CHANNELS };
+}
+
+// User submits their testimonial approval decision. Actions:
+//   approve  -> explicit permission to publish the itemized content on named channels
+//   revise   -> save changes but keep it unpublished/pending
+//   decline  -> user declines to provide a testimonial
+//   withdraw -> user pulls a previously given (as-yet-unpublished) approval
+// Every state change is appended to an immutable log (testimoniallog:<email>:<ts>).
+async function setTestimonial(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  const body = await req.json().catch(() => ({}));
+  const action = String(body.action || "").toLowerCase();
+  const now = Date.now();
+  let doc = null;
+  try { doc = JSON.parse(await env.HIREFLOW_KV.get(`testimonial:${email}`) || "null"); } catch { doc = null; }
+  doc = doc || { email, status: "none" };
+
+  if (action === "decline") {
+    doc.status = "declined"; doc.updatedAt = now;
+  } else if (action === "withdraw") {
+    // A user can withdraw approval for anything not yet published.
+    doc.status = "withdrawn"; doc.withdrawnAt = now; doc.updatedAt = now;
+  } else if (action === "approve" || action === "revise") {
+    const clean = (s, n) => String(s == null ? "" : s).slice(0, n);
+    doc.quote = clean(body.quote, 1000);
+    doc.attribution = (body.attribution === "anonymous") ? "anonymous" : "name";
+    doc.name = doc.attribution === "anonymous" ? "" : clean(body.name, 120);
+    doc.title = clean(body.title, 120);
+    doc.company = clean(body.company, 120);
+    doc.photoConsent = body.photoConsent === true;
+    doc.outcomeClaim = clean(body.outcomeClaim, 300);   // e.g. "Landed a role at X", only publishable if approved here
+    doc.channels = Array.isArray(body.channels) ? body.channels.filter(c => TESTIMONIAL_CHANNELS.includes(c)) : [];
+    if (action === "approve") {
+      // Explicit publication permission requires an actual quote and at least one channel.
+      if (!doc.quote.trim()) throw err(400, "Add the quote you're approving before publishing.");
+      if (!doc.channels.length) throw err(400, "Pick at least one channel you're approving.");
+      doc.status = "approved";
+      doc.approvedAt = now;
+      doc.version = CONSENT_VERSION;
+    } else {
+      doc.status = "submitted";   // saved but NOT approved for publication
+    }
+    doc.updatedAt = now;
+  } else {
+    throw err(400, "Unknown testimonial action.");
+  }
+
+  await env.HIREFLOW_KV.put(`testimonial:${email}`, JSON.stringify(doc));
+  // Immutable record of exactly what was approved/changed and when.
+  await env.HIREFLOW_KV.put(`testimoniallog:${email}:${now}`, JSON.stringify({ ...doc, loggedAt: now }));
+  return { ok: true, testimonial: doc };
+}
+
+// THE publication gate. Returns true ONLY when there is an explicit, current approval
+// with a real quote and named channels. Any code that would surface a testimonial
+// publicly must pass through this. Never publish on any other signal.
+function canPublishTestimonial(doc, channel) {
+  if (!doc || doc.status !== "approved") return false;
+  if (!doc.quote || !String(doc.quote).trim()) return false;
+  if (!Array.isArray(doc.channels) || !doc.channels.length) return false;
+  if (channel && !doc.channels.includes(channel)) return false;
+  return true;
+}
+
+// Admin: list testimonials that are actually approved for publication, so the team can
+// publish them MANUALLY on the approved channels. There is no auto-publish anywhere.
+async function adminListTestimonials(req, env) {
+  await requireAdmin(req, env);
+  const out = [];
+  let cursor;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "testimonial:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      try {
+        const doc = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null");
+        if (doc) out.push({ ...doc, publishable: canPublishTestimonial(doc) });
+      } catch { /* skip */ }
+    }
+  } while (cursor);
+  out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  return { testimonials: out };
+}
+
 // ============ Job tracker (cross-device sync of the application pipeline) ============
 // Stored as { jobs:[...], updatedAt } so the client can do last-write-wins.
 async function getJobs(req, env) {
@@ -1244,7 +1551,19 @@ function unsubPage(title, msg) {
 async function handleUnsubscribe(url, env) {
   const email = (url.searchParams.get("e") || "").toLowerCase().trim();
   const token = url.searchParams.get("t") || "";
+  const category = (url.searchParams.get("c") || "").trim();
   if (!email || !token) return unsubPage("Invalid link", "This unsubscribe link is missing information.");
+
+  // Category-aware unsubscribe (marketing / research / testimonial_contact). Takes effect
+  // immediately: records a withdrawal in the consent system. Never touches essential email.
+  if (CONSENT_CATEGORIES.includes(category)) {
+    const good = await consentUnsubToken(env, email, category);
+    if (token.length !== good.length || token !== good) return unsubPage("Invalid link", "This unsubscribe link isn't valid. If you keep getting emails, just reply and we'll remove you.");
+    await _recordConsent(env, email, category, false, "unsubscribe-link");
+    return unsubPage("You're unsubscribed", "You won't get " + category.replace("_", " ") + " emails anymore. This took effect immediately, and it doesn't affect essential account emails. You can change your choices anytime on your email preferences page.");
+  }
+
+  // Legacy path: the weekly Win-Journal reminder link (no category param).
   const good = await winUnsubToken(env, email);
   if (token.length !== good.length || token !== good) return unsubPage("Invalid link", "This unsubscribe link isn't valid. If you keep getting emails, just reply and we'll remove you.");
   await env.HIREFLOW_KV.put(`winmail_off:${email}`, "1");
@@ -1283,7 +1602,14 @@ async function runWeeklyWinNudge(env) {
       scanned++;
       const email = k.name.slice("profile:".length);
       if (!email || !email.includes("@")) continue;
-      if (await env.HIREFLOW_KV.get(`winmail_off:${email}`)) continue;   // hard opt-out (unsubscribe link)
+      if (await env.HIREFLOW_KV.get(`winmail_off:${email}`)) continue;   // hard opt-out (win-nudge unsubscribe link)
+      // Consent-system enforcement: the win reminder is a re-engagement (marketing-class)
+      // email, so an explicit marketing opt-out suppresses it globally. The per-email
+      // emailWeeklyWin opt-in below is the specific consent; this is the category gate.
+      try {
+        const cdoc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null");
+        if (cdoc && cdoc.marketing && cdoc.marketing.status === false) continue;
+      } catch { /* fail open on parse error */ }
       if (await env.HIREFLOW_KV.get(`winmail_last:${email}`)) continue;  // emailed within the weekly window
       let profile;
       try { profile = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
@@ -1662,6 +1988,39 @@ function _tightenBullets(out) {
   return bullets.length ? bullets.join("\n") : out;
 }
 
+// ============ Generative-output safety net =====================================
+// Defense in depth for the prose generators (cover letter, letter, summary). The
+// GROUNDING prompt + self-checks steer the model; these catch the failures that slip
+// through, so a real professional never sees a placeholder, a refusal, a JSON blob, or
+// a "Here's your..." preamble in what they're about to send to an employer.
+
+// Strip the artifacts a chatty/small model tends to leak around good output.
+function _cleanProse(text) {
+  let s = String(text == null ? "" : text);
+  s = s.replace(/^```[a-z]*\s*|\s*```$/gi, "");                 // code fences
+  // Leading preamble like "Sure! Here's your cover letter:" up to the first blank line.
+  s = s.replace(/^\s*(sure|certainly|of course|absolutely|here(?:'s| is)|below is|i'?d be happy to)[^\n]*:\s*\n+/i, "");
+  s = s.replace(/^\s*["'“”]+|["'“”]+\s*$/g, "");                // wrapping quotes
+  return s.trim();
+}
+
+// Unfilled placeholders the model was told never to emit: [Company], {{name}}, <role>,
+// XXXX, [Your achievement], etc. Presence means the output is not send-ready.
+const _PLACEHOLDER_RE = /\[[^\]\n]{1,40}\]|\{\{[^}\n]{1,40}\}\}|<[A-Za-z][^>\n]{0,38}>|\bX{3,}\b|\b(?:your name here|insert [a-z ]+|company name|job title)\b/i;
+// The model refused or broke character instead of producing content.
+const _REFUSAL_RE = /\b(as an ai|i (?:can'?t|cannot|am unable|'m unable)|i do not have|i'm sorry,? but|language model)\b/i;
+
+// Returns a reason string if the text is not safe to show, else "". Callers throw a
+// friendly error on a non-empty reason rather than surfacing broken content.
+function _brokenReason(text, { minLen = 40 } = {}) {
+  const s = String(text || "").trim();
+  if (s.replace(/\s+/g, "").length < minLen) return "too-short";
+  if (_REFUSAL_RE.test(s)) return "refusal";
+  if (_PLACEHOLDER_RE.test(s)) return "placeholder";
+  if (/^\s*[{[][\s\S]*[}\]]\s*$/.test(s)) return "json-leak";   // raw JSON leaked into a prose field
+  return "";
+}
+
 // ============ Suggest skills ============
 async function aiSkills(env, { experience }) {
   const cacheKey = JSON.stringify(experience || {}).slice(0, 3000);
@@ -1760,6 +2119,12 @@ Return the JSON.`;
   // Guarantee low <= median <= high even if the model slips.
   const sorted = [low, median, high].filter(n => n > 0).sort((a, b) => a - b);
   if (sorted.length === 3) { low = sorted[0]; median = sorted[1]; high = sorted[2]; }
+  // Plausibility guard: reject nonsensical figures rather than show a made-up number as
+  // fact. Annual pay in any real market sits well inside these bounds; a spread wider
+  // than 6x low..high signals the model guessed. Fail cleanly instead of misinforming.
+  if (median < 5000 || median > 5000000 || (low && high && high > low * 6)) {
+    throw err(502, "Couldn't estimate a reliable range for that. Try a more specific or common job title.");
+  }
   const out = {
     role: String(data.role || target).slice(0, 120),
     location: String(data.location || (loc || "Not specified")).slice(0, 120),
@@ -2315,9 +2680,11 @@ Requirements:
   ].filter(Boolean).join("\n");
 
   const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.3 });
-  const cleaned = out
-    .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
-    .trim();
+  const cleaned = _cleanProse(out);
+  // Safety net: never hand back a placeholder-laden, refused, or empty cover letter.
+  if (_brokenReason(cleaned, { minLen: 120 })) {
+    throw err(502, "That didn't come out right. Please try again, it's usually a one-off.");
+  }
   return { text: cleaned };
 }
 
@@ -2397,9 +2764,11 @@ Requirements:
   ].filter(Boolean).join("\n");
 
   const out = await runAI(env, sys, userMsg, { model: SMART_MODEL, max_tokens: 900, temperature: 0.35 });
-  const cleaned = out
-    .replace(/^(here'?s?( is)?|sure[,!]?|certainly[,!]?|of course[,!]?)[^]*?:\s*/i, "")
-    .trim();
+  const cleaned = _cleanProse(out);
+  // Safety net: never hand back a placeholder-laden, refused, or empty letter.
+  if (_brokenReason(cleaned, { minLen: 80 })) {
+    throw err(502, "That didn't come out right. Please try again, it's usually a one-off.");
+  }
   return { text: cleaned };
 }
 

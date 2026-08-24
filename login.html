@@ -59,6 +59,12 @@
     .auth-split .auth-card > .brand { display:flex; }
     .auth-split .auth-card { padding:36px; }
   }
+  /* Optional contact-consent block on signup (separate from legal acceptance) */
+  .consent-opt { display:flex; gap:9px; align-items:flex-start; font-size:13px; line-height:1.45; color:var(--text); margin-bottom:9px; cursor:pointer; }
+  .consent-opt input { margin-top:2px; flex-shrink:0; width:15px; height:15px; accent-color:var(--accent); }
+  .consent-single { border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin:16px 0 4px; }
+  .consent-legal { font-size:11.5px; color:var(--muted); line-height:1.5; margin-top:12px; }
+  .consent-legal a { color:var(--accent); }
 </style>
 </head>
 <body class="auth-body">
@@ -144,7 +150,13 @@
             <option value="other">Other</option>
           </select>
         </div>
+        <!-- Optional, single opt-in for all non-essential contact. Unchecked by default
+             and NOT a condition of signing up. It enumerates each purpose so consent is
+             informed; users can later fine-tune or turn off any one category on the
+             email-preferences page. Kept distinct from the Terms/Privacy line below. -->
+        <label class="consent-opt consent-single"><input type="checkbox" name="consent_all"><span>Email me Applio tips, updates, offers, plus occasional feedback or testimonial invites.</span></label>
         <button type="submit" class="btn btn-primary btn-block">Create free account →</button>
+        <p class="consent-legal">Essential account emails (verification, receipts, security) are always sent and are never promotional. By creating an account you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</p>
       </form>
       <ul class="auth-perks">
         <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Full resume builder + all 18 templates</li>

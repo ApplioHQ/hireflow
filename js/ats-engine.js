@@ -29,7 +29,7 @@
 
   function bulletLines(text) {
     return String(text || '').split(/\n+/)
-      .map(l => l.replace(/^[\s•*\-▪◦·–, >]+/, '').trim())
+      .map(l => l.replace(/^[\s•*\-▪◦·\u2013, >]+/, '').trim())
       .filter(l => l.length > 0);
   }
 

@@ -71,12 +71,27 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
 document.getElementById('form-signup').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
+  // Quick format check for instant feedback; the server does the authoritative
+  // validation (disposable domains, MX lookup), this just saves a round-trip on typos.
+  const emailVal = String(f.get('email') || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailVal)) {
+    setMsg('signup','error','Please enter a valid email address.');
+    return;
+  }
   try {
     setMsg('signup','success','Creating account…');
     const data = await apiPost('/auth/signup', {
       email: f.get('email'),
       password: f.get('password'),
-      category: f.get('category')
+      category: f.get('category'),
+      // One optional, unchecked-by-default opt-in that covers all non-essential contact.
+      // Recorded server-side per category (each with its own wording + version) so the
+      // audit trail stays granular and users can later turn off any single category on
+      // the email-preferences page. Never triggers any email on its own.
+      consent: (function () {
+        const all = f.get('consent_all') === 'on';
+        return { marketing: all, research: all, testimonial_contact: all };
+      })()
     });
     _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);

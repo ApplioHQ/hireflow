@@ -47,6 +47,7 @@
     +   '<div><h4>Company</h4>'
     +     '<a href="/privacy">Privacy</a>'
     +     '<a href="/terms">Terms</a>'
+    +     '<a href="/email-preferences">Email preferences</a>'
     +     '<a href="/.well-known/security.txt">Security</a>'
     +   '</div>'
     + '</div>'

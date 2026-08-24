@@ -181,7 +181,7 @@ function _loadingState(){
 
 function _render(d){
   var cur = d.currency || 'USD';
-  // Dot position for the median within the low–high band.
+  // Dot position for the median within the low-high band.
   var lo = Number(d.low)||0, mid = Number(d.median)||0, hi = Number(d.high)||0;
   var pct = (hi > lo) ? Math.max(4, Math.min(96, ((mid - lo) / (hi - lo)) * 100)) : 50;
   var conf = (['low','medium','high'].indexOf(d.confidence) >= 0) ? d.confidence : 'medium';
@@ -203,7 +203,7 @@ function _render(d){
     +   '<span class="sw-conf ' + conf + '">' + conf + ' confidence</span>'
     + '</div>'
     + '<div class="sw-median">' + _money(mid, cur) + ' <small>/ year median</small></div>'
-    + '<div class="sw-range-lbl">Typical range ' + _money(lo, cur) + ' – ' + _money(hi, cur) + '</div>'
+    + '<div class="sw-range-lbl">Typical range ' + _money(lo, cur) + ' - ' + _money(hi, cur) + '</div>'
     + '<div class="sw-bar">'
     +   '<span class="sw-tick lo">' + _money(lo, cur) + '</span>'
     +   '<span class="sw-tick hi">' + _money(hi, cur) + '</span>'

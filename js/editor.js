@@ -1061,7 +1061,7 @@ function _insertWin(key, idx, i) {
   if (typeof toast === 'function') toast('Added to your bullets', { type: 'success' });
 }
 
-// Score a description/bullets block 0–100
+// Score a description/bullets block 0-100
 function _scoreBullet(text) {
   if (!text || !text.trim()) return 0;
   var lines = text.split('\n').map(function(l){ return l.replace(/^[•\-\*]\s*/,'').trim(); }).filter(Boolean);
@@ -1197,7 +1197,7 @@ function _qfSummary() {
   const s = (resume.personal.summary || '').trim();
   if (!s) return [];
   const n = s.split(/\s+/).filter(Boolean).length;
-  if (n < 20) return [{ level: 'info', title: 'Summary too short (' + n + ' words)', detail: 'Recruiters need more context, aim for 20–80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
+  if (n < 20) return [{ level: 'info', title: 'Summary too short (' + n + ' words)', detail: 'Recruiters need more context, aim for 20-80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
   if (n > 80) return [{ level: 'info', title: 'Summary too long (' + n + ' words)', detail: 'Tighten this up, keep it under 80 words.', action: { type: 'goto', section: 'personal', focus: 'personal.summary' } }];
   return [];
 }
@@ -1748,7 +1748,7 @@ function _analysisEmptyState() {
           <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
         </svg>
       </div>
-      <p class="an-pre-lead">Get a calibrated <b>0–100 score</b> and specific, fixable feedback on your resume, in seconds.</p>
+      <p class="an-pre-lead">Get a calibrated <b>0-100 score</b> and specific, fixable feedback on your resume, in seconds.</p>
       <div class="an-pre-grid">
         ${tile('an-pre-good', 'check',      'Strengths',  "What's already working")}
         ${tile('an-pre-bad',  'arrowRight', 'Weaknesses', "Exactly what's holding it back")}
@@ -1884,7 +1884,7 @@ const FONTS = FONT_OPTGROUPS.reduce((a,g)=>a.concat(g[1]), []);
 const TEXT_SIZES = [['xs','Extra small'],['s','Small'],['m','Medium'],['l','Large'],['xl','Extra large']];
 const MARGIN_OPTS = ['Narrow','Normal','Wide'];
 const LINE_OPTS = [['tight','Tight'],['normal','Normal'],['relaxed','Relaxed'],['loose','Loose']];
-const BULLET_OPTS = [['dot','• Dot'],['dash','– Dash'],['square','▪ Square'],['chevron','› Chevron'],['arrow','→ Arrow'],['circle','◦ Circle'],['none','No bullets']];
+const BULLET_OPTS = [['dot','• Dot'],['dash','- Dash'],['square','▪ Square'],['chevron','› Chevron'],['arrow','→ Arrow'],['circle','◦ Circle'],['none','No bullets']];
 
 function renderCustomize() {
   if (IS_ANON) return _lockedPanel('Customize your resume', 'Change colors, fonts, spacing, line height, margins, bullets and paper size, then make it truly yours. All free with an account.', 'customize your resume');
@@ -3000,7 +3000,7 @@ function _renderAiBody(text) {
   text = String(text || '').replace(/\s*\u2014\s*/g, ', '); // no em dashes in shown output
   const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) return '<p class="ai-para" style="color:var(--muted);">No suggestions returned.</p>';
-  const bulletRe = /^([•\-\*–]|\d+[.)])\s+(.*)$/;
+  const bulletRe = /^([•\-\*\u2013]|\d+[.)])\s+(.*)$/;
   let html = '', inList = false;
   const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
   lines.forEach(line => {
@@ -3045,7 +3045,7 @@ function _renderPlainLines(text) {
   const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) return '<p class="ai-ba-empty">You hadn\'t written anything here yet.</p>';
   return lines.map(l => {
-    const m = l.match(/^([•\-\*–]|\d+[.)])\s+(.*)$/);
+    const m = l.match(/^([•\-\*\u2013]|\d+[.)])\s+(.*)$/);
     return `<p>${esc(m ? m[2] : l)}</p>`;
   }).join('');
 }
@@ -3591,7 +3591,7 @@ function _promptSignup(action) {
       '<button class="modal-close" onclick="document.getElementById(\'signup-prompt-bd\').remove()">×</button>' +
       '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
       '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
-      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ' , no credit card, takes 20 seconds.</p>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ', no credit card, takes 20 seconds.</p>' +
       '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +
       '<button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="document.getElementById(\'signup-prompt-bd\').remove()">Keep editing</button>' +
       '<div style="margin-top:12px;font-size:12px;color:var(--muted);">Already have an account? <a href="login" style="color:var(--accent);">Sign in</a></div>' +

@@ -100,7 +100,7 @@
         <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
           <div>
             <h3 style="margin:0;">All Users</h3>
-            <p style="margin:4px 0 0;" id="user-summary">–</p>
+            <p style="margin:4px 0 0;" id="user-summary">-</p>
           </div>
           <div style="display:flex; gap:8px; align-items:center;">
             <button class="btn btn-ghost btn-xs" id="email-toggle" onclick="toggleEmails()" title="Show or hide user emails">Show emails</button>
@@ -205,8 +205,8 @@ let ALL_USERS = [];
 let ROLE = null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '–'; }
-function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '–'; }
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
+function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
 function fmtPlan(p) {
   if (p === 'lifetime') return '<span class="pill success">Lifetime</span>';
   if (p === 'premium')  return '<span class="pill success">Premium</span>';
@@ -317,7 +317,7 @@ const _CATEGORY_LABELS = {
 function _profileCell(u) {
   const cat = u.category ? (_CATEGORY_LABELS[u.category] || u.category) : '';
   const src = u.attribution || '';
-  if (!cat && !src) return '<span class="user-meta">–</span>';
+  if (!cat && !src) return '<span class="user-meta">-</span>';
   var html = '';
   if (cat) html += '<div>' + esc(cat) + '</div>';
   if (src) html += '<div class="user-meta" title="Where they heard about us">via ' + esc(src) + '</div>';
@@ -332,7 +332,7 @@ function _aiUseCell(u) {
     .sort((a, b) => b[1] - a[1]);
   const totalRaw = u.aiTotal != null ? u.aiTotal : entries.reduce((s, e) => s + (Number(e[1]) || 0), 0);
   const total = Number(totalRaw) || 0;
-  if (!total) return '<span class="user-meta">–</span>';
+  if (!total) return '<span class="user-meta">-</span>';
   const full = entries.map(e => _aiLabel(e[0]) + ' ' + e[1]).join(', ');
   const top = entries.slice(0, 3).map(e =>
     '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _aiLabel(e[0]) + ' ' + e[1] + '</span>').join(' ');
@@ -354,7 +354,7 @@ function renderUsers() {
   document.getElementById('users-empty').style.display = 'none';
   document.getElementById('users-tbody').innerHTML = list.map(u => {
     const notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
-                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '–';
+                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '-';
     const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
     return `
       <tr>

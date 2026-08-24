@@ -43,7 +43,7 @@
       { id: 'p1f', label: 'Identify your go-to person for each area, and one peer to lean on' },
       { id: 'p1g', label: 'Write down early questions and friction, you\'ll never see them this freshly again' }
     ] },
-    { key: 'p2', title: 'Days 31–60', sub: 'Contribute', tasks: [
+    { key: 'p2', title: 'Days 31-60', sub: 'Contribute', tasks: [
       { id: 'p2a', label: 'Take full ownership of a first project or workstream' },
       { id: 'p2b', label: 'Ship an early, visible win that helps the team' },
       { id: 'p2c', label: 'Give your manager a 30-day reflection: what\'s clear, what isn\'t' },
@@ -51,7 +51,7 @@
       { id: 'p2e', label: 'Start logging accomplishments in your Win Journal as you go' },
       { id: 'p2f', label: 'Ask for feedback on your first deliverables' }
     ] },
-    { key: 'p3', title: 'Days 61–90', sub: 'Deliver & set direction', tasks: [
+    { key: 'p3', title: 'Days 61-90', sub: 'Deliver & set direction', tasks: [
       { id: 'p3a', label: 'Deliver a meaningful result you\'re genuinely proud of' },
       { id: 'p3b', label: 'Propose one improvement you\'re uniquely positioned to see' },
       { id: 'p3c', label: 'Align with your manager on goals for the next quarter' },

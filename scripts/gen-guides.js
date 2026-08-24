@@ -75,7 +75,7 @@ const G = [
     faq:[
       {q:'Should I really tailor my resume for every job?', a:'Tailor for every role you genuinely want. At minimum, match the summary, skills, and top bullets to each posting, it meaningfully raises response rates.'},
       {q:'Isn\'t tailoring just keyword stuffing?', a:'No. Tailoring means honestly re-emphasizing relevant experience in the job\'s language. Keyword stuffing means adding skills you don\'t have, which backfires in interviews.'},
-      {q:'How long should tailoring take?', a:'Manually, 10–20 minutes per role. With an AI tailoring tool, a first draft takes seconds and you refine from there.'},
+      {q:'How long should tailoring take?', a:'Manually, 10-20 minutes per role. With an AI tailoring tool, a first draft takes seconds and you refine from there.'},
     ],
   },
   {
@@ -83,9 +83,9 @@ const G = [
     title:'How Many Bullet Points Should a Resume Have Per Job?',
     metaDesc:'A practical rule for resume bullet points: how many per job, how long each should be, and how to write ones that pass ATS and impress recruiters.',
     kw:'how many bullet points per job on a resume',
-    answer:'Use about 3–6 bullet points for your most recent and relevant roles, and 2–3 for older or less relevant ones. Each bullet should be one to two lines, start with an action verb, and quantify the result. Quality and relevance matter far more than the exact count.',
+    answer:'Use about 3-6 bullet points for your most recent and relevant roles, and 2-3 for older or less relevant ones. Each bullet should be one to two lines, start with an action verb, and quantify the result. Quality and relevance matter far more than the exact count.',
     sections:[
-      {h:'The general rule', html:'<ul><li><strong>Current/most relevant role:</strong> 4–6 bullets.</li><li><strong>Mid-history roles:</strong> 3–4 bullets.</li><li><strong>Older or less relevant roles:</strong> 2–3 bullets.</li><li><strong>Roles 10+ years old:</strong> 1–2 bullets, or group them.</li></ul>'},
+      {h:'The general rule', html:'<ul><li><strong>Current/most relevant role:</strong> 4-6 bullets.</li><li><strong>Mid-history roles:</strong> 3-4 bullets.</li><li><strong>Older or less relevant roles:</strong> 2-3 bullets.</li><li><strong>Roles 10+ years old:</strong> 1-2 bullets, or group them.</li></ul>'},
       {h:'What makes a strong bullet', html:'<p>Start with an action verb, describe what you did, and end with a measurable result: <em>"Increased trial-to-paid conversion 22% by redesigning the onboarding flow."</em> Numbers make bullets credible and quotable, both for recruiters and for AI screening.</p>'},
       {h:'Keep it to one page (usually)', html:'<p>For most candidates with under ~10 years of experience, aim for one page. Trim weak bullets before adding a second page. A <a href="/resume-templates/compact">compact template</a> helps fit strong content cleanly.</p>'},
     ],
@@ -98,9 +98,9 @@ const G = [
   {
     slug:'how-to-write-resume-summary',
     title:'How to Write a Resume Summary (With Examples)',
-    metaDesc:'A resume summary is a 2–3 sentence pitch at the top of your resume. Learn the formula, when to use one, and see examples that get recruiters to keep reading.',
+    metaDesc:'A resume summary is a 2-3 sentence pitch at the top of your resume. Learn the formula, when to use one, and see examples that get recruiters to keep reading.',
     kw:'how to write a resume summary',
-    answer:'A resume summary is a 2–3 sentence pitch at the top of your resume that states who you are, your most relevant strengths, and the value you bring to the target role. Write it last, tailor it to each job, and lead with your title, years of experience, and one or two quantified wins.',
+    answer:'A resume summary is a 2-3 sentence pitch at the top of your resume that states who you are, your most relevant strengths, and the value you bring to the target role. Write it last, tailor it to each job, and lead with your title, years of experience, and one or two quantified wins.',
     sections:[
       {h:'The summary formula', html:'<p><strong>[Title + years] + [core strengths relevant to the role] + [one or two quantified achievements].</strong> Example: <em>"Product manager with 6 years in B2B SaaS, specializing in growth and onboarding. Led experiments that lifted activation 30% and drove $2M in new ARR."</em></p>'},
       {h:'Summary vs. objective', html:'<p>Use a <strong>summary</strong> (what you offer) if you have experience. Use an <strong>objective</strong> (what you want) only when changing careers or with little history, and even then, frame it around the employer\'s needs.</p>'},
@@ -108,7 +108,7 @@ const G = [
     ],
     faq:[
       {q:'Do I need a summary on my resume?', a:'It\'s optional but recommended for experienced candidates. A tailored summary frames your fit before the recruiter reaches your experience.'},
-      {q:'How long should a resume summary be?', a:'Two to three sentences, or 30–60 words. Any longer and recruiters skim past it.'},
+      {q:'How long should a resume summary be?', a:'Two to three sentences, or 30-60 words. Any longer and recruiters skim past it.'},
       {q:'Should I write my summary first or last?', a:'Write it last. Once your experience and skills are on the page, it\'s much easier to distill your strongest pitch.'},
     ],
   },

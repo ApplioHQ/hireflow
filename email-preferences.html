@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Email Preferences | Applio</title>
+<link rel="icon" href="logo.ico">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme.js"></script>
+<style>
+  .ep-wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px 80px; }
+  .ep-wrap h1 { font-size: clamp(24px,4vw,30px); font-weight: 800; letter-spacing:-.4px; }
+  .ep-sub { color: var(--muted); font-size: 14px; margin-top: 6px; line-height:1.55; }
+  .ep-card { margin-top: 22px; }
+  .ep-row { display:flex; gap:14px; align-items:flex-start; justify-content:space-between; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .ep-row:last-child { border-bottom: 0; }
+  .ep-row-txt { flex:1; }
+  .ep-row-title { font-weight: 700; font-size: 14.5px; }
+  .ep-row-desc { color: var(--muted); font-size: 13px; margin-top: 3px; line-height:1.5; }
+  .ep-locked { font-size: 11.5px; font-weight: 700; text-transform:uppercase; letter-spacing:.05em; color: var(--success); flex-shrink:0; padding-top:2px; }
+  /* toggle */
+  .ep-toggle { position:relative; width:44px; height:26px; flex-shrink:0; }
+  .ep-toggle input { opacity:0; width:0; height:0; position:absolute; }
+  .ep-track { position:absolute; inset:0; border-radius:999px; background: var(--bg-3); border:1px solid var(--border); transition: background var(--dur) var(--ease); cursor:pointer; }
+  .ep-track::before { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; transition: transform var(--dur) var(--ease); box-shadow:0 1px 3px rgba(0,0,0,.3); }
+  .ep-toggle input:checked + .ep-track { background: var(--accent); border-color: var(--accent); }
+  .ep-toggle input:checked + .ep-track::before { transform: translateX(18px); }
+  .ep-toggle input:disabled + .ep-track { opacity:.55; cursor:not-allowed; }
+  .ep-save { margin-top: 22px; display:flex; align-items:center; gap:12px; }
+  .ep-status { font-size: 13px; color: var(--muted); }
+  .ep-status.ok { color: var(--success); }
+  .ep-testi { margin-top: 26px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/dashboard" class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="ep-wrap">
+  <h1>Email preferences</h1>
+  <p class="ep-sub">Choose which optional emails you'd like from Applio. Each is independent, and you can change them anytime. Unsubscribing takes effect immediately.</p>
+
+  <div class="section-card ep-card" id="ep-card">
+    <div class="ep-row">
+      <div class="ep-row-txt">
+        <div class="ep-row-title">Essential account emails</div>
+        <div class="ep-row-desc">Verification, password reset, security notices, and receipts. These keep your account working and are never promotional, so they can't be turned off.</div>
+      </div>
+      <span class="ep-locked">Always on</span>
+    </div>
+    <div class="ep-row">
+      <div class="ep-row-txt">
+        <div class="ep-row-title">Career tips, product updates & offers</div>
+        <div class="ep-row-desc" id="desc-marketing">Send me Applio career tips, product updates, and offers by email.</div>
+      </div>
+      <label class="ep-toggle"><input type="checkbox" id="tg-marketing"><span class="ep-track"></span></label>
+    </div>
+    <div class="ep-row">
+      <div class="ep-row-txt">
+        <div class="ep-row-title">Feedback & research</div>
+        <div class="ep-row-desc" id="desc-research">Contact me about feedback, research, or early product testing.</div>
+      </div>
+      <label class="ep-toggle"><input type="checkbox" id="tg-research"><span class="ep-track"></span></label>
+    </div>
+    <div class="ep-row">
+      <div class="ep-row-txt">
+        <div class="ep-row-title">Testimonials & case studies</div>
+        <div class="ep-row-desc" id="desc-testimonial_contact">Contact me about sharing my Applio experience as a testimonial or case study.</div>
+      </div>
+      <label class="ep-toggle"><input type="checkbox" id="tg-testimonial_contact"><span class="ep-track"></span></label>
+    </div>
+  </div>
+
+  <div class="ep-save">
+    <button class="btn btn-primary" id="ep-save-btn">Save preferences</button>
+    <span class="ep-status" id="ep-status"></span>
+  </div>
+
+  <div class="section-card ep-testi">
+    <div class="ep-row-title">Sharing a testimonial?</div>
+    <div class="ep-row-desc" style="margin-bottom:12px;">Agreeing to be contacted above does not publish anything. Publishing a quote or your name always needs your explicit, itemized approval.</div>
+    <a class="btn btn-secondary btn-sm" href="/testimonial">Manage testimonial approval →</a>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/notify.js"></script>
+<script>
+const API = window.HIREFLOW_CONFIG.API_URL;
+const TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login';
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+const CATS = ['marketing','research','testimonial_contact'];
+
+async function load() {
+  try {
+    const r = await fetch(API + '/consent', { headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (r.status === 401 || r.status === 403) { location.href = 'login'; return; }
+    const d = await r.json();
+    // Render the exact stored wording (server is the source of truth for copy).
+    CATS.forEach(c => {
+      const box = document.getElementById('tg-' + c);
+      if (box) box.checked = !!(d.state && d.state[c]);
+      const desc = document.getElementById('desc-' + c);
+      if (desc && d.copy && d.copy[c]) desc.textContent = d.copy[c];
+    });
+  } catch (e) {
+    document.getElementById('ep-status').textContent = "Couldn't load your preferences. Please refresh.";
+  }
+}
+
+async function save() {
+  const btn = document.getElementById('ep-save-btn');
+  const status = document.getElementById('ep-status');
+  const updates = {};
+  CATS.forEach(c => { updates[c] = document.getElementById('tg-' + c).checked; });
+  btn.disabled = true; status.className = 'ep-status'; status.textContent = 'Saving…';
+  try {
+    const r = await fetch(API + '/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
+      body: JSON.stringify({ updates, source: 'preferences' })
+    });
+    if (!r.ok) throw new Error('save failed');
+    status.className = 'ep-status ok'; status.textContent = 'Saved ✓';
+  } catch (e) {
+    status.textContent = "Couldn't save. Please try again.";
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { if (status.textContent === 'Saved ✓') status.textContent = ''; }, 3000);
+  }
+}
+
+document.getElementById('ep-save-btn').addEventListener('click', save);
+load();
+</script>
+<script src="js/footer.js"></script>
+</body>
+</html>

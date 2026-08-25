@@ -250,6 +250,7 @@ function renderMain() {
     || (isCustomSection(currentSection) ? () => renderCustomSection(currentSection) : null)
     || (() => '<p>Section not built yet.</p>');
   mainEl.innerHTML = renderer();
+  _renderFirstActionBanner();
   // Trigger section fade-in
   const card = mainEl.firstElementChild;
   if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
@@ -267,11 +268,40 @@ function renderMain() {
   _refreshCompletion();
 }
 
+// Guided first-action banner (replaces the old tooltip tour). A persistent, non-
+// dismissible prompt at the top of the editor that stays until the user has imported a
+// resume OR filled their name + email in Personal Info (both fill personal.fullName/email),
+// then it removes itself permanently. No close button by design.
+function _firstActionDone() {
+  try { if (localStorage.getItem('hf_first_action_done') === '1') return true; } catch (e) {}
+  const p = (resume && resume.personal) || {};
+  return !!((p.fullName || '').trim() && (p.email || '').trim());
+}
+function _renderFirstActionBanner() {
+  const mainEl = document.getElementById('main');
+  if (!mainEl || (typeof IS_ANON !== 'undefined' && IS_ANON)) return;
+  const existing = document.getElementById('first-action-banner');
+  if (_firstActionDone()) {
+    try { localStorage.setItem('hf_first_action_done', '1'); } catch (e) {}
+    if (existing) existing.remove();
+    return;
+  }
+  if (existing) return;   // already showing
+  const b = document.createElement('div');
+  b.id = 'first-action-banner';
+  b.className = 'fa-banner';
+  b.innerHTML = '<span class="fa-txt">' + ICON('sparkle', 'ico ico-sm')
+    + ' <strong>Start here:</strong> add your name and email in Personal Info to unlock your resume health score.</span>'
+    + '<button class="btn btn-primary btn-sm" onclick="goSection(\'personal\')">Go to Personal Info</button>';
+  mainEl.insertBefore(b, mainEl.firstChild);
+}
+
 // Sidebar completion dots + the overall progress meter. Called on navigation AND on
 // every edit: the meter is the main "how far along am I" signal, so it must not sit
 // at 0/5 while someone fills the form in front of it and only catch up once they
 // happen to click another section.
 function _refreshCompletion() {
+  _renderFirstActionBanner();
   document.querySelectorAll('.sidebar-item').forEach(function (el) {
     var sec = el.dataset.section;
     if (!sec) return;
@@ -2862,7 +2892,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 function signOut() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_tour_done_v1'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 
@@ -3811,23 +3841,29 @@ function _normalizeImported(raw) {
   return base;
 }
 
-async function importResume() {
-  const text = document.getElementById('import-text').value;
-  if (!text.trim()) return toast('Paste some text first', { type: 'warn' });
-  closeModal('import');
+// Parse pasted resume text with AI. Accepts optional text (the onboarding overlay passes
+// its own textarea value); otherwise reads the import modal's field. Returns true on a
+// successful parse so callers (the onboarding flow) can react.
+async function importResume(optText) {
+  const text = (typeof optText === 'string' ? optText : document.getElementById('import-text').value) || '';
+  if (!text.trim()) { toast('Paste some text first', { type: 'warn' }); return false; }
+  if (typeof optText !== 'string') closeModal('import');
   aiLoading('Parsing your resume with AI…');
+  let ok = false;
   try {
     const r = await ai('parse', { text });
     if (r.resume) {
       resume = _normalizeImported(r.resume);
       save(); renderMain();
       toast('Resume imported', { type: 'success' });
+      ok = true;
     } else {
       toast('Could not parse resume, try cleaning up the text and re-importing', { type: 'error', duration: 4500 });
     }
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
   setTimeout(_maybeAutoScore, 600);   // reveal the instant score once the import toast settles
+  return ok;
 }
 
 // ======================================================================
@@ -4156,7 +4192,8 @@ async function _hydrateFromCloud() {
 }
 
 (async () => {
-  _maybeShowWelcome();
+  // First-run onboarding (js/onboarding.js) now owns the welcome + import-first flow for
+  // new users (no hf_onboarded). The old welcome overlay is retired.
   await loadCurrentUser();
   await _hydrateFromCloud();
   _ensureCustomSections();
@@ -4164,7 +4201,9 @@ async function _hydrateFromCloud() {
   renderCustomNav();
   renderMain();
   if (IS_ANON) _initAnonUI();
-  _maybePendingImport();
+  // Only auto-open the ATS-funnel import for ALREADY-onboarded users; for brand-new
+  // users the mandatory onboarding flow handles their pasted resume on its import step.
+  if (localStorage.getItem('hf_onboarded')) _maybePendingImport();
   const _deepLinked = _maybeDeepLinkTailor();   // Job Tracker "Tailor resume" deep link
   // Returning users with a real resume get their instant score on load, unless we just
   // deep-linked them into the tailor flow (don't stack a score modal over that).

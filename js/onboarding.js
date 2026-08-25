@@ -173,6 +173,9 @@
     if (overlay) { overlay.style.transition = 'opacity .2s'; overlay.style.opacity = '0'; setTimeout(function () { if (overlay) overlay.remove(); }, 210); }
     document.documentElement.style.overflow = '';
     if (goPersonal && typeof goSection === 'function') { try { goSection('personal'); } catch (e) {} }
+    // Hand off to the interactive walkthrough (js/walkthrough.js), which spotlights the
+    // real tools now that the immersive overlay is gone.
+    if (typeof window.startAppWalkthrough === 'function') window.startAppWalkthrough();
   }
 
   function showImportView() {

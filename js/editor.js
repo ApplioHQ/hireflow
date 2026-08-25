@@ -967,7 +967,6 @@ function sectionList(key, icon, title, list, fields, longField, prev, next) {
     <div class="section-card">
       <div class="section-head">
         <h3>${ICON(icon)} ${title}</h3>
-        ${longField ? `<button class="ai-btn" onclick="aiImprove('${key}')">${ICON('sparkle','ico ico-sm')} AI Improve</button>`:''}
       </div>
       ${list.length===0 ? `<div class="empty-state">No ${key} added yet.</div>` :
         `<div class="drag-list">${list.map((it,i)=> itemCard(key, i, fields.map(f=>[f[0],f[1],it[f[1]]]), longField, longField?it[longField]:null)).join('')}</div>`}
@@ -1010,9 +1009,12 @@ function itemCard(key, idx, fields, longField, longValue) {
         </div>` : ''}
         ${longField ? `
         <div class="form-field">
-          <label style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span>${longField === 'description' ? 'Description / Bullets' : longField}</span>
-            ${longField === 'description' ? '<span id="bm_' + key + '_' + idx + '" style="font-size:11px;"></span>' : ''}
+          <label style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <span>${longField === 'description' ? 'Description / Bullets' : _titleCase(longField)}</span>
+            <span style="display:flex;align-items:center;gap:10px;">
+              ${longField === 'description' ? '<span id="bm_' + key + '_' + idx + '" style="font-size:11px;"></span>' : ''}
+              <button type="button" class="ai-btn ai-btn-sm" onclick="aiImprove('${key}',${idx})" title="Rewrite these bullets with AI">${ICON('sparkle','ico ico-sm')} AI Improve</button>
+            </span>
           </label>
           <textarea data-bind="${key}.${idx}.${longField}" rows="4"
             placeholder="• Use bullets to describe achievements…"
@@ -3049,6 +3051,70 @@ function _renderPlainLines(text) {
     return `<p>${esc(m ? m[2] : l)}</p>`;
   }).join('');
 }
+// ---- Word-level diff so users see EXACTLY what AI changed ----------------------
+// Splits into bullet lines, pairs each improved line with its closest original, and
+// renders an inline word diff: removed words struck through (red), added words
+// highlighted (green), unchanged words plain. Replaces the old side-by-side that made
+// it hard to tell what actually changed.
+function _diffBullets(text) {
+  return String(text || '').split('\n').map(l => l.trim()).filter(Boolean)
+    .map(l => { const m = l.match(/^([•\-\*–]|\d+[.)])\s+(.*)$/); return (m ? m[2] : l).trim(); })
+    .filter(Boolean);
+}
+function _wnorm(w) { return String(w).toLowerCase().replace(/[^a-z0-9%$]/g, ''); }
+function _overlap(a, b) {
+  const A = new Set(a.map(_wnorm).filter(Boolean)), B = b.map(_wnorm).filter(Boolean);
+  if (!A.size || !B.length) return 0;
+  let hit = 0; for (const w of B) if (A.has(w)) hit++;
+  return hit / Math.max(A.size, B.length);
+}
+function _tokenDiff(a, b) {
+  const n = a.length, m = b.length;
+  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    dp[i][j] = _wnorm(a[i]) === _wnorm(b[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (_wnorm(a[i]) === _wnorm(b[j])) { out.push({ t: 'same', w: b[j] }); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { out.push({ t: 'del', w: a[i] }); i++; }
+    else { out.push({ t: 'ins', w: b[j] }); j++; }
+  }
+  while (i < n) out.push({ t: 'del', w: a[i++] });
+  while (j < m) out.push({ t: 'ins', w: b[j++] });
+  return out;
+}
+function _renderDiffLine(tokens) {
+  return tokens.map(tk => {
+    const w = esc(tk.w);
+    if (tk.t === 'del') return `<del class="ai-df-del">${w}</del>`;
+    if (tk.t === 'ins') return `<ins class="ai-df-ins">${w}</ins>`;
+    return w;
+  }).join(' ');
+}
+function _renderImproveDiff(original, improved) {
+  const orig = _diffBullets(original), imp = _diffBullets(improved);
+  if (!orig.length) return `<div class="ai-df"><div class="ai-df-line"><ins class="ai-df-ins">${esc(imp.join(' '))}</ins></div></div>`;
+  const usedOrig = new Set();
+  const rows = [];
+  imp.forEach(iLine => {
+    const iw = iLine.split(/\s+/);
+    let best = -1, bestScore = 0;
+    orig.forEach((oLine, oi) => {
+      if (usedOrig.has(oi)) return;
+      const s = _overlap(oLine.split(/\s+/), iw);
+      if (s > bestScore) { bestScore = s; best = oi; }
+    });
+    if (best >= 0 && bestScore >= 0.2) {
+      usedOrig.add(best);
+      rows.push(`<div class="ai-df-line">${_renderDiffLine(_tokenDiff(orig[best].split(/\s+/), iw))}</div>`);
+    } else {
+      rows.push(`<div class="ai-df-line"><ins class="ai-df-ins">${esc(iLine)}</ins></div>`);
+    }
+  });
+  orig.forEach((oLine, oi) => { if (!usedOrig.has(oi)) rows.push(`<div class="ai-df-line"><del class="ai-df-del">${esc(oLine)}</del></div>`); });
+  return `<div class="ai-df">${rows.join('')}</div>`;
+}
+
 function showAiSuggestion({ title, text, original, apply, hint }) {
   closeAiSuggest();
   const bd = document.createElement('div');
@@ -3061,16 +3127,14 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   // exactly what the AI sharpened, not just a block of new text.
   const hasBefore = original != null && String(original).trim().length > 0;
   const bodyInner = hasBefore ? `
-        <div class="ai-ba">
-          <div class="ai-ba-block ai-ba-before">
-            <div class="ai-ba-label">Your original</div>
-            <div class="ai-ba-text">${_renderPlainLines(original)}</div>
-          </div>
-          <div class="ai-ba-divider"><span>${ICON('sparkle','ico ico-sm')} Improved with AI</span></div>
-          <div class="ai-ba-block ai-ba-after">
-            <div class="ai-body">${_renderAiBody(text)}</div>
-          </div>
-        </div>` : `<div class="ai-body">${_renderAiBody(text)}</div>`;
+        <div class="ai-df-legend">
+          <span><ins class="ai-df-ins">added</ins></span>
+          <span><del class="ai-df-del">removed</del></span>
+          <button type="button" class="ai-df-toggle" onclick="_aiToggleDiff(this)">Show clean version</button>
+        </div>
+        <div id="ai-df-diff">${_renderImproveDiff(original, text)}</div>
+        <div id="ai-df-clean" style="display:none;"><div class="ai-body">${_renderAiBody(text)}</div></div>
+        ` : `<div class="ai-body">${_renderAiBody(text)}</div>`;
   bd.innerHTML = `
     <div class="app-dialog ai-suggest">
       <div class="ai-suggest-head">
@@ -3088,6 +3152,15 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
     </div>`;
   bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });
   document.addEventListener('keydown', _aiSuggestKey);
+}
+// Toggle between the change-diff (default) and the clean improved text.
+function _aiToggleDiff(btn) {
+  const diff = document.getElementById('ai-df-diff'), clean = document.getElementById('ai-df-clean');
+  if (!diff || !clean) return;
+  const showClean = diff.style.display !== 'none';
+  diff.style.display = showClean ? 'none' : '';
+  clean.style.display = showClean ? '' : 'none';
+  btn.textContent = showClean ? 'Show changes' : 'Show clean version';
 }
 function _aiSuggestKey(e) { if (e.key === 'Escape') closeAiSuggest(); }
 function closeAiSuggest() {
@@ -3111,48 +3184,42 @@ function _applyAiSuggestion() {
   toast('Changes applied ✓', { type: 'success' });
 }
 
-async function aiImprove(target) {
+// Improve one specific entry. `idx` targets the exact card the button lives on, so
+// every entry (not just the first) can be improved independently.
+async function aiImprove(target, idx = 0) {
   aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
   try {
     // Send the exact text being improved plus role/company context so the AI writes
     // bullets relevant to the real position instead of generic filler.
-    let text, context = {};
+    let text, context = {}, applyField = null, applyIdx = idx;
     if (target === 'summary') {
       text = resume.personal.summary || '';
       const top = (resume.experience || [])[0] || {};
       context = { role: top.title || '', company: top.company || '', section: 'summary' };
     } else {
-      const item = (resume[target] || [])[0] || {};
-      const field = ('description' in item) ? 'description'
+      const item = (resume[target] || [])[idx] || {};
+      applyField = ('description' in item) ? 'description'
                   : ('abstract' in item) ? 'abstract'
                   : Object.keys(item).find(k => typeof item[k] === 'string' && (item[k] || '').length > 20);
-      text = field ? (item[field] || '') : JSON.stringify(item);
+      text = applyField ? (item[applyField] || '') : '';
       context = {
         role: item.title || item.role || item.name || '',
         company: item.company || item.org || item.issuer || item.venue || '',
         section: target
       };
     }
+    if (!String(text).trim()) { aiLoadingDone(); return toast('Add a few details to this entry first, then AI can improve it.', { type: 'warn' }); }
     const r = await ai('improve', { target, text, context });
     const suggestion = r.text || '';
-    let apply = null, hint = null;
+    let apply = null;
     if (target === 'summary') {
       apply = (t) => { resume.personal.summary = t; };
-    } else if (Array.isArray(resume[target]) && resume[target].length) {
-      const item = resume[target][0];
-      const field = ('description' in item) ? 'description'
-                  : ('abstract' in item) ? 'abstract'
-                  : Object.keys(item).find(k => typeof item[k] === 'string');
-      if (field) {
-        if (resume[target].length === 1) {
-          apply = (t) => { resume[target][0][field] = t; };
-        } else {
-          apply = (t) => { resume[target][0][field] = t; };
-          hint = 'Apply replaces the top entry’s bullets. For other entries, copy the lines you want.';
-        }
-      }
+    } else if (applyField && Array.isArray(resume[target]) && resume[target][applyIdx]) {
+      apply = (t) => { resume[target][applyIdx][applyField] = t; };
     }
-    showAiSuggestion({ title: 'Improved ' + (target === 'summary' ? 'summary' : _titleCase(target)), text: suggestion, original: text, apply, hint });
+    const entryLabel = target === 'summary' ? 'summary'
+      : ((resume[target] || [])[idx] && (resume[target][idx].title || resume[target][idx].role || resume[target][idx].name)) || _titleCase(target);
+    showAiSuggestion({ title: 'Improved: ' + entryLabel, text: suggestion, original: text, apply });
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }

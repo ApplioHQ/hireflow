@@ -317,6 +317,24 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   cursor: pointer;
 }
 .section-head .ai-btn:hover { background: linear-gradient(135deg, rgba(139,92,246,.3), rgba(99,102,241,.3)); }
+/* Per-card AI Improve button (lives on every entry's Description field). */
+.ai-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(139,92,246,.2), rgba(99,102,241,.2));
+  border: 1px solid rgba(139,92,246,.3); border-radius: 6px; font-size: 12px; color: #c4b5fd; cursor: pointer;
+  transition: background var(--dur) var(--ease); }
+.ai-btn:hover { background: linear-gradient(135deg, rgba(139,92,246,.32), rgba(99,102,241,.32)); }
+.ai-btn-sm { padding: 4px 9px; font-size: 11.5px; font-weight: 600; }
+.ai-btn-sm .ico { width: 12px; height: 12px; }
+/* AI Improve change-diff view. */
+.ai-df-legend { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 12px; flex-wrap: wrap; }
+.ai-df-legend .ai-df-toggle { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+.ai-df-legend .ai-df-toggle:hover { border-color: var(--accent); color: var(--text); }
+.ai-df { display: flex; flex-direction: column; gap: 10px; }
+.ai-df-line { position: relative; padding: 10px 12px 10px 24px; border-radius: 10px; background: var(--bg-1); border: 1px solid var(--border);
+  font-size: 14px; line-height: 1.6; color: var(--text); }
+.ai-df-line::before { content: '•'; position: absolute; left: 10px; top: 10px; color: var(--muted); }
+.ai-df-ins { background: rgba(34,197,94,.18); color: #4ade80; text-decoration: none; border-radius: 3px; padding: 0 2px; }
+.ai-df-del { background: rgba(239,68,68,.14); color: #f87171; text-decoration: line-through; border-radius: 3px; padding: 0 2px; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }

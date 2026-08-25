@@ -78,6 +78,7 @@ export default {
       if (path === "/profile" && req.method === "GET")  return json(await getProfile(req, env), 200, cors);
       if (path === "/profile" && req.method === "POST") return json(await saveProfile(req, env), 200, cors);
       if (path === "/attribution" && req.method === "POST") return json(await saveAttribution(req, env), 200, cors);
+      if (path === "/onboarding-answers" && req.method === "POST") return json(await saveOnboardingAnswers(req, env), 200, cors);
       if (path === "/consent/config")                  return json(await getConsentConfig(), 200, cors);
       if (path === "/consent" && req.method === "GET")  return json(await getConsent(req, env), 200, cors);
       if (path === "/consent" && req.method === "POST") return json(await setConsent(req, env), 200, cors);
@@ -846,6 +847,26 @@ async function saveAttribution(req, env) {
   if (!source) return { ok: false };
   const user = await getUser(env, payload.email).catch(() => null);
   if (user) { user.attribution = source; user.attributionAt = Date.now(); await putUser(env, user); }
+  return { ok: true };
+}
+
+// ============ Onboarding answers ============
+// The mandatory first-run questionnaire (job-search stage, biggest challenge, and how
+// they heard about us). Stored under onboarding:<email> for product analytics. The
+// client fires this and does not block on it, so keep it simple and forgiving.
+async function saveOnboardingAnswers(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const clean = (v) => String(v == null ? "" : v).slice(0, 80);
+  const answers = (body && typeof body.answers === "object" && body.answers) ? body.answers : body;
+  const record = {
+    email: payload.email.toLowerCase(),
+    stage: clean(answers.stage),
+    challenge: clean(answers.challenge),
+    heardFrom: clean(answers.heardFrom),
+    ts: Date.now(),
+  };
+  await env.HIREFLOW_KV.put(`onboarding:${payload.email.toLowerCase()}`, JSON.stringify(record));
   return { ok: true };
 }
 

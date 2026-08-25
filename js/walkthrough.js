@@ -8,8 +8,8 @@
   var FLAG = 'hf_walkthrough_done';
 
   // Steps anchor to real elements. `find` returns the element (or null to skip a step
-  // whose target isn't on the page). Order walks left-to-right, build -> optimize -> ship.
-  var STEPS = [
+  // whose target isn't on the page). Desktop walks left-to-right: build -> optimize -> ship.
+  var STEPS_DESKTOP = [
     { find: function () { return document.querySelector('.sidebar'); }, place: 'right',
       title: 'Build your resume here', body: 'Add each part of your resume, one section at a time, on the left. It saves and previews as you go.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="ats"]'); }, place: 'right',
@@ -20,6 +20,18 @@
       title: 'Export when you are ready', body: 'Download a clean, recruiter-ready, ATS-safe PDF in one click.' },
     { find: function () { return document.querySelector('.app-rail'); }, place: 'right',
       title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more live in this rail. Hover to expand it.' }
+  ];
+  // Mobile anchors to the always-visible bottom nav + the top Menu, so nothing depends on
+  // a drawer being open. Tooltips sit above the bottom nav / below the top Menu.
+  var STEPS_MOBILE = [
+    { find: function () { return document.getElementById('mob-menu-btn'); }, place: 'top',
+      title: 'Build your resume', body: 'Tap Sections to add each part of your resume, and to find ATS Check and Tailor to Job.' },
+    { find: function () { return document.getElementById('mob-preview-btn'); }, place: 'top',
+      title: 'Preview anytime', body: 'See exactly how your resume looks as you build it.' },
+    { find: function () { return document.querySelector('a.mobile-nav-btn[href="export"]'); }, place: 'top',
+      title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' },
+    { find: function () { return document.querySelector('.tb-dd-trigger'); }, place: 'bottom',
+      title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more are in this Menu.' }
   ];
 
   var i = 0, steps = [], overlay, hole, tip;
@@ -78,14 +90,23 @@
     hole.style.top = (r.top - pad) + 'px';
     hole.style.width = (r.width + pad * 2) + 'px';
     hole.style.height = (r.height + pad * 2) + 'px';
-    // Place the tooltip, preferring the step's side, then clamping into the viewport.
+    // Place the tooltip on the step's preferred side when it fits, else the first side
+    // that does, then clamp into the viewport.
     var tr = tip.getBoundingClientRect();
     var vw = window.innerWidth, vh = window.innerHeight, gap = 14;
+    var fits = {
+      right: r.right + gap + tr.width < vw,
+      left: r.left - gap - tr.width > 0,
+      bottom: r.bottom + gap + tr.height < vh,
+      top: r.top - gap - tr.height > 0
+    };
+    var order = [s.place, 'bottom', 'top', 'right', 'left'];
+    var side = order.find(function (p) { return fits[p]; }) || 'bottom';
     var x, y;
-    if (s.place === 'right' && r.right + gap + tr.width < vw) { x = r.right + gap; y = r.top; }
-    else if (s.place === 'bottom' || r.bottom + gap + tr.height < vh) { x = r.left; y = r.bottom + gap; }
-    else if (r.left - gap - tr.width > 0) { x = r.left - gap - tr.width; y = r.top; }   // left
-    else { x = r.left; y = r.top - gap - tr.height; }                                    // top
+    if (side === 'right') { x = r.right + gap; y = r.top; }
+    else if (side === 'left') { x = r.left - gap - tr.width; y = r.top; }
+    else if (side === 'top') { x = r.left + r.width / 2 - tr.width / 2; y = r.top - gap - tr.height; }
+    else { x = r.left + r.width / 2 - tr.width / 2; y = r.bottom + gap; }   // bottom
     x = Math.max(12, Math.min(x, vw - tr.width - 12));
     y = Math.max(12, Math.min(y, vh - tr.height - 12));
     tip.style.left = x + 'px';
@@ -109,9 +130,10 @@
   function start(force) {
     if (document.getElementById('wt-overlay')) return;            // already running: never stack overlays
     try { if (!force && localStorage.getItem(FLAG)) return; } catch (e) { return; }
-    if (window.innerWidth < 900) { try { localStorage.setItem(FLAG, '1'); } catch (e) {} return; }  // desktop only
+    // Pick the step set for the layout: desktop rail + sidebar, or mobile bottom nav + Menu.
+    var SET = window.innerWidth < 900 ? STEPS_MOBILE : STEPS_DESKTOP;
     // Resolve which steps have a live target right now.
-    steps = STEPS.map(function (s) { var el = s.find(); return el ? Object.assign({}, s, { el: el }) : null; }).filter(Boolean);
+    steps = SET.map(function (s) { var el = s.find(); return el ? Object.assign({}, s, { el: el }) : null; }).filter(Boolean);
     if (!steps.length) return;
     injectCSS();
     overlay = document.createElement('div');

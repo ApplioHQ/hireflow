@@ -277,6 +277,55 @@ function _firstActionDone() {
   const p = (resume && resume.personal) || {};
   return !!((p.fullName || '').trim() && (p.email || '').trim());
 }
+// ============ Live resume health panel (Rezi/Teal-style) ============
+// A persistent 0-100 quality score + the top issues, always visible in the right
+// panel and refreshed on every edit. Reuses the existing Quick Fixes engine
+// (_qfGather / qfAction) so the checks and one-click fixes stay in one place.
+function _resumeHealth() {
+  const g = _qfGather();                                   // {passed,total,issues}; also sets _qfIssues
+  const checksPct = g.total ? g.passed / g.total : 0;
+  const done = _CORE_SECTIONS.filter(_sectionComplete).length;
+  const compPct = _CORE_SECTIONS.length ? done / _CORE_SECTIONS.length : 0;
+  const exps = (resume.experience || []).map(e => _scoreBullet(e.description || '')).filter(s => s > 0);
+  const bulletPct = exps.length ? (exps.reduce((a, b) => a + b, 0) / exps.length) / 100 : 0;
+  // Weighted: checks passing matters most, then completeness, then bullet strength.
+  const score = Math.max(0, Math.min(100, Math.round(100 * (0.45 * checksPct + 0.30 * compPct + 0.25 * bulletPct))));
+  return { score, passed: g.passed, total: g.total, issues: g.issues };
+}
+
+let _healthAnim = 0;
+function _renderHealthPanel() {
+  const host = document.getElementById('resume-health');
+  if (!host || (typeof IS_ANON !== 'undefined' && IS_ANON)) { if (host) host.innerHTML = ''; return; }
+  const h = _resumeHealth();
+  const col = h.score >= 80 ? '#22c55e' : h.score >= 55 ? '#f59e0b' : '#ef4444';
+  const label = h.score >= 80 ? 'Strong' : h.score >= 55 ? 'Getting there' : 'Needs work';
+  // Top issues (index into _qfIssues is their position, since _qfGather pushes in order).
+  const top = h.issues.slice(0, 3).map((iss, i) => {
+    const lvl = iss.level === 'warn' ? 'warn' : 'info';
+    const btnLabel = (iss.action && iss.action.type === 'fix') ? (iss.action.label || 'Fix') : 'Go';
+    return `<li class="rh-issue">
+        <span class="rh-idot rh-${lvl}"></span>
+        <div class="rh-itxt"><div class="rh-ititle">${esc(iss.title)}</div></div>
+        <button class="rh-fix" onclick="qfAction(${i})">${esc(btnLabel)}</button>
+      </li>`;
+  }).join('');
+  const allGood = !h.issues.length;
+  host.innerHTML = `
+    <div class="rh-card">
+      <div class="rh-top">
+        <span class="rh-label">Resume health</span>
+        <span class="rh-score" style="color:${col};">${h.score}<small>/100</small></span>
+      </div>
+      <div class="rh-track"><div class="rh-fill" style="width:${h.score}%;background:${col};"></div></div>
+      <div class="rh-sub"><span style="color:${col};font-weight:700;">${label}</span> · ${h.passed}/${h.total} checks passing</div>
+      ${allGood
+        ? `<div class="rh-clean">${ICON('check','ico ico-sm')} Looks strong, every check is passing.</div>`
+        : `<ul class="rh-issues">${top}</ul>
+           <button class="rh-all" onclick="goSection('quickfix')">See all ${h.issues.length} issue${h.issues.length === 1 ? '' : 's'} &rarr;</button>`}
+    </div>`;
+}
+
 function _renderFirstActionBanner() {
   const mainEl = document.getElementById('main');
   if (!mainEl || (typeof IS_ANON !== 'undefined' && IS_ANON)) return;
@@ -302,6 +351,7 @@ function _renderFirstActionBanner() {
 // happen to click another section.
 function _refreshCompletion() {
   _renderFirstActionBanner();
+  _renderHealthPanel();
   document.querySelectorAll('.sidebar-item').forEach(function (el) {
     var sec = el.dataset.section;
     if (!sec) return;
@@ -3121,6 +3171,33 @@ function _renderDiffLine(tokens) {
     return w;
   }).join(' ');
 }
+// Plain-English "what changed and why" summary, computed from the diff. This is the
+// transparency Teal/Rezi lead with: never edit silently, always tell the user exactly
+// what the AI did. Returns an array of short chip strings.
+const _BUZZWORDS = /^(results-driven|dynamic|passionate|team\s?player|detail-oriented|hard-working|go-getter|synergy|self-starter|proactive|motivated|responsible)$/i;
+const _METRIC_TOK = /\d|%|\$/;
+function _changeSummary(original, improved) {
+  const oAll = _diffBullets(original).join(' ').split(/\s+/).filter(Boolean);
+  const iAll = _diffBullets(improved).join(' ').split(/\s+/).filter(Boolean);
+  if (!oAll.length) return ['Wrote ' + _diffBullets(improved).length + ' new bullet' + (_diffBullets(improved).length === 1 ? '' : 's')];
+  const toks = _tokenDiff(oAll, iAll);
+  const added = toks.filter(t => t.t === 'ins');
+  const removed = toks.filter(t => t.t === 'del');
+  const metricsAdded = added.filter(t => _METRIC_TOK.test(t.w)).length;
+  const buzzRemoved = removed.filter(t => _BUZZWORDS.test(String(t.w).replace(/[^a-z\s-]/gi, ''))).length;
+  // Bullets that changed: improved bullets whose best-match original wasn't identical.
+  const oB = _diffBullets(original), iB = _diffBullets(improved);
+  let changed = 0;
+  iB.forEach(l => { if (!oB.some(o => _wnorm(o.replace(/\s+/g, '')) === _wnorm(l.replace(/\s+/g, '')))) changed++; });
+  const chips = [];
+  if (changed) chips.push((changed === iB.length ? 'Rewrote' : 'Sharpened') + ' ' + changed + ' bullet' + (changed === 1 ? '' : 's'));
+  if (metricsAdded) chips.push('Added ' + metricsAdded + ' metric' + (metricsAdded === 1 ? '' : 's'));
+  if (added.length) chips.push('+' + added.length + ' word' + (added.length === 1 ? '' : 's'));
+  if (removed.length) chips.push('-' + removed.length + ' cut');
+  if (buzzRemoved) chips.push('Removed ' + buzzRemoved + ' buzzword' + (buzzRemoved === 1 ? '' : 's'));
+  return chips.length ? chips : ['Polished the wording'];
+}
+
 function _renderImproveDiff(original, improved) {
   const orig = _diffBullets(original), imp = _diffBullets(improved);
   if (!orig.length) return `<div class="ai-df"><div class="ai-df-line"><ins class="ai-df-ins">${esc(imp.join(' '))}</ins></div></div>`;
@@ -3157,6 +3234,7 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   // exactly what the AI sharpened, not just a block of new text.
   const hasBefore = original != null && String(original).trim().length > 0;
   const bodyInner = hasBefore ? `
+        <div class="ai-df-summary">${_changeSummary(original, text).map(c => `<span class="ai-df-chip">${esc(c)}</span>`).join('')}</div>
         <div class="ai-df-legend">
           <span><ins class="ai-df-ins">added</ins></span>
           <span><del class="ai-df-del">removed</del></span>

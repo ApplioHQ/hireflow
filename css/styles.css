@@ -975,6 +975,14 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   border-radius: 12px; padding: 13px 15px;
 }
 .tailor-good { border-left: 3px solid #22c55e; }
+.tailor-match { display: flex; align-items: center; gap: 18px; }
+.tm-ring { width: 74px; height: 74px; border-radius: 50%; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.tm-ring-in { width: 58px; height: 58px; border-radius: 50%; background: var(--bg-2); display: flex; align-items: center; justify-content: center; }
+.tm-pct { font-size: 22px; font-weight: 800; line-height: 1; }
+.tm-pct small { font-size: 12px; font-weight: 700; margin-left: 1px; }
+.tm-verdict { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+.tm-sub { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.tm-sub b { color: var(--text); }
 .tailor-bad  { border-left: 3px solid #ef4444; }
 .tailor-card { border-left: 3px solid var(--accent); }
 .tailor-block-head {

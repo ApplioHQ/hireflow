@@ -1509,6 +1509,24 @@ function _renderTailorStructured(r) {
   const bullets = Array.isArray(r.bulletSuggestions) ? r.bulletSuggestions : [];
   const emph = Array.isArray(r.emphasize) ? r.emphasize : [];
   let html = '';
+  // Headline Job Match Score, the single number recruiters/candidates care about:
+  // what share of the job's keywords the resume already covers. Rises as the user
+  // adds the missing ones, so it doubles as a live target.
+  const total = matched.length + missing.length;
+  if (total) {
+    const pct = Math.round(100 * matched.length / total);
+    const col = pct >= 75 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    const verdict = pct >= 75 ? 'Strong match' : pct >= 50 ? 'Partial match' : 'Weak match';
+    html += `<div class="tailor-block tailor-match">
+        <div class="tm-ring" style="background:conic-gradient(${col} ${pct * 3.6}deg, var(--border) 0);">
+          <div class="tm-ring-in"><span class="tm-pct" style="color:${col};">${pct}<small>%</small></span></div>
+        </div>
+        <div class="tm-txt">
+          <div class="tm-verdict" style="color:${col};">${verdict}</div>
+          <div class="tm-sub">You cover <b>${matched.length}</b> of <b>${total}</b> job keywords.${missing.length ? ` Adding the ${missing.length} missing one${missing.length === 1 ? '' : 's'} below (only if true) raises this.` : ' Nicely done.'}</div>
+        </div>
+      </div>`;
+  }
   if (matched.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Matched keywords<span class="tailor-count">${matched.length}</span></div><div class="tailor-pills">${matched.map(k => chip(k, 'matched')).join('')}</div></div>`;
   if (missing.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Add these if true<span class="tailor-count">${missing.length}</span></div><div class="tailor-pills">${missing.map(k => chip(k, 'missing')).join('')}</div></div>`;
   if (bullets.length) {

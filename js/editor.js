@@ -1638,33 +1638,58 @@ function renderTailor() {
 }
 
 function renderATS() {
+  const stat = (num, lbl) => `<div class="ats-stat"><span class="ats-stat-num">${num}</span><span class="ats-stat-lbl">${lbl}</span></div>`;
   return `
-    <div class="section-card ai-card ai-card-emerald">
-      <div class="ai-card-header">
-        <div class="ai-card-icon ai-icon-emerald">${ICON('check')}</div>
-        <div>
-          <h3 class="ai-card-title">ATS Compatibility Check</h3>
-          <p class="ai-card-sub">Score your resume against a job posting's ATS filters.</p>
+    <div class="section-card ats-shell">
+      <div class="ats-hero">
+        <div class="ats-hero-glow"></div>
+        <div class="ats-hero-badge">${ICON('check','ico ico-sm')} ATS SCANNER</div>
+        <h2 class="ats-hero-title">Get past the resume robots</h2>
+        <p class="ats-hero-sub">Most resumes are filtered out by applicant-tracking software before a human ever reads them. Scan yours against the job posting and see exactly what to fix.</p>
+        <div class="ats-stat-strip">
+          ${stat('~70%', 'filtered before a human sees them')}
+          ${stat('6–7s', 'average recruiter first scan')}
+          ${stat('2&times;', 'more callbacks when tailored')}
         </div>
       </div>
       <div class="ai-card-body">
-        <div class="form-field">
-          <label style="display:flex;justify-content:space-between;">
-            <span>Job Description</span>
-            <span id="ats-wc" style="font-size:11px;color:var(--muted);"></span>
-          </label>
-          <textarea id="ats-jd" rows="12"
-            placeholder="Paste the job description, we'll keyword-match it against your resume…"
-            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"
-            style="font-size:13px;line-height:1.6;"></textarea>
+        <div class="ats-console">
+          <div class="ats-console-head">
+            <span class="ats-console-dots"><i></i><i></i><i></i></span>
+            <span class="ats-console-title">Paste the job description</span>
+            <button type="button" class="ats-paste-btn" onclick="_atsPaste()">${ICON('doc','ico ico-sm')} Paste</button>
+            <span id="ats-wc" class="ats-wc"></span>
+          </div>
+          <textarea id="ats-jd" rows="11"
+            placeholder="Paste the full job description here — title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility…"
+            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
         </div>
         ${freeAiBanner('ats')}
-        <button class="btn btn-emerald btn-block" onclick="aiATS()">${ICON('check')} Run ATS Check</button>
+        <button class="btn btn-emerald btn-block ats-scan-btn" onclick="aiATS()">${ICON('sparkle')} <span>Run ATS Scan</span></button>
         ${freeAiLabel('ats')}
-        <div id="ats-result" style="margin-top:16px;">${_atsEmptyState()}</div>
+        <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
     </div>`;
+}
+// Paste-from-clipboard convenience for the ATS job-description box.
+async function _atsPaste() {
+  const ta = document.getElementById('ats-jd');
+  if (!ta) return;
+  try {
+    const txt = await navigator.clipboard.readText();
+    if (txt && txt.trim()) {
+      ta.value = txt.trim();
+      const wc = document.getElementById('ats-wc');
+      if (wc) wc.textContent = _jdWordCount(ta.value);
+      ta.focus();
+    } else {
+      toast('Clipboard is empty, copy a job description first.', { type: 'warn' });
+    }
+  } catch (_) {
+    ta.focus();
+    toast('Press ' + (navigator.platform.includes('Mac') ? '⌘V' : 'Ctrl+V') + ' to paste the job description.', { type: 'info' });
+  }
 }
 
 function renderAnalysis() {

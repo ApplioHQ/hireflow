@@ -309,12 +309,63 @@ function render() {
 window.addEventListener('resize', () => {
   if (_exportFrame && _exportFrame.contentDocument && _exportFrame.contentDocument.querySelector('.hf-doc')) _expScale(_exportFrame.contentDocument);
 });
-function printFrame() {
-  if (!(_exportFrame && _exportFrame.contentWindow)) { window.print(); return; }
+function _doPrint() {
   _renderClean();                       // strip the canvas/sheets so the PDF is clean
+  // Print geometry must equal the page box, not the scaled on-screen preview: the
+  // preview leaves the frame at canvasW (page + padding) with a transform applied.
+  // Reset both so the browser's print viewport is exactly one page wide, otherwise
+  // a stale width/scale can shift or shrink the output.
+  _exportFrame.style.transform = 'none';
+  _exportFrame.style.width = _expPageW() + 'px';
+  _exportFrame.style.height = 'auto';
   _exportFrame.contentWindow.focus();
   _exportFrame.contentWindow.print();
   setTimeout(render, 400);              // restore the paginated preview afterward
+}
+// One-time pre-flight so the browser's print dialog doesn't quietly re-margin or
+// scale the page (the #1 cause of "misaligned" PDFs, and something a web page
+// cannot set for the user). After they've seen it once we go straight to print.
+function printFrame() {
+  if (!(_exportFrame && _exportFrame.contentWindow)) { window.print(); return; }
+  let seen = false;
+  try { seen = localStorage.getItem('hf_print_tip_seen') === '1'; } catch (_) {}
+  if (seen) { _doPrint(); return; }
+  _showPrintTip();
+}
+function _closePrintTip() {
+  const o = document.getElementById('print-tip-overlay');
+  if (o) o.remove();
+}
+function _showPrintTip() {
+  _closePrintTip();
+  const o = document.createElement('div');
+  o.id = 'print-tip-overlay';
+  o.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,20,.72);display:flex;align-items:center;justify-content:center;padding:20px;';
+  o.innerHTML =
+    '<div style="width:420px;max-width:100%;background:var(--bg-1);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5);">' +
+      '<div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">One quick setting for a perfect PDF</div>' +
+      '<div style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px;">Your browser’s print box opens next. To keep the layout aligned exactly like the preview, set:</div>' +
+      '<ul style="list-style:none;padding:0;margin:0 0 18px;display:flex;flex-direction:column;gap:11px;">' +
+        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">1</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Destination:</b> Save as PDF</span></li>' +
+        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">2</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Margins:</b> None</span></li>' +
+        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">3</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Scale:</b> 100% (not “Fit to page”)</span></li>' +
+      '</ul>' +
+      '<label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);cursor:pointer;margin-bottom:16px;"><input type="checkbox" id="print-tip-dontshow" style="width:15px;height:15px;accent-color:#6366f1;cursor:pointer;">Don’t show this again</label>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button class="btn btn-secondary" id="print-tip-cancel" style="flex:1;">Cancel</button>' +
+        '<button class="btn btn-primary" id="print-tip-go" style="flex:2;">Continue to print</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(o);
+  o.addEventListener('click', e => { if (e.target === o) _closePrintTip(); });
+  document.getElementById('print-tip-cancel').onclick = _closePrintTip;
+  document.getElementById('print-tip-go').onclick = () => {
+    if (document.getElementById('print-tip-dontshow').checked) {
+      try { localStorage.setItem('hf_print_tip_seen', '1'); } catch (_) {}
+    }
+    _closePrintTip();
+    _doPrint();
+  };
 }
 
 async function tryExport(fmt) {

@@ -961,6 +961,10 @@ function resumeDocHTML(bodyHTML, pageWidth) {
      section heading with its content. */
   .t-entry { break-inside:avoid; page-break-inside:avoid; }
   h2, h3, h4 { break-after:avoid; page-break-after:avoid; }
+  /* Two-column templates (creative / professional / slate): keep the colored
+     sidebar and the main column from splitting mid-block across a page break,
+     which is what makes the columns look offset on page 2. */
+  .sidebar, .main { break-inside:avoid; page-break-inside:avoid; }
 </style></head><body>${bodyHTML}</body></html>`;
 }
 

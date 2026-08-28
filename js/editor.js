@@ -3216,6 +3216,17 @@ function _changeSummary(original, improved) {
   return chips.length ? chips : ['Polished the wording'];
 }
 
+// Total number of words the AI actually added or removed (normalized, so pure
+// punctuation/case tweaks count as zero). Used to tell a real rewrite apart from
+// a no-op where the model returned the text essentially unchanged.
+function _diffMagnitude(original, improved) {
+  const oAll = _diffBullets(original).join(' ').split(/\s+/).filter(Boolean);
+  const iAll = _diffBullets(improved).join(' ').split(/\s+/).filter(Boolean);
+  if (!oAll.length && !iAll.length) return 0;
+  const toks = _tokenDiff(oAll, iAll);
+  return toks.filter(t => t.t === 'ins' || t.t === 'del').length;
+}
+
 function _renderImproveDiff(original, improved) {
   const orig = _diffBullets(original), imp = _diffBullets(improved);
   if (!orig.length) return `<div class="ai-df"><div class="ai-df-line"><ins class="ai-df-ins">${esc(imp.join(' '))}</ins></div></div>`;
@@ -3251,7 +3262,15 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   // Show a before -> after comparison when we have the original, so the user sees
   // exactly what the AI sharpened, not just a block of new text.
   const hasBefore = original != null && String(original).trim().length > 0;
-  const bodyInner = hasBefore ? `
+  // No-op guard: if the AI returned the content essentially unchanged (already strong),
+  // don't fake an "improved version", tell the user plainly and drop the Apply button.
+  const noChange = hasBefore && _diffMagnitude(original, text) === 0;
+  const bodyInner = noChange ? `
+        <div class="ai-nochange">
+          <div class="ai-nochange-ico">${ICON('check')}</div>
+          <div class="ai-nochange-title">Already looking strong</div>
+          <div class="ai-nochange-sub">These lines already follow resume best practices, distinct action verbs, tight phrasing, and real metrics, so the AI kept them as they are. Add more detail or a specific number if you want it to have more to work with.</div>
+        </div>` : hasBefore ? `
         <div class="ai-df-summary">${_changeSummary(original, text).map(c => `<span class="ai-df-chip">${esc(c)}</span>`).join('')}</div>
         <div class="ai-df-legend">
           <span><ins class="ai-df-ins">added</ins></span>
@@ -3271,9 +3290,9 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
       <div class="ai-suggest-body">${bodyInner}</div>
       ${hint ? `<p class="ai-suggest-hint">${esc(hint)}</p>` : ''}
       <div class="ai-suggest-actions">
-        ${apply ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Use improved version</span></button>` : ''}
-        <button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>
-        <button class="btn btn-ghost" onclick="closeAiSuggest()">${apply ? 'Keep original' : 'Close'}</button>
+        ${apply && !noChange ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Use improved version</span></button>` : ''}
+        ${noChange ? '' : `<button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>`}
+        <button class="btn btn-ghost" onclick="closeAiSuggest()">${(apply && !noChange) ? 'Keep original' : (noChange ? 'Got it' : 'Close')}</button>
       </div>
     </div>`;
   bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });

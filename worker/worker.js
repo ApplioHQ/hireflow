@@ -101,6 +101,8 @@ export default {
       if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
       if (path === "/referral/code" && req.method === "POST") return json(await referralGetCode(req, env), 200, cors);
       if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
+      if (path === "/interview-win" && req.method === "POST") return json(await recordInterviewWin(req, env), 200, cors);
+      if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -450,6 +452,33 @@ async function _applyReferral(env, newUser, refCode) {
   _addPremiumDays(referrer, REFERRAL_REWARD_DAYS);
   await putUser(env, referrer);
   _addPremiumDays(newUser, REFERRAL_REWARD_DAYS);
+}
+
+// ── Interview success tracker ───────────────────────────────────────
+async function recordInterviewWin(req, env) {
+  const user = await authUser(req, env);
+  const { outcome } = await req.json();
+  if (!["interview", "offer", "no"].includes(outcome)) throw Object.assign(new Error("Invalid outcome"), { status: 400 });
+  if (!user.interviewWins) user.interviewWins = [];
+  user.interviewWins.push({ outcome, ts: Math.floor(Date.now() / 1000) });
+  if (user.interviewWins.length > 50) user.interviewWins = user.interviewWins.slice(-50);
+  await putUser(env, user);
+  // Aggregate global counter (best-effort)
+  if (outcome === "interview" || outcome === "offer") {
+    const key = "stats:interview_wins";
+    const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10);
+    await env.HIREFLOW_KV.put(key, String(cur + 1));
+  }
+  return { ok: true };
+}
+
+async function getInterviewWins(req, env) {
+  const user = await authUser(req, env);
+  const globalCount = parseInt(await env.HIREFLOW_KV.get("stats:interview_wins") || "0", 10);
+  return {
+    personal: user.interviewWins || [],
+    globalCount,
+  };
 }
 
 function _addPremiumDays(user, days) {

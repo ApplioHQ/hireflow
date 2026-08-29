@@ -394,6 +394,7 @@ async function tryExport(fmt) {
   else if (fmt === 'txt') exportTXT();
   // Non-blocking feedback prompt shortly after the download completes.
   setTimeout(showExportFeedbackPrompt, 1500);
+  setTimeout(showInterviewWinPrompt, 2000);
 }
 
 // ============ Post-export feedback prompt (Feature 1) ============
@@ -459,6 +460,38 @@ function showExportFeedbackPrompt() {
   document.body.appendChild(el);
   requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
   armAutoDismiss();
+}
+
+// ============ Interview success tracker (post-export) ============
+let _iwPrompt = null;
+function showInterviewWinPrompt() {
+  if (_iwPrompt) return;
+  if (!CURRENT_USER || !TOKEN) return;
+  try { var c = parseInt(localStorage.getItem('hf_export_count') || '0', 10); localStorage.setItem('hf_export_count', String(c + 1)); if (c < 2) return; } catch (_) { return; }
+  try { if (sessionStorage.getItem('hf_iw_asked')) return; sessionStorage.setItem('hf_iw_asked', '1'); } catch (_) {}
+  const el = document.createElement('div');
+  _iwPrompt = el;
+  el.style.cssText = 'position:fixed;left:20px;bottom:20px;z-index:9997;width:310px;max-width:calc(100vw - 40px);background:var(--bg-1);color:var(--text);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:16px;font-size:13px;opacity:0;transform:translateY(16px);transition:opacity .25s ease, transform .25s ease;';
+  function dismiss() { el.style.opacity='0'; el.style.transform='translateY(16px)'; setTimeout(()=>{el.remove(); if(_iwPrompt===el)_iwPrompt=null;},250); }
+  function record(outcome) {
+    fetch(window.HIREFLOW_CONFIG.API_URL + '/interview-win', { method:'POST', headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}, body:JSON.stringify({outcome}) }).catch(()=>{});
+    el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">' + (outcome==='no'?'No worries — keep going! 💪':'That\'s awesome! 🎉') + '</div>';
+    setTimeout(dismiss, 2500);
+  }
+  el.innerHTML =
+    '<div style="position:relative;">' +
+    '<button onclick="this.closest(\'div\').parentElement.remove()" aria-label="Dismiss" style="position:absolute;top:0;right:4px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">×</button>' +
+    '<div style="font-weight:600;margin-bottom:4px;padding-right:18px;">Did this resume help you land an interview?</div>' +
+    '<div style="color:var(--muted);margin-bottom:12px;">Your answer helps us improve Applio for everyone.</div>' +
+    '<div style="display:flex;gap:8px;">' +
+      '<button data-iw="interview" style="flex:1;cursor:pointer;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text);">Yes, interview!</button>' +
+      '<button data-iw="offer" style="flex:1;cursor:pointer;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text);">Got an offer!</button>' +
+      '<button data-iw="no" style="flex:1;cursor:pointer;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text);">Not yet</button>' +
+    '</div></div>';
+  el.querySelectorAll('[data-iw]').forEach(function(b){ b.onclick=function(){ record(b.dataset.iw); }; });
+  document.body.appendChild(el);
+  setTimeout(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 3000);
+  setTimeout(dismiss, 20000);
 }
 
 // File-format selection: pick a format up top, the big button downloads it.

@@ -1817,28 +1817,7 @@ function _atsEmptyState() {
       <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
       <div><b>${title}</b><span>${sub}</span></div>
     </div>`;
-  return `
-    <div class="an-pre">
-      <div class="an-pre-ring">
-        <svg viewBox="0 0 120 120" width="92" height="92">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="9"/>
-          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#atsPreGrad)" stroke-width="9"
-            stroke-linecap="round" stroke-dasharray="80 234" transform="rotate(-90 60 60)" opacity=".85"/>
-          <defs><linearGradient id="atsPreGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#10b981"/>
-          </linearGradient></defs>
-          <text x="60" y="58" text-anchor="middle" font-size="30" font-weight="800" fill="var(--muted)">?</text>
-          <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
-        </svg>
-      </div>
-      <p class="an-pre-lead">Paste a job description above to get an <b>ATS match score</b> with the exact keywords and fixes that get you past the automated filters <b>~70% of resumes</b> never survive.</p>
-      <div class="an-pre-grid an-pre-grid-4">
-        ${tile('target',    'Keywords',    'Matched to the posting')}
-        ${tile('briefcase', 'Experience',  'Relevance to the role')}
-        ${tile('doc',       'Formatting',  'ATS-safe structure')}
-        ${tile('sparkle',   'Fixes',       'Exactly what to add')}
-      </div>
-    </div>`;
+  return '';
 }
 
 // Appealing pre-run state for Tailor, shows a before → after transformation.

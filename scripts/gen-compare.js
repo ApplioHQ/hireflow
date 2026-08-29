@@ -93,6 +93,116 @@ const C = [
       { q: 'Does Applio have resume examples and templates like Zety?', a: 'Yes. Applio has 18 ATS-friendly templates and a growing library of resume examples by job title, all usable for free.' },
       { q: 'Is Applio a good Zety alternative for ATS?', a: 'Yes. Applio adds a free ATS checker that scores your resume against a specific job and lists the missing keywords, which is a stronger ATS focus than Zety\'s template-first approach.' }
     ]
+  },
+  {
+    slug: 'resume-io-alternative', name: 'Resume.io',
+    meta: 'Looking for a Resume.io alternative? Applio is a free AI resume builder with a free ATS checker, AI tailoring, and no download paywall. Compare Applio vs Resume.io.',
+    lede: 'Applio is a free alternative to Resume.io for building and exporting a polished resume. Resume.io is known for its clean, professional templates, but the free tier only exports as plain text, and downloading a formatted PDF requires a paid subscription. Applio lets you build and export a real PDF resume for free, check your ATS score with no sign-up, and use AI to tailor your resume to any job.',
+    positioning: 'Resume.io is a popular resume builder with a library of clean, professional templates and a straightforward editor. Its free plan exports only as plain text (TXT); PDF and other formatted downloads require a paid plan, which starts at $2.95 for a trial period and auto-renews at $29.95 per four-week cycle. It does not currently offer AI writing features.',
+    cells: {
+      'Free ATS score against a job posting': 'Not a core feature',
+      'Build and export a real resume for free': 'Free plan is TXT-only; PDF requires paid plan',
+      'AI tailoring to a specific job': 'No',
+      'Cover letter generator': 'Yes (paid)',
+      'AI interview prep (practice + feedback)': 'No',
+      'Career tools beyond the resume': 'Templates library',
+      'Watermark-free export on every plan': 'Paid plan for formatted export',
+      'Price to unlock all AI writing': 'No AI features; PDF export from $2.95 trial then $29.95/4 weeks'
+    },
+    goodAt: 'Resume.io has a clean, modern template library and a simple editor that makes it easy to put together a polished-looking resume quickly. If you want a no-fuss, template-driven experience and are comfortable with a paid plan for PDF export, it is a solid choice.',
+    faq: [
+      { q: 'Is Applio a good free Resume.io alternative?', a: 'Yes. Applio lets you build and export a real PDF resume for free (10 downloads, no credit card), while Resume.io\'s free plan only exports plain text. Applio also adds a free ATS checker, AI tailoring, and career tools.' },
+      { q: 'Does Resume.io have AI features like Applio?', a: 'No. Resume.io is a template-based builder without AI writing or tailoring. Applio uses AI to tailor your resume to a specific job, generate cover letters, and help with interview prep.' },
+      { q: 'How does pricing compare between Applio and Resume.io?', a: 'Applio is free to build and export a resume. To unlock all AI features, it costs $4.99/month or $39.99 once (lifetime). Resume.io charges $2.95 for an initial trial that auto-renews at $29.95 per four-week billing cycle for formatted PDF downloads.' }
+    ]
+  },
+  {
+    slug: 'novoresume-alternative', name: 'Novoresume',
+    meta: 'Looking for a Novoresume alternative? Applio is a free AI resume builder with a free ATS checker, AI tailoring, and watermark-free exports. Compare Applio vs Novoresume.',
+    lede: 'Applio is a free alternative to Novoresume with stronger AI and ATS features. Novoresume offers attractive templates and a guided editor popular in Europe, but its free plan adds a watermark to your resume. Applio gives you watermark-free exports on every plan, a free ATS checker, and AI that tailors your resume to a specific job posting.',
+    positioning: 'Novoresume is a template-focused resume builder popular with job seekers in Europe, with a guided editor and content suggestions. Its free plan includes a watermark on exported resumes; removing the watermark and accessing premium templates requires a paid subscription.',
+    cells: {
+      'Free ATS score against a job posting': 'Not a core feature',
+      'Build and export a real resume for free': 'Free with watermark; paid to remove',
+      'AI tailoring to a specific job': 'Content suggestions (not full AI tailoring)',
+      'Cover letter generator': 'Yes (premium)',
+      'AI interview prep (practice + feedback)': 'No',
+      'Career tools beyond the resume': 'Templates + content suggestions',
+      'Watermark-free export on every plan': 'Paid plan only',
+      'Price to unlock all AI writing': 'Subscription (see their site)'
+    },
+    goodAt: 'Novoresume has well-designed, modern templates and a guided editor that walks you through each section. It is especially popular in Europe and is a good starting point if you value a visual, template-first approach.',
+    faq: [
+      { q: 'Is Applio a good free Novoresume alternative?', a: 'Yes. Applio lets you build and export a watermark-free resume for free, and adds a free ATS checker and AI tailoring that Novoresume does not offer on its free plan.' },
+      { q: 'Does Novoresume have AI like Applio?', a: 'Novoresume offers content suggestions to help you fill in sections, but it does not have full AI tailoring to a specific job posting, AI cover letter generation, or AI interview prep like Applio.' },
+      { q: 'Does Applio export without a watermark?', a: 'Yes. Applio exports are watermark-free on every plan, including the free tier. Novoresume\'s free plan adds a watermark to your resume, and removing it requires a paid subscription.' }
+    ]
+  },
+  {
+    slug: 'resumegenius-alternative', name: 'Resume Genius',
+    meta: 'Looking for a Resume Genius alternative? Applio is a free AI resume builder with a free ATS checker, AI tailoring, and transparent pricing. Compare Applio vs Resume Genius.',
+    lede: 'Applio is a free alternative to Resume Genius with transparent pricing and AI-powered career tools. Resume Genius is known for its step-by-step wizard and large template library, but accessing your finished resume typically requires a paid subscription. Applio lets you build and export for free, check your ATS score with no sign-up, and tailor your resume to any job with AI.',
+    positioning: 'Resume Genius is a well-known resume builder with a step-by-step wizard that guides you through building a resume section by section. It has a large template library and pre-written content suggestions. Downloading your resume generally requires a paid subscription, and the platform is known for its upselling during the creation flow.',
+    cells: {
+      'Free ATS score against a job posting': 'Not a core feature',
+      'Build and export a real resume for free': 'Download usually needs a paid plan',
+      'AI tailoring to a specific job': 'Pre-written suggestions (not job-specific AI)',
+      'Cover letter generator': 'Yes (paid)',
+      'AI interview prep (practice + feedback)': 'Not the focus',
+      'Career tools beyond the resume': 'Templates + pre-written content library',
+      'Watermark-free export on every plan': 'Paid plan',
+      'Price to unlock all AI writing': 'Subscription (see their site)'
+    },
+    goodAt: 'Resume Genius has a large library of templates and pre-written bullet points organized by job title, and its step-by-step wizard makes it approachable for first-time resume writers who want guided help filling in each section.',
+    faq: [
+      { q: 'Is Applio a good free Resume Genius alternative?', a: 'Yes. Applio lets you build and export a resume for free (10 downloads, no credit card) and check your ATS score with no sign-up. Resume Genius generally requires a paid plan to download your finished resume.' },
+      { q: 'Does Applio have pre-written content like Resume Genius?', a: 'Applio goes further: instead of static pre-written suggestions, Applio uses AI to generate tailored content based on your real experience and the specific job you are applying to.' },
+      { q: 'Is Applio pricing more transparent than Resume Genius?', a: 'Applio is free to build and export. To unlock all AI features, it is $4.99/month or $39.99 once (lifetime), with no surprise charges. Check Resume Genius\'s site for its current pricing and trial terms.' }
+    ]
+  },
+  {
+    slug: 'kickresume-alternative', name: 'Kickresume',
+    meta: 'Looking for a Kickresume alternative? Applio is a free AI resume builder with a free ATS checker, AI tailoring, and career tools. Compare Applio vs Kickresume.',
+    lede: 'Applio is a free alternative to Kickresume with a broader set of career tools. Kickresume offers AI-powered resume writing with GPT integration and attractive templates, but its free tier has limits on downloads and features. Applio gives you free resume building and export, a free ATS checker, and AI tailoring, interview prep, and career tools in one place.',
+    positioning: 'Kickresume is an AI resume builder that integrates GPT for generating resume content. It offers a range of modern templates, a cover letter builder, and a personal website builder. The free plan has limits on templates and downloads; full access requires a paid subscription.',
+    cells: {
+      'Free ATS score against a job posting': 'Resume score (not job-specific)',
+      'Build and export a real resume for free': 'Free plan with limits',
+      'AI tailoring to a specific job': 'AI writing (general, not job-specific tailoring)',
+      'Cover letter generator': 'Yes',
+      'AI interview prep (practice + feedback)': 'Not the focus',
+      'Career tools beyond the resume': 'Cover letter + personal website builder',
+      'Watermark-free export on every plan': 'Depends on plan',
+      'Price to unlock all AI writing': 'Subscription (see their site)'
+    },
+    goodAt: 'Kickresume has strong AI writing powered by GPT, nice modern templates, and a useful personal website builder. If you want AI-generated content and a portfolio site alongside your resume, it is worth considering.',
+    faq: [
+      { q: 'Is Applio a good free Kickresume alternative?', a: 'Yes. Applio lets you build and export a resume for free and check your ATS score against any job with no sign-up. Kickresume\'s free plan has limits on templates and downloads.' },
+      { q: 'How does Applio AI compare to Kickresume AI?', a: 'Both use AI for resume writing. Applio focuses on tailoring your resume to a specific job posting with ATS optimization, while Kickresume uses GPT for general content generation. Applio also adds AI interview prep and career tools.' },
+      { q: 'Does Applio have a personal website builder like Kickresume?', a: 'Applio focuses on resume building, ATS scoring, interview prep, and career tools rather than personal websites. If a portfolio site is your priority, Kickresume offers that; if ATS optimization and job-specific tailoring matter more, Applio is the stronger choice.' }
+    ]
+  },
+  {
+    slug: 'jobscan-alternative', name: 'Jobscan',
+    meta: 'Looking for a Jobscan alternative? Applio is a free ATS checker and AI resume builder that scores your resume, tailors it, and builds it, all in one place. Compare Applio vs Jobscan.',
+    lede: 'Applio is a free alternative to Jobscan that combines ATS scoring with a full resume builder. Jobscan is primarily an ATS optimization tool that scores your resume against a job description, but it does not build resumes. Applio does both: it scores your resume for free with no sign-up and lets you build, tailor, and export a resume in one place.',
+    positioning: 'Jobscan is an ATS optimization platform that scans your resume against a job description and provides a match score with keyword recommendations. It is not a resume builder; you bring your own resume and use Jobscan to check and improve its ATS compatibility. Full scanning features require a paid subscription.',
+    cells: {
+      'Free ATS score against a job posting': 'Yes, core feature (limited free scans, paid for full access)',
+      'Build and export a real resume for free': 'Not a resume builder',
+      'AI tailoring to a specific job': 'Keyword recommendations (not a rewriter)',
+      'Cover letter generator': 'No',
+      'AI interview prep (practice + feedback)': 'Not the focus',
+      'Career tools beyond the resume': 'LinkedIn optimization, job tracker',
+      'Watermark-free export on every plan': 'N/A (not a builder)',
+      'Price to unlock all AI writing': 'Subscription for full scanning (see their site); no AI writing'
+    },
+    goodAt: 'Jobscan is a strong ATS scanning tool with detailed keyword match analysis and LinkedIn profile optimization. If you already have a resume and want a dedicated, in-depth ATS compatibility check, Jobscan does that well.',
+    faq: [
+      { q: 'Is Applio a good free Jobscan alternative?', a: 'Yes, especially if you want ATS scoring and resume building in one tool. Applio scores your resume against a job for free with no sign-up and also lets you build and tailor the resume itself. Jobscan only scans, it does not build resumes.' },
+      { q: 'Does Applio have ATS scoring like Jobscan?', a: 'Yes. Applio scores your resume against a specific job description and lists the exact missing keywords and fixes, similar to Jobscan, but Applio also builds and tailors the resume for you.' },
+      { q: 'Can Applio replace Jobscan?', a: 'For most job seekers, yes. Applio combines a free ATS checker with a full AI resume builder, cover letter generator, and interview prep. If you need Jobscan\'s LinkedIn optimization specifically, you might use both; for ATS scoring and resume building, Applio covers both in one place.' }
+    ]
   }
 ];
 
@@ -241,13 +351,13 @@ function hubHTML(){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Applio vs Rezi, Teal & Zety: Free Resume Builder Comparison | Applio</title>
-<meta name="description" content="How Applio compares to Rezi, Teal, and Zety: a free ATS checker, free resume building and export, AI tailoring, and career tools. Pick the right resume builder.">
+<title>Applio vs Rezi, Teal, Zety & More: Free Resume Builder Comparison | Applio</title>
+<meta name="description" content="How Applio compares to Rezi, Teal, Zety, Resume.io, Novoresume, Resume Genius, Kickresume, and Jobscan: a free ATS checker, free resume building and export, AI tailoring, and career tools.">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/logo.ico">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="Applio vs Rezi, Teal & Zety | Applio">
-<meta property="og:description" content="Compare Applio to Rezi, Teal, and Zety, free ATS checker, free export, AI tailoring, and career tools.">
+<meta property="og:title" content="Applio vs Rezi, Teal, Zety & More | Applio">
+<meta property="og:description" content="Compare Applio to Rezi, Teal, Zety, Resume.io, Novoresume, Resume Genius, Kickresume, and Jobscan.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${BASE}/logo.jpeg">

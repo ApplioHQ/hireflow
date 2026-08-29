@@ -51,13 +51,13 @@ function setPriceMode(mode) {
     if (period) period.textContent = ' once';
     if (sub)    sub.textContent    = 'Pay once. Use forever.';
     if (cta)    cta.textContent    = 'Buy Lifetime';
-    if (savings) { savings.textContent = 'Save $79.89 vs. 12 months of monthly'; savings.style.display ='block'; }
+    if (savings) { savings.textContent = 'Save $19.89 vs. 12 months of monthly'; savings.style.display ='block'; }
     const pp = document.getElementById('price-social-proof');
     if (pp) pp.textContent = 'Most popular choice, pay once, own it forever.';
   } else {
-    if (badge)  badge.textContent  = 'MOST POPULAR';
+    if (badge)  badge.textContent  = '50% OFF';
     if (name)   name.textContent   = 'Premium';
-    if (price)  price.textContent  = '$9.99';
+    if (price)  price.textContent  = '$4.99';
     if (period) period.textContent = '/month';
     if (sub)    sub.textContent    = 'Best for serious job seekers';
     if (cta)    cta.textContent    = 'Go Premium';

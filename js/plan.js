@@ -562,7 +562,7 @@ function showUpgradeModal(reason, context) {
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <button class="btn btn-secondary" onclick="startCheckout('premium')" style="flex-direction:column; padding:14px; height:auto;">
           <div style="font-weight:700;">Premium</div>
-          <div style="font-size:18px; font-weight:700; margin-top:4px;">$9.99<span style="font-size:12px; font-weight:400; opacity:.7;">/mo</span></div>
+          <div style="font-size:18px; font-weight:700; margin-top:4px;">$4.99<span style="font-size:12px; font-weight:400; opacity:.7;">/mo</span></div>
         </button>
         <button class="btn btn-primary" onclick="startCheckout('lifetime')" style="flex-direction:column; padding:14px; height:auto;">
           <div style="font-weight:700;">Lifetime</div>

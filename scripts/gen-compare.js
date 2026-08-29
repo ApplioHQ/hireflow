@@ -24,7 +24,7 @@ const ROWS = [
   { label: 'AI interview prep (practice + feedback)', applio: 'Yes, free' },
   { label: 'Career tools beyond the resume', applio: 'Skill Gap, Brag Doc, First 90 Days, Salary Insights' },
   { label: 'Watermark-free export on every plan', applio: 'Yes' },
-  { label: 'Price to unlock all AI writing', applio: '$9.99/mo, or $39.99 once (lifetime)' },
+  { label: 'Price to unlock all AI writing', applio: '$4.99/mo, or $39.99 once (lifetime)' },
 ];
 
 const C = [
@@ -69,7 +69,7 @@ const C = [
     faq: [
       { q: 'Is Applio a good free Teal alternative?', a: 'Yes, especially if you want AI resume tailoring and a free ATS check without a subscription. Applio includes a job tracker too, plus interview prep and career tools, and its core building and ATS scoring are free.' },
       { q: 'Does Applio have a job tracker like Teal?', a: 'Yes. Applio has a built-in job tracker to save postings and track application status. Teal leans more on its Chrome extension for capturing listings; Applio focuses on turning a posting into a tailored resume and cover letter.' },
-      { q: 'Is Applio cheaper than Teal?', a: 'Applio is free to build and export a resume and to check your ATS score. To unlock all AI writing, Applio offers a $9.99/month plan or a $39.99 one-time lifetime option; check Teal\'s site for its current pricing.' }
+      { q: 'Is Applio cheaper than Teal?', a: 'Applio is free to build and export a resume and to check your ATS score. To unlock all AI writing, Applio offers a $4.99/month plan or a $39.99 one-time lifetime option; check Teal\'s site for its current pricing.' }
     ]
   },
   {

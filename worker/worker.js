@@ -112,7 +112,8 @@ export default {
   // Both inert until env.RESEND_API_KEY is configured.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
-    ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
+    // Re-engagement drip disabled until ready to activate
+    // ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
   },
 };
 
@@ -336,6 +337,7 @@ const DISPOSABLE_DOMAINS = new Set([
   "getairmail.com", "tempr.email", "moakt.com", "inboxbear.com", "email-temp.com",
   "tmailor.com", "burnermail.io", "harakirimail.com", "discard.email", "spam4.me",
   "grr.la", "pokemail.net", "byom.de", "mailcatch.com", "tempmailo.com", "1secmail.com",
+  "neowd.com", "emlhub.com", "emlpro.com",
 ]);
 // DNS-over-HTTPS check (Cloudflare 1.1.1.1): does the domain actually accept mail?
 // True if it has MX records, or A/AAAA as a lenient fallback (some small domains accept

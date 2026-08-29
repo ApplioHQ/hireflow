@@ -41,7 +41,7 @@ crons = ["0 16 * * 5", "0 14 * * *"]
 [vars]
 ALLOWED_ORIGIN = "https://appliohq.com,https://www.appliohq.com,https://codehost-commit.github.io"
 SITE_URL = "https://appliohq.com"
-PREMIUM_PRICE_ID = "price_1Te0TiF3oOWBYU0sE4yBkJXp"
+PREMIUM_PRICE_ID = "price_1U9nh5F3oOWBYU0st8ZFc1pR"
 LIFETIME_PRICE_ID = "price_1Te0WuF3oOWBYU0sPN3gqifR"
 FREE_DOWNLOAD_LIMIT = "10"
 # Google OAuth Client ID (public value, safe here). Paste the SAME id you put in

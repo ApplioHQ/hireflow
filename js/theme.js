@@ -45,4 +45,10 @@
       else fetch(_pv, { method: 'POST', keepalive: true, mode: 'no-cors' }).catch(function () {});
     }
   } catch (e) {}
+
+  // Capture ?ref= referral code so it survives navigation to the signup page
+  try {
+    var _ref = new URLSearchParams(location.search).get('ref');
+    if (_ref) localStorage.setItem('hf_ref', _ref.trim().toUpperCase().slice(0, 6));
+  } catch (e) {}
 })();

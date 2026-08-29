@@ -161,6 +161,11 @@ function hydrate() {
   // Admin Console: only admins/super-admins (moved here from the topbar button).
   const adRow = document.getElementById('acct-admin-console');
   if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';
+  const refBadge = document.getElementById('acct-ref-count');
+  if (refBadge && typeof CURRENT_USER === 'object' && CURRENT_USER && CURRENT_USER.referralCount > 0) {
+    refBadge.textContent = CURRENT_USER.referralCount;
+    refBadge.style.display = '';
+  }
 
   // Interview Prep is free for everyone, no lock, navigates normally.
   if (ipTab) {
@@ -176,6 +181,19 @@ function hydrate() {
     b.style.display = '';
     b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to ${welcome === 'lifetime' ? 'Lifetime' : 'Premium'}! All features are now unlocked.</span>`;
     setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor'); }, 6000);
+  }
+
+  // "Resume getting stale" nudge for returning users inactive 14+ days
+  if (CURRENT_USER && CURRENT_USER.lastSeen && !welcome) {
+    const daysSince = Math.floor((Date.now() - Number(CURRENT_USER.lastSeen)) / 86400000);
+    const sb = document.getElementById('stale-banner');
+    if (sb && daysSince >= 14 && !sessionStorage.getItem('hf_stale_dismissed')) {
+      const w = daysSince >= 30 ? Math.floor(daysSince / 7) + ' weeks' : daysSince + ' days';
+      sb.style.display = '';
+      sb.innerHTML = '<span class="stale-text">' + ICON('sparkle') + ' <strong>Welcome back!</strong> Your resume hasn\'t been updated in ' + w +
+        '. Job markets move fast — <button class="stale-cta" onclick="document.querySelectorAll(\'.sidebar-item\')[0].click(); document.getElementById(\'stale-banner\').style.display=\'none\';">refresh it with AI</button></span>' +
+        '<button class="stale-close" onclick="this.parentElement.style.display=\'none\'; sessionStorage.setItem(\'hf_stale_dismissed\',\'1\')">&times;</button>';
+    }
   }
 }
 
@@ -3015,6 +3033,48 @@ document.addEventListener('click', function (e) {
   if (c && !c.contains(e.target)) closeAcctMenu();
 });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAcctMenu(); });
+
+// ============ Referral panel ============
+async function openReferralPanel() {
+  let bd = document.getElementById('referral-bd');
+  if (bd) { bd.remove(); return; }
+  bd = document.createElement('div'); bd.id = 'referral-bd'; bd.className = 'modal-backdrop';
+  bd.innerHTML = '<div class="modal referral-modal">' +
+    '<button class="modal-close" onclick="document.getElementById(\'referral-bd\').remove()">&times;</button>' +
+    '<div class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" width="40" height="40"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>' +
+    '<h3 class="ref-title">Refer a Friend</h3>' +
+    '<p class="ref-sub">Share your link. When a friend signs up, you <strong>both</strong> get 7 days of free Premium.</p>' +
+    '<div class="ref-link-row" id="ref-link-row"><span class="ref-loading">Generating your link…</span></div>' +
+    '<div class="ref-stats" id="ref-stats"></div>' +
+    '</div>';
+  document.body.appendChild(bd);
+  bd.addEventListener('click', function (e) { if (e.target === bd) bd.remove(); });
+  try {
+    const token = localStorage.getItem('hf_token');
+    const r = await fetch(API + '/referral/code', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    const link = 'https://appliohq.com/?ref=' + d.code;
+    const row = document.getElementById('ref-link-row');
+    if (row) row.innerHTML = '<input class="ref-link-input" type="text" readonly value="' + link + '" onclick="this.select()">' +
+      '<button class="ref-copy-btn" onclick="_copyRefLink(this)">Copy</button>';
+    const sr = await fetch(API + '/referral/stats', { headers: { Authorization: 'Bearer ' + token } });
+    const sd = await sr.json();
+    const stats = document.getElementById('ref-stats');
+    if (stats && sd.count > 0) stats.innerHTML = '<span class="ref-stat-num">' + sd.count + '</span> friend' + (sd.count !== 1 ? 's' : '') + ' joined through your link';
+    const badge = document.getElementById('acct-ref-count');
+    if (badge && sd.count > 0) { badge.textContent = sd.count; badge.style.display = ''; }
+  } catch (e) {
+    const row = document.getElementById('ref-link-row');
+    if (row) row.innerHTML = '<span class="ref-error">Could not load referral link. Try again later.</span>';
+  }
+}
+function _copyRefLink(btn) {
+  const input = btn.previousElementSibling;
+  navigator.clipboard.writeText(input.value).then(function () {
+    btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+  });
+}
 
 // ============ AI calls ============
 async function ai(endpoint, body) {

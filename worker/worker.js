@@ -99,6 +99,8 @@ export default {
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
       if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
+      if (path === "/referral/code" && req.method === "POST") return json(await referralGetCode(req, env), 200, cors);
+      if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -106,10 +108,11 @@ export default {
     }
   },
 
-  // Cron (Fridays 16:00 UTC, see wrangler.toml). Weekly "log your win" nudge.
-  // Fully inert until env.RESEND_API_KEY is configured.
+  // Cron: Fridays 16:00 UTC = weekly win nudge; daily 14:00 UTC = re-engagement drip.
+  // Both inert until env.RESEND_API_KEY is configured.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
+    ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
   },
 };
 
@@ -364,23 +367,115 @@ async function _validateSignupEmail(email) {
   return norm;
 }
 
+// ============ Anti-abuse: one account per IP ============
+// Cloudflare sets CF-Connecting-IP to the real client IP at the edge.
+function _clientIp(req) {
+  return (req.headers.get("CF-Connecting-IP") || req.headers.get("x-real-ip") || "").trim();
+}
+// IPs are PII, so we never store them raw: the KV key is an HMAC of the IP keyed
+// with JWT_SECRET (not reversible, not enumerable without the secret).
+async function _ipAccountKey(env, ip) {
+  return "ipacct:" + (await hmacHex(env.JWT_SECRET, "ip " + ip));
+}
+// Enforced UNLESS explicitly disabled (set the ONE_ACCOUNT_PER_IP var to "off" to
+// flip this off instantly without a redeploy — e.g. if it starts blocking real
+// users behind shared office/school/mobile IPs). Fails OPEN on any error or when
+// the edge gives us no IP, so a glitch never blocks a legitimate signup.
+async function _assertIpMayCreateAccount(req, env) {
+  if (env.ONE_ACCOUNT_PER_IP === "off") return;
+  const ip = _clientIp(req);
+  if (!ip) return;
+  try {
+    const existing = await env.HIREFLOW_KV.get(await _ipAccountKey(env, ip));
+    if (existing) throw err(429, "An account has already been created from this network. If you think this is a mistake, contact support@appliohq.com.");
+  } catch (e) {
+    if (e && e.status === 429) throw e;   // real block, re-throw
+    // KV/DNS/etc. failure: fail open.
+  }
+}
+async function _recordIpAccount(req, env, email) {
+  if (env.ONE_ACCOUNT_PER_IP === "off") return;
+  const ip = _clientIp(req);
+  if (!ip) return;
+  try { await env.HIREFLOW_KV.put(await _ipAccountKey(env, ip), email); } catch (_) {}
+}
+
+// ============ Referral program ============
+const REFERRAL_REWARD_DAYS = 7;
+
+function _genRefCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  const arr = crypto.getRandomValues(new Uint8Array(6));
+  for (let i = 0; i < 6; i++) code += chars[arr[i] % chars.length];
+  return code;
+}
+
+async function referralGetCode(req, env) {
+  const payload = await authenticate(req, env);
+  const user = await getUser(env, payload.email);
+  if (!user) throw err(404, "User not found");
+  if (user.referralCode) return { code: user.referralCode };
+  const code = _genRefCode();
+  user.referralCode = code;
+  await putUser(env, user);
+  await env.HIREFLOW_KV.put("ref:" + code, payload.email);
+  return { code };
+}
+
+async function referralStats(req, env) {
+  const payload = await authenticate(req, env);
+  const user = await getUser(env, payload.email);
+  if (!user) throw err(404, "User not found");
+  return {
+    code: user.referralCode || null,
+    count: user.referralCount || 0,
+    rewardDays: REFERRAL_REWARD_DAYS,
+  };
+}
+
+async function _applyReferral(env, newUser, refCode) {
+  if (!refCode) return;
+  const code = String(refCode).trim().toUpperCase();
+  if (code.length !== 6) return;
+  const referrerEmail = await env.HIREFLOW_KV.get("ref:" + code);
+  if (!referrerEmail) return;
+  if (referrerEmail === newUser.email) return;
+  newUser.referredBy = code;
+  const referrer = await getUser(env, referrerEmail);
+  if (!referrer) return;
+  referrer.referralCount = (referrer.referralCount || 0) + 1;
+  _addPremiumDays(referrer, REFERRAL_REWARD_DAYS);
+  await putUser(env, referrer);
+  _addPremiumDays(newUser, REFERRAL_REWARD_DAYS);
+}
+
+function _addPremiumDays(user, days) {
+  const now = Math.floor(Date.now() / 1000);
+  const base = (user.plan === "premium" || user.plan === "lifetime")
+    ? Math.max(user.currentPeriodEnd || 0, now)
+    : now;
+  if (user.plan === "lifetime") return;
+  user.plan = "premium";
+  user.currentPeriodEnd = base + days * 86400;
+}
+
 // ============ Auth ============
 async function signup(req, env) {
-  const { email, password, category, consent } = await req.json();
+  const { email, password, category, consent, referralCode } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");
   if (password.length < 8) throw err(400, "Password must be at least 8 characters");
   const cleanEmail = await _validateSignupEmail(email);   // blocks junk/disposable/unreachable
   const ALLOWED_CATEGORIES = ["student","internship","no-experience","software-engineer","finance","project-manager","nurse","teacher","career-changer","other"];
   if (!category || !ALLOWED_CATEGORIES.includes(category)) throw err(400, "Please select a category");
   if (await getUser(env, cleanEmail)) throw err(409, "Account already exists");
+  await _assertIpMayCreateAccount(req, env);   // one account per IP (unless disabled)
   const { salt, hash } = await hashPassword(password);
   const user = { email: cleanEmail, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
   const gotPromo = await _grantEarlyBirdIfEligible(env, user);
+  try { await _applyReferral(env, user, referralCode); } catch (_) {}
   await putUser(env, user);
-  // Record the three OPTIONAL marketing/research/testimonial consents captured on the
-  // signup form (each stored with wording+version+source, fully auditable). This never
-  // sends any email; it only records what the user chose. Failure here must not break
-  // signup, so it's best-effort.
+  await _recordIpAccount(req, env, cleanEmail);
   try { await applySignupConsent(env, cleanEmail, consent); } catch (_) {}
   const token = await signToken({ email: cleanEmail, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
   return { token, email: cleanEmail, promoEarlyBird: gotPromo };
@@ -390,7 +485,7 @@ async function signup(req, env) {
 // find-or-create the user and mint the SAME session token the rest of the app uses,
 // so an OAuth user is indistinguishable from an email/password user downstream.
 async function googleAuth(req, env) {
-  const { credential } = await req.json();
+  const { credential, referralCode } = await req.json();
   if (!credential) throw err(400, "Missing Google credential");
   const clientId = env.GOOGLE_CLIENT_ID;
   if (!clientId) throw err(500, "Google sign-in is not configured");
@@ -405,9 +500,12 @@ async function googleAuth(req, env) {
   let user = await getUser(env, email);
   let gotPromo = false;
   if (!user) {
+    await _assertIpMayCreateAccount(req, env);   // one account per IP (unless disabled)
     user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
-    gotPromo = await _grantEarlyBirdIfEligible(env, user);   // new Google signups qualify too
+    gotPromo = await _grantEarlyBirdIfEligible(env, user);
+    try { await _applyReferral(env, user, referralCode); } catch (_) {}
     await putUser(env, user);
+    await _recordIpAccount(req, env, email);
   }
   await touchActivity(env, user);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
@@ -486,6 +584,9 @@ async function me(req, env) {
     aiTrials: user.aiTrials || {},
     freeAiTrials: FREE_AI_TRIALS,
     coverLettersUsed: user.coverLettersUsed || 0,
+    referralCode: user.referralCode || null,
+    referralCount: user.referralCount || 0,
+    lastSeen: user.lastSeen || null,
   };
 }
 
@@ -1702,6 +1803,111 @@ async function sendWinNudgeEmail(env, email, winCount) {
     catch { detail = (await r.text().catch(() => "")) || `HTTP ${r.status}`; }
     return { ok: false, status: r.status, error: detail };
   } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+}
+
+// ============ Re-engagement drip (daily cron) ============
+// Sends a single contextual email to users who signed up but went inactive.
+// Drip stages (by days since signup, only the first matching stage fires):
+//   Day 3:  "Your resume is waiting" — nudge to finish building
+//   Day 7:  "Tailor to your dream job" — introduce tailoring
+//   Day 14: "Your resume is getting stale" — come back and refresh
+// Each stage fires at most once per user (tracked in KV). Requires marketing
+// consent. Fully inert until RESEND_API_KEY is set.
+const DRIP_SCAN_CAP = 5000;
+const DRIP_MAX_SENDS = 50;
+
+async function runReEngagementDrip(env) {
+  if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
+  const now = Date.now();
+  const DAY = 86400000;
+  let cursor, scanned = 0, sent = 0;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      if (scanned >= DRIP_SCAN_CAP || sent >= DRIP_MAX_SENDS) { cursor = null; break; }
+      scanned++;
+      const email = k.name.slice("user:".length);
+      if (!email || !email.includes("@")) continue;
+      let user;
+      try { user = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
+      if (!user || !user.createdAt) continue;
+      const age = now - user.createdAt;
+      const inactive = now - (user.lastSeen || user.createdAt);
+      if (inactive < 2 * DAY) continue;
+      try {
+        const cdoc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null");
+        if (cdoc && cdoc.marketing && cdoc.marketing.status === false) continue;
+      } catch {}
+      let stage = null;
+      if (age >= 14 * DAY && inactive >= 10 * DAY) stage = "drip_14";
+      else if (age >= 7 * DAY && inactive >= 5 * DAY) stage = "drip_7";
+      else if (age >= 3 * DAY && inactive >= 2 * DAY) stage = "drip_3";
+      if (!stage) continue;
+      if (await env.HIREFLOW_KV.get(`${stage}:${email}`)) continue;
+      if (!(await canSendOutreach(env, email, "marketing"))) continue;
+      const ok = await sendDripEmail(env, email, stage, user);
+      if (ok) {
+        sent++;
+        await env.HIREFLOW_KV.put(`${stage}:${email}`, String(now));
+        await markOutreachSent(env, email, "marketing", 5);
+      }
+    }
+  } while (cursor);
+  return { ok: true, scanned, sent };
+}
+
+async function sendDripEmail(env, email, stage, user) {
+  const from = env.MAIL_FROM || "Applio <noreply@appliohq.com>";
+  const editor = "https://appliohq.com/editor";
+  const footer = await commercialEmailFooter(env, email, "marketing");
+  const name = (user.name || "").split(/\s/)[0] || "there";
+
+  const templates = {
+    drip_3: {
+      subject: "Your resume is waiting for you",
+      body: `<p>Hey ${name},</p>
+        <p>You started building your resume on Applio a few days ago, nice! But it looks like there's more to do.</p>
+        <p>Most people who finish their resume in the first week are <strong>3x more likely</strong> to land interviews. The hardest part is already done, you signed up.</p>
+        <p style="margin:24px 0;"><a href="${editor}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Finish your resume &rarr;</a></p>
+        <p>Takes about 10 minutes. Your progress is saved right where you left it.</p>`,
+    },
+    drip_7: {
+      subject: "One resume won't cut it anymore",
+      body: `<p>Hey ${name},</p>
+        <p>Did you know recruiters spend an average of <strong>7 seconds</strong> scanning a resume? The ones that get interviews are tailored to each job description.</p>
+        <p>Applio's AI Tailor rewrites your bullets to match the exact keywords and skills each employer is looking for, in about 30 seconds.</p>
+        <p style="margin:24px 0;"><a href="${editor}#tailor" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Try AI Tailor &rarr;</a></p>
+        <p>Paste a job description, click Tailor, and see the difference.</p>`,
+    },
+    drip_14: {
+      subject: "Your resume is getting stale",
+      body: `<p>Hey ${name},</p>
+        <p>It's been a couple of weeks since you last touched your resume. Job markets move fast, and a stale resume can cost you opportunities.</p>
+        <p>Hop back in and let AI Improve polish your bullets with stronger action verbs and quantified results. It takes about 2 minutes.</p>
+        <p style="margin:24px 0;"><a href="${editor}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Refresh your resume &rarr;</a></p>
+        <p>Your resume is still saved. One click and you're back.</p>`,
+    },
+  };
+
+  const t = templates[stage];
+  if (!t) return false;
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;">
+    <div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#fff;">
+      <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+      ${t.body}
+      <p style="margin:24px 0 0;color:#3a4150;">Happy job hunting,<br>The Applio team</p>
+      ${footer}
+    </div></body></html>`;
+
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: [email], subject: t.subject, html }),
+    });
+    return r.ok;
+  } catch { return false; }
 }
 
 async function aiDispatch(env, action, body) {

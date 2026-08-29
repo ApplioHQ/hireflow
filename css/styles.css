@@ -1623,6 +1623,27 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 }
 @keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
+/* ── Stale resume banner ── */
+.stale-banner { background:linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); padding:12px 18px; display:flex; align-items:center; justify-content:center; gap:10px; color:#e0e7ff; font-size:13px; }
+.stale-text { display:flex; align-items:center; gap:6px; }
+.stale-cta { background:none; border:none; color:#a5b4fc; font-weight:600; cursor:pointer; text-decoration:underline; font-size:inherit; padding:0; }
+.stale-cta:hover { color:#c7d2fe; }
+.stale-close { background:none; border:none; color:#a5b4fc; font-size:18px; cursor:pointer; padding:0 4px; line-height:1; }
+
+/* ── Referral modal ── */
+#referral-bd { display:flex; }
+.referral-modal { text-align:center; max-width:420px; }
+.ref-icon { margin-bottom:12px; }
+.ref-title { font-size:1.25rem; font-weight:700; color:var(--text); margin:0 0 6px; }
+.ref-sub { color:var(--muted); font-size:.85rem; margin:0 0 20px; line-height:1.5; }
+.ref-link-row { display:flex; gap:8px; margin-bottom:16px; }
+.ref-link-input { flex:1; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-md,8px); padding:10px 12px; color:var(--text); font-size:.82rem; font-family:monospace; }
+.ref-copy-btn { background:var(--accent); color:#fff; border:none; border-radius:var(--r-md,8px); padding:10px 18px; font-weight:600; font-size:.82rem; cursor:pointer; white-space:nowrap; }
+.ref-copy-btn:hover { filter:brightness(1.15); }
+.ref-loading, .ref-error { color:var(--muted); font-size:.82rem; }
+.ref-stats { color:var(--muted); font-size:.85rem; }
+.ref-stat-num { font-weight:700; color:var(--accent); font-size:1.1rem; }
+
 /* Respect users who prefer reduced motion: calm all animations/transitions.
    (The WebGL waves background already self-disables via matchMedia.) */
 @media (prefers-reduced-motion: reduce) {

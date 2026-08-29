@@ -80,19 +80,18 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
   }
   try {
     setMsg('signup','success','Creating account…');
+    const refCode = localStorage.getItem('hf_ref') || undefined;
     const data = await apiPost('/auth/signup', {
       email: f.get('email'),
       password: f.get('password'),
       category: f.get('category'),
-      // One optional, unchecked-by-default opt-in that covers all non-essential contact.
-      // Recorded server-side per category (each with its own wording + version) so the
-      // audit trail stays granular and users can later turn off any single category on
-      // the email-preferences page. Never triggers any email on its own.
+      referralCode: refCode,
       consent: (function () {
         const all = f.get('consent_all') === 'on';
         return { marketing: all, research: all, testimonial_contact: all };
       })()
     });
+    localStorage.removeItem('hf_ref');
     _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);

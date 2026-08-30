@@ -79,7 +79,8 @@
     document.body.appendChild(bd);
     // Backdrop click dismisses everything (counts as declining, safe default: no email).
     bd.addEventListener('click', function (e) { if (e.target === bd) { done(); close(); } });
-    showStep1();
+    // If attribution was already captured on the signup form, skip straight to the nudge opt-in.
+    showStep2();
   }
 
   function showStep1() {

@@ -244,8 +244,18 @@ function _touchActivity(user) {
 // Same, but persists when worthwhile: a new active day, or when lastSeen has gone stale
 // (> 1h). Used on endpoints like /me and /auth/login that don't otherwise write the user,
 // so activity is captured while keeping KV writes to ~once/hour/user.
-async function touchActivity(env, user) {
+async function touchActivity(env, user, req) {
   if (!user) return;
+  if (req && req.cf) {
+    const cf = req.cf;
+    user.geo = {
+      country: cf.country || null,
+      city: cf.city || null,
+      region: cf.region || null,
+      timezone: cf.timezone || null,
+      continent: cf.continent || null,
+    };
+  }
   const wasStale = !user.lastSeen || (Date.now() - Number(user.lastSeen)) > 3600000;
   const newDay = _touchActivity(user);
   if (newDay || wasStale) await putUser(env, user);
@@ -361,12 +371,27 @@ async function _domainAcceptsMail(domain) {
     return true;
   } catch (_) { return true; }
 }
+// Common typosquats of major email providers. These domains often have MX records
+// (they're real domains that catch mistyped emails) so DNS validation passes them.
+const TYPOSQUAT_MAP = {
+  "gmail.com": ["gail.com","gmal.com","gmial.com","gmaill.com","gamil.com","gnail.com","gmali.com","gimail.com","gmsil.com","gmil.com","gmaul.com","gmakl.com","gmai.com","gmailcom","g]mail.com"],
+  "yahoo.com": ["yaho.com","yahooo.com","yhaoo.com","yahooc.om","yhoo.com","yaho0.com"],
+  "outlook.com": ["outllook.com","outlok.com","outloo.com","outlookcom","oultook.com"],
+  "hotmail.com": ["hotmal.com","homail.com","hotmai.com","hotmial.com","hotmailcom","hotamil.com"],
+};
+const TYPOSQUAT_DOMAINS = new Map();
+for (const [correct, typos] of Object.entries(TYPOSQUAT_MAP)) {
+  for (const t of typos) TYPOSQUAT_DOMAINS.set(t, correct);
+}
+
 // Validate + normalize (trim/lowercase) an email for signup, or throw a friendly 400.
 async function _validateSignupEmail(email) {
   const norm = String(email || "").trim().toLowerCase();
   if (!EMAIL_RE.test(norm) || norm.length > 254) throw err(400, "Please enter a valid email address.");
   const domain = norm.slice(norm.lastIndexOf("@") + 1);
   if (DISPOSABLE_DOMAINS.has(domain)) throw err(400, "Please use a permanent email address. Disposable inboxes aren't allowed.");
+  const correction = TYPOSQUAT_DOMAINS.get(domain);
+  if (correction) throw err(400, `Did you mean @${correction}? "${domain}" looks like a typo.`);
   if (!(await _domainAcceptsMail(domain))) throw err(400, "That email domain doesn't seem to accept mail. Please check for a typo.");
   return norm;
 }
@@ -503,6 +528,7 @@ async function signup(req, env) {
   await _assertIpMayCreateAccount(req, env);   // one account per IP (unless disabled)
   const { salt, hash } = await hashPassword(password);
   const user = { email: cleanEmail, salt, hash, category, createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+  if (req.cf) user.geo = { country: req.cf.country||null, city: req.cf.city||null, region: req.cf.region||null, timezone: req.cf.timezone||null, continent: req.cf.continent||null };
   const gotPromo = await _grantEarlyBirdIfEligible(env, user);
   try { await _applyReferral(env, user, referralCode); } catch (_) {}
   await putUser(env, user);
@@ -533,12 +559,13 @@ async function googleAuth(req, env) {
   if (!user) {
     await _assertIpMayCreateAccount(req, env);   // one account per IP (unless disabled)
     user = { email, oauth: "google", name: p.name || "", createdAt: Date.now(), plan: "free", downloadsUsed: 0 };
+    if (req.cf) user.geo = { country: req.cf.country||null, city: req.cf.city||null, region: req.cf.region||null, timezone: req.cf.timezone||null, continent: req.cf.continent||null };
     gotPromo = await _grantEarlyBirdIfEligible(env, user);
     try { await _applyReferral(env, user, referralCode); } catch (_) {}
     await putUser(env, user);
     await _recordIpAccount(req, env, email);
   }
-  await touchActivity(env, user);
+  await touchActivity(env, user, req);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
   return { token, email, promoEarlyBird: gotPromo };
 }
@@ -576,7 +603,7 @@ async function login(req, env) {
   const user = await getUser(env, email);
   if (!user) throw err(401, "Invalid email or password");
   if (!await verifyPassword(password, user.salt, user.hash)) throw err(401, "Invalid email or password");
-  await touchActivity(env, user);
+  await touchActivity(env, user, req);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
   return { token, email };
 }
@@ -601,7 +628,7 @@ async function me(req, env) {
 
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
-  await touchActivity(env, user);   // returning-session signal (this endpoint runs on every app load)
+  await touchActivity(env, user, req);   // returning-session signal (this endpoint runs on every app load)
   const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
   return {
     email: user.email,
@@ -760,11 +787,19 @@ async function adminAnalytics(req, env) {
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
   const attribution = {};
+  const geoCountry = {}, geoCity = {};
   const usersByFeature = {};   // distinct users who have used each AI feature at least once
   const records = await _readAllUserRecords(env);
   for (const u of records) {
     total++;
     if (u.attribution) attribution[u.attribution] = (attribution[u.attribution] || 0) + 1;
+    if (u.geo && u.geo.country) {
+      geoCountry[u.geo.country] = (geoCountry[u.geo.country] || 0) + 1;
+      if (u.geo.city) {
+        const key = u.geo.city + ", " + u.geo.country;
+        geoCity[key] = (geoCity[key] || 0) + 1;
+      }
+    }
     if (u.aiFeatures) {
       for (const k in u.aiFeatures) {
         if ((Number(u.aiFeatures[k]) || 0) > 0) usersByFeature[k] = (usersByFeature[k] || 0) + 1;
@@ -885,7 +920,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, attribution,
+    signupsByDay, attribution, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
   };

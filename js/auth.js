@@ -96,7 +96,13 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen
-    localStorage.setItem('hf_ask_attribution', '1'); // one-time "where did you hear about us?"
+    // Send attribution source if provided (inline on signup form now)
+    const source = f.get('source');
+    if (source) {
+      apiPost('/attribution', { source }).catch(() => {});
+    } else {
+      localStorage.setItem('hf_ask_attribution', '1'); // only ask post-signup if they skipped
+    }
     // Founding-member promo: flag it so the destination page can celebrate the free Premium.
     if (data.promoEarlyBird) localStorage.setItem('hf_promo_earlybird', '1');
     location.href = _afterAuthDest(data.role, 'editor');

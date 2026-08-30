@@ -35,19 +35,34 @@
     border-radius:20px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.5);
   }
   .auth-aside {
-    flex:0 0 45%; padding:38px 34px; color:#fff;
-    background:linear-gradient(155deg,#4338ca 0%,#6d28d9 55%,#7c3aed 100%);
-    display:flex; flex-direction:column; justify-content:space-between;
+    flex:0 0 45%; padding:0; color:#fff; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:flex-end;
   }
-  .auth-aside .brand { color:#fff; }
-  .auth-aside-title { font-size:23px; font-weight:800; line-height:1.25; letter-spacing:-.4px; margin:0 0 16px; }
-  .auth-rating { display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(255,255,255,.9); margin-bottom:16px; }
-  .auth-stars { color:#fcd34d; letter-spacing:2px; font-size:14px; }
-  .auth-quote { margin:0 0 20px; font-size:14.5px; line-height:1.55; font-style:italic;
-    border-left:3px solid rgba(255,255,255,.35); padding-left:14px; }
-  .auth-quote cite { display:block; margin-top:8px; font-style:normal; font-size:12px; color:rgba(255,255,255,.72); }
-  .auth-trust { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px; }
-  .auth-trust li { display:flex; align-items:flex-start; gap:9px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.92); }
+  .auth-aside-bg {
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 30% 40%, rgba(99,102,241,.55), transparent 70%),
+      radial-gradient(ellipse 60% 80% at 70% 70%, rgba(139,92,246,.45), transparent 60%),
+      radial-gradient(ellipse 50% 50% at 50% 20%, rgba(67,56,202,.6), transparent 50%),
+      linear-gradient(155deg,#1e1b4b 0%,#0f0a2e 100%);
+  }
+  .auth-aside-pattern {
+    position:absolute; inset:0; opacity:.12;
+    background-image:
+      radial-gradient(circle at 20% 30%, #fff 1px, transparent 1px),
+      radial-gradient(circle at 80% 60%, #fff 1px, transparent 1px),
+      radial-gradient(circle at 50% 80%, #fff 0.5px, transparent 0.5px);
+    background-size: 40px 40px, 60px 60px, 30px 30px;
+  }
+  .auth-aside-content {
+    position:relative; z-index:1; padding:38px 34px;
+    background:linear-gradient(to top, rgba(15,10,46,.85) 0%, transparent 100%);
+  }
+  .auth-aside .brand { color:#fff; position:absolute; top:28px; left:34px; z-index:1; }
+  .auth-aside-title { font-size:26px; font-weight:800; line-height:1.2; letter-spacing:-.5px; margin:0 0 14px; }
+  .auth-aside-sub { font-size:14px; color:rgba(255,255,255,.7); line-height:1.5; margin:0 0 20px; }
+  .auth-trust { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .auth-trust li { display:flex; align-items:flex-start; gap:9px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.85); }
   .auth-trust li svg { flex:none; margin-top:1px; color:#a7f3d0; }
   /* inside the split the card drops its own frame + centers the form vertically */
   .auth-split .auth-card { flex:1; max-width:none; border:0; border-radius:0; box-shadow:none;
@@ -72,17 +87,19 @@
 
     <!-- Trust / credibility panel (hidden on small screens) -->
     <aside class="auth-aside">
+      <div class="auth-aside-bg"></div>
+      <div class="auth-aside-pattern"></div>
       <div class="brand">
         <img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio">
         <span>Applio</span>
       </div>
-      <div>
-        <h2 class="auth-aside-title">Land more interviews with your AI career copilot.</h2>
+      <div class="auth-aside-content">
+        <h2 class="auth-aside-title">Trusted by 70+ professionals in finance, software, and more.</h2>
+        <p class="auth-aside-sub">Free ATS-optimized resumes that actually land interviews.</p>
         <ul class="auth-trust">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Passwords hashed (PBKDF2), data encrypted in transit &amp; at rest, never sold</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Payments secured by Stripe. We never see your card</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free forever plan, no credit card required</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ATS-optimized, recruiter-tested resume templates</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free forever, no credit card required</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 18 recruiter-tested templates</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Data encrypted, never sold</li>
         </ul>
       </div>
     </aside>

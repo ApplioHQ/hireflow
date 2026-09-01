@@ -124,6 +124,13 @@
       <button class="btn btn-primary btn-block" onclick="tryExport(SELECTED_FORMAT)" id="btn-pdf"></button>
       <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="tryExport('pdf')">Print</button>
       <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
+      <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+        <button class="btn btn-secondary btn-block" id="btn-gdoc" onclick="exportToGdoc()" style="display:flex;align-items:center;justify-content:center;gap:7px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export to Google Docs
+        </button>
+        <div id="gdoc-status" style="margin-top:8px; font-size:11px; color:var(--muted); text-align:center; display:none;"></div>
+      </div>
     </div>
   </aside>
 </div>
@@ -460,6 +467,68 @@ function showExportFeedbackPrompt() {
   document.body.appendChild(el);
   requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
   armAutoDismiss();
+}
+
+// ============ Google Docs export ============
+async function exportToGdoc() {
+  const btn = document.getElementById('btn-gdoc');
+  const status = document.getElementById('gdoc-status');
+  if (!TOKEN) { alert('Please log in to export to Google Docs.'); return; }
+  const resume = JSON.parse(localStorage.getItem('hf_resume') || 'null');
+  if (!resume) { alert('No resume data found.'); return; }
+
+  const setStatus = (msg, color) => { status.textContent = msg; status.style.color = color || 'var(--muted)'; status.style.display = 'block'; };
+
+  // Check if user has already connected Drive
+  const user = CURRENT_USER;
+  const needsAuth = !user || !user.driveConnected;
+
+  if (needsAuth) {
+    setStatus('Opening Google authorization…', 'var(--muted)');
+    btn.disabled = true;
+    try {
+      const r = await fetch(window.HIREFLOW_CONFIG.API_URL + '/auth/gdrive/start', {
+        headers: { 'Authorization': 'Bearer ' + TOKEN }
+      });
+      if (!r.ok) throw new Error(await r.text());
+      const { authUrl } = await r.json();
+
+      // Open popup and wait for message
+      const popup = window.open(authUrl, 'gdrive_auth', 'width=500,height=620,left=200,top=100');
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => { reject(new Error('Authorization timed out')); }, 120000);
+        function onMsg(e) {
+          if (e.data && e.data.type === 'gdrive_connected') { clearTimeout(timeout); window.removeEventListener('message', onMsg); resolve(); }
+          if (e.data && e.data.type === 'gdrive_error') { clearTimeout(timeout); window.removeEventListener('message', onMsg); reject(new Error(e.data.error || 'Authorization failed')); }
+        }
+        window.addEventListener('message', onMsg);
+      });
+      setStatus('Google Drive connected! Creating doc…', 'var(--accent)');
+    } catch(e) {
+      setStatus('Authorization failed: ' + e.message, '#ef4444');
+      btn.disabled = false;
+      return;
+    }
+  } else {
+    setStatus('Creating Google Doc…', 'var(--muted)');
+    btn.disabled = true;
+  }
+
+  try {
+    const r = await fetch(window.HIREFLOW_CONFIG.API_URL + '/export-gdoc', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resume }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Export failed');
+    setStatus('✓ Doc created!', '#22c55e');
+    window.open(data.docUrl, '_blank');
+  } catch(e) {
+    setStatus('Export failed: ' + e.message, '#ef4444');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ============ Interview success tracker (post-export) ============

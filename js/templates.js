@@ -4,7 +4,7 @@
 // Customize options (font, spacing, margins, section toggles) all apply.
 
 // `cat` groups templates in the picker: Students, Business, Technology, Creative.
-const TEMPLATE_CATEGORIES = ['Students', 'Business', 'Technology', 'Creative'];
+const TEMPLATE_CATEGORIES = ['Students', 'Business', 'Technology', 'Creative', 'Industry'];
 const TEMPLATE_DEFS = [
   // Students
   { id: 'harvard',      name: 'Harvard',        cat: 'Students' },
@@ -28,6 +28,11 @@ const TEMPLATE_DEFS = [
   { id: 'slate',        name: 'Slate',          cat: 'Creative' },
   { id: 'compact',      name: 'Compact',        cat: 'Creative' },
   { id: 'timeline',     name: 'Timeline',       cat: 'Creative' },
+  // Industry
+  { id: 'twocolumn',    name: 'Two-Column',     cat: 'Industry' },
+  { id: 'healthcare',   name: 'Healthcare',     cat: 'Industry' },
+  { id: 'sales',        name: 'Sales',          cat: 'Industry' },
+  { id: 'ats',          name: 'ATS Clean',      cat: 'Industry' },
 ];
 
 const SAMPLE = {
@@ -282,16 +287,17 @@ function sectionKeysInOrder(r) {
   return out;
 }
 // Render the reorderable sections (each <h2>Title</h2> + content), skipping empties.
-// opts: { only:[keys], titleTag:'h2'|'h3', titles:{key:override}, titleTransform:fn, skillsClass }
+// opts: { only:[keys], exclude:[keys], titleTag:'h2'|'h3', titles:{key:override}, titleTransform:fn, skillsClass }
 function orderedBody(r, opts) {
   opts = opts || {};
   const tag = opts.titleTag || 'h2';
   const titles = opts.titles || {};
   const xform = opts.titleTransform || (s => s);
+  const excl = opts.exclude ? new Set(opts.exclude) : null;
   const customKeys = new Set(_customSectionMetas(r).map(m => m.key));
   return sectionKeysInOrder(r)
-    // Custom sections live in the main column of two-column templates.
     .filter(k => !opts.only || opts.only.includes(k) || customKeys.has(k))
+    .filter(k => !excl || !excl.has(k))
     .map(k => {
       const def = SECTION_DEF[k];
       let inner, title;
@@ -903,13 +909,169 @@ function tDeedy(r, accent) {
     </div>`;
 }
 
+// Two-Column: left sidebar with contact, skills, education; right main body.
+function tTwocolumn(r, accent) {
+  const c = accent || '#1e40af';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-twocolumn { font-family: var(--app-font); color: #1f2937; min-height: var(--app-page-h, 1048px); display: grid; grid-template-columns: 32% 68%; }
+      .t-twocolumn .sidebar { background: #f1f5f9; padding: calc(6% * var(--app-margin, 1)) calc(5% * var(--app-margin, 1)); border-right: 2px solid ${c}22; }
+      .t-twocolumn .sidebar .name { font-size: 155%; font-weight: 700; color: ${c}; line-height: 1.12; margin-bottom: 4%; }
+      .t-twocolumn .sidebar h3 { font-size: 82%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; color: ${c}; margin: calc(6% * var(--app-space, 1)) 0 2%; border-bottom: 1px solid ${c}33; padding-bottom: 1.5%; }
+      .t-twocolumn .sidebar .item { font-size: 80%; margin-bottom: 2.5%; color: #374151; line-height: 1.45; }
+      .t-twocolumn .sidebar .item strong { color: #111827; }
+      .t-twocolumn .main { padding: calc(6% * var(--app-margin, 1)) calc(5.5% * var(--app-margin, 1)); }
+      .t-twocolumn h2 { color: ${c}; font-size: 102%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space, 1)) 0 calc(1.8% * var(--app-space, 1)); border-bottom: 1.5px solid ${c}22; padding-bottom: 1%; }
+      .t-twocolumn .main > h2:first-child { margin-top: 0; }
+      .t-twocolumn .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
+      .t-twocolumn .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 93%; }
+      .t-twocolumn .t-entry-date { color: #6b7280; font-weight: 500; font-size: 88%; white-space: nowrap; }
+      .t-twocolumn .t-entry-sub { color: #6b7280; font-size: 83%; margin-top: .3%; }
+      .t-twocolumn .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-twocolumn .summary { font-size: 87%; line-height: 1.55; }
+    </style>
+    <div class="t-twocolumn" style="${st}">
+      <div class="sidebar">
+        <div class="name">${esc(p.fullName)}</div>
+        <h3>Contact</h3>
+        ${p.email ? `<div class="item">${esc(p.email)}</div>` : ''}
+        ${p.phone ? `<div class="item">${esc(p.phone)}</div>` : ''}
+        ${p.location ? `<div class="item">${esc(p.location)}</div>` : ''}
+        ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
+        ${p.github ? `<div class="item">${esc(p.github)}</div>` : ''}
+        ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
+        ${skillsLine(r.skills) ? `<h3>Skills</h3><div class="item">${skillsLine(r.skills)}</div>` : ''}
+        ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
+      </div>
+      <div class="main">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r, { only: MAIN_COLUMN_KEYS })}
+      </div>
+    </div>`;
+}
+
+// Healthcare: certifications/licensure prominent at top, clean clinical layout.
+function tHealthcare(r, accent) {
+  const c = accent || '#0d9488';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-healthcare { font-family: var(--app-font); color: #1f2937; padding: calc(5% * var(--app-margin, 1)) calc(6.5% * var(--app-margin, 1)); }
+      .t-healthcare .header { border-bottom: 3px solid ${c}; padding-bottom: 3%; margin-bottom: 3%; }
+      .t-healthcare .name { font-size: 200%; font-weight: 700; color: ${c}; letter-spacing: -.01em; }
+      .t-healthcare .contact { font-size: 80%; color: #4b5563; margin-top: 1.5%; display: flex; flex-wrap: wrap; gap: 1% 3%; }
+      .t-healthcare .certs-banner { background: ${c}0d; border: 1px solid ${c}22; border-radius: 4px; padding: 2.5% 3%; margin-bottom: calc(3.5% * var(--app-space, 1)); }
+      .t-healthcare .certs-banner h2 { color: ${c}; font-size: 90%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: 0 0 1.2%; }
+      .t-healthcare .cert-item { font-size: 84%; margin-bottom: 1%; display: flex; justify-content: space-between; }
+      .t-healthcare .cert-item .cert-name { font-weight: 600; }
+      .t-healthcare .cert-item .cert-detail { color: #6b7280; font-size: 94%; }
+      .t-healthcare h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space, 1)) 0 calc(1.8% * var(--app-space, 1)); border-bottom: 1.5px solid ${c}22; padding-bottom: 1%; }
+      .t-healthcare .body > h2:first-child { margin-top: 0; }
+      .t-healthcare .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
+      .t-healthcare .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 94%; }
+      .t-healthcare .t-entry-date { color: #6b7280; font-weight: 500; font-size: 88%; white-space: nowrap; }
+      .t-healthcare .t-entry-sub { color: #6b7280; font-size: 83%; margin-top: .3%; }
+      .t-healthcare .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-healthcare .summary { font-size: 87%; line-height: 1.55; }
+    </style>
+    <div class="t-healthcare" style="${st}">
+      <div class="header">
+        <div class="name">${esc(p.fullName)}</div>
+        <div class="contact">
+          ${p.email ? `<span>${esc(p.email)}</span>` : ''}
+          ${p.phone ? `<span>${esc(p.phone)}</span>` : ''}
+          ${p.location ? `<span>${esc(p.location)}</span>` : ''}
+          ${p.linkedin ? `<span>${esc(p.linkedin)}</span>` : ''}
+        </div>
+      </div>
+      ${r.certifications.length ? `<div class="certs-banner"><h2>Certifications &amp; Licensure</h2>${r.certifications.map(c2 => `<div class="cert-item"><span class="cert-name">${esc(c2.name)}</span><span class="cert-detail">${[c2.issuer, c2.date].filter(Boolean).map(esc).join(' · ')}</span></div>`).join('')}</div>` : ''}
+      <div class="body">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r, { exclude: ['certifications'] })}
+      </div>
+    </div>`;
+}
+
+// Sales/Results: metrics-heavy, key achievements banner at top.
+function tSales(r, accent) {
+  const c = accent || '#dc2626';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-sales { font-family: var(--app-font); color: #1f2937; padding: calc(4.5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
+      .t-sales .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid ${c}; padding-bottom: 2.5%; margin-bottom: 3%; }
+      .t-sales .name { font-size: 210%; font-weight: 800; letter-spacing: -.02em; color: #111827; }
+      .t-sales .role { font-size: 85%; font-weight: 600; color: ${c}; text-transform: uppercase; letter-spacing: .1em; margin-top: 1%; }
+      .t-sales .contact { text-align: right; font-size: 78%; color: #4b5563; line-height: 1.55; }
+      .t-sales .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 2%; background: ${c}08; border: 1px solid ${c}18; border-radius: 4px; padding: 2.5% 3%; margin-bottom: calc(3.5% * var(--app-space, 1)); }
+      .t-sales .metric { text-align: center; }
+      .t-sales .metric-val { font-size: 160%; font-weight: 800; color: ${c}; line-height: 1.1; }
+      .t-sales .metric-label { font-size: 72%; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; }
+      .t-sales h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space, 1)) 0 calc(1.8% * var(--app-space, 1)); border-bottom: 1.5px solid ${c}22; padding-bottom: 1%; }
+      .t-sales .body > h2:first-child { margin-top: 0; }
+      .t-sales .t-entry { margin-bottom: calc(3% * var(--app-space, 1)); }
+      .t-sales .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 94%; }
+      .t-sales .t-entry-date { color: #6b7280; font-weight: 500; font-size: 88%; white-space: nowrap; }
+      .t-sales .t-entry-sub { color: #6b7280; font-size: 83%; margin-top: .3%; }
+      .t-sales .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-sales .summary { font-size: 87%; line-height: 1.55; }
+    </style>
+    <div class="t-sales" style="${st}">
+      <div class="header">
+        <div>
+          <div class="name">${esc(p.fullName)}</div>
+          ${(r.experience && r.experience[0] && r.experience[0].title) ? `<div class="role">${esc(r.experience[0].title)}</div>` : ''}
+        </div>
+        <div class="contact">${[p.email, p.phone, p.location, p.linkedin].filter(Boolean).map(x => `<div>${esc(x)}</div>`).join('')}</div>
+      </div>
+      ${r.awards.length ? `<div class="metrics">${r.awards.slice(0, 4).map(a => `<div class="metric"><div class="metric-val">${esc(a.name)}</div><div class="metric-label">${esc(a.issuer || a.date || '')}</div></div>`).join('')}</div>` : ''}
+      <div class="body">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r, { exclude: ['awards'] })}
+      </div>
+    </div>`;
+}
+
+// ATS Clean: most stripped-down single-column, guaranteed ATS-parseable.
+function tAts(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-ats { font-family: var(--app-font, Arial, Helvetica, sans-serif); color: #000; padding: calc(5% * var(--app-margin, 1)) calc(6% * var(--app-margin, 1)); }
+      .t-ats .name { font-size: 190%; font-weight: 700; text-align: center; color: #000; }
+      .t-ats .contact { font-size: 82%; text-align: center; color: #333; margin: 1% 0 3%; }
+      .t-ats h2 { font-size: 100%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .06em; color: #000; margin: calc(4% * var(--app-space, 1)) 0 calc(1.5% * var(--app-space, 1)); border-bottom: 1px solid #000; padding-bottom: .8%; }
+      .t-ats .body > h2:first-child { margin-top: 0; }
+      .t-ats .t-entry { margin-bottom: calc(2.8% * var(--app-space, 1)); }
+      .t-ats .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 95%; }
+      .t-ats .t-entry-date { color: #333; font-weight: 400; font-size: 90%; white-space: nowrap; }
+      .t-ats .t-entry-sub { color: #333; font-size: 85%; margin-top: .3%; }
+      .t-ats .t-entry-desc { font-size: 89%; margin-top: 1%; }
+      .t-ats .summary { font-size: 89%; line-height: 1.55; }
+    </style>
+    <div class="t-ats" style="${st}">
+      <div class="name">${esc(p.fullName)}</div>
+      <div class="contact">${[p.email, p.phone, p.location, p.linkedin].filter(Boolean).map(esc).join(' | ')}</div>
+      <div class="body">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r)}
+      </div>
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
   modern: tModern, classic: tClassic, creative: tCreative, minimal: tMinimal,
   professional: tProfessional, executive: tExecutive,
   compact: tCompact, elegant: tElegant, slate: tSlate,
-  ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy
+  ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy,
+  twocolumn: tTwocolumn, healthcare: tHealthcare, sales: tSales, ats: tAts
 };
 
 // Public API: render any template

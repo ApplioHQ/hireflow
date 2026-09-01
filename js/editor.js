@@ -772,6 +772,66 @@ const TEMPLATE_THUMBS = {
     <circle cx="14.6" cy="82.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
     <rect x="20" y="81" width="28" height="1.6" rx=".5" fill="#333"/><rect x="20" y="85" width="44" height="1.3" rx=".3" fill="#cfcfcf"/>
   </svg>`,
+  twocolumn: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect width="28" height="110" fill="#f1f5f9"/>
+    <rect x="4" y="10" width="20" height="4" rx="1" fill="#1e40af"/>
+    <rect x="4" y="18" width="16" height="1.2" rx=".5" fill="#666"/>
+    <rect x="4" y="21" width="14" height="1.2" rx=".5" fill="#666"/>
+    <rect x="4" y="30" width="12" height="1.6" rx=".5" fill="#1e40af"/><rect x="4" y="33" width="20" height="1" fill="#1e40af22"/>
+    <rect x="4" y="37" width="18" height="1.2" rx=".5" fill="#999"/>
+    <rect x="4" y="48" width="12" height="1.6" rx=".5" fill="#1e40af"/><rect x="4" y="51" width="20" height="1" fill="#1e40af22"/>
+    <rect x="4" y="55" width="18" height="1.2" rx=".5" fill="#333"/><rect x="4" y="59" width="16" height="1.2" rx=".5" fill="#999"/>
+    <rect x="33" y="10" width="22" height="2" rx=".5" fill="#1e40af"/><rect x="33" y="13.5" width="44" height=".8" fill="#1e40af22"/>
+    <rect x="33" y="18" width="36" height="1.6" rx=".5" fill="#333"/><rect x="73" y="18" width="7" height="1.6" rx=".5" fill="#999"/>
+    <rect x="33" y="22" width="42" height="1.2" rx=".5" fill="#cfcfcf"/><rect x="33" y="26" width="38" height="1.2" rx=".5" fill="#cfcfcf"/>
+    <rect x="33" y="34" width="34" height="1.6" rx=".5" fill="#333"/><rect x="73" y="34" width="7" height="1.6" rx=".5" fill="#999"/>
+    <rect x="33" y="38" width="40" height="1.2" rx=".5" fill="#cfcfcf"/><rect x="33" y="42" width="36" height="1.2" rx=".5" fill="#cfcfcf"/>
+    <rect x="33" y="52" width="22" height="2" rx=".5" fill="#1e40af"/><rect x="33" y="55.5" width="44" height=".8" fill="#1e40af22"/>
+    <rect x="33" y="60" width="30" height="1.6" rx=".5" fill="#333"/><rect x="33" y="64" width="40" height="1.2" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  healthcare: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="44" height="5.5" rx="1" fill="#0d9488"/>
+    <rect x="8" y="17" width="52" height="1.5" rx=".5" fill="#777"/>
+    <rect x="8" y="20.5" width="69" height=".6" fill="#0d9488"/>
+    <rect x="6" y="25" width="73" height="16" rx="2" fill="#0d94880d" stroke="#0d948822" stroke-width=".5"/>
+    <rect x="10" y="28" width="26" height="1.6" rx=".5" fill="#0d9488"/>
+    <rect x="10" y="32" width="40" height="1.3" rx=".5" fill="#444"/><rect x="56" y="32" width="18" height="1.3" rx=".5" fill="#999"/>
+    <rect x="10" y="36" width="36" height="1.3" rx=".5" fill="#444"/><rect x="56" y="36" width="14" height="1.3" rx=".5" fill="#999"/>
+    <rect x="8" y="48" width="22" height="2" rx=".5" fill="#0d9488"/><rect x="8" y="51.5" width="69" height=".6" fill="#0d948822"/>
+    <rect x="8" y="56" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="56" width="15" height="1.6" rx=".5" fill="#999"/>
+    <rect x="8" y="60" width="60" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="64" width="54" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="74" width="22" height="2" rx=".5" fill="#0d9488"/><rect x="8" y="77.5" width="69" height=".6" fill="#0d948822"/>
+    <rect x="8" y="82" width="60" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  sales: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="40" height="5.5" rx="1" fill="#111"/>
+    <rect x="8" y="16" width="24" height="2" rx=".5" fill="#dc2626"/>
+    <rect x="8" y="20.5" width="69" height=".8" fill="#dc2626"/>
+    <rect x="6" y="25" width="73" height="14" rx="2" fill="#dc262608" stroke="#dc262618" stroke-width=".5"/>
+    <rect x="11" y="29" width="12" height="4" rx="1" fill="#dc2626"/><rect x="11" y="34" width="14" height="1.2" rx=".5" fill="#999"/>
+    <rect x="30" y="29" width="12" height="4" rx="1" fill="#dc2626"/><rect x="30" y="34" width="14" height="1.2" rx=".5" fill="#999"/>
+    <rect x="49" y="29" width="12" height="4" rx="1" fill="#dc2626"/><rect x="49" y="34" width="14" height="1.2" rx=".5" fill="#999"/>
+    <rect x="8" y="46" width="22" height="2" rx=".5" fill="#dc2626"/><rect x="8" y="49.5" width="69" height=".6" fill="#dc262622"/>
+    <rect x="8" y="54" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="54" width="15" height="1.6" rx=".5" fill="#999"/>
+    <rect x="8" y="58" width="60" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="62" width="54" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="72" width="22" height="2" rx=".5" fill="#dc2626"/><rect x="8" y="75.5" width="69" height=".6" fill="#dc262622"/>
+    <rect x="8" y="80" width="60" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  ats: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="22" y="10" width="41" height="5" rx="1" fill="#000"/>
+    <rect x="18" y="18" width="49" height="1.5" rx=".5" fill="#555"/>
+    <rect x="8" y="28" width="22" height="2" rx=".5" fill="#000"/><rect x="8" y="31.5" width="69" height=".7" fill="#000"/>
+    <rect x="8" y="36" width="62" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="40" width="56" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="50" width="22" height="2" rx=".5" fill="#000"/><rect x="8" y="53.5" width="69" height=".7" fill="#000"/>
+    <rect x="8" y="58" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="58" width="15" height="1.6" rx=".5" fill="#999"/>
+    <rect x="8" y="62" width="60" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="66" width="54" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="76" width="22" height="2" rx=".5" fill="#000"/><rect x="8" y="79.5" width="69" height=".7" fill="#000"/>
+    <rect x="8" y="84" width="36" height="1.6" rx=".5" fill="#333"/><rect x="8" y="88" width="58" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
 };
 
 // ============ Personal ============

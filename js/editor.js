@@ -3186,6 +3186,92 @@ async function ai(endpoint, body) {
   return data;
 }
 
+// Streaming AI call — shows text building up in the loading overlay as tokens arrive.
+// Returns the full accumulated text when the stream ends.
+// `onChunk(accumulated)` is called after each chunk with the text so far (optional).
+async function aiStream(endpoint, body, onChunk) {
+  // Same auth / plan gates as ai()
+  const isAutoScore = endpoint === 'ats' && body && body.auto === true;
+  if (IS_ANON && !isAutoScore) { _promptSignup('use AI features'); throw new Error('Sign up required'); }
+  if (isFree() && endpoint !== 'parse' && !isAutoScore && !canUseAi(endpoint)) {
+    showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
+    throw new Error('Premium required');
+  }
+  const r = await fetch(API + '/ai/stream/' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify(body),
+  });
+  if (r.status === 401 || r.status === 403) {
+    if (typeof handleSessionExpired === 'function') handleSessionExpired('editor');
+    throw new Error('Session expired');
+  }
+  if (r.status === 402) {
+    if (!isAutoScore) showUpgradeModal('ai');
+    throw new Error('Premium required');
+  }
+  if (!r.ok || !r.body) {
+    const d = await r.json().catch(() => ({}));
+    throw new Error(d.error || `Request failed (${r.status})`);
+  }
+
+  const reader = r.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', accumulated = '';
+
+  // Once first tokens arrive, switch the loading overlay to show live text
+  let overlaySwapped = false;
+  const _swapOverlay = () => {
+    if (overlaySwapped) return;
+    overlaySwapped = true;
+    const overlay = document.getElementById('ai-loading-overlay');
+    if (!overlay) return;
+    // Replace the dot-loader with a streaming text box
+    overlay.innerHTML = `
+      <style>
+        @keyframes aiStreamIn { from { opacity:0 } to { opacity:1 } }
+        @keyframes aiCursorBlink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+      </style>
+      <div id="ai-stream-box" style="
+        background:rgba(20,25,56,.95);border:1px solid #2a2f55;border-radius:12px;
+        padding:20px 24px;max-width:560px;width:90%;max-height:60vh;overflow-y:auto;
+        animation:aiStreamIn .2s ease both;position:relative;
+      ">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#9aa3c7;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#5b54e8;display:inline-block;"></span>
+          AI is writing...
+        </div>
+        <div id="ai-stream-text" style="font-size:14px;line-height:1.7;color:#e6e9f5;white-space:pre-wrap;word-break:break-word;"></div>
+        <span id="ai-stream-cursor" style="display:inline-block;width:2px;height:1em;background:#5b54e8;vertical-align:text-bottom;margin-left:2px;animation:aiCursorBlink .8s step-start infinite;"></span>
+      </div>`;
+  };
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop(); // keep incomplete line
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') break;
+      let chunk;
+      try { chunk = JSON.parse(raw); } catch { continue; }
+      if (chunk && chunk.error) throw new Error(chunk.error);
+      if (typeof chunk === 'string') {
+        accumulated += chunk;
+        _swapOverlay();
+        const textEl = document.getElementById('ai-stream-text');
+        if (textEl) textEl.textContent = accumulated;
+        if (onChunk) onChunk(accumulated);
+      }
+    }
+  }
+  return accumulated;
+}
+
 // ============ AI output: pretty formatting + apply ============
 // Render freeform AI text into clean recommendation cards: bullet lines become
 // a checklist, ALL-CAPS / colon-terminated lines become subheadings, the rest
@@ -3478,8 +3564,8 @@ async function aiImprove(target, idx = 0) {
       };
     }
     if (!String(text).trim()) { aiLoadingDone(); return toast('Add a few details to this entry first, then AI can improve it.', { type: 'warn' }); }
-    const r = await ai('improve', { target, text, context });
-    const suggestion = r.text || '';
+    const suggestion = (await aiStream('improve', { target, text, context })) || '';
+    if (!suggestion.trim()) throw new Error('AI returned an empty response. Please try again.');
     let apply = null;
     if (target === 'summary') {
       apply = (t) => { resume.personal.summary = t; };

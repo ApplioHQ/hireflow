@@ -110,6 +110,7 @@ export default {
       if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
+      if (path.startsWith("/ai/stream/"))      return aiStream(req, env, path.slice(11), cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -2085,6 +2086,114 @@ async function runAI(env, system, user, opts = {}) {
     throw err(429, `AI usage limit reached: ${msg}`);
   }
   throw err(502, `AI model error: ${msg}`);
+}
+
+// Streaming variant of runAI — returns a ReadableStream of SSE chunks.
+// Each chunk is `data: <token>\n\n`; the stream ends with `data: [DONE]\n\n`.
+// Falls back to non-streaming (emits the full text as one chunk) if the model
+// doesn't support streaming or returns a non-stream response.
+async function runAIStream(env, system, user, opts = {}) {
+  const model = opts.model || FAST_MODEL;
+  const payload = {
+    messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    max_tokens: opts.max_tokens || 800,
+    temperature: opts.temperature ?? 0.3,
+    stream: true,
+  };
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+  const enc = new TextEncoder();
+  const send = (chunk) => writer.write(enc.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+  const done = () => { writer.write(enc.encode("data: [DONE]\n\n")); writer.close(); };
+
+  (async () => {
+    try {
+      const res = await env.AI.run(model, payload);
+      // Workers AI streaming returns an EventStream. When stream:true the result
+      // is itself async-iterable. Fall back gracefully if it isn't.
+      if (res && typeof res[Symbol.asyncIterator] === "function") {
+        for await (const part of res) {
+          const token = part && (part.response || (part.choices && part.choices[0] && part.choices[0].delta && part.choices[0].delta.content) || "");
+          if (token) await send(token);
+        }
+      } else {
+        // Non-streaming fallback: emit the full text as one chunk.
+        const text = _aiText(res).trim();
+        if (text) await send(text);
+      }
+      done();
+    } catch (e) {
+      await writer.write(enc.encode(`data: ${JSON.stringify({ error: e.message || "AI error" })}\n\n`));
+      writer.close();
+    }
+  })();
+
+  return readable;
+}
+
+// Handler for /ai/stream/{action} — same auth/gating as /ai/{action} but streams SSE.
+async function aiStream(req, env, action, cors) {
+  const sseHeaders = {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    ...cors,
+  };
+  const fail = (status, msg) => new Response(`data: ${JSON.stringify({ error: msg })}\n\ndata: [DONE]\n\n`, { status, headers: sseHeaders });
+
+  let payload;
+  try { payload = await authenticate(req, env); } catch (e) { return fail(401, e.message || "Unauthorized"); }
+
+  const isAdmin = payload.role === "admin" || payload.role === "super";
+  if (!isAdmin) {
+    const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
+    if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
+  }
+
+  let body;
+  try { body = await req.json(); } catch { return fail(400, "Invalid request body"); }
+
+  if (!isAdmin) {
+    const user = await getUser(env, payload.email).catch(() => null);
+    if (!user) return fail(404, "User not found");
+    const paid = isPaidPlan(user);
+    const freeForAll = action === "improve" && (body.target === "summary" || body.target === "personal");
+    if (!paid && !freeForAll) {
+      const trialLimit = (FREE_TRIAL_LIMITS[action] != null) ? FREE_TRIAL_LIMITS[action] : FREE_AI_TRIALS;
+      const trialUsed = (user.aiTrials && user.aiTrials[action]) || 0;
+      if (trialUsed >= trialLimit) return fail(402, "Upgrade to Premium for unlimited AI.");
+    }
+    const rlDay = new Date().toISOString().slice(0, 10);
+    const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
+    const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);
+    const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
+    if (rlUsed >= rlCap) return fail(429, "Daily AI limit reached. Try again tomorrow.");
+    env.HIREFLOW_KV.put(rlKey, String(rlUsed + 1), { expirationTtl: 172800 }).catch(() => {});
+  }
+
+  // Build the same prompt that aiDispatch/aiImprove would use, then stream it.
+  // Currently only "improve" is called from the frontend streaming path.
+  let sysPrompt, userPrompt, aiOpts = {};
+  if (action === "improve") {
+    const { target, text, context } = body;
+    if (!text || !String(text).trim()) return fail(400, "No text to improve");
+    const ctx = context || {};
+    const role = String(ctx.role || "").slice(0, 120);
+    const company = String(ctx.company || "").slice(0, 120);
+    const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.` : "";
+    const isSummary = target === "summary" || target === "personal";
+    sysPrompt = isSummary
+      ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\n\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths (skills, domains, or scope), concrete nouns, not adjectives.\n- Ends with the value the candidate brings to a hiring manager.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter".\n- Plain text only, no markdown, no headers, no quotation marks.\n\nOUTPUT: Only the rewritten summary. Nothing else.`
+      : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.\n${roleLine}\n\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- Lead with impact. Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
+    userPrompt = `Original content:\n${text}\n\nRewrite it.`;
+  } else {
+    return fail(404, "Streaming not supported for this action");
+  }
+
+  const stream = await runAIStream(env, sysPrompt, userPrompt, aiOpts);
+  return new Response(stream, { headers: sseHeaders });
 }
 
 // Multi-turn variant of runAI: takes a full messages array (system + conversation).

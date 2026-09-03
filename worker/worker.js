@@ -63,6 +63,11 @@ export default {
       return handleUnsubscribe(url, env).catch(() => new Response("Something went wrong.", { status: 500, headers: { "Content-Type": "text/html" } }));
     }
 
+    // Google Drive OAuth callback: exchanges code for tokens, stores refresh_token, closes popup.
+    if (path === "/auth/gdrive/callback") {
+      return gdriveCallback(req, url, env).catch(e => new Response(`<html><body><script>window.opener&&window.opener.postMessage({type:'gdrive_error',error:${JSON.stringify(e.message)}},'*');window.close();</script><p>Error: ${e.message}</p></body></html>`, { status: 500, headers: { "Content-Type": "text/html" } }));
+    }
+
     try {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
@@ -103,6 +108,8 @@ export default {
       if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
       if (path === "/interview-win" && req.method === "POST") return json(await recordInterviewWin(req, env), 200, cors);
       if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
+      if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
+      if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
     } catch (e) {
@@ -110,10 +117,11 @@ export default {
     }
   },
 
-  // Cron: Fridays 16:00 UTC = weekly win nudge; daily 14:00 UTC = re-engagement drip.
-  // Both inert until env.RESEND_API_KEY is configured.
+  // Cron: Fridays 16:00 UTC = weekly win nudge + review nudge; daily 14:00 UTC = re-engagement drip + post-download review.
+  // All inert until env.RESEND_API_KEY is configured.
   async scheduled(event, env, ctx) {
     ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
+    ctx.waitUntil(runPostDownloadReviewNudge(env).catch(() => {}));
     // Re-engagement drip disabled until ready to activate
     // ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
   },
@@ -493,6 +501,8 @@ async function recordInterviewWin(req, env) {
     const key = "stats:interview_wins";
     const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10);
     await env.HIREFLOW_KV.put(key, String(cur + 1));
+    // Best possible moment to ask for a review: right after a real win.
+    _sendWinReviewEmail(env, user.email).catch(() => {});
   }
   return { ok: true };
 }
@@ -504,6 +514,17 @@ async function getInterviewWins(req, env) {
     personal: user.interviewWins || [],
     globalCount,
   };
+}
+
+// Send a Trustpilot review invite after a positive win is logged.
+// Fire-and-forget: called inside recordInterviewWin, errors are swallowed.
+async function _sendWinReviewEmail(env, email) {
+  if (!env.RESEND_API_KEY) return;
+  // Only send once per user ever (this is a high-intent moment, not a repeat nudge).
+  const key = `review_win_sent:${email}`;
+  if (await env.HIREFLOW_KV.get(key)) return;
+  await env.HIREFLOW_KV.put(key, "1");
+  await sendReviewEmail(env, email, "win");
 }
 
 function _addPremiumDays(user, days) {
@@ -1314,6 +1335,7 @@ async function incrementDownload(req, env) {
     return { ok: false, downloadsUsed: used, allowed: false, message: "Download limit reached" };
   }
   user.downloadsUsed = used + 1;
+  if (!user.firstDownloadAt) user.firstDownloadAt = Date.now();
   await putUser(env, user);
   return { ok: true, downloadsUsed: user.downloadsUsed, allowed: true };
 }
@@ -3121,6 +3143,347 @@ async function aiAutopilot(env, { jobDescription, resume, tone, role, company })
   // Only cache when at least one analysis succeeded (don't lock in a total failure).
   if (ats || tailor || cover) await aiCachePut(env, "autopilot", cacheKey, out, 86400);
   return out;
+}
+
+// ============ Trustpilot review emails ============
+// TRUSTPILOT_URL should be set to your Trustpilot review page once created,
+// e.g. https://www.trustpilot.com/evaluate/appliohq.com
+// Falls back to a placeholder so the email still works before you have a profile.
+
+function _trustpilotUrl(env) {
+  return env.TRUSTPILOT_URL || "https://www.trustpilot.com/evaluate/appliohq.com";
+}
+
+// Shared unsubscribe token for review emails (separate category from win-nudge).
+async function reviewUnsubToken(env, email) {
+  return (await hmacHex(env.JWT_SECRET || "x", "reviewunsub:" + email.toLowerCase())).slice(0, 32);
+}
+
+// Two flavours: "win" (just logged an interview/offer) and "download" (7 days after first download).
+async function sendReviewEmail(env, email, flavour) {
+  const from = env.MAIL_FROM || "Applio <hello@appliohq.com>";
+  const tp = _trustpilotUrl(env);
+  const unsubToken = await reviewUnsubToken(env, email);
+  const unsub = `https://hireflow-api.pritamavuthu7.workers.dev/unsubscribe?e=${encodeURIComponent(email)}&t=${unsubToken}&c=marketing`;
+  const addr = env.MAILING_ADDRESS || "";
+
+  let subject, html;
+
+  if (flavour === "win") {
+    subject = "Congrats on the interview. One quick favor?";
+    html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;">
+<div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
+  <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+
+  <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">You landed an interview. That's the hard part.</p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">Getting that call is genuinely hard. A lot of people send dozens of applications without hearing back, so this is a real thing worth being proud of.</p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">If Applio played any part in getting you there, it would mean a lot if you left a quick review on Trustpilot. It takes about a minute, and it helps other job seekers find us.</p>
+
+  <p style="margin:0 0 28px;"><a href="${tp}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Leave a review &rarr;</a></p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">And good luck with the next step. We're rooting for you.</p>
+
+  <p style="margin:24px 0 0;color:#3a4150;">Pritam<br><span style="color:#9aa0ad;font-size:14px;">Founder, Applio</span></p>
+
+  <hr style="border:0;border-top:1px solid #e9ebf1;margin:30px 0 14px;">
+  <p style="color:#9aa0ad;font-size:12px;line-height:1.6;margin:0;">You're getting this because you logged an interview win on Applio. <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe anytime</a>.${addr ? "<br>" + addr : ""}</p>
+</div></body></html>`;
+
+  } else {
+    // "download" flavour: 7 days after first resume download
+    subject = "How is the job search going?";
+    html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;">
+<div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
+  <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+
+  <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">Your resume has been out there for a week.</p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">We hope it's doing its job. If you've sent it out and heard back (or even if you haven't yet), we'd love to know how it's going.</p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">If you have a spare minute, a Trustpilot review helps other job seekers find Applio. Honest ones are the best kind.</p>
+
+  <p style="margin:0 0 28px;"><a href="${tp}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Share your experience &rarr;</a></p>
+
+  <p style="margin:0 0 16px;color:#3a4150;">Either way, good luck out there. If you want to tweak anything on your resume before your next application, your draft is saved and ready.</p>
+
+  <p style="margin:24px 0 0;color:#3a4150;">Pritam<br><span style="color:#9aa0ad;font-size:14px;">Founder, Applio</span></p>
+
+  <hr style="border:0;border-top:1px solid #e9ebf1;margin:30px 0 14px;">
+  <p style="color:#9aa0ad;font-size:12px;line-height:1.6;margin:0;">You're getting this because you downloaded a resume from Applio. <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe anytime</a>.${addr ? "<br>" + addr : ""}</p>
+</div></body></html>`;
+  }
+
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: [email], subject, html }),
+    });
+    if (r.ok) return { ok: true };
+    let detail = "";
+    try { const j = await r.json(); detail = j.message || j.error || JSON.stringify(j); } catch { detail = `HTTP ${r.status}`; }
+    return { ok: false, error: detail };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+}
+
+// Cron-driven: scan users who downloaded 7 days ago and haven't been nudged yet.
+const REVIEW_NUDGE_MAX_SENDS = 100;
+const REVIEW_NUDGE_SCAN_CAP = 3000;
+const REVIEW_NUDGE_DELAY_MS = 7 * 86400 * 1000;
+
+async function runPostDownloadReviewNudge(env) {
+  if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
+  const now = Date.now();
+  let cursor, scanned = 0, sent = 0;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      if (scanned >= REVIEW_NUDGE_SCAN_CAP || sent >= REVIEW_NUDGE_MAX_SENDS) { cursor = null; break; }
+      scanned++;
+      const email = k.name.slice("user:".length);
+      if (!email || !email.includes("@")) continue;
+      // Only once per user ever
+      if (await env.HIREFLOW_KV.get(`review_dl_sent:${email}`)) continue;
+      // Consent gate
+      try {
+        const cdoc = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null");
+        if (cdoc && cdoc.marketing && cdoc.marketing.status === false) continue;
+      } catch {}
+      let user;
+      try { user = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
+      if (!user || !user.downloadsUsed || user.downloadsUsed < 1) continue;
+      // firstDownloadAt not always set; fall back to createdAt as a loose proxy
+      const firstDl = user.firstDownloadAt || null;
+      if (!firstDl) continue;
+      if (now - firstDl < REVIEW_NUDGE_DELAY_MS) continue;     // too soon
+      if (now - firstDl > REVIEW_NUDGE_DELAY_MS * 6) continue; // too old, skip stale accounts
+      const res = await sendReviewEmail(env, email, "download");
+      if (res.ok) {
+        sent++;
+        await env.HIREFLOW_KV.put(`review_dl_sent:${email}`, "1");
+      }
+    }
+  } while (cursor);
+  return { ok: true, scanned, sent };
+}
+
+// ============ Google Drive / Docs export ============
+// Three-step flow:
+//   1. gdriveStart  → returns Google OAuth URL; frontend opens it in a popup
+//   2. gdriveCallback → exchanges code for tokens, stores refresh_token on user, closes popup
+//   3. exportToGdoc → uses stored refresh_token to create a formatted Google Doc
+
+const GDRIVE_REDIRECT = "https://hireflow-api.pritamavuthu7.workers.dev/auth/gdrive/callback";
+const GDRIVE_SCOPES   = "https://www.googleapis.com/auth/drive.file";
+
+async function _gdriveAccessToken(env, user) {
+  if (!user.driveRefreshToken) throw err(400, "Google Drive not connected. Please reconnect.");
+  const resp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id:     env.GOOGLE_DOCS_CLIENT_ID,
+      client_secret: env.GOOGLE_DOCS_CLIENT_SECRET,
+      refresh_token: user.driveRefreshToken,
+      grant_type:    "refresh_token",
+    }).toString(),
+  });
+  const data = await resp.json();
+  if (!resp.ok || !data.access_token) throw err(502, "Failed to refresh Google token. Please reconnect.");
+  return data.access_token;
+}
+
+async function gdriveStart(req, env) {
+  const payload = await authenticate(req, env);
+  // Encode the user's JWT as state so the callback can identify who is connecting.
+  const state = btoa(JSON.stringify({ email: payload.email }));
+  const params = new URLSearchParams({
+    client_id:     env.GOOGLE_DOCS_CLIENT_ID,
+    redirect_uri:  GDRIVE_REDIRECT,
+    response_type: "code",
+    scope:         GDRIVE_SCOPES,
+    access_type:   "offline",
+    prompt:        "consent",
+    state,
+  });
+  return { authUrl: "https://accounts.google.com/o/oauth2/v2/auth?" + params.toString() };
+}
+
+async function gdriveCallback(req, url, env) {
+  const code  = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
+
+  const closePopup = (msg, isError) => new Response(
+    `<html><head><title>Connecting…</title></head><body>
+    <script>
+      if(window.opener){window.opener.postMessage({type:${isError ? "'gdrive_error'" : "'gdrive_connected'"},${isError ? `error:${JSON.stringify(msg)}` : `msg:${JSON.stringify(msg)}`}},'*');setTimeout(()=>window.close(),500);}
+      else{document.body.innerHTML='<p>${isError ? "Error: " + msg : msg}</p><p>You can close this tab.</p>';}
+    </script>
+    <p>${isError ? "Error: " + msg + " — you can close this tab." : msg}</p>
+    </body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html" } }
+  );
+
+  if (error) return closePopup(error, true);
+  if (!code || !state) return closePopup("Missing code or state", true);
+
+  let email;
+  try { email = JSON.parse(atob(state)).email; } catch { return closePopup("Invalid state", true); }
+  if (!email) return closePopup("Invalid state", true);
+
+  // Exchange authorization code for tokens
+  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id:     env.GOOGLE_DOCS_CLIENT_ID,
+      client_secret: env.GOOGLE_DOCS_CLIENT_SECRET,
+      redirect_uri:  GDRIVE_REDIRECT,
+      grant_type:    "authorization_code",
+    }).toString(),
+  });
+  const tokens = await tokenResp.json();
+  if (!tokenResp.ok || !tokens.refresh_token) return closePopup("Token exchange failed: " + (tokens.error_description || tokens.error || "no refresh token"), true);
+
+  const user = await getUser(env, email);
+  if (!user) return closePopup("User not found", true);
+  user.driveRefreshToken = tokens.refresh_token;
+  await putUser(env, user);
+
+  return closePopup("Google Drive connected!", false);
+}
+
+async function exportToGdoc(req, env) {
+  const user = await authUser(req, env);
+  const { resume } = await req.json();
+  if (!resume) throw err(400, "Missing resume data");
+
+  const accessToken = await _gdriveAccessToken(env, user);
+  const p = resume.personal || {};
+  const docTitle = (p.fullName ? p.fullName + " — Resume" : "Resume") + " (via Applio)";
+
+  // Create an empty document
+  const createResp = await fetch("https://docs.googleapis.com/v1/documents", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" },
+    body: JSON.stringify({ title: docTitle }),
+  });
+  if (!createResp.ok) throw err(502, "Failed to create Google Doc");
+  const doc = await createResp.json();
+  const docId = doc.documentId;
+
+  // Build batchUpdate requests to populate the document
+  const requests = _buildDocRequests(resume);
+
+  if (requests.length > 0) {
+    const updateResp = await fetch(`https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`, {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json" },
+      body: JSON.stringify({ requests }),
+    });
+    if (!updateResp.ok) {
+      const e2 = await updateResp.text();
+      throw err(502, "Failed to populate Google Doc: " + e2.slice(0, 200));
+    }
+  }
+
+  return { docUrl: `https://docs.google.com/document/d/${docId}/edit`, docId };
+}
+
+// Build Google Docs API batchUpdate requests from resume JSON.
+// Inserts content then styles headings — index 1 is always the document start.
+function _buildDocRequests(resume) {
+  const p = resume.personal || {};
+  const exp = Array.isArray(resume.experience) ? resume.experience : [];
+  const edu = Array.isArray(resume.education)  ? resume.education  : [];
+  const skills = resume.skills && Array.isArray(resume.skills.categories) ? resume.skills.categories : [];
+  const proj = Array.isArray(resume.projects) ? resume.projects : [];
+
+  // We build the text content as segments, then insert in reverse order
+  // (Docs API inserts at index so we go end-to-start to avoid re-indexing).
+  // Simpler: insert the whole block as one text, then apply styles.
+  const lines = [];
+
+  const add = (text) => lines.push(text);
+
+  add((p.fullName || "Your Name") + "\n");
+  const contact = [p.email, p.phone, p.location, p.linkedin].filter(Boolean).join(" | ");
+  if (contact) add(contact + "\n");
+  add("\n");
+
+  if (p.summary) { add("SUMMARY\n"); add(p.summary + "\n"); add("\n"); }
+
+  if (exp.length) {
+    add("EXPERIENCE\n");
+    for (const e of exp) {
+      const header = [e.title, e.company, e.location, [e.start, e.end].filter(Boolean).join(" – ")].filter(Boolean).join(" | ");
+      add(header + "\n");
+      if (e.description) add(e.description.replace(/^•\s*/gm, "• ") + "\n");
+      add("\n");
+    }
+  }
+
+  if (edu.length) {
+    add("EDUCATION\n");
+    for (const e of edu) {
+      add([e.school, e.degree + (e.field ? " in " + e.field : ""), e.gpa ? "GPA " + e.gpa : "", [e.start, e.end].filter(Boolean).join(" – ")].filter(Boolean).join(" | ") + "\n");
+    }
+    add("\n");
+  }
+
+  const allSkills = skills.flatMap(c => c.items || []).join(", ");
+  if (allSkills) { add("SKILLS\n"); add(allSkills + "\n"); add("\n"); }
+
+  if (proj.length) {
+    add("PROJECTS\n");
+    for (const pr of proj) {
+      add((pr.name || "") + (pr.tech ? " (" + pr.tech + ")" : "") + "\n");
+      if (pr.description) add(pr.description + "\n");
+      add("\n");
+    }
+  }
+
+  const fullText = lines.join("");
+
+  const requests = [
+    // Insert the full text at position 1 (after empty paragraph)
+    { insertText: { location: { index: 1 }, text: fullText } },
+  ];
+
+  // Style the name (first line) as Heading 1
+  const nameEnd = (p.fullName || "Your Name").length + 1;
+  requests.push({
+    updateParagraphStyle: {
+      range: { startIndex: 1, endIndex: nameEnd },
+      paragraphStyle: { namedStyleType: "HEADING_1" },
+      fields: "namedStyleType",
+    }
+  });
+
+  // Style section headings (SUMMARY, EXPERIENCE, etc.)
+  const sectionHeadings = ["SUMMARY", "EXPERIENCE", "EDUCATION", "SKILLS", "PROJECTS"];
+  let searchFrom = nameEnd;
+  for (const heading of sectionHeadings) {
+    const idx = fullText.indexOf(heading + "\n", searchFrom - 1);
+    if (idx < 0) continue;
+    const startIndex = idx + 1; // +1 because doc content starts at index 1
+    const endIndex = startIndex + heading.length + 1;
+    requests.push({
+      updateParagraphStyle: {
+        range: { startIndex, endIndex },
+        paragraphStyle: { namedStyleType: "HEADING_2" },
+        fields: "namedStyleType",
+      }
+    });
+    searchFrom = endIndex;
+  }
+
+  return requests;
 }
 
 // Robustly pull a JSON value out of a model reply. Handles: clean JSON, ```json

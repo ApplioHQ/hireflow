@@ -3085,13 +3085,19 @@ async function openReferralPanel() {
     '<p class="ref-sub">Share your link. When a friend signs up, you <strong>both</strong> get 7 days of free Premium.</p>' +
     '<div class="ref-link-row" id="ref-link-row"><span class="ref-loading">Generating your link…</span></div>' +
     '<div class="ref-stats" id="ref-stats"></div>' +
+    '<div class="ref-tp-nudge"><a href="https://www.trustpilot.com/evaluate/appliohq.com" target="_blank" rel="noopener" class="ref-tp-link">' +
+      '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+      ' Love Applio? Leave us a Trustpilot review' +
+    '</a></div>' +
     '</div>';
   document.body.appendChild(bd);
   bd.addEventListener('click', function (e) { if (e.target === bd) bd.remove(); });
   try {
     const token = localStorage.getItem('hf_token');
+    if (!token) throw new Error('Not signed in');
     const r = await fetch(API + '/referral/code', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token } });
     const d = await r.json();
+    if (r.status === 401 || r.status === 403) throw new Error('Session expired');
     if (!r.ok) throw new Error(d.error || 'Failed');
     const link = 'https://appliohq.com/?ref=' + d.code;
     const row = document.getElementById('ref-link-row');
@@ -3105,7 +3111,15 @@ async function openReferralPanel() {
     if (badge && sd.count > 0) { badge.textContent = sd.count; badge.style.display = ''; }
   } catch (e) {
     const row = document.getElementById('ref-link-row');
-    if (row) row.innerHTML = '<span class="ref-error">Could not load referral link. Try again later.</span>';
+    if (row) {
+      if (e.message === 'Not signed in') {
+        row.innerHTML = '<span class="ref-error">Sign in to get your referral link.</span>';
+      } else if (e.message === 'Token expired' || e.message === 'Session expired') {
+        row.innerHTML = '<span class="ref-error">Your session expired. <a href="login" style="color:var(--accent)">Sign in again</a> to get your link.</span>';
+      } else {
+        row.innerHTML = '<span class="ref-error">Could not load referral link. <button style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:inherit;" onclick="document.getElementById(\'referral-bd\').remove();openReferralPanel()">Retry</button></span>';
+      }
+    }
   }
 }
 function _copyRefLink(btn) {

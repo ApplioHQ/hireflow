@@ -1643,6 +1643,10 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .ref-loading, .ref-error { color:var(--muted); font-size:.82rem; }
 .ref-stats { color:var(--muted); font-size:.85rem; }
 .ref-stat-num { font-weight:700; color:var(--accent); font-size:1.1rem; }
+.ref-tp-nudge { margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+.ref-tp-link { display:inline-flex; align-items:center; gap:6px; color:#00b67a; font-size:.82rem; font-weight:600; text-decoration:none; transition:opacity .15s; }
+.ref-tp-link:hover { opacity:.8; }
+.acct-row.acct-row-btn[href] { text-decoration:none; }
 
 /* Respect users who prefer reduced motion: calm all animations/transitions.
    (The WebGL waves background already self-disables via matchMedia.) */

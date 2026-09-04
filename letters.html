@@ -153,6 +153,7 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
+function _track(name, meta) { if (!TOKEN) return; fetch(window.HIREFLOW_CONFIG.API_URL + '/track', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify({name,meta}) }).catch(()=>{}); }
 const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
 let tone = 'warm';
 let letterType = 'retirement';
@@ -256,6 +257,7 @@ async function generate(){
     const text = (data.text || '').trim();
     if (!text) throw new Error('empty');
     _renderLetter(text);
+    _track('cover_letter_open', { variant: letterType });
   } catch(e){
     document.getElementById('cl-body').innerHTML =
       '<div class="cl-empty" style="color:var(--danger);"><h4 style="color:var(--danger);">Something went wrong</h4><p>We couldn\'t write that letter. Please try again.</p></div>';

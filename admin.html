@@ -111,7 +111,7 @@
           <table class="user-table">
             <thead>
               <tr>
-                <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th id="actions-col" style="display:none;">Actions</th>
+                <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th>Features Used</th><th id="actions-col" style="display:none;">Actions</th>
               </tr>
             </thead>
             <tbody id="users-tbody"></tbody>
@@ -341,6 +341,17 @@ function _aiUseCell(u) {
   return '<div title="' + esc(full) + '"><strong>' + total + '</strong> ' + top + more + last + '</div>';
 }
 
+function _featureUseCell(u) {
+  const f = u.features || {};
+  const entries = Object.entries(f).filter(e => (Number(e[1]) || 0) > 0).sort((a,b) => b[1]-a[1]);
+  if (!entries.length) return '<span class="user-meta">-</span>';
+  const top = entries.slice(0, 2).map(e =>
+    '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _featureLabel(e[0]) + ' ' + e[1] + '</span>').join(' ');
+  const more = entries.length > 2 ? ' <span class="user-meta">+' + (entries.length - 2) + '</span>' : '';
+  const full = entries.map(e => _featureLabel(e[0]) + ' ' + e[1]).join(', ');
+  return '<div title="' + esc(full) + '">' + top + more + '</div>';
+}
+
 function renderUsers() {
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
   const list = ALL_USERS.filter(u => !q || (u.email||'').toLowerCase().includes(q));
@@ -365,6 +376,7 @@ function renderUsers() {
         <td>${esc(notes)} ${stripe}</td>
         <td>${u.downloadsUsed}</td>
         <td>${_aiUseCell(u)}</td>
+        <td>${_featureUseCell(u)}</td>
         <td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>
       </tr>`;
   }).join('');
@@ -508,6 +520,8 @@ async function loadAnalytics() {
       + '<span class="pill success">Lifetime: ' + d.plans.lifetime + '</span>'
       + '</div>'
       + _aiFeatureBlock(d.aiByAction || {}, d.usersByFeature || {})
+      + _nonAiFeatureBlock(d.featureUsage || {}, d.usersByNonAiFeature || {}, d.featureLast7 || {})
+      + _templatePicksBlock(d.templatePicks || {})
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Page Views, Last 7 Days</div>'
       + _sparkline(d.pvByDay, 'view')
       + '<div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;">Signups, Last 30 Days</div>'
@@ -548,6 +562,46 @@ function _statBox(label, value, color, sub, subColor) {
 
 const _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', letter: 'Letter Writer', interview: 'Interview Prep', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', salary: 'Salary Insights', win: 'Win Polish', parse: 'Resume Import' };
 function _aiLabel(k) { return _AI_LABELS[k] || k; }
+
+const _FEATURE_LABELS = {
+  template_select: 'Template Changed', download_pdf: 'PDF Download', export_gdoc: 'Google Docs Export',
+  export_print: 'Print', job_tracker_open: 'Job Tracker Opened', job_tracker_save: 'Job Saved to Tracker',
+  cover_letter_open: 'Cover Letter Generated', interview_prep_open: 'Interview Prep Run',
+  salary_open: 'Salary Lookup', skill_gap_open: 'Skill Gap Check',
+  version_restore: 'Version Restored', resume_import: 'Resume Imported',
+  referral_open: 'Referral Panel Opened', onboarding_complete: 'Onboarding Completed',
+};
+function _featureLabel(k) { return _FEATURE_LABELS[k] || k.replace(/_/g,' '); }
+
+function _nonAiFeatureBlock(byFeature, byUser, last7) {
+  var keys = Object.keys(byFeature).concat(Object.keys(byUser))
+    .filter(function(k,i,a){return a.indexOf(k)===i;});
+  if (!keys.length) return '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">No feature usage tracked yet — starts recording on next user actions.</div>';
+  keys.sort(function(a,b){return (byFeature[b]||0)-(byFeature[a]||0);});
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Feature Usage (all-time) · uses · unique users · 7-day uses</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
+    + keys.map(function(k){
+        var uses=byFeature[k]||0, users=byUser[k]||0, w=last7[k]||0;
+        return '<span class="pill" title="'+users+' distinct user'+(users===1?'':'s')+'">'
+          + _featureLabel(k)+': '+uses.toLocaleString()
+          + ' <span style="opacity:.6;">· '+users+' user'+(users===1?'':'s')+(w?' · '+w+' this week':'')+'</span></span>';
+      }).join('')
+    + '</div>';
+}
+
+function _templatePicksBlock(picks) {
+  var keys = Object.keys(picks);
+  if (!keys.length) return '';
+  keys.sort(function(a,b){return (picks[b]||0)-(picks[a]||0);});
+  var total = keys.reduce(function(s,k){return s+(picks[k]||0);},0);
+  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Template Picks (all-time)</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
+    + keys.map(function(k){
+        var n=picks[k]||0, pct=total?Math.round(n/total*100):0;
+        return '<span class="pill">'+k+': '+n+' <span style="opacity:.6;">('+pct+'%)</span></span>';
+      }).join('')
+    + '</div>';
+}
 
 function _sparkline(byDay, label) {
   label = label || 'signup';

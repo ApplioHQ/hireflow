@@ -77,6 +77,7 @@ export default {
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
       if (path === "/promo/earlybird")         return json(await getEarlyBirdStatus(req, env), 200, cors);
       if (path === "/pageview")                return json(await trackPageview(req, env), 200, cors);
+      if (path === "/track" && req.method === "POST") return json(await trackFeature(req, env), 200, cors);
       if (path === "/demo/session" && req.method === "POST") return json(await demoSession(req, env), 200, cors);
       if (path === "/resume" && req.method === "GET")  return json(await getResume(req, env), 200, cors);
       if (path === "/resume" && req.method === "POST") return json(await saveResume(req, env), 200, cors);
@@ -924,6 +925,46 @@ async function adminAnalytics(req, env) {
   // Early-bird promo status for the admin panel.
   const eb = await _getEarlyBird(env);
 
+  // Non-AI feature usage counters (from /track beacon).
+  const FEATURE_NAMES = [
+    "template_select", "download_pdf", "export_gdoc", "export_print",
+    "job_tracker_open", "job_tracker_save", "cover_letter_open",
+    "interview_prep_open", "salary_open", "skill_gap_open",
+    "version_restore", "resume_import", "referral_open",
+    "onboarding_complete",
+  ];
+  // Template variants tracked separately.
+  const TEMPLATE_IDS = ["harvard", "stanford", "modern", "minimal", "deedy",
+    "twocolumn", "healthcare", "sales", "ats", "classic", "creative", "tech"];
+  const featureUsage = {};
+  for (const f of FEATURE_NAMES) {
+    const v = await num(`stats:feature:${f}`);
+    if (v) featureUsage[f] = v;
+  }
+  const templatePicks = {};
+  for (const t of TEMPLATE_IDS) {
+    const v = await num(`stats:feature:template_select:${t}`);
+    if (v) templatePicks[t] = v;
+  }
+  // 7-day feature activity for key actions.
+  const featureLast7 = {};
+  for (const f of ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"]) {
+    let total7 = 0;
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date(now - i * DAY).toISOString().slice(0, 10);
+      total7 += await num(`stats:feature:${f}:${day}`);
+    }
+    if (total7) featureLast7[f] = total7;
+  }
+  // Per-user feature breadth: count users who have used each non-AI feature.
+  const usersByNonAiFeature = {};
+  for (const u of records) {
+    if (!u.features) continue;
+    for (const k in u.features) {
+      if ((Number(u.features[k]) || 0) > 0) usersByNonAiFeature[k] = (usersByNonAiFeature[k] || 0) + 1;
+    }
+  }
+
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
@@ -945,6 +986,7 @@ async function adminAnalytics(req, env) {
     signupsByDay, attribution, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
+    featureUsage, templatePicks, featureLast7, usersByNonAiFeature,
   };
 }
 
@@ -1700,6 +1742,65 @@ async function _bumpAiUsage(env, action) {
     await bump(`stats:ai:action:${action}`);
     await bump(`stats:ai:${new Date().toISOString().slice(0, 10)}`);
   } catch (_) {}
+}
+
+// Increment a named feature counter. Writes three keys: all-time total,
+// today's total, and per-user (if email provided) — so the admin can see
+// both site-wide volume and per-user breadth for every tracked action.
+async function _bumpFeature(env, name, email) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const bump = async (key) => {
+      const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
+      await env.HIREFLOW_KV.put(key, String(cur + 1));
+    };
+    await bump(`stats:feature:${name}`);
+    await bump(`stats:feature:${name}:${day}`);
+    if (email) {
+      // Per-user feature breadth: track which non-AI features each user has touched.
+      const raw = await env.HIREFLOW_KV.get(`user:${email.toLowerCase()}`);
+      if (raw) {
+        const u = JSON.parse(raw);
+        u.features = u.features || {};
+        u.features[name] = (u.features[name] || 0) + 1;
+        await env.HIREFLOW_KV.put(`user:${email.toLowerCase()}`, JSON.stringify(u));
+      }
+    }
+  } catch (_) {}
+}
+
+// POST /track — lightweight feature-use beacon from the frontend.
+// Authenticated (needs a valid session token) so we can tie events to a user
+// and prevent spoofing. Fire-and-forget on the client: client never awaits the result.
+const TRACK_ALLOWLIST = new Set([
+  // Editor actions
+  "template_select", "section_visit", "version_restore", "version_save",
+  // Export
+  "download_pdf", "export_gdoc", "export_print",
+  // Tools
+  "job_tracker_open", "job_tracker_save", "cover_letter_open",
+  "interview_prep_open", "salary_open", "skill_gap_open",
+  "referral_open", "feedback_open",
+  // Onboarding
+  "onboarding_complete", "resume_import",
+]);
+async function trackFeature(req, env) {
+  let payload;
+  try { payload = await authenticate(req, env); } catch { return { ok: false }; }
+  const body = await req.json().catch(() => ({}));
+  const name = String(body.name || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const meta = body.meta || {};   // e.g. { template: "harvard" } for template_select
+  if (!name || !TRACK_ALLOWLIST.has(name)) return { ok: false, reason: "unknown event" };
+
+  // For events that carry a variant (template name, section name), track the variant
+  // as its own counter so we can see e.g. template_select:harvard vs template_select:twocolumn.
+  const variant = meta.variant ? String(meta.variant).toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40) : null;
+  const email = payload.email || null;
+
+  const tasks = [_bumpFeature(env, name, email)];
+  if (variant) tasks.push(_bumpFeature(env, `${name}:${variant}`, null));
+  await Promise.all(tasks);
+  return { ok: true };
 }
 
 // ============ Feedback ============

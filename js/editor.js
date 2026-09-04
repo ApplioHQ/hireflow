@@ -2,6 +2,17 @@
 const API = window.HIREFLOW_CONFIG.API_URL;
 
 const TOKEN = localStorage.getItem('hf_token');
+
+// Fire-and-forget feature tracking beacon. Never awaited, never blocks UI.
+// Silently no-ops for anonymous users (no token = nothing to attribute).
+function track(name, meta) {
+  if (!TOKEN) return;
+  fetch(API + '/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify({ name, meta }),
+  }).catch(() => {});
+}
 // Anonymous "try it" mode: visitors can build + preview a full resume with NO
 // account (everything runs from localStorage). Signing up is only asked for at the
 // moments it's actually needed (saving to the cloud, AI features, and export),
@@ -250,6 +261,10 @@ function goSection(key) {
   renderMain();
   const m = document.querySelector('.main-area'); if (m) m.scrollTo({ top: 0, behavior: 'smooth' });
   _closeMobileDrawers && _closeMobileDrawers();
+  // Track AI-tool section visits separately (they have their own AI counters);
+  // track general content sections so we know which resume sections users actually fill in.
+  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','assistant']);
+  if (!AI_SECTIONS.has(key)) track('section_visit', { variant: key });
 }
 
 // ---- Renderers ----
@@ -452,6 +467,7 @@ function renderTemplateSection() {
 function selectTemplate(id) {
   if (_tplLocked(id)) { _promptSignup('unlock all ' + TEMPLATE_DEFS.length + ' templates'); return; }
   resume.template = id; save(); renderMain();
+  track('template_select', { variant: id });
 }
 
 
@@ -3077,6 +3093,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
 async function openReferralPanel() {
   let bd = document.getElementById('referral-bd');
   if (bd) { bd.remove(); return; }
+  track('referral_open');
   bd = document.createElement('div'); bd.id = 'referral-bd'; bd.className = 'modal-backdrop';
   bd.innerHTML = '<div class="modal referral-modal">' +
     '<button class="modal-close" onclick="document.getElementById(\'referral-bd\').remove()">&times;</button>' +
@@ -4150,6 +4167,7 @@ async function restoreVersion(i) {
   resume.versions = history;
   save(); closeModal('version'); renderMain();
   toast('Version restored', { type: 'success' });
+  track('version_restore');
 }
 
 // Coerce whatever /ai/parse returns into the exact shape the editor renders, so
@@ -4195,6 +4213,7 @@ async function importResume(optText) {
       resume = _normalizeImported(r.resume);
       save(); renderMain();
       toast('Resume imported', { type: 'success' });
+      track('resume_import');
       ok = true;
     } else {
       toast('Could not parse resume, try cleaning up the text and re-importing', { type: 'error', duration: 4500 });

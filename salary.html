@@ -130,6 +130,7 @@
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
+function _track(name,meta){if(!TOKEN)return;fetch(window.HIREFLOW_CONFIG.API_URL+'/track',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},body:JSON.stringify({name,meta})}).catch(()=>{});}
 const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
 let level = '';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -236,6 +237,7 @@ async function lookup(){
     var d = await r.json();
     if (typeof d.median !== 'number') throw new Error('empty');
     _render(d);
+    _track('salary_open');
   } catch(e){
     document.getElementById('sw-body').innerHTML =
       '<div class="sw-empty" style="color:var(--danger);"><h4 style="color:var(--danger);">Couldn\'t estimate that</h4><p>' + esc(e.message || 'Please try a more common job title and try again.') + '</p></div>';

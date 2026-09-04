@@ -143,6 +143,14 @@
 <script>
 const TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) { try { localStorage.setItem('hf_after_signup','export'); } catch(_){} location.href = 'login?mode=signup'; }
+function _trackExport(name) {
+  if (!TOKEN) return;
+  fetch(window.HIREFLOW_CONFIG.API_URL + '/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    body: JSON.stringify({ name }),
+  }).catch(() => {});
+}
 const resume = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
   catch { return {}; }  // corrupt storage must not white-screen the export page
@@ -396,7 +404,7 @@ async function tryExport(fmt) {
       updatePills();
     } catch(e) { console.warn('download tracking failed', e); }
   }
-  if (fmt === 'pdf') printFrame();
+  if (fmt === 'pdf') { printFrame(); _trackExport('download_pdf'); }
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
   // Non-blocking feedback prompt shortly after the download completes.
@@ -524,6 +532,7 @@ async function exportToGdoc() {
     if (!r.ok) throw new Error(data.error || 'Export failed');
     setStatus('✓ Doc created!', '#22c55e');
     window.open(data.docUrl, '_blank');
+    _trackExport('export_gdoc');
   } catch(e) {
     setStatus('Export failed: ' + e.message, '#ef4444');
   } finally {

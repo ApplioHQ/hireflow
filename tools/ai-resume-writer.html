@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free AI Resume Writer | Write Your Resume with AI | Applio</title>
+<meta name="description" content="Free AI resume writer. Applio's AI writes your professional summary, bullet points, and skills section from a few questions, grounded in your real experience.">
+<link rel="canonical" href="https://appliohq.com/tools/ai-resume-writer">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free AI Resume Writer | Applio">
+<meta property="og:description" content="Write your resume with AI. Grounded in your real experience, ATS-optimized, and free to start.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/ai-resume-writer">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio AI Resume Writer",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/tools/ai-resume-writer",
+  "description": "AI resume writer that generates your professional summary, bullet points, and skills section from a few guided questions, grounded in your real experience.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "AI Resume Writer", "item": "https://appliohq.com/tools/ai-resume-writer" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Does Applio's AI actually write my resume for me?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You answer a short set of questions about your background (roles, responsibilities, key wins), and the AI writes a professional summary, quantified bullet points, and a tailored skills section. It stays grounded in what you provide, it doesn't invent job titles, employers, or numbers." } },
+    { "@type": "Question", "name": "Will an AI-written resume pass ATS?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, when built correctly. Applio's AI writes using ATS best practices: standard section headings, strong action verbs, quantified bullets, and clean formatting. The built-in ATS checker scores your resume against any job description so you can verify keyword match before applying." } },
+    { "@type": "Question", "name": "Is it obvious that a resume was written by AI?", "acceptedAnswer": { "@type": "Answer", "text": "Not when the AI is grounded in your real experience. The tell-tale sign of AI-written resumes is generic content ('leveraged synergies across the organization'). Applio prompts you for specifics before generating, so the output reflects your actual accomplishments in clear, direct language." } },
+    { "@type": "Question", "name": "How is this different from using ChatGPT to write a resume?", "acceptedAnswer": { "@type": "Answer", "text": "ChatGPT gives you a text output that you still have to format, structure, and check against ATS. Applio's AI writes directly into a properly structured resume with ATS-friendly templates, a live ATS score, keyword matching for specific jobs, and one-click export to PDF." } }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .aw-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .aw-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .aw-crumb a { color: var(--muted); } .aw-crumb a:hover { color: var(--accent); }
+  .aw-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .aw-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .aw-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 32px 0; }
+  @media (max-width: 720px) { .aw-steps { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 460px) { .aw-steps { grid-template-columns: 1fr; } }
+  .aw-step { padding: 18px 16px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); }
+  .aw-step-num { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+  .aw-step-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+  .aw-step-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .aw-vs { margin: 48px 0; }
+  .aw-vs h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .aw-vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .aw-vs-grid { grid-template-columns: 1fr; } }
+  .aw-vs-col { padding: 18px 20px; border-radius: var(--r-md); }
+  .aw-vs-them { background: rgba(148,163,184,.06); border: 1px solid rgba(148,163,184,.2); }
+  .aw-vs-us { background: rgba(91,84,232,.08); border: 1px solid rgba(91,84,232,.3); }
+  .aw-vs-col h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .aw-vs-col ul { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+  .aw-vs-col.aw-vs-us ul { color: var(--text); }
+  .aw-seo { margin-top: 56px; }
+  .aw-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .aw-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .aw-seo p, .aw-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .aw-seo ul { padding-left: 20px; } .aw-seo li { margin-bottom: 8px; }
+  .aw-seo a { color: var(--accent); }
+  .aw-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .aw-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .aw-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="aw-wrap">
+  <nav class="aw-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>AI Resume Writer</span>
+  </nav>
+
+  <div class="aw-hero">
+    <h1>Write Your Resume with AI</h1>
+    <p>Applio's AI writes your professional summary, quantified bullet points, and skills section from a short set of questions. It's grounded in your real experience, ATS-optimized, and free to start.</p>
+  </div>
+
+  <div class="section-card" style="text-align: center; padding: 36px 32px;">
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Start writing with AI</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Free account, no credit card. Pick a template, answer a few questions, and watch the AI write your resume section by section.</p>
+    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Start for free →</a>
+  </div>
+
+  <div class="aw-steps">
+    <div class="aw-step">
+      <div class="aw-step-num">1</div>
+      <div class="aw-step-title">Pick a template</div>
+      <div class="aw-step-desc">Choose from 18 ATS-friendly templates: Harvard, Stanford, FAANG, and more.</div>
+    </div>
+    <div class="aw-step">
+      <div class="aw-step-num">2</div>
+      <div class="aw-step-title">Answer a few questions</div>
+      <div class="aw-step-desc">Tell the AI your role, key work, and any measurable wins. Rough drafts are fine.</div>
+    </div>
+    <div class="aw-step">
+      <div class="aw-step-num">3</div>
+      <div class="aw-step-title">AI writes each section</div>
+      <div class="aw-step-desc">The AI generates your summary, bullets, and skills, then you review and edit.</div>
+    </div>
+    <div class="aw-step">
+      <div class="aw-step-num">4</div>
+      <div class="aw-step-title">Score and export</div>
+      <div class="aw-step-desc">Score against any job with the ATS checker, then export a recruiter-ready PDF.</div>
+    </div>
+  </div>
+
+  <section class="aw-vs">
+    <h2>ChatGPT vs. a real AI resume writer</h2>
+    <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">You can technically write a resume with ChatGPT. Here's what changes when the AI is purpose-built for resumes.</p>
+    <div class="aw-vs-grid">
+      <div class="aw-vs-col aw-vs-them">
+        <h3 style="color:#94a3b8;">ChatGPT alone</h3>
+        <ul>
+          <li>Gives you a text blob you still have to format</li>
+          <li>No ATS scoring, so you're guessing what works</li>
+          <li>You copy-paste into Word or Google Docs and lose formatting</li>
+          <li>No template library, you build layout from scratch</li>
+          <li>No tailoring flow for each new job you apply to</li>
+          <li>Generic output without specific accomplishment prompting</li>
+        </ul>
+      </div>
+      <div class="aw-vs-col aw-vs-us">
+        <h3 style="color:#a5b4fc;">Applio's AI resume writer</h3>
+        <ul>
+          <li>AI writes directly into a properly formatted resume</li>
+          <li>Live 0-100 ATS score against any job description</li>
+          <li>One-click export to PDF, HTML, or plain text</li>
+          <li>18 recruiter-tested templates, all ATS-friendly</li>
+          <li>One-click tailoring for each new application</li>
+          <li>Structured prompts pull out your real accomplishments</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="aw-seo">
+    <h2>How AI writes a better resume than most people write themselves</h2>
+    <p>The problem with writing your own resume isn't grammar or vocabulary, it's perspective. Most people describe their own work in the language they used at the job, not the language a hiring manager scans for. AI is good at translating "I made the checkout page faster" into "Reduced checkout latency 62% by rebuilding the payment flow with server-side React, contributing to $180K in recovered annual revenue."</p>
+
+    <h3>Where AI helps most</h3>
+    <ul>
+      <li><strong>Strengthening weak bullets:</strong> Turning "responsible for managing X" into a strong action-verb bullet with a measurable outcome</li>
+      <li><strong>Writing your summary:</strong> Compressing your background into a 2-3 sentence pitch that reads as a match for the specific role</li>
+      <li><strong>Suggesting missing keywords:</strong> Identifying terms from the job description that should appear on your resume</li>
+      <li><strong>Rewriting for a specific job:</strong> Adjusting emphasis, ordering, and language to match a specific posting</li>
+    </ul>
+
+    <h3>Where AI shouldn't take over</h3>
+    <ul>
+      <li>Deciding what to include or omit — that's your judgment about what matters for this role</li>
+      <li>Inventing accomplishments or numbers — those must come from you</li>
+      <li>Personality and voice for creative or executive roles — AI helps, but you have final say</li>
+    </ul>
+
+    <p style="margin-top: 20px;">The right way to use AI is as a fast, direct writing partner that gets you to a strong draft, then you review, edit, and add the nuances only you can add.</p>
+  </section>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and resources</h2>
+    <div class="aw-related">
+      <a class="aw-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="aw-rel-link" href="/tools/resume-summary-generator">Summary Generator</a>
+      <a class="aw-rel-link" href="/tools/resume-skills-generator">Skills Generator</a>
+      <a class="aw-rel-link" href="/tools/resume-tailor">Resume Tailor</a>
+      <a class="aw-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="aw-rel-link" href="/resume-templates">Resume Templates</a>
+      <a class="aw-rel-link" href="/resume-examples">Resume Examples</a>
+      <a class="aw-rel-link" href="/guides">Resume Guides</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+</body>
+</html>

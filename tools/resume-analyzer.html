@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free AI Resume Analyzer | Analyze Your Resume Instantly | Applio</title>
+<meta name="description" content="Free AI resume analyzer. Get a full breakdown of your resume's strengths, weaknesses, ATS-readiness, and specific improvements in seconds. No sign-up required.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-analyzer">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free AI Resume Analyzer | Applio">
+<meta property="og:description" content="Instant analysis of your resume: strengths, weaknesses, ATS-readiness, and specific improvements. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-analyzer">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio Resume Analyzer",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/tools/resume-analyzer",
+  "description": "Free AI resume analyzer that breaks down your resume's strengths, weaknesses, ATS-readiness, and specific improvements.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "Resume Analyzer", "item": "https://appliohq.com/tools/resume-analyzer" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What does a resume analyzer check for?", "acceptedAnswer": { "@type": "Answer", "text": "A resume analyzer checks structural, content, and ATS-readiness issues: whether you have the required sections, whether your bullet points are quantified and start with strong action verbs, whether your formatting is ATS-parseable, and whether your language is specific or generic. A good analyzer gives you a prioritized list of fixes, not just a score." } },
+    { "@type": "Question", "name": "Is Applio's resume analyzer free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The analyzer runs entirely in your browser, so no sign-up or credit card is needed. Your resume text is not uploaded to any server." } },
+    { "@type": "Question", "name": "How is a resume analyzer different from an ATS checker?", "acceptedAnswer": { "@type": "Answer", "text": "An ATS checker scores your resume against a specific job description's keywords. A resume analyzer evaluates your resume's overall quality regardless of any job, looking at content strength, structure, and formatting. Use the analyzer first to fix general issues, then use the ATS checker per application." } }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .an-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .an-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .an-crumb a { color: var(--muted); } .an-crumb a:hover { color: var(--accent); }
+  .an-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .an-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .an-ta { width: 100%; box-sizing: border-box; min-height: 220px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 14px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  .an-ta:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .an-results { display: none; margin-top: 24px; }
+  .an-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 560px) { .an-summary { grid-template-columns: 1fr; } }
+  .an-stat { padding: 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+  .an-stat-val { font-size: 24px; font-weight: 800; }
+  .an-stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .an-cat { padding: 16px 20px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); margin-bottom: 12px; }
+  .an-cat-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .an-cat-title { font-size: 15px; font-weight: 700; }
+  .an-cat-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .5px; }
+  .an-cat-badge.ok { background: rgba(34,197,94,.14); color: #4ade80; }
+  .an-cat-badge.warn { background: rgba(245,158,11,.14); color: #fbbf24; }
+  .an-cat-badge.bad { background: rgba(239,68,68,.14); color: #f87171; }
+  .an-cat-desc { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+  .an-seo { margin-top: 56px; }
+  .an-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .an-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .an-seo p, .an-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .an-seo ul { padding-left: 20px; } .an-seo li { margin-bottom: 8px; }
+  .an-seo a { color: var(--accent); }
+  .an-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .an-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .an-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="an-wrap">
+  <nav class="an-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Resume Analyzer</span>
+  </nav>
+
+  <div class="an-hero">
+    <h1>Free AI Resume Analyzer</h1>
+    <p>Paste your resume and get an instant breakdown of what's working, what's weak, and exactly what to fix. Analyzes structure, content quality, ATS-readiness, and language in seconds.</p>
+  </div>
+
+  <div class="section-card">
+    <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;" for="an-resume">Your resume text</label>
+    <textarea class="an-ta" id="an-resume" placeholder="Paste your resume here. The analyzer checks 8 dimensions: structure, action verbs, quantified impact, bullet count per role, length, first-person language, buzzwords, and section completeness."></textarea>
+    <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="_anRun()">Analyze my resume →</button>
+      <span style="font-size: 13px; color: var(--muted);">Free. Runs in your browser.</span>
+    </div>
+    <div class="an-results" id="an-results">
+      <div class="an-summary" id="an-summary"></div>
+      <div id="an-categories"></div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-size: 13px; color: var(--muted);">To fix these issues with AI rewrites, <a href="/login?mode=signup" style="color:var(--accent);">build your resume in Applio</a>. For keyword-level analysis against a specific job, use the <a href="/ats-checker" style="color:var(--accent);">ATS Checker</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="an-seo">
+    <h2>What the analyzer checks</h2>
+    <p>Most resume analyzers give you a vague score. Ours gives you a specific list of what to fix, ranked by impact. Here's what it looks at:</p>
+
+    <h3>Structure and completeness</h3>
+    <p>Does your resume include the core sections a recruiter expects: contact info, summary, experience, education, and skills? A missing section, or one buried in the wrong place, hurts both human and ATS scoring.</p>
+
+    <h3>Action verb strength</h3>
+    <p>Every bullet point should start with a past-tense action verb (Built, Led, Reduced, Launched). The analyzer flags weak openers like "Responsible for," "Helped with," or "Worked on."</p>
+
+    <h3>Quantified impact</h3>
+    <p>Strong resumes back up claims with numbers. The analyzer measures what percentage of your bullets include a metric (percentage, dollar amount, scale, time). The benchmark is 50% or higher.</p>
+
+    <h3>Bullet count per role</h3>
+    <p>Roles with 1-2 vague bullets look thin. Roles with 8+ bullets look bloated. The analyzer flags roles outside the 3-5 sweet spot.</p>
+
+    <h3>First-person language</h3>
+    <p>Resumes drop the subject ("Led a team" not "I led a team"). Any "I" in a bullet point gets flagged.</p>
+
+    <h3>Buzzwords and clichés</h3>
+    <p>"Results-driven," "detail-oriented," "team player," "hard worker" — these carry no weight in a summary or skills list. The analyzer flags them and suggests removing.</p>
+  </section>
+
+  <div class="section-card" style="margin-top: 40px; text-align: center; padding: 36px 24px;">
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Fix the issues with AI</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Applio rewrites weak bullets, strengthens action verbs, and helps you quantify your impact, grounded in what you actually did.</p>
+    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Build my resume free →</a>
+  </div>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and resources</h2>
+    <div class="an-related">
+      <a class="an-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="an-rel-link" href="/tools/resume-scorer">Resume Scorer</a>
+      <a class="an-rel-link" href="/tools/resume-proofreader">Resume Proofreader</a>
+      <a class="an-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="an-rel-link" href="/guides/how-to-pass-ats">How to Pass ATS</a>
+      <a class="an-rel-link" href="/guides/words-to-avoid-on-a-resume">Words to Avoid</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script>
+var VERBS = ['led','built','designed','developed','launched','shipped','created','reduced','increased','improved','grew','managed','drove','streamlined','delivered','architected','implemented','deployed','established','generated','secured','closed','negotiated','coached','mentored','analyzed','modeled','coordinated','executed','spearheaded','oversaw','owned','scaled','optimized','automated','migrated','integrated','expanded'];
+var WEAK = /\b(responsible for|helped|assisted|worked on|duties included|was involved in|participated in|supported)\b/gi;
+var BUZZ = /\b(results-driven|detail-oriented|self-motivated|team player|hard worker|passionate|dynamic|proactive|go-getter|synergy|thought leader)\b/gi;
+var SECTIONS = ['experience','education','skills','summary','contact'];
+
+function _anRun() {
+  var text = document.getElementById('an-resume').value.trim();
+  if (text.length < 100) { alert('Paste more of your resume for a full analysis.'); return; }
+  var lower = text.toLowerCase();
+  var lines = text.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+  var bullets = lines.filter(function(l){ return /^[\-\*•]|^\d+[.)]/.test(l) || (l.length > 40 && l.length < 300); });
+
+  // Categories
+  var cats = [];
+
+  // 1. Sections
+  var missing = SECTIONS.filter(function(s){ return lower.indexOf(s) === -1; });
+  cats.push({
+    title: 'Section completeness',
+    level: missing.length === 0 ? 'ok' : missing.length <= 2 ? 'warn' : 'bad',
+    desc: missing.length === 0 ? 'All core sections detected.' : 'Missing or unclear sections: ' + missing.join(', ') + '. Add clear section headings so ATS can parse each block.'
+  });
+
+  // 2. Action verbs
+  var verbHits = 0;
+  bullets.forEach(function(b){
+    var first = b.replace(/^[\-\*•\d.)\s]+/,'').trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g,'');
+    if (VERBS.indexOf(first) !== -1) verbHits++;
+  });
+  var verbPct = bullets.length ? Math.round((verbHits/bullets.length)*100) : 0;
+  cats.push({
+    title: 'Action verb strength (' + verbPct + '%)',
+    level: verbPct >= 70 ? 'ok' : verbPct >= 40 ? 'warn' : 'bad',
+    desc: verbPct >= 70 ? 'Most bullets open with strong action verbs.' : 'Only ' + verbPct + '% of bullets start with strong action verbs. Rewrite openers using Built, Led, Reduced, Launched, etc.'
+  });
+
+  // 3. Quantification
+  var withNums = bullets.filter(function(b){return /\d/.test(b);}).length;
+  var quantPct = bullets.length ? Math.round((withNums/bullets.length)*100) : 0;
+  cats.push({
+    title: 'Quantified results (' + quantPct + '%)',
+    level: quantPct >= 50 ? 'ok' : quantPct >= 25 ? 'warn' : 'bad',
+    desc: quantPct >= 50 ? 'Good ratio of quantified bullets.' : 'Only ' + quantPct + '% of your bullets include a number. Add percentages, dollar amounts, scale, or time saved to more bullets.'
+  });
+
+  // 4. Weak language
+  var weakCount = (text.match(WEAK) || []).length;
+  cats.push({
+    title: 'Weak language',
+    level: weakCount === 0 ? 'ok' : weakCount <= 2 ? 'warn' : 'bad',
+    desc: weakCount === 0 ? 'No weak phrases like "responsible for" or "helped with" detected.' : weakCount + ' weak phrases detected ("responsible for", "helped", "assisted", "worked on"). Replace with direct action verbs.'
+  });
+
+  // 5. First person
+  var firstPerson = (text.match(/\bI (led|built|managed|created|developed|worked|helped|was)\b/g) || []).length;
+  cats.push({
+    title: 'First-person language',
+    level: firstPerson === 0 ? 'ok' : firstPerson <= 1 ? 'warn' : 'bad',
+    desc: firstPerson === 0 ? 'No first-person language in bullets.' : firstPerson + ' bullets start with "I." Drop the subject: "Led..." not "I led..."'
+  });
+
+  // 6. Buzzwords
+  var buzzHits = (text.match(BUZZ) || []).length;
+  cats.push({
+    title: 'Buzzwords and clichés',
+    level: buzzHits === 0 ? 'ok' : buzzHits <= 1 ? 'warn' : 'bad',
+    desc: buzzHits === 0 ? 'No generic buzzwords detected.' : buzzHits + ' buzzwords found ("results-driven", "team player", "detail-oriented", etc.). Remove them from the summary and skills.'
+  });
+
+  // 7. Length
+  var wordCount = text.split(/\s+/).length;
+  cats.push({
+    title: 'Length (' + wordCount + ' words)',
+    level: wordCount >= 250 && wordCount <= 900 ? 'ok' : wordCount < 250 ? 'warn' : 'warn',
+    desc: wordCount < 250 ? 'Your resume feels thin. Aim for 400-800 words with 3-5 bullets per recent role.' : wordCount > 900 ? 'Your resume runs long. Trim older roles to 2-3 bullets and cut anything not directly relevant.' : 'Length is in a good range.'
+  });
+
+  var okCount = cats.filter(function(c){return c.level==='ok';}).length;
+  var warnCount = cats.filter(function(c){return c.level==='warn';}).length;
+  var badCount = cats.filter(function(c){return c.level==='bad';}).length;
+
+  document.getElementById('an-summary').innerHTML =
+    '<div class="an-stat"><div class="an-stat-val" style="color:#4ade80">' + okCount + '</div><div class="an-stat-label">Passing</div></div>' +
+    '<div class="an-stat"><div class="an-stat-val" style="color:#fbbf24">' + warnCount + '</div><div class="an-stat-label">Improve</div></div>' +
+    '<div class="an-stat"><div class="an-stat-val" style="color:#f87171">' + badCount + '</div><div class="an-stat-label">Needs fix</div></div>';
+
+  document.getElementById('an-categories').innerHTML = cats.map(function(c){
+    return '<div class="an-cat"><div class="an-cat-head"><div class="an-cat-title">' + c.title + '</div><div class="an-cat-badge ' + c.level + '">' + (c.level==='ok'?'Passing':c.level==='warn'?'Improve':'Fix') + '</div></div><div class="an-cat-desc">' + c.desc + '</div></div>';
+  }).join('');
+
+  document.getElementById('an-results').style.display = 'block';
+  document.getElementById('an-results').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>

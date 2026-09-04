@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Skills Generator | Find the Right Skills to List | Applio</title>
+<meta name="description" content="Free AI resume skills generator. Paste a job description to see which skills to add to your resume, matched to what the role is actually asking for. No sign-up.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-skills-generator">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free Resume Skills Generator | Applio">
+<meta property="og:description" content="Identify the right skills to list on your resume for any job. Paste a job description and see what ATS is looking for.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-skills-generator">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio Resume Skills Generator",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/tools/resume-skills-generator",
+  "description": "Free tool that analyzes a job description and shows you which skills to add to your resume to improve your ATS match.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "Resume Skills Generator", "item": "https://appliohq.com/tools/resume-skills-generator" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What skills should I put on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "List skills that appear in the job description and that you genuinely have. Hard skills (specific tools, technologies, certifications) are the most valuable because they are searchable by ATS. Soft skills like 'communication' are largely ignored by ATS and carry little weight without evidence in your bullet points." } },
+    { "@type": "Question", "name": "How many skills should be on a resume?", "acceptedAnswer": { "@type": "Answer", "text": "Aim for 8-15 skills in your skills section, prioritizing those that match the specific job. Listing 30+ skills signals that you're keyword-stuffing rather than selectively presenting relevant expertise, which can hurt your credibility with recruiters." } },
+    { "@type": "Question", "name": "Should I list soft skills on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "Soft skills belong in your bullet points as demonstrated evidence, not as standalone skills. 'Leadership' in a skills list means nothing; 'Led a team of 8 engineers to deliver a product 3 weeks ahead of schedule' shows leadership. ATS generally ignores standalone soft skill claims anyway." } },
+    { "@type": "Question", "name": "Where should the skills section go on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "For most roles, the skills section goes below your experience section. The exception: technical roles (software engineering, data science) often put skills near the top because the tech stack is a primary filter. Recent grads with limited experience can also benefit from leading with skills." } }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .sk-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .sk-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .sk-crumb a { color: var(--muted); } .sk-crumb a:hover { color: var(--accent); }
+  .sk-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .sk-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .sk-ta { width: 100%; box-sizing: border-box; min-height: 160px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 14px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  .sk-ta:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .sk-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; }
+  .sk-results { display: none; margin-top: 24px; }
+  .sk-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sk-chip { font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px; }
+  .sk-chip-match { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .sk-chip-miss { background: rgba(148,163,184,.1); color: #94a3b8; border: 1px solid rgba(148,163,184,.2); }
+  .sk-skills { margin-top: 48px; }
+  .sk-skills h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .sk-role { margin-bottom: 28px; }
+  .sk-role-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .sk-seo { margin-top: 56px; }
+  .sk-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .sk-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .sk-seo p, .sk-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .sk-seo ul { padding-left: 20px; } .sk-seo li { margin-bottom: 8px; }
+  .sk-seo a { color: var(--accent); }
+  .sk-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .sk-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .sk-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="sk-wrap">
+  <nav class="sk-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Resume Skills Generator</span>
+  </nav>
+
+  <div class="sk-hero">
+    <h1>Free Resume Skills Generator</h1>
+    <p>Listing the wrong skills, or too many generic ones, is one of the most common resume mistakes. Paste a job description and see which skills the role is actually asking for so you know exactly what to add.</p>
+  </div>
+
+  <div class="section-card">
+    <label class="sk-label" for="sk-jd">Paste a job description</label>
+    <textarea class="sk-ta" id="sk-jd" placeholder="Paste the full job posting here. The tool extracts required and preferred skills so you know what to prioritize on your resume."></textarea>
+    <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="_skRun()">Extract skills from this job →</button>
+      <span style="font-size: 13px; color: var(--muted);">Free, no sign-up. Runs in your browser.</span>
+    </div>
+    <div class="sk-results" id="sk-results">
+      <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px; margin-top: 20px;">Skills found in this job posting</h3>
+      <div class="sk-chips" id="sk-chips"></div>
+      <p style="margin-top: 16px; font-size: 13px; color: var(--muted);">Add the skills above that genuinely apply to you. To see which ones are missing from your current resume and get AI-powered suggestions, <a href="/login?mode=signup" style="color: var(--accent);">build your full resume in Applio</a>.</p>
+    </div>
+  </div>
+
+  <section class="sk-skills">
+    <h2>Common resume skills by role</h2>
+    <p style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">These are the skills ATS systems frequently look for. Only add the ones you actually have.</p>
+
+    <div class="sk-role">
+      <div class="sk-role-title">Software Engineer</div>
+      <div class="sk-chips" style="gap: 7px;">
+        <span class="sk-chip sk-chip-match">Python</span><span class="sk-chip sk-chip-match">JavaScript</span><span class="sk-chip sk-chip-match">React</span><span class="sk-chip sk-chip-match">Node.js</span><span class="sk-chip sk-chip-match">SQL</span><span class="sk-chip sk-chip-match">AWS</span><span class="sk-chip sk-chip-match">Docker</span><span class="sk-chip sk-chip-match">Kubernetes</span><span class="sk-chip sk-chip-match">REST APIs</span><span class="sk-chip sk-chip-match">CI/CD</span><span class="sk-chip sk-chip-match">Git</span><span class="sk-chip sk-chip-match">Agile / Scrum</span><span class="sk-chip sk-chip-match">System Design</span><span class="sk-chip sk-chip-match">TypeScript</span>
+      </div>
+    </div>
+
+    <div class="sk-role">
+      <div class="sk-role-title">Data Analyst / Data Scientist</div>
+      <div class="sk-chips" style="gap: 7px;">
+        <span class="sk-chip sk-chip-match">SQL</span><span class="sk-chip sk-chip-match">Python</span><span class="sk-chip sk-chip-match">Tableau</span><span class="sk-chip sk-chip-match">Power BI</span><span class="sk-chip sk-chip-match">Excel</span><span class="sk-chip sk-chip-match">R</span><span class="sk-chip sk-chip-match">Machine Learning</span><span class="sk-chip sk-chip-match">Statistics</span><span class="sk-chip sk-chip-match">A/B Testing</span><span class="sk-chip sk-chip-match">Pandas</span><span class="sk-chip sk-chip-match">Data Visualization</span><span class="sk-chip sk-chip-match">BigQuery</span>
+      </div>
+    </div>
+
+    <div class="sk-role">
+      <div class="sk-role-title">Product Manager</div>
+      <div class="sk-chips" style="gap: 7px;">
+        <span class="sk-chip sk-chip-match">Product Roadmap</span><span class="sk-chip sk-chip-match">Agile</span><span class="sk-chip sk-chip-match">Jira</span><span class="sk-chip sk-chip-match">User Research</span><span class="sk-chip sk-chip-match">SQL</span><span class="sk-chip sk-chip-match">A/B Testing</span><span class="sk-chip sk-chip-match">Go-to-Market</span><span class="sk-chip sk-chip-match">Figma</span><span class="sk-chip sk-chip-match">OKRs</span><span class="sk-chip sk-chip-match">Stakeholder Management</span><span class="sk-chip sk-chip-match">Analytics</span>
+      </div>
+    </div>
+
+    <div class="sk-role">
+      <div class="sk-role-title">Marketing Manager</div>
+      <div class="sk-chips" style="gap: 7px;">
+        <span class="sk-chip sk-chip-match">SEO</span><span class="sk-chip sk-chip-match">Google Analytics</span><span class="sk-chip sk-chip-match">HubSpot</span><span class="sk-chip sk-chip-match">Email Marketing</span><span class="sk-chip sk-chip-match">Paid Search (PPC)</span><span class="sk-chip sk-chip-match">Content Strategy</span><span class="sk-chip sk-chip-match">Social Media</span><span class="sk-chip sk-chip-match">CRM</span><span class="sk-chip sk-chip-match">Campaign Management</span><span class="sk-chip sk-chip-match">Conversion Optimization</span>
+      </div>
+    </div>
+
+    <div class="sk-role">
+      <div class="sk-role-title">Financial Analyst</div>
+      <div class="sk-chips" style="gap: 7px;">
+        <span class="sk-chip sk-chip-match">Financial Modeling</span><span class="sk-chip sk-chip-match">Excel</span><span class="sk-chip sk-chip-match">DCF Analysis</span><span class="sk-chip sk-chip-match">SQL</span><span class="sk-chip sk-chip-match">Tableau</span><span class="sk-chip sk-chip-match">Budgeting</span><span class="sk-chip sk-chip-match">Forecasting</span><span class="sk-chip sk-chip-match">Variance Analysis</span><span class="sk-chip sk-chip-match">PowerPoint</span><span class="sk-chip sk-chip-match">Bloomberg</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-seo">
+    <h2>How to choose skills for your resume</h2>
+    <p>The skills section is one of the most ATS-indexed parts of your resume and one of the most frequently done wrong. Most people either list too many generic skills or copy skills from a template that don't match the role they're applying for.</p>
+
+    <h3>Hard skills vs. soft skills</h3>
+    <p>Hard skills are specific, teachable, and measurable: Python, DCF modeling, Google Analytics, Figma. Soft skills like "communication" or "team player" are nearly useless in a skills list because every candidate claims them and ATS largely ignores them. Demonstrate soft skills through your bullet points instead of listing them.</p>
+
+    <h3>How to find the right skills for a specific job</h3>
+    <ul>
+      <li>Read the job description carefully and note every specific tool, technology, or methodology mentioned</li>
+      <li>Check the "required" vs. "preferred" sections, required skills are the minimum bar, preferred ones are where you differentiate</li>
+      <li>Look at similar job postings from other companies to identify the consistent skills the role demands</li>
+      <li>Check LinkedIn profiles of people already in that role to see what they list</li>
+    </ul>
+
+    <h3>How to organize your skills section</h3>
+    <p>Group skills into categories if you have many. For example, a software engineer might organize under: <em>Languages</em> (Python, Go, JavaScript), <em>Frameworks</em> (React, FastAPI), <em>Infrastructure</em> (AWS, Docker, Kubernetes), <em>Tools</em> (Git, Jira, Datadog). This is more readable than an undifferentiated list and helps ATS parse each group correctly.</p>
+
+    <p style="margin-top: 24px;">Use the <a href="/ats-checker">ATS checker</a> to see which skills from a specific job description are missing from your resume, so you know exactly what to add before you apply.</p>
+  </section>
+
+  <div class="section-card" style="margin-top: 40px; text-align: center; padding: 36px 24px;">
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Match your skills to any job in seconds</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Build your resume in Applio, paste any job description, and see which skills you're missing, plus your full ATS keyword match score.</p>
+    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Start for free →</a>
+  </div>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and resources</h2>
+    <div class="sk-related">
+      <a class="sk-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="sk-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="sk-rel-link" href="/tools/resume-summary-generator">Summary Generator</a>
+      <a class="sk-rel-link" href="/tools/resume-tailor">Resume Tailoring Tool</a>
+      <a class="sk-rel-link" href="/guides/how-to-list-skills-on-a-resume">Skills Guide</a>
+      <a class="sk-rel-link" href="/resume-examples/software-engineer">Software Engineer Resume</a>
+      <a class="sk-rel-link" href="/resume-examples/data-analyst">Data Analyst Resume</a>
+      <a class="sk-rel-link" href="/resume-examples/product-manager">Product Manager Resume</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script>
+function _skRun() {
+  var jd = document.getElementById('sk-jd').value.trim();
+  if (jd.length < 50) { alert('Paste a full job description for best results.'); return; }
+
+  // Simple client-side keyword extraction
+  var skillKeywords = [
+    'Python','JavaScript','TypeScript','React','Node.js','Vue','Angular','Java','C++','Go','Rust','Swift','Kotlin','PHP','Ruby',
+    'SQL','PostgreSQL','MySQL','MongoDB','Redis','Elasticsearch','GraphQL','REST','API',
+    'AWS','Azure','GCP','Docker','Kubernetes','Terraform','CI/CD','DevOps','Linux',
+    'Machine Learning','Deep Learning','TensorFlow','PyTorch','Pandas','NumPy','scikit-learn','R','Spark','Hadoop','BigQuery','Snowflake',
+    'Excel','Tableau','Power BI','Looker','Salesforce','HubSpot','Jira','Confluence','Figma','Sketch',
+    'SEO','SEM','Google Analytics','Email Marketing','CRM','A/B Testing','Growth',
+    'Financial Modeling','Excel','DCF','Budgeting','Forecasting','Bloomberg','Accounting',
+    'Project Management','PMP','Agile','Scrum','Kanban','Waterfall','OKRs','Roadmap',
+    'Product Management','User Research','Wireframing','A/B Testing','Pricing','GTM',
+    'Leadership','Cross-functional','Stakeholder','Mentoring','Communication'
+  ];
+
+  var found = skillKeywords.filter(function(s) {
+    return jd.toLowerCase().indexOf(s.toLowerCase()) !== -1;
+  });
+
+  var chips = document.getElementById('sk-chips');
+  chips.innerHTML = '';
+  if (found.length === 0) {
+    chips.innerHTML = '<span style="color:var(--muted);font-size:14px;">No common skills detected. Try pasting a more complete job description.</span>';
+  } else {
+    found.forEach(function(s) {
+      var span = document.createElement('span');
+      span.className = 'sk-chip sk-chip-match';
+      span.textContent = s;
+      chips.appendChild(span);
+    });
+  }
+  document.getElementById('sk-results').style.display = 'block';
+}
+</script>
+</body>
+</html>

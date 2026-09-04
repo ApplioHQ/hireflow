@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Core pages -->
   <url>
     <loc>https://appliohq.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/ats-checker</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>https://appliohq.com/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/compare</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/privacy</loc>
@@ -25,237 +28,75 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+
+  <!-- Free tools -->
   <url>
-    <loc>https://appliohq.com/resume-examples/technology</loc>
-    <lastmod>2026-07-09</lastmod>
+    <loc>https://appliohq.com/ats-checker</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/business-finance</loc>
-    <lastmod>2026-07-09</lastmod>
+    <loc>https://appliohq.com/tools</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/healthcare</loc>
-    <lastmod>2026-07-09</lastmod>
+    <loc>https://appliohq.com/tools/resume-scorer</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/sales-marketing</loc>
-    <lastmod>2026-07-09</lastmod>
+    <loc>https://appliohq.com/tools/resume-bullet-generator</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- Resume examples by role -->
-  <url>
-    <loc>https://appliohq.com/resume-examples</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/software-engineer</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/tools/resume-summary-generator</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/project-manager</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/tools/resume-skills-generator</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/registered-nurse</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/tools/resume-tailor</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/data-analyst</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/tools/resume-job-match</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/marketing-manager</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/tools/resume-proofreader</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/teacher</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/cover-letter-generator</loc>
+    <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/resume-examples/accountant</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://appliohq.com/interview-preparation</loc>
+    <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/customer-service-representative</loc>
-    <lastmod>2026-07-08</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/business-analyst</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/sales-representative</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/graphic-designer</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/human-resources-manager</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/mechanical-engineer</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/financial-analyst</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/operations-manager</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/administrative-assistant</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/product-manager</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/ux-designer</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/web-developer</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/electrician</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/financial-advisor</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/dental-hygienist</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/social-worker</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/executive-assistant</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/what-is-an-ats</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-to-pass-ats</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-to-tailor-resume-to-job</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-many-bullet-points-per-job</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-to-write-resume-summary</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/best-resume-format</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-long-should-a-resume-be</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-to-list-skills-on-a-resume</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/how-to-write-a-cover-letter</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/resume-action-verbs</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/words-to-avoid-on-a-resume</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/resume-vs-cv</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/resume-statistics</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/best-free-resume-builder</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/guides/resume-glossary</loc>
-    <lastmod>2026-07-09</lastmod>
-    <changefreq>monthly</changefreq>
-  </url>
+
+  <!-- Resume builder landing pages -->
   <url>
     <loc>https://appliohq.com/resume-builder</loc>
     <lastmod>2026-07-10</lastmod>
@@ -266,205 +107,578 @@
     <loc>https://appliohq.com/resume-builder-for-students</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-high-school-students</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-internships</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-software-engineers</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-nurses</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-finance-jobs</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-teachers</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-career-changers</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-no-experience</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-builder-for-project-managers</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.75</priority>
   </url>
-  <url>
-    <loc>https://appliohq.com/cover-letter-generator</loc>
-    <lastmod>2026-07-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/interview-preparation</loc>
-    <lastmod>2026-07-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog/how-to-beat-the-ats</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog/how-to-tailor-your-resume-to-any-job-description</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog/beyond-the-resume</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog/resume-mistakes-that-cost-interviews</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://appliohq.com/blog/your-career-starts-here</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-  </url>
+
+  <!-- Resume templates -->
   <url>
     <loc>https://appliohq.com/resume-templates</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/harvard</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/stanford</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/modern</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/minimal</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/consulting</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/executive</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/professional</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/classic</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/elegant</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/ivory</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/jake</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/faang</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/deedy</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/creative</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/slate</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/cascade</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/compact</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/timeline</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Resume examples hub and category pages -->
+  <url>
+    <loc>https://appliohq.com/resume-examples</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://appliohq.com/compare</loc>
-    <lastmod>2026-08-29</lastmod>
+    <loc>https://appliohq.com/resume-examples/technology</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/business-finance</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/healthcare</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/sales-marketing</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- Resume examples by role (high-volume) -->
+  <url>
+    <loc>https://appliohq.com/resume-examples/software-engineer</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/data-analyst</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/product-manager</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/marketing-manager</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/registered-nurse</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/project-manager</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/financial-analyst</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/teacher</loc>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/accountant</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/business-analyst</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/sales-representative</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/graphic-designer</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/human-resources-manager</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/mechanical-engineer</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/operations-manager</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/administrative-assistant</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/ux-designer</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/web-developer</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/customer-service-representative</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/financial-advisor</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/electrician</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/dental-hygienist</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/social-worker</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/executive-assistant</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/pharmacy-technician</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/paralegal</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/medical-assistant</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/real-estate-agent</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/cybersecurity-analyst</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/civil-engineer</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/content-writer</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/supply-chain-manager</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/interior-designer</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/devops-engineer</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/physical-therapist</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/event-planner</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/data-engineer</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/resume-examples/bartender</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Guides hub and individual guides -->
+  <url>
+    <loc>https://appliohq.com/guides</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/what-is-an-ats</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-to-pass-ats</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-to-tailor-resume-to-job</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-to-write-resume-summary</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-many-bullet-points-per-job</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/best-resume-format</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-long-should-a-resume-be</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-to-list-skills-on-a-resume</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/how-to-write-a-cover-letter</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/resume-action-verbs</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/words-to-avoid-on-a-resume</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/resume-vs-cv</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/resume-statistics</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/best-free-resume-builder</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/resume-glossary</loc>
+    <lastmod>2026-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://appliohq.com/blog</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/blog/how-to-beat-the-ats</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/blog/how-to-tailor-your-resume-to-any-job-description</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/blog/beyond-the-resume</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/blog/resume-mistakes-that-cost-interviews</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/blog/your-career-starts-here</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Competitor alternatives -->
   <url>
     <loc>https://appliohq.com/rezi-alternative</loc>
     <lastmod>2026-08-29</lastmod>
@@ -513,88 +727,5 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/pharmacy-technician</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/paralegal</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/medical-assistant</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/real-estate-agent</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/cybersecurity-analyst</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/civil-engineer</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/content-writer</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/supply-chain-manager</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/interior-designer</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/devops-engineer</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/physical-therapist</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/event-planner</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/data-engineer</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://appliohq.com/resume-examples/bartender</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
+
 </urlset>

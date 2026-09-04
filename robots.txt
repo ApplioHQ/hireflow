@@ -13,6 +13,14 @@ Disallow: /success
 Disallow: /match
 Disallow: /assistant
 Disallow: /cover-letter
+Disallow: /salary
+Disallow: /letters
+Disallow: /skill-gap
+Disallow: /brag-doc
+Disallow: /first-90-days
+Disallow: /autopilot
+Disallow: /testimonial
+Disallow: /email-preferences
 # Operational data, never for crawlers
 Disallow: /backups/
 

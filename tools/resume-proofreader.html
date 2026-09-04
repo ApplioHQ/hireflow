@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Proofreader | Check for Errors Before Applying | Applio</title>
+<meta name="description" content="Free resume proofreader. Check for common errors, inconsistent tense, weak verbs, vague language, and formatting issues before you submit your application.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-proofreader">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free Resume Proofreader | Applio">
+<meta property="og:description" content="Catch resume errors before they cost you an interview. Checks tense consistency, weak verbs, vague language, and formatting issues.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-proofreader">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "Resume Proofreader", "item": "https://appliohq.com/tools/resume-proofreader" }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .rp-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .rp-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .rp-crumb a { color: var(--muted); } .rp-crumb a:hover { color: var(--accent); }
+  .rp-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .rp-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .rp-ta { width: 100%; box-sizing: border-box; min-height: 200px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 14px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  .rp-ta:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .rp-results { display: none; margin-top: 24px; }
+  .rp-issue { padding: 12px 16px; border-radius: var(--r-sm); margin-bottom: 10px; font-size: 14px; line-height: 1.6; }
+  .rp-issue-warn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25); }
+  .rp-issue-info { background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.2); }
+  .rp-issue-title { font-weight: 700; margin-bottom: 3px; }
+  .rp-clean { padding: 16px 20px; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); border-radius: var(--r-sm); color: #4ade80; font-size: 14px; }
+  .rp-seo { margin-top: 56px; }
+  .rp-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .rp-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .rp-seo p, .rp-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .rp-seo ul { padding-left: 20px; } .rp-seo li { margin-bottom: 8px; }
+  .rp-seo a { color: var(--accent); }
+  .rp-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .rp-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .rp-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="rp-wrap">
+  <nav class="rp-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Resume Proofreader</span>
+  </nav>
+
+  <div class="rp-hero">
+    <h1>Free Resume Proofreader</h1>
+    <p>A single typo, inconsistent tense, or sloppy bullet point can signal carelessness to a recruiter. Paste your resume below to check for the most common resume mistakes before you send it.</p>
+  </div>
+
+  <div class="section-card">
+    <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;" for="rp-resume">Your resume text</label>
+    <textarea class="rp-ta" id="rp-resume" placeholder="Paste your resume here to check for common errors, weak verbs, tense inconsistencies, and red flags recruiters notice."></textarea>
+    <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="_rpRun()">Proofread my resume →</button>
+      <span style="font-size: 13px; color: var(--muted);">Free. Runs in your browser.</span>
+    </div>
+    <div class="rp-results" id="rp-results">
+      <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; margin-top: 4px;" id="rp-count-label"></h3>
+      <div id="rp-issues"></div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-size: 13px; color: var(--muted);">For AI-powered rewrites that fix weak bullets, <a href="/login?mode=signup" style="color:var(--accent);">build your resume in Applio</a> and use AI Improve on any section.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="rp-seo">
+    <h2>The most common resume mistakes recruiters notice</h2>
+    <p>Most resume errors aren't spelling mistakes — they're structural and stylistic issues that signal inexperience or carelessness. Recruiters review hundreds of resumes and have pattern-matched these problems in seconds.</p>
+
+    <h3>1. Inconsistent tense</h3>
+    <p>Past jobs should use past tense; your current role uses present tense. Mixing them (using present tense for a job you left three years ago) looks careless. Check every bullet point.</p>
+
+    <h3>2. Starting bullets with "I" or a weak verb</h3>
+    <p>Bullets that start with "Responsible for managing..." or "I helped with..." signal junior-level thinking. Every bullet should start with a strong past-tense action verb: Built, Led, Reduced, Launched, Designed.</p>
+
+    <h3>3. No quantified results</h3>
+    <p>Bullets like "Improved the sales process" tell a recruiter nothing. "Shortened the sales cycle from 45 days to 28 by implementing an automated follow-up sequence" is specific, credible, and memorable.</p>
+
+    <h3>4. Using first person</h3>
+    <p>Never write "I" or "my" on a resume. Drop the subject and start directly with the verb or your name (for a summary's opening sentence).</p>
+
+    <h3>5. Vague buzzwords without evidence</h3>
+    <p>Listing "results-driven," "detail-oriented," or "team player" in your summary or skills section wastes space and impresses no one. These only carry weight as demonstrated evidence inside a bullet point.</p>
+
+    <h3>6. Periods or no periods, not both</h3>
+    <p>Pick one convention for bullet point endings and apply it consistently across the entire resume. Most modern resumes omit periods on bullet points.</p>
+
+    <p style="margin-top: 20px;">For a deep guide on common resume mistakes, see: <a href="/guides/words-to-avoid-on-a-resume">Words to Avoid on a Resume</a>.</p>
+  </section>
+
+  <div class="section-card" style="margin-top: 40px; text-align: center; padding: 36px 24px;">
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Fix errors and improve quality with AI</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Applio's AI rewrites weak bullets, corrects common mistakes, and scores your resume against any job, all in one place.</p>
+    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Build my resume free →</a>
+  </div>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and resources</h2>
+    <div class="rp-related">
+      <a class="rp-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="rp-rel-link" href="/tools/resume-scorer">Resume Scorer</a>
+      <a class="rp-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="rp-rel-link" href="/guides/words-to-avoid-on-a-resume">Words to Avoid</a>
+      <a class="rp-rel-link" href="/guides/resume-action-verbs">Action Verbs List</a>
+      <a class="rp-rel-link" href="/guides/best-resume-format">Resume Format Guide</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script>
+var CHECKS = [
+  { id: 'responsible', pattern: /responsible for/gi, level: 'warn', title: '"Responsible for" detected', desc: 'Replace "Responsible for [doing X]" with a direct action verb: "Managed X," "Led X," "Built X." The phrase signals passive language.' },
+  { id: 'helped', pattern: /\bhelped\b|\bassisted\b/gi, level: 'warn', title: '"Helped" or "Assisted" detected', desc: 'These weaken your contribution. Say exactly what you did: "Built," "Led," "Delivered," not "helped build" or "assisted with."' },
+  { id: 'first_person', pattern: /\bI (led|built|managed|created|developed|helped|worked|supported|was)\b/gi, level: 'warn', title: 'First person ("I") in bullet points', desc: 'Resumes drop the subject. Start bullets directly with the action verb: "Led..." not "I led..."' },
+  { id: 'no_numbers', pattern: null, level: 'info', title: 'Few or no quantified results', desc: 'Aim for at least 50% of your bullet points to include a number, percentage, dollar amount, or measurable scale.' },
+  { id: 'objective', pattern: /seeking a position|seeking a role|obtain a position|looking for a job/gi, level: 'warn', title: 'Objective statement language detected', desc: 'Replace outdated objective statements ("Seeking a role where I can...") with a professional summary that leads with your value.' },
+  { id: 'buzzwords', pattern: /\b(results-driven|detail-oriented|self-motivated|team player|hard worker|passionate|dynamic|proactive|go-getter)\b/gi, level: 'warn', title: 'Generic buzzwords detected', desc: 'Terms like "results-driven" or "detail-oriented" are meaningless without evidence. Remove them from your summary and show these traits through your bullet points instead.' },
+  { id: 'duties', pattern: /\bduties (included|include)\b/gi, level: 'warn', title: '"Duties included" language detected', desc: 'List what you accomplished, not what your job description said. Recruiters know what the role involves; they want to see your specific impact.' },
+  { id: 'weak_verbs', pattern: /^[\-\*•]\s*(worked on|was involved|participated|supported|involved in)/gim, level: 'warn', title: 'Weak bullet openers detected', desc: 'Bullet points starting with "Worked on" or "Was involved in" hide your contribution. Start with a direct action verb.' }
+];
+
+function _rpRun() {
+  var text = document.getElementById('rp-resume').value.trim();
+  if (text.length < 50) { alert('Paste your resume text to check it.'); return; }
+
+  var issues = [];
+  CHECKS.forEach(function(c) {
+    if (c.pattern === null) {
+      // Check quantification
+      var bullets = text.split('\n').filter(function(l){ return /^[\-\*•]/.test(l.trim()) || l.trim().length > 50; });
+      var withNums = bullets.filter(function(b){ return /\d+/.test(b); });
+      if (bullets.length > 3 && withNums.length / bullets.length < 0.4) {
+        issues.push({ level: 'info', title: c.title, desc: c.desc });
+      }
+    } else {
+      var matches = text.match(c.pattern);
+      if (matches && matches.length > 0) {
+        issues.push({ level: c.level, title: c.title + (matches.length > 1 ? ' (' + matches.length + ' times)' : ''), desc: c.desc });
+      }
+    }
+  });
+
+  var issuesEl = document.getElementById('rp-issues');
+  var countLabel = document.getElementById('rp-count-label');
+
+  if (issues.length === 0) {
+    countLabel.textContent = '';
+    issuesEl.innerHTML = '<div class="rp-clean">No common errors found. Your resume looks clean. Next step: check your ATS keyword match for specific jobs.</div>';
+  } else {
+    countLabel.textContent = issues.length + ' issue' + (issues.length === 1 ? '' : 's') + ' found';
+    issuesEl.innerHTML = issues.map(function(i) {
+      return '<div class="rp-issue rp-issue-' + i.level + '"><div class="rp-issue-title">' + i.title + '</div><div style="color:var(--muted)">' + i.desc + '</div></div>';
+    }).join('');
+  }
+
+  document.getElementById('rp-results').style.display = 'block';
+  document.getElementById('rp-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>

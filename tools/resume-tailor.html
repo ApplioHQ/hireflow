@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Tailoring Tool | Tailor Your Resume to Any Job | Applio</title>
+<meta name="description" content="Tailor your resume to any job description in seconds. Applio's AI rewrites your bullets and summary to mirror the role's language, grounded in your real experience. Free to start.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-tailor">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free Resume Tailoring Tool | Tailor Resume to Job | Applio">
+<meta property="og:description" content="Rewrite your resume for a specific job in seconds. AI mirrors the job description's language without fabricating experience.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-tailor">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio Resume Tailoring Tool",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/tools/resume-tailor",
+  "description": "AI-powered resume tailoring tool that rewrites your resume bullets and summary to match a specific job description without fabricating experience.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "Resume Tailoring Tool", "item": "https://appliohq.com/tools/resume-tailor" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Why do I need to tailor my resume to each job?", "acceptedAnswer": { "@type": "Answer", "text": "Because ATS systems score your resume against the specific keywords in the job description. A resume that uses the same language as the posting scores higher than a generic one, even if the underlying experience is identical. Beyond ATS, tailored resumes also read as more relevant to human recruiters." } },
+    { "@type": "Question", "name": "Does tailoring mean lying on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "No. Tailoring means using the same language the job description uses to describe work you actually did. If the job says 'cross-functional collaboration' and you led cross-functional projects, you should say 'cross-functional collaboration' not 'worked with different teams.' The facts stay the same; the phrasing matches the role." } },
+    { "@type": "Question", "name": "How long does it take to tailor a resume?", "acceptedAnswer": { "@type": "Answer", "text": "Done manually, tailoring a resume takes 45-90 minutes per application. Applio's AI does it in seconds. You paste the job description, the AI rewrites your summary and bullets to match, and you review and approve the changes." } },
+    { "@type": "Question", "name": "What does Applio change when it tailors my resume?", "acceptedAnswer": { "@type": "Answer", "text": "The AI focuses on three things: (1) rewriting your professional summary to mirror the role's language and priorities, (2) reordering and rewriting bullet points to lead with the most relevant accomplishments, and (3) adding missing keywords from the job description that genuinely apply to your experience." } }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .rt-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .rt-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .rt-crumb a { color: var(--muted); } .rt-crumb a:hover { color: var(--accent); }
+  .rt-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .rt-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .rt-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
+  @media (max-width: 640px) { .rt-steps { grid-template-columns: 1fr; } }
+  .rt-step { padding: 20px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); text-align: center; }
+  .rt-step-num { font-size: 28px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+  .rt-step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .rt-step-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .rt-before-after { margin-top: 48px; }
+  .rt-before-after h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .rt-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 640px) { .rt-pair { grid-template-columns: 1fr; } }
+  .rt-before, .rt-after { padding: 16px 18px; border-radius: var(--r-md); font-size: 14px; line-height: 1.7; }
+  .rt-before { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.2); color: var(--muted); }
+  .rt-after { background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.2); color: var(--text); }
+  .rt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .rt-label.bad { color: #f87171; } .rt-label.good { color: #4ade80; }
+  .rt-seo { margin-top: 56px; }
+  .rt-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .rt-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .rt-seo p, .rt-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .rt-seo ul, .rt-seo ol { padding-left: 20px; } .rt-seo li { margin-bottom: 8px; }
+  .rt-seo a { color: var(--accent); }
+  .rt-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .rt-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .rt-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="rt-wrap">
+  <nav class="rt-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Resume Tailoring Tool</span>
+  </nav>
+
+  <div class="rt-hero">
+    <h1>Tailor Your Resume to Any Job Description</h1>
+    <p>Sending the same resume to every job is why most applications go unread. Applio's AI rewrites your summary and bullet points to match the language of each role you apply for, in seconds, without inventing anything.</p>
+  </div>
+
+  <div class="section-card" style="text-align: center; padding: 36px 32px;">
+    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Use the full tailoring tool</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Build or import your resume, paste a job description, and Applio rewrites it to match. Your original resume stays saved so you can tailor again for the next role.</p>
+    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Start tailoring for free →</a>
+    <p style="font-size: 12.5px; color: var(--muted); margin-top: 12px;">Free account. No credit card. Takes 2 minutes to set up.</p>
+  </div>
+
+  <div class="rt-steps">
+    <div class="rt-step">
+      <div class="rt-step-num">1</div>
+      <div class="rt-step-title">Build or import your resume</div>
+      <div class="rt-step-desc">Start from one of 18 templates or paste in your existing resume. Takes about 5 minutes.</div>
+    </div>
+    <div class="rt-step">
+      <div class="rt-step-num">2</div>
+      <div class="rt-step-title">Paste the job description</div>
+      <div class="rt-step-desc">Copy the full job posting and paste it into Applio. The AI analyzes what the role is actually asking for.</div>
+    </div>
+    <div class="rt-step">
+      <div class="rt-step-num">3</div>
+      <div class="rt-step-title">Review your tailored resume</div>
+      <div class="rt-step-desc">The AI rewrites your summary and bullets to match. You review each change and approve what fits.</div>
+    </div>
+  </div>
+
+  <section class="rt-before-after">
+    <h2>What tailoring actually looks like</h2>
+    <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">The same engineer applying for two different roles. Same experience, different emphasis.</p>
+
+    <p style="font-weight: 700; margin-bottom: 12px; font-size: 14px;">Role: Infrastructure / DevOps Engineer</p>
+    <div class="rt-pair">
+      <div class="rt-before"><div class="rt-label bad">Untailored</div>Built and maintained backend services and helped manage cloud infrastructure for the team.</div>
+      <div class="rt-after"><div class="rt-label good">Tailored for DevOps role</div>Designed and maintained cloud infrastructure on AWS (EC2, ECS, RDS), reducing deployment time from 45 minutes to 8 minutes by migrating to containerized CI/CD pipelines using GitHub Actions and Docker.</div>
+    </div>
+
+    <p style="font-weight: 700; margin-bottom: 12px; font-size: 14px; margin-top: 20px;">Same engineer, Role: Backend Engineer (Python/API)</p>
+    <div class="rt-pair">
+      <div class="rt-before"><div class="rt-label bad">Untailored</div>Built and maintained backend services and helped manage cloud infrastructure for the team.</div>
+      <div class="rt-after"><div class="rt-label good">Tailored for Backend role</div>Built and maintained 12 RESTful Python/FastAPI microservices handling 4M+ daily requests, cutting average response latency from 340ms to 95ms through database query optimization and Redis caching.</div>
+    </div>
+  </section>
+
+  <section class="rt-seo">
+    <h2>Why tailoring is the highest-ROI resume action you can take</h2>
+    <p>Most job seekers think their resume isn't good enough. Usually, the resume is fine, it just isn't targeted. The same experience that impresses a hiring manager at one company looks irrelevant at another because it doesn't match the role's language or priorities.</p>
+
+    <h3>How ATS keyword matching works</h3>
+    <p>When you submit a resume through an ATS portal, the software parses your text and scores it against the job description's keywords. A resume that uses "cross-functional team leadership" scores higher for a role that mentions it than a resume that says "worked with different departments," even if the underlying work is identical. Our <a href="/ats-checker">ATS checker</a> shows you your exact score and the keywords you're missing.</p>
+
+    <h3>What to change when tailoring</h3>
+    <ul>
+      <li><strong>Professional summary:</strong> Rewrite the first two sentences to reflect the role's primary priorities</li>
+      <li><strong>Bullet point emphasis:</strong> Lead with the accomplishments most relevant to this specific role</li>
+      <li><strong>Keywords:</strong> Add missing keywords that genuinely apply to your experience, using the job's exact language</li>
+      <li><strong>Skills section:</strong> Reorder to put the skills this role emphasizes at the top</li>
+    </ul>
+
+    <h3>What not to change</h3>
+    <p>Don't add experience you don't have, inflate numbers you didn't achieve, or claim skills you lack. Tailoring is about framing and language, not fabrication. Beyond being dishonest, fabricated experience typically comes out in the interview.</p>
+
+    <p style="margin-top: 16px;">For a full walkthrough, see our guide: <a href="/guides/how-to-tailor-resume-to-job">How to Tailor Your Resume to Any Job Description</a>.</p>
+  </section>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and resources</h2>
+    <div class="rt-related">
+      <a class="rt-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="rt-rel-link" href="/tools/resume-job-match">Resume Job Match</a>
+      <a class="rt-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="rt-rel-link" href="/tools/resume-summary-generator">Summary Generator</a>
+      <a class="rt-rel-link" href="/guides/how-to-tailor-resume-to-job">Tailoring Guide</a>
+      <a class="rt-rel-link" href="/guides/what-is-an-ats">What Is an ATS?</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+</body>
+</html>

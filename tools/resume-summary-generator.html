@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Summary Generator | Write a Professional Summary | Applio</title>
+<meta name="description" content="Free AI resume summary generator. Get a compelling 2-3 sentence professional summary in seconds. Tailored to your role, experience level, and target job. No sign-up required to try.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-summary-generator">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Free Resume Summary Generator | Applio">
+<meta property="og:description" content="Write a compelling professional summary for your resume in seconds with AI. Tailored to your experience and target role.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-summary-generator">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Applio Resume Summary Generator",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://appliohq.com/tools/resume-summary-generator",
+  "description": "AI-powered resume professional summary generator that writes a compelling 2-3 sentence summary tailored to your experience and target role.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://appliohq.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Resume Tools", "item": "https://appliohq.com/tools" },
+    { "@type": "ListItem", "position": 3, "name": "Resume Summary Generator", "item": "https://appliohq.com/tools/resume-summary-generator" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Should I include a summary on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, for most job seekers. A professional summary replaces the outdated 'objective statement' and gives recruiters a 2-3 sentence pitch that answers: who are you, what do you do best, and why should they keep reading? Early career candidates and recent grads can skip it or write a short objective instead." } },
+    { "@type": "Question", "name": "How long should a resume summary be?", "acceptedAnswer": { "@type": "Answer", "text": "2-4 sentences, roughly 40-80 words. Recruiters spend an average of 7 seconds scanning a resume on first pass, so a shorter, specific summary outperforms a longer, general one every time." } },
+    { "@type": "Question", "name": "What's the difference between a summary and an objective?", "acceptedAnswer": { "@type": "Answer", "text": "An objective states what you want ('Seeking a senior marketing role...'). A summary states what you offer ('Senior marketing manager with 8 years...'). Summaries are almost always more persuasive because they lead with your value rather than your desire." } },
+    { "@type": "Question", "name": "Do ATS systems read the summary section?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. ATS systems parse and index the entire resume, including the summary. A well-written summary that mirrors the job description's keywords can meaningfully improve your ATS score, especially for roles where the experience section doesn't directly match every keyword." } }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .sg-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  .sg-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .sg-crumb a { color: var(--muted); } .sg-crumb a:hover { color: var(--accent); }
+  .sg-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
+  .sg-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .sg-form { display: grid; gap: 14px; }
+  .sg-label { font-size: 13px; font-weight: 600; margin-bottom: 5px; display: block; }
+  .sg-input { width: 100%; box-sizing: border-box; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 14px; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  .sg-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .sg-ta { min-height: 80px; resize: vertical; line-height: 1.55; }
+  .sg-examples { margin-top: 48px; }
+  .sg-examples h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .sg-ex { padding: 18px 20px; background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-md); margin-bottom: 16px; }
+  .sg-ex-role { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); margin-bottom: 8px; }
+  .sg-ex-text { font-size: 15px; line-height: 1.7; color: var(--text); }
+  .sg-seo { margin-top: 56px; }
+  .sg-seo h2 { font-size: 22px; font-weight: 800; margin: 36px 0 12px; }
+  .sg-seo h3 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+  .sg-seo p, .sg-seo li { color: var(--muted); line-height: 1.75; font-size: 15px; }
+  .sg-seo ul { padding-left: 20px; } .sg-seo li { margin-bottom: 8px; }
+  .sg-seo a { color: var(--accent); }
+  .sg-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+  .sg-rel-link { display: block; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: border-color .18s; }
+  .sg-rel-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="sg-wrap">
+  <nav class="sg-crumb" aria-label="Breadcrumb">
+    <a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Resume Summary Generator</span>
+  </nav>
+
+  <div class="sg-hero">
+    <h1>Free Resume Summary Generator</h1>
+    <p>A professional summary is the first thing recruiters read, and most are too generic to make an impression. Describe your background below and get a targeted 2-3 sentence summary tailored to your experience and role.</p>
+  </div>
+
+  <div class="section-card">
+    <div class="sg-form">
+      <div>
+        <label class="sg-label" for="sg-role">Your target role or job title</label>
+        <input class="sg-input" id="sg-role" type="text" placeholder="e.g., Senior Product Manager, Data Analyst, Registered Nurse">
+      </div>
+      <div>
+        <label class="sg-label" for="sg-exp">Years of experience</label>
+        <select class="sg-input" id="sg-exp">
+          <option value="">Select...</option>
+          <option>0-1 years (student or new grad)</option>
+          <option>1-3 years (early career)</option>
+          <option>3-7 years (mid-level)</option>
+          <option>7-15 years (senior)</option>
+          <option>15+ years (executive)</option>
+        </select>
+      </div>
+      <div>
+        <label class="sg-label" for="sg-strengths">Key strengths, skills, or accomplishments to highlight</label>
+        <textarea class="sg-input sg-ta" id="sg-strengths" placeholder="e.g., Led cross-functional teams of 8+, launched 3 products to market, 5 years in B2B SaaS, strong Python and SQL skills"></textarea>
+      </div>
+      <a href="/login?mode=signup" class="btn btn-primary" style="width: fit-content;" onclick="return _sgClick()">Generate my summary →</a>
+    </div>
+  </div>
+
+  <section class="sg-examples">
+    <h2>Professional summary examples by role</h2>
+    <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">These show how a strong summary is specific, not generic.</p>
+
+    <div class="sg-ex">
+      <div class="sg-ex-role">Software Engineer (5 years)</div>
+      <div class="sg-ex-text">Full-stack engineer with 5 years building scalable web applications in React and Node.js, most recently reducing API response time by 60% across a platform serving 200K daily active users. Strong in system design, mentoring junior engineers, and shipping features in fast-paced product environments. Looking to bring that experience to a team working on complex, high-scale consumer products.</div>
+    </div>
+
+    <div class="sg-ex">
+      <div class="sg-ex-role">Product Manager (3 years)</div>
+      <div class="sg-ex-text">Product manager with 3 years in B2B SaaS, owning the end-to-end roadmap for a $4M ARR product line and driving a 28% increase in trial-to-paid conversion through a pricing and onboarding overhaul. Skilled at translating ambiguous problems into prioritized specs, running data-informed discovery, and collaborating closely with engineering and design. Passionate about products where the right user experience directly drives business outcomes.</div>
+    </div>
+
+    <div class="sg-ex">
+      <div class="sg-ex-role">Marketing Manager (7 years)</div>
+      <div class="sg-ex-text">Growth-focused marketing manager with 7 years across B2C and B2B, most recently overseeing a $2.4M annual marketing budget and growing organic traffic 4x in 18 months through SEO, content, and paid search. Experienced in building and leading small teams, running cross-channel campaigns from brief to measurement, and reporting attribution to the board level. Excited by roles where marketing has a direct line to revenue.</div>
+    </div>
+
+    <div class="sg-ex">
+      <div class="sg-ex-role">Recent Graduate (Computer Science)</div>
+      <div class="sg-ex-text">Computer science graduate with hands-on experience building full-stack web applications through two internships and three shipped side projects. Comfortable across the stack in Python, React, and PostgreSQL, with a particular interest in backend infrastructure and distributed systems. Looking for a software engineering role where I can contribute to real products while continuing to grow technically.</div>
+    </div>
+  </section>
+
+  <section class="sg-seo">
+    <h2>How to write a resume professional summary</h2>
+    <p>A professional summary sits at the top of your resume and gives a recruiter the compressed version of why they should keep reading. It's two to four sentences that answer: <em>who are you, what's your relevant experience, and what do you bring to this role?</em></p>
+
+    <h3>What to include in a strong summary</h3>
+    <ul>
+      <li><strong>Your title and years of experience:</strong> "Senior data analyst with 6 years..."</li>
+      <li><strong>Your primary domain or industry:</strong> "...in financial services and healthcare..."</li>
+      <li><strong>One or two specific accomplishments:</strong> "...built dashboards that reduced reporting time from 3 days to 4 hours..."</li>
+      <li><strong>What you're looking for (optional):</strong> "...seeking a senior analytics role where I can own end-to-end data strategy."</li>
+    </ul>
+
+    <h3>What to avoid</h3>
+    <ul>
+      <li>Generic filler: "results-driven professional with strong communication skills"</li>
+      <li>Obvious statements: "seeking to use my skills in a challenging environment"</li>
+      <li>Long paragraphs: recruiters skim, keep it under 80 words</li>
+      <li>Personal pronouns: don't start with "I"</li>
+    </ul>
+
+    <h3>Tailor it for every application</h3>
+    <p>A summary that matches the job description's language performs significantly better in ATS scoring. If the job says "data-driven decision making" and "cross-functional collaboration," those phrases belong in your summary if they genuinely apply to you. The <a href="/ats-checker">ATS checker</a> shows you which keywords from a specific posting are missing from your resume, including the summary.</p>
+
+    <p style="margin-top: 24px;"><strong>Want to write a summary that's tailored to a specific job?</strong> Build your resume in Applio, paste the job description, and the AI rewrites your summary to match the role, grounded in your real experience.</p>
+    <a href="/login?mode=signup" class="btn btn-primary" style="margin-top: 12px; display: inline-block;">Write my summary free →</a>
+  </section>
+
+  <section style="margin-top: 56px;">
+    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">Related tools and guides</h2>
+    <div class="sg-related">
+      <a class="sg-rel-link" href="/ats-checker">ATS Resume Checker</a>
+      <a class="sg-rel-link" href="/tools/resume-bullet-generator">Bullet Generator</a>
+      <a class="sg-rel-link" href="/tools/resume-skills-generator">Skills Generator</a>
+      <a class="sg-rel-link" href="/tools/resume-tailor">Resume Tailoring Tool</a>
+      <a class="sg-rel-link" href="/guides/how-to-write-resume-summary">How to Write a Summary</a>
+      <a class="sg-rel-link" href="/resume-examples">Resume Examples</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script>
+function _sgClick() {
+  var role = document.getElementById('sg-role').value.trim();
+  var exp = document.getElementById('sg-exp').value;
+  if (role) {
+    window.location.href = '/login?mode=signup&hint=summary&role=' + encodeURIComponent(role);
+    return false;
+  }
+  return true;
+}
+</script>
+</body>
+</html>

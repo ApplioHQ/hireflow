@@ -553,7 +553,7 @@ function showInterviewWinPrompt() {
   function dismiss() { el.style.opacity='0'; el.style.transform='translateY(16px)'; setTimeout(()=>{el.remove(); if(_iwPrompt===el)_iwPrompt=null;},250); }
   function record(outcome) {
     fetch(window.HIREFLOW_CONFIG.API_URL + '/interview-win', { method:'POST', headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}, body:JSON.stringify({outcome}) }).catch(()=>{});
-    el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">' + (outcome==='no'?'No worries — keep going! 💪':'That\'s awesome! 🎉') + '</div>';
+    el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">' + (outcome==='no'?'No worries, keep going! 💪':'That\'s awesome! 🎉') + '</div>';
     setTimeout(dismiss, 2500);
   }
   el.innerHTML =

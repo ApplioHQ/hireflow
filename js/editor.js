@@ -202,7 +202,7 @@ function hydrate() {
       const w = daysSince >= 30 ? Math.floor(daysSince / 7) + ' weeks' : daysSince + ' days';
       sb.style.display = '';
       sb.innerHTML = '<span class="stale-text">' + ICON('sparkle') + ' <strong>Welcome back!</strong> Your resume hasn\'t been updated in ' + w +
-        '. Job markets move fast — <button class="stale-cta" onclick="document.querySelectorAll(\'.sidebar-item\')[0].click(); document.getElementById(\'stale-banner\').style.display=\'none\';">refresh it with AI</button></span>' +
+        '. Job markets move fast. <button class="stale-cta" onclick="document.querySelectorAll(\'.sidebar-item\')[0].click(); document.getElementById(\'stale-banner\').style.display=\'none\';">refresh it with AI</button></span>' +
         '<button class="stale-close" onclick="this.parentElement.style.display=\'none\'; sessionStorage.setItem(\'hf_stale_dismissed\',\'1\')">&times;</button>';
     }
   }
@@ -1742,7 +1742,7 @@ function renderATS() {
         <p class="ats-hero-sub">Most resumes are filtered out by applicant-tracking software before a human ever reads them. Scan yours against the job posting and see exactly what to fix.</p>
         <div class="ats-stat-strip">
           ${stat('~70%', 'filtered before a human sees them')}
-          ${stat('6–7s', 'average recruiter first scan')}
+          ${stat('6-7s', 'average recruiter first scan')}
           ${stat('2&times;', 'more callbacks when tailored')}
         </div>
       </div>
@@ -1755,7 +1755,7 @@ function renderATS() {
             <span id="ats-wc" class="ats-wc"></span>
           </div>
           <textarea id="ats-jd" rows="11"
-            placeholder="Paste the full job description here — title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility…"
+            placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
             oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
         </div>
         ${freeAiBanner('ats')}
@@ -3255,7 +3255,7 @@ function _showAiFeedbackNudge() {
     <span style="font-size:20px;">✨</span>
     <div style="flex:1;min-width:0;">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">How's the AI working for you?</div>
-      <div style="font-size:12px;color:var(--muted);">Takes 30 seconds — helps us make it better.</div>
+      <div style="font-size:12px;color:var(--muted);">Takes 30 seconds. Helps us make it better.</div>
     </div>
     <button onclick="document.getElementById('ai-fb-nudge').remove(); if(typeof openFeedbackModal==='function') openFeedbackModal({context:'ai_nudge', rating:'up'})"
       style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">

@@ -576,7 +576,7 @@ function _featureLabel(k) { return _FEATURE_LABELS[k] || k.replace(/_/g,' '); }
 function _nonAiFeatureBlock(byFeature, byUser, last7) {
   var keys = Object.keys(byFeature).concat(Object.keys(byUser))
     .filter(function(k,i,a){return a.indexOf(k)===i;});
-  if (!keys.length) return '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">No feature usage tracked yet — starts recording on next user actions.</div>';
+  if (!keys.length) return '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">No feature usage tracked yet. Starts recording on next user actions.</div>';
   keys.sort(function(a,b){return (byFeature[b]||0)-(byFeature[a]||0);});
   return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Feature Usage (all-time) · uses · unique users · 7-day uses</div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'

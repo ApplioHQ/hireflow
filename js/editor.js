@@ -3214,7 +3214,59 @@ async function ai(endpoint, body) {
       setTimeout(() => { if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', data._trial.feature); }, 1100);
     }
   }
+  // After a successful AI call, nudge the user for feedback on their 2nd or 3rd use
+  // this session. Only once per session, only for real feature calls (not auto-score).
+  if (!isAutoScore) _maybeAiFeedbackNudge();
   return data;
+}
+
+// Show a small non-blocking feedback invite after the user has gotten real value from AI.
+// Fires once per session at the 2nd successful AI call. Skipped if the full feedback
+// modal is already open, or if they've dismissed it before this session.
+function _maybeAiFeedbackNudge() {
+  try {
+    if (sessionStorage.getItem('hf_ai_fb_shown')) return;
+    const count = parseInt(sessionStorage.getItem('hf_ai_call_count') || '0', 10) + 1;
+    sessionStorage.setItem('hf_ai_call_count', String(count));
+    if (count !== 2) return;   // fire exactly on the 2nd successful AI use
+    sessionStorage.setItem('hf_ai_fb_shown', '1');
+  } catch { return; }
+
+  // Don't stack on top of another modal
+  if (document.getElementById('feedback-modal-bd') || document.getElementById('ai-suggest-bd')) {
+    setTimeout(_showAiFeedbackNudge, 1800);
+  } else {
+    setTimeout(_showAiFeedbackNudge, 800);
+  }
+}
+
+function _showAiFeedbackNudge() {
+  if (document.getElementById('ai-fb-nudge') || document.getElementById('feedback-modal-bd')) return;
+  const el = document.createElement('div');
+  el.id = 'ai-fb-nudge';
+  el.style.cssText = [
+    'position:fixed', 'bottom:24px', 'left:50%', 'transform:translateX(-50%)',
+    'z-index:8888', 'background:var(--bg-2)', 'border:1px solid var(--border)',
+    'border-radius:12px', 'padding:14px 18px', 'display:flex', 'align-items:center',
+    'gap:14px', 'box-shadow:0 8px 32px rgba(0,0,0,.35)',
+    'animation:aiOverlayIn .22s ease both', 'max-width:420px', 'width:calc(100vw - 48px)',
+  ].join(';');
+  el.innerHTML = `
+    <span style="font-size:20px;">✨</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">How's the AI working for you?</div>
+      <div style="font-size:12px;color:var(--muted);">Takes 30 seconds — helps us make it better.</div>
+    </div>
+    <button onclick="document.getElementById('ai-fb-nudge').remove(); if(typeof openFeedbackModal==='function') openFeedbackModal({context:'ai_nudge', rating:'up'})"
+      style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+      Give feedback
+    </button>
+    <button onclick="document.getElementById('ai-fb-nudge').remove()"
+      aria-label="Dismiss"
+      style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;">×</button>`;
+  document.body.appendChild(el);
+  // Auto-dismiss after 12 seconds if ignored
+  setTimeout(() => { const n = document.getElementById('ai-fb-nudge'); if (n) n.remove(); }, 12000);
 }
 
 // Streaming AI call — shows text building up in the loading overlay as tokens arrive.
@@ -3300,6 +3352,7 @@ async function aiStream(endpoint, body, onChunk) {
       }
     }
   }
+  _maybeAiFeedbackNudge();
   return accumulated;
 }
 

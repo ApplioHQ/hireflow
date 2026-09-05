@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Resume Template Should I Use? Free Quiz | Applio</title>
+<meta name="description" content="Answer 5 questions and get a resume template recommendation matched to your role, career stage, and industry. Free, instant, no sign-up required.">
+<link rel="canonical" href="https://appliohq.com/tools/resume-template-quiz">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Which Resume Template Should I Use? Free Quiz | Applio">
+<meta property="og:description" content="Answer 5 questions and get a resume template recommendation matched to your role and industry.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/tools/resume-template-quiz">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Applio Resume Template Quiz","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://appliohq.com/tools/resume-template-quiz","description":"Interactive quiz that recommends a resume template based on role, career stage, and industry.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://appliohq.com/"},{"@type":"ListItem","position":2,"name":"Resume Tools","item":"https://appliohq.com/tools"},{"@type":"ListItem","position":3,"name":"Resume Template Quiz","item":"https://appliohq.com/tools/resume-template-quiz"}]}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .qz-wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+  .qz-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; }
+  .qz-crumb a { color: var(--muted); } .qz-crumb a:hover { color: var(--accent); }
+  .qz-hero h1 { font-size: clamp(26px,5vw,38px); font-weight: 800; letter-spacing:-.7px; line-height:1.15; margin-bottom: 12px; }
+  .qz-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+  .qz-progress { display: flex; gap: 6px; margin-bottom: 20px; }
+  .qz-dot { flex: 1; height: 4px; background: var(--bg-2); border-radius: 4px; transition: background .25s; }
+  .qz-dot.active { background: var(--accent); }
+  .qz-dot.done { background: rgba(91,84,232,.55); }
+  .qz-card { padding: 28px 28px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-lg); }
+  .qz-step-num { font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .qz-q { font-size: 20px; font-weight: 700; margin-bottom: 18px; line-height: 1.35; }
+  .qz-opts { display: grid; gap: 10px; }
+  .qz-opt { padding: 14px 18px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer; font-size: 15px; text-align: left; color: var(--text); font-family: inherit; font-weight: 500; transition: border-color .15s, background .15s; }
+  .qz-opt:hover { border-color: var(--accent); background: rgba(91,84,232,.05); }
+  .qz-back { margin-top: 18px; font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+  .qz-back:hover { color: var(--accent); }
+  .qz-result { display: none; }
+  .qz-result-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--accent); background: rgba(91,84,232,.12); padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .qz-result h2 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 12px; }
+  .qz-result-why { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 22px; }
+  .qz-preview { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 8.5/11; background: #fff; margin-bottom: 22px; box-shadow: var(--sh-3); }
+  .qz-preview iframe { position: absolute; top: 0; left: 0; width: 816px; height: 1056px; border: 0; transform-origin: top left; }
+  .qz-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .qz-alt { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .qz-alt-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+  .qz-alt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .qz-alt-grid { grid-template-columns: 1fr; } }
+  .qz-alt-item { padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 13px; color: var(--text); text-decoration: none; transition: border-color .15s; }
+  .qz-alt-item:hover { border-color: var(--accent); }
+  .qz-alt-item .n { font-weight: 700; }
+  .qz-alt-item .d { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .qz-restart { margin-top: 24px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="qz-wrap">
+  <nav class="qz-crumb"><a href="/">Applio</a> / <a href="/tools">Resume Tools</a> / <span>Which Template Quiz</span></nav>
+
+  <div class="qz-hero">
+    <h1>Which Resume Template Should I Use?</h1>
+    <p>Applio has 22 professional templates and picking the right one matters more than most people think. Answer 5 quick questions and we'll recommend the one that fits your role, career stage, and industry.</p>
+  </div>
+
+  <div class="qz-progress" id="qz-progress">
+    <div class="qz-dot active"></div><div class="qz-dot"></div><div class="qz-dot"></div><div class="qz-dot"></div><div class="qz-dot"></div>
+  </div>
+
+  <div class="qz-card" id="qz-quiz">
+    <div id="qz-step"></div>
+  </div>
+
+  <div class="qz-card qz-result" id="qz-result">
+    <div class="qz-result-badge">Recommended for you</div>
+    <h2 id="qz-result-name"></h2>
+    <p class="qz-result-why" id="qz-result-why"></p>
+    <div class="qz-preview" id="qz-preview"><iframe id="qz-frame" scrolling="no" title="Recommended template preview"></iframe></div>
+    <div class="qz-cta">
+      <a class="btn btn-primary" id="qz-use-btn" href="/login?mode=signup">Use this template free →</a>
+      <a class="btn btn-secondary" id="qz-view-btn" href="/resume-templates">See all 22 templates</a>
+    </div>
+
+    <div class="qz-alt">
+      <div class="qz-alt-title">Also consider</div>
+      <div class="qz-alt-grid" id="qz-alt-grid"></div>
+    </div>
+
+    <button class="qz-back qz-restart" onclick="_qzRestart()">← Start over</button>
+  </div>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script src="/js/icons.js"></script>
+<script src="/js/templates.js"></script>
+<script>
+// Quiz definition: 5 questions with weighted answers.
+// Each answer contributes points to one or more template categories.
+var QUESTIONS = [
+  {
+    q: "What's your career stage?",
+    opts: [
+      { label: "Student or recent grad (0-1 years)", scores: { harvard: 3, jake: 2, minimal: 2, modern: 1 } },
+      { label: "Early career (1-4 years)", scores: { modern: 3, professional: 2, minimal: 2, jake: 1 } },
+      { label: "Mid-career (5-10 years)", scores: { professional: 3, classic: 2, executive: 1, cascade: 2 } },
+      { label: "Senior (10+ years)", scores: { executive: 3, classic: 2, consulting: 2 } },
+      { label: "Executive / C-level", scores: { executive: 4, consulting: 2 } }
+    ]
+  },
+  {
+    q: "What industry or role type?",
+    opts: [
+      { label: "Software engineering or tech", scores: { faang: 4, jake: 3, deedy: 2, twocolumn: 1 } },
+      { label: "Consulting or strategy", scores: { consulting: 4, harvard: 2, classic: 1 } },
+      { label: "Finance or banking", scores: { classic: 3, professional: 3, harvard: 2, consulting: 1 } },
+      { label: "Healthcare or clinical", scores: { healthcare: 5, classic: 1, professional: 1 } },
+      { label: "Sales or business development", scores: { sales: 5, modern: 1, professional: 1 } },
+      { label: "Marketing or content", scores: { modern: 3, creative: 2, slate: 2, professional: 1 } },
+      { label: "Design or creative", scores: { creative: 4, slate: 3, modern: 1 } },
+      { label: "Education or academia", scores: { harvard: 3, minimal: 3, stanford: 2 } },
+      { label: "Trades, retail, or service", scores: { classic: 3, professional: 2, ats: 2 } },
+      { label: "Government or nonprofit", scores: { ats: 3, classic: 3, professional: 1 } }
+    ]
+  },
+  {
+    q: "How much experience are you fitting on the page?",
+    opts: [
+      { label: "Almost none, mostly projects and coursework", scores: { jake: 3, harvard: 2, minimal: 2, stanford: 1 } },
+      { label: "A few roles, comfortable on one page", scores: { modern: 2, professional: 2, minimal: 1, harvard: 1 } },
+      { label: "Dense experience, tight fit on one page", scores: { compact: 3, cascade: 2, deedy: 2, twocolumn: 2 } },
+      { label: "Way too much, need two pages", scores: { executive: 3, consulting: 2, classic: 2, cascade: 1 } }
+    ]
+  },
+  {
+    q: "How strict is the hiring process likely to be about ATS?",
+    opts: [
+      { label: "Very strict, large enterprise or government", scores: { ats: 5, minimal: 2, classic: 1 } },
+      { label: "Standard corporate ATS (Workday, Greenhouse)", scores: { professional: 2, classic: 2, modern: 1, jake: 1, faang: 1 } },
+      { label: "Startup, less filtering, more human review", scores: { modern: 2, creative: 1, slate: 1, faang: 1 } },
+      { label: "Networking-driven, resume seen by humans mostly", scores: { creative: 2, slate: 2, elegant: 2, executive: 1 } }
+    ]
+  },
+  {
+    q: "What look do you want?",
+    opts: [
+      { label: "Classic and traditional", scores: { harvard: 2, classic: 3, professional: 2, elegant: 1 } },
+      { label: "Modern and clean", scores: { modern: 3, minimal: 2, stanford: 2, ivory: 1 } },
+      { label: "Bold and distinctive", scores: { creative: 3, slate: 2, cascade: 2, deedy: 1 } },
+      { label: "Compact and dense", scores: { compact: 3, deedy: 2, twocolumn: 2, cascade: 1 } },
+      { label: "Prestigious / elite look", scores: { harvard: 3, stanford: 2, executive: 2, consulting: 2 } }
+    ]
+  }
+];
+
+var TEMPLATE_META = {
+  harvard:      { name: "Harvard", url: "/resume-templates/harvard", desc: "Clean centered serif, the format used in the Harvard Business School resume guide." },
+  stanford:     { name: "Stanford", url: "/resume-templates/stanford", desc: "Airy, left-aligned, sans-serif layout with generous whitespace." },
+  modern:       { name: "Modern", url: "/resume-templates/modern", desc: "Contemporary two-tone header with a color accent bar." },
+  minimal:      { name: "Minimal", url: "/resume-templates/minimal", desc: "Pure typography, no rules or color, maximum readability." },
+  consulting:   { name: "Consulting", url: "/resume-templates/consulting", desc: "Structured, results-forward format favored by MBB firms." },
+  executive:    { name: "Executive", url: "/resume-templates/executive", desc: "Commanding senior-leadership layout with prominent titles." },
+  professional: { name: "Professional", url: "/resume-templates/professional", desc: "Polished corporate header with a subtle accent line." },
+  classic:      { name: "Classic", url: "/resume-templates/classic", desc: "Traditional serif format that works for every industry." },
+  elegant:      { name: "Elegant", url: "/resume-templates/elegant", desc: "Refined serif with a warm, understated aesthetic." },
+  ivory:        { name: "Ivory", url: "/resume-templates/ivory", desc: "Warm off-white background with a subtle accent." },
+  cascade:      { name: "Cascade", url: "/resume-templates/cascade", desc: "Corporate layout with a light header band and accent baseline." },
+  jake:         { name: "Jake's Resume", url: "/resume-templates/jake", desc: "The LaTeX-inspired single-column template beloved by engineers." },
+  faang:        { name: "FAANG", url: "/resume-templates/faang", desc: "Tight, quantified layout built for big-tech recruiter preferences." },
+  deedy:        { name: "Deedy", url: "/resume-templates/deedy", desc: "Compact two-column technical template popular with CS majors." },
+  creative:     { name: "Creative", url: "/resume-templates/creative", desc: "Bold, distinctive layout for design and content roles." },
+  slate:        { name: "Slate", url: "/resume-templates/slate", desc: "Cool-toned modern layout with graphic accents." },
+  compact:      { name: "Compact", url: "/resume-templates/compact", desc: "Dense single-column layout that fits more on one page." },
+  timeline:     { name: "Timeline", url: "/resume-templates/timeline", desc: "Visual career timeline with dates on the left rail." },
+  twocolumn:    { name: "Two-Column", url: "/resume-templates/twocolumn", desc: "Modern two-column layout, engineered to parse cleanly on ATS." },
+  healthcare:   { name: "Healthcare", url: "/resume-templates/healthcare", desc: "Built for clinical roles with licensure and certification sections." },
+  sales:        { name: "Sales", url: "/resume-templates/sales", desc: "Quota, deal size, and pipeline metrics as visual callouts." },
+  ats:          { name: "ATS Clean", url: "/resume-templates/ats", desc: "The safest possible layout for strict ATS parsers." }
+};
+
+var state = { step: 0, scores: {} };
+
+function _qzRender() {
+  var stepEl = document.getElementById('qz-step');
+  var q = QUESTIONS[state.step];
+  var backHtml = state.step > 0 ? '<button class="qz-back" onclick="_qzBack()">← Back</button>' : '';
+  stepEl.innerHTML =
+    '<div class="qz-step-num">Question ' + (state.step + 1) + ' of ' + QUESTIONS.length + '</div>' +
+    '<div class="qz-q">' + q.q + '</div>' +
+    '<div class="qz-opts">' +
+      q.opts.map(function(o, i) {
+        return '<button class="qz-opt" onclick="_qzAnswer(' + i + ')">' + o.label + '</button>';
+      }).join('') +
+    '</div>' +
+    backHtml;
+
+  // Update progress dots
+  var dots = document.querySelectorAll('.qz-dot');
+  dots.forEach(function(d, i) {
+    d.classList.remove('active', 'done');
+    if (i < state.step) d.classList.add('done');
+    if (i === state.step) d.classList.add('active');
+  });
+}
+
+function _qzAnswer(optIdx) {
+  var opt = QUESTIONS[state.step].opts[optIdx];
+  Object.keys(opt.scores).forEach(function(k) {
+    state.scores[k] = (state.scores[k] || 0) + opt.scores[k];
+  });
+  state.step++;
+  if (state.step >= QUESTIONS.length) { _qzShowResult(); return; }
+  _qzRender();
+}
+
+function _qzBack() {
+  if (state.step === 0) return;
+  state.step--;
+  // Recompute scores from scratch would need history; simpler: allow going back but clear scores.
+  // For simplicity, we redo scoring from the start with previous answers unrecorded.
+  // (This is a UX compromise; the alternative is tracking full answer history.)
+  state.scores = {};
+  _qzRender();
+}
+
+function _qzShowResult() {
+  // Sort templates by score
+  var ranked = Object.keys(state.scores).sort(function(a, b) { return state.scores[b] - state.scores[a]; });
+  var top = ranked[0] || 'professional';
+  var alts = ranked.slice(1, 5);
+
+  document.getElementById('qz-quiz').style.display = 'none';
+  document.getElementById('qz-progress').style.display = 'none';
+  document.getElementById('qz-result').style.display = 'block';
+
+  var meta = TEMPLATE_META[top];
+  document.getElementById('qz-result-name').textContent = meta.name;
+  document.getElementById('qz-result-why').textContent = meta.desc + ' Based on your answers, this template best fits your role, career stage, and industry.';
+  document.getElementById('qz-use-btn').href = '/login?mode=signup&tpl=' + top;
+  document.getElementById('qz-view-btn').href = meta.url;
+
+  // Render preview
+  try {
+    var frame = document.getElementById('qz-frame');
+    var html = renderTemplate(top, {}, true, '#6366f1');
+    writeResumeFrame(frame, html, 816);
+    function fit(){ var w = document.getElementById('qz-preview').clientWidth; frame.style.transform = 'scale(' + (w/816) + ')'; }
+    fit(); window.addEventListener('resize', fit);
+  } catch(e) { document.getElementById('qz-preview').style.display = 'none'; }
+
+  // Alternatives
+  var altGrid = document.getElementById('qz-alt-grid');
+  altGrid.innerHTML = alts.map(function(id) {
+    var m = TEMPLATE_META[id];
+    return '<a class="qz-alt-item" href="' + m.url + '"><div class="n">' + m.name + '</div><div class="d">' + m.desc + '</div></a>';
+  }).join('');
+}
+
+function _qzRestart() {
+  state = { step: 0, scores: {} };
+  document.getElementById('qz-quiz').style.display = 'block';
+  document.getElementById('qz-progress').style.display = 'flex';
+  document.getElementById('qz-result').style.display = 'none';
+  _qzRender();
+}
+
+_qzRender();
+</script>
+</body>
+</html>

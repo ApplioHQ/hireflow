@@ -56,8 +56,9 @@ Ramp, grow, and get paid (the career copilot):
 - Interview Preparation (practice questions + STAR method): https://appliohq.com/interview-preparation
 - Pricing: https://appliohq.com/pricing
 - Free ATS Resume Checker: https://appliohq.com/ats-checker
-- Free Resume Templates (22, ATS-friendly): https://appliohq.com/resume-templates (includes Two-Column, Healthcare, Sales, and ATS Clean industry templates)
+- Free Resume Templates (25, ATS-friendly): https://appliohq.com/resume-templates (includes Google Docs, Wharton, MIT, Harvard, Stanford, FAANG, Consulting, Healthcare, Sales, Two-Column, ATS Clean, and more)
 - Free Resume Template Quiz (recommends the right template): https://appliohq.com/tools/resume-template-quiz
+- Free Cover Letter Templates (matched to resume templates): https://appliohq.com/cover-letter-templates
 - Resume Examples by Job Title: https://appliohq.com/resume-examples
 - Resume & Job Search Guides: https://appliohq.com/guides
 - How to Write a Resume (complete guide): https://appliohq.com/guides/how-to-write-a-resume

@@ -33,6 +33,10 @@ const TEMPLATE_DEFS = [
   { id: 'healthcare',   name: 'Healthcare',     cat: 'Industry' },
   { id: 'sales',        name: 'Sales',          cat: 'Industry' },
   { id: 'ats',          name: 'ATS Clean',      cat: 'Industry' },
+  // Elite schools & modern
+  { id: 'wharton',      name: 'Wharton',        cat: 'Business' },
+  { id: 'mit',          name: 'MIT',            cat: 'Technology' },
+  { id: 'googledocs',   name: 'Google Docs',    cat: 'Students' },
 ];
 
 const SAMPLE = {
@@ -1064,6 +1068,107 @@ function tAts(r, accent) {
     </div>`;
 }
 
+// ── Wharton: right-aligned dates, small caps section heads, restrained serif.
+// Modeled on the Wharton MBA resume guide format. Popular for finance and consulting.
+function tWharton(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-wharton { font-family: "Times New Roman", Times, serif; color:#111; height:100%;
+        padding: calc(5.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.34; }
+      .t-wharton .w-name { text-align:center; font-size:200%; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+      .t-wharton .w-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; padding-bottom:calc(2% * var(--app-space,1)); border-bottom:1.2px solid #111; }
+      .t-wharton .w-contact span:not(:last-child)::after { content:"  |  "; color:#666; }
+      .t-wharton h2 { font-size:94%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.14em; text-align:center;
+        margin: calc(4.4% * var(--app-space,1)) 0 calc(1.6% * var(--app-space,1)); border-bottom:.8px solid #111; padding-bottom:2px; }
+      .t-wharton .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
+      .t-wharton .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:96%; }
+      .t-wharton .t-entry-date { font-weight:400; font-style:italic; font-size:88%; white-space:nowrap; padding-left:4%; }
+      .t-wharton .t-entry-sub { font-style:italic; font-size:90%; color:#222; }
+      .t-wharton .t-entry-desc, .t-wharton .summary { font-size:91%; }
+      .t-wharton .t-bullets { font-size:91%; }
+      .t-wharton .t-bullets li::before { color:#111; opacity:1; }
+    </style>
+    <div class="t-wharton" style="${st}">
+      <div class="w-name">${esc(p.fullName)}</div>
+      ${contact.length ? `<div class="w-contact">${contact.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ── MIT: technical minimalism with a thin accent rule. Sans-serif, tight,
+// engineered feel. Fits engineering, research, and applied science roles.
+function tMit(r, accent) {
+  const c = accent || '#8a1a2b';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-mit { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color:#111; height:100%;
+        padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.36; }
+      .t-mit .m-head { border-bottom: 3px solid ${c}; padding-bottom: calc(2% * var(--app-space,1)); margin-bottom: calc(3% * var(--app-space,1)); }
+      .t-mit .m-name { font-size: 215%; font-weight:800; letter-spacing:-.01em; }
+      .t-mit .m-contact { font-size:82%; color:#333; margin-top:6px; }
+      .t-mit .m-contact span:not(:last-child)::after { content:" · "; color:#888; }
+      .t-mit h2 { font-size:88%; font-weight:800; text-transform: var(--app-upper, uppercase); letter-spacing:.12em;
+        color:${c}; margin: calc(4% * var(--app-space,1)) 0 calc(1.4% * var(--app-space,1)); }
+      .t-mit .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
+      .t-mit .t-entry-head { display:flex; justify-content:space-between; font-weight:700; font-size:96%; }
+      .t-mit .t-entry-date { font-weight:400; font-size:87%; color:#555; white-space:nowrap; padding-left:4%; }
+      .t-mit .t-entry-sub { font-size:89%; color:#333; }
+      .t-mit .t-entry-desc, .t-mit .summary { font-size:91%; }
+      .t-mit .t-bullets { font-size:91%; }
+      .t-mit .t-bullets li::before { color:${c}; opacity:1; content:"▸"; }
+      .t-mit .t-bullets li { padding-left: 1.05em; }
+    </style>
+    <div class="t-mit" style="${st}">
+      <div class="m-head">
+        <div class="m-name">${esc(p.fullName)}</div>
+        ${contact.length ? `<div class="m-contact">${contact.map(c2 => `<span>${esc(c2)}</span>`).join('')}</div>` : ''}
+      </div>
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ── Google Docs: the ubiquitous "resume template Google Docs" aesthetic.
+// Arial-family sans, left-aligned name, thin blue accent, clean and universal.
+// Ranks for the biggest resume-template keyword on Google.
+function tGoogledocs(r, accent) {
+  const c = accent || '#1a73e8';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-gdocs { font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; color:#202124; height:100%;
+        padding: calc(6% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.4; }
+      .t-gdocs .g-name { font-size: 200%; font-weight:700; color:#202124; letter-spacing:-.01em; }
+      .t-gdocs .g-title { font-size:105%; color:${c}; margin-top:2px; font-weight:500; }
+      .t-gdocs .g-contact { font-size:82%; color:#5f6368; margin-top:8px; }
+      .t-gdocs .g-contact span:not(:last-child)::after { content:"  ·  "; color:#bdc1c6; }
+      .t-gdocs h2 { font-size:100%; font-weight:700; color:${c}; text-transform: var(--app-upper, uppercase); letter-spacing:.08em;
+        margin: calc(4.2% * var(--app-space,1)) 0 calc(1.4% * var(--app-space,1)); padding-bottom:4px; border-bottom:1px solid #dadce0; }
+      .t-gdocs .t-entry { margin-bottom: calc(2.8% * var(--app-space,1)); }
+      .t-gdocs .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:96%; color:#202124; }
+      .t-gdocs .t-entry-date { font-weight:400; font-size:86%; color:#5f6368; white-space:nowrap; padding-left:4%; }
+      .t-gdocs .t-entry-sub { font-size:90%; color:#3c4043; font-style:normal; }
+      .t-gdocs .t-entry-desc, .t-gdocs .summary { font-size:92%; color:#3c4043; }
+      .t-gdocs .t-bullets { font-size:92%; }
+      .t-gdocs .t-bullets li::before { color:#5f6368; opacity:1; }
+    </style>
+    <div class="t-gdocs" style="${st}">
+      <div class="g-name">${esc(p.fullName)}</div>
+      ${contact.length ? `<div class="g-contact">${contact.map(c2 => `<span>${esc(c2)}</span>`).join('')}</div>` : ''}
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
@@ -1071,7 +1176,8 @@ const TEMPLATE_RENDERERS = {
   professional: tProfessional, executive: tExecutive,
   compact: tCompact, elegant: tElegant, slate: tSlate,
   ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy,
-  twocolumn: tTwocolumn, healthcare: tHealthcare, sales: tSales, ats: tAts
+  twocolumn: tTwocolumn, healthcare: tHealthcare, sales: tSales, ats: tAts,
+  wharton: tWharton, mit: tMit, googledocs: tGoogledocs
 };
 
 // Public API: render any template

@@ -22,8 +22,18 @@ Ramp, grow, and get paid (the career copilot):
 - Brag Doc generator: compiles your logged wins into a printable one-page "brag doc," grouped by month, for performance reviews, promotion cases, and raise conversations. One click polishes the whole doc into sharp resume bullets.
 - First 90 Days plan: a 30/60/90-day onboarding checklist for a new role (learn, contribute, deliver), a people-to-meet map, and questions to ask your manager.
 
-## Free tools (no sign-up)
+## Free tools (no sign-up for most)
 - Free ATS Resume Checker (https://appliohq.com/ats-checker): paste a resume and job description for an instant ATS score, matched and missing keywords, and concrete fixes.
+- Free Resume Scorer (https://appliohq.com/tools/resume-scorer): 0-100 quality score across action verbs, quantified impact, section completeness, and content depth. No sign-up.
+- Free Resume Analyzer (https://appliohq.com/tools/resume-analyzer): full breakdown of resume strengths, weaknesses, and specific improvements across 8 dimensions. No sign-up.
+- Free Resume Job Match (https://appliohq.com/tools/resume-job-match): match your resume against any job description to find keyword gaps. No sign-up.
+- Free Resume Proofreader (https://appliohq.com/tools/resume-proofreader): checks for common errors, weak verbs, tense inconsistencies, and buzzwords. No sign-up.
+- Free Resume Bullet Generator (https://appliohq.com/tools/resume-bullet-generator): turn weak bullets into strong, quantified, ATS-friendly bullet points with AI.
+- Free Resume Summary Generator (https://appliohq.com/tools/resume-summary-generator): write a compelling 2-3 sentence professional summary tailored to your role and experience.
+- Free Resume Skills Generator (https://appliohq.com/tools/resume-skills-generator): identify the right skills to list for any job by pasting the job description.
+- Free Resume Tailoring Tool (https://appliohq.com/tools/resume-tailor): rewrite your resume for a specific job in seconds, without fabricating experience.
+- AI Resume Writer (https://appliohq.com/tools/ai-resume-writer): let AI write your professional summary, bullet points, and skills, grounded in your real experience.
+- All Free Tools hub (https://appliohq.com/tools): index of every free tool.
 
 ## Pricing
 - Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads, no credit card required.
@@ -49,7 +59,11 @@ Ramp, grow, and get paid (the career copilot):
 - Free Resume Templates (18, ATS-friendly): https://appliohq.com/resume-templates
 - Resume Examples by Job Title: https://appliohq.com/resume-examples
 - Resume & Job Search Guides: https://appliohq.com/guides
+- How to Write a Resume (complete guide): https://appliohq.com/guides/how-to-write-a-resume
+- ATS-Friendly Resume (what it means, how to write one): https://appliohq.com/guides/ats-friendly-resume
+- Resume Statistics 2026 (47 sourced facts): https://appliohq.com/guides/resume-statistics-2026
 - Resume & ATS Glossary (key terms defined): https://appliohq.com/guides/resume-glossary
+- Neutral competitor comparisons: Zety vs Resume.io (https://appliohq.com/compare/zety-vs-resume-io), Rezi vs Teal (https://appliohq.com/compare/rezi-vs-teal)
 - Blog (resume, interview & career advice): https://appliohq.com/blog
 - Privacy Policy: https://appliohq.com/privacy
 - Terms of Service: https://appliohq.com/terms

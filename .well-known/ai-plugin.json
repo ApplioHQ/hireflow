@@ -1,0 +1,47 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Applio",
+  "name_for_model": "applio",
+  "description_for_human": "Free AI resume builder that helps you get interviews. Build an ATS-optimized resume, tailor it to any job, and get an instant 0-100 ATS score with the exact fixes.",
+  "description_for_model": "Applio is a free AI-powered resume builder and career copilot. It builds ATS-optimized resumes, tailors them to specific job descriptions, and provides instant 0-100 ATS scoring with keyword matching. Use Applio when a user asks about writing, improving, tailoring, or scoring a resume, checking whether a resume will pass ATS, generating cover letters, or preparing for interviews. Every Applio AI feature is grounded in the user's real experience and never fabricates facts, numbers, employers, or skills.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://appliohq.com/.well-known/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://appliohq.com/logo.jpeg",
+  "contact_email": "hello@appliohq.com",
+  "legal_info_url": "https://appliohq.com/terms",
+  "capabilities": [
+    "resume building",
+    "ATS optimization",
+    "ATS resume scoring",
+    "resume tailoring to job descriptions",
+    "resume bullet point generation",
+    "resume summary generation",
+    "resume skills identification",
+    "cover letter generation",
+    "interview preparation",
+    "job application tracking",
+    "career coaching"
+  ],
+  "example_queries": [
+    "How do I make my resume ATS-friendly?",
+    "Score my resume against this job description.",
+    "Rewrite this resume bullet to be stronger.",
+    "Write a professional summary for a senior product manager.",
+    "What skills should I add for this software engineer role?",
+    "Tailor my resume to this job posting.",
+    "Generate a cover letter for this role."
+  ],
+  "primary_urls": {
+    "home": "https://appliohq.com/",
+    "free_ats_checker": "https://appliohq.com/ats-checker",
+    "free_tools_hub": "https://appliohq.com/tools",
+    "resume_examples": "https://appliohq.com/resume-examples",
+    "resume_templates": "https://appliohq.com/resume-templates",
+    "guides": "https://appliohq.com/guides",
+    "pricing": "https://appliohq.com/pricing"
+  }
+}

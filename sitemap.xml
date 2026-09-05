@@ -19,6 +19,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://appliohq.com/compare/zety-vs-resume-io</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/compare/rezi-vs-teal</loc>
+    <lastmod>2026-09-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://appliohq.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
@@ -588,6 +600,12 @@
   <url>
     <loc>https://appliohq.com/guides/ats-friendly-resume</loc>
     <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://appliohq.com/guides/resume-statistics-2026</loc>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>

@@ -92,7 +92,22 @@
 .rotator { white-space: nowrap; max-width: 100%; }
 .rotator { color: #a5b4fc; display: inline-block; }
 .hero-sub { font-size: 18px; color: rgba(255,255,255,.7); max-width: 520px; line-height: 1.55; margin-bottom: 36px; }
-.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.hero-cta-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  color: rgba(255,255,255,.9);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.04);
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.hero-cta-ghost::after { content: "→"; transition: transform .2s ease; }
+.hero-cta-ghost:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.4); color: #fff; }
+.hero-cta-ghost:hover::after { transform: translateX(3px); }
 
 /* ===== Hero mockup ===== */
 /* reset leaked styles from styles.css .hero-right (class-name collision) */
@@ -1602,7 +1617,37 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ============ PRICING FEATURE MATRIX ============
    Appears below the 2-card pricing UI. All plans visible at once. */
-.price-matrix-wrap { margin-top: 56px; }
+/* Collapsible "Compare all features" — folds the 16-row matrix behind a
+   toggle so the two pricing cards remain the visual centrepiece. */
+.price-compare { max-width: 880px; margin: 40px auto 0; }
+.price-compare[open] { margin-bottom: 20px; }
+.price-compare-toggle {
+  list-style: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  margin: 0 auto;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+  user-select: none;
+}
+.price-compare-toggle::-webkit-details-marker { display: none; }
+.price-compare-toggle:hover { background: #f5f3ff; border-color: #c7d2fe; }
+.price-compare .pcc-chev { transition: transform .2s ease; }
+.price-compare[open] .pcc-chev { transform: rotate(180deg); }
+/* Center the summary within the details container. */
+.price-compare > summary { text-align: center; display: block; }
+.price-compare > summary > .pcc-label { pointer-events: none; }
+/* Reveal animation for the matrix body */
+.price-compare[open] .price-matrix-wrap { animation: pc-fade .25s ease both; }
+@keyframes pc-fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.price-matrix-wrap { margin-top: 20px; }
 .price-matrix-title {
   text-align: center;
   font-size: 18px;

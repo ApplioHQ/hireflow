@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EchoMap — Acoustic Heat Map Builder for Interiors</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c232d; --line:#2a3340;
+    --ink:#e6edf3; --muted:#8b98a5; --accent:#4da3ff; --accent2:#7c5cff;
+    --good:#2ec27e; --warn:#f0a92b; --bad:#f2564d;
+    --radius:12px; --shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b0e13,#0e1116);color:var(--ink);
+    font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;}
+  header{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);
+    background:rgba(22,27,34,.7);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:.2px}
+  .logo .dot{width:26px;height:26px;border-radius:8px;background:
+    conic-gradient(from 0deg,#2ec27e,#4da3ff,#7c5cff,#f2564d,#2ec27e);}
+  header .tag{color:var(--muted);font-size:12px}
+  header .spacer{flex:1}
+  header button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+  header button:hover{border-color:var(--accent)}
+  header button.primary{background:linear-gradient(180deg,#4da3ff,#2b7fe0);border-color:#2b7fe0;font-weight:600}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{border:none;border-radius:0;padding:8px 14px}
+  .seg button.active{background:var(--accent2);color:#fff}
+
+  .app{display:grid;grid-template-columns:300px 1fr 300px;height:calc(100vh - 59px)}
+  .panel{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:16px}
+  .panel.right{border-right:none;border-left:1px solid var(--line)}
+  .stage{position:relative;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1200px 600px at 50% -10%,#141a22,#0e1116)}
+  canvas{background:#0c1017;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+  #c{cursor:crosshair}
+  #c3.grabbing{cursor:grabbing}
+  #c3{cursor:grab}
+  .hidden{display:none!important}
+
+  h3{margin:2px 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .sec{margin-bottom:22px}
+  .mat{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);
+    border-radius:9px;margin-bottom:7px;cursor:pointer;background:var(--panel2);transition:.12s}
+  .mat:hover{border-color:var(--accent)}
+  .mat.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .sw{width:16px;height:16px;border-radius:4px;flex:none}
+  .mat .name{flex:1;font-weight:600}
+  .mat .a{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+
+  .field{margin-bottom:12px}
+  .field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{font-variant-numeric:tabular-nums}
+
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+  .metric .big{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .metric .lbl{color:var(--muted);font-size:12px}
+  .metric .unit{font-size:14px;color:var(--muted);font-weight:600}
+  .rate{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-top:6px}
+  .legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:6px}
+  .bar{height:10px;flex:1;border-radius:6px;background:linear-gradient(90deg,#2ec27e,#8fd14f,#f0a92b,#f2564d)}
+  .hint{color:var(--muted);font-size:12px;line-height:1.5}
+  .surflist{max-height:150px;overflow:auto}
+  .surf{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .surf .sw{width:12px;height:12px}
+  .surf .len{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+  .band{display:flex;gap:6px;margin-top:8px}
+  .band button{flex:1;font-size:11px;padding:6px 0;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:7px;cursor:pointer}
+  .band button.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  kbd{background:#0c1017;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px}
+  .overlay{position:absolute;left:12px;bottom:12px;font-size:11px;color:var(--muted);
+    background:rgba(12,16,23,.7);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="dot"></span> EchoMap <span class="tag">acoustic heat-map studio</span></div>
+  <div class="seg" id="viewSeg">
+    <button data-v="2d" class="active">2D plan</button>
+    <button data-v="3d">3D</button>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnPreset">Load sample room</button>
+  <button id="btnClear">Clear</button>
+  <button id="btnSim" class="primary">▶ Simulate echo</button>
+</header>
+
+<div class="app">
+  <aside class="panel">
+    <div class="sec">
+      <h3>1 · Draw the room</h3>
+      <p class="hint">In <strong>2D plan</strong>, click to drop wall corners, then click the first point to close the loop. Set the material below <em>before</em> drawing each wall. Or load the sample room.</p>
+      <p class="hint"><kbd>Esc</kbd> clear · <kbd>Z</kbd> undo point</p>
+    </div>
+    <div class="sec">
+      <h3>2 · Surface material</h3>
+      <div id="materials"></div>
+    </div>
+    <div class="sec">
+      <h3>Simulation</h3>
+      <div class="field">
+        <label>Reflection bounces <span class="val" id="bounceVal">6</span></label>
+        <input type="range" id="bounces" min="1" max="12" value="6">
+      </div>
+      <div class="field">
+        <label>Ray count (accuracy) <span class="val" id="rayVal">720</span></label>
+        <input type="range" id="rays" min="180" max="2000" step="60" value="720">
+      </div>
+      <p class="hint">Drag the ● speaker (2D) to move the sound source. Hit <strong>Simulate echo</strong> to watch sound rays bounce and decay in real time.</p>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <canvas id="c" width="820" height="620"></canvas>
+    <canvas id="c3" width="820" height="620" class="hidden"></canvas>
+    <div class="overlay hidden" id="ov3">Drag to orbit · scroll to zoom</div>
+  </main>
+
+  <aside class="panel right">
+    <div class="sec">
+      <h3>3 · Acoustic results</h3>
+      <div class="metric">
+        <div class="lbl">Reverberation time (Sabine)</div>
+        <div><span class="big" id="rt60">—</span> <span class="unit">s RT60</span></div>
+        <div><span class="rate" id="rt60rate">—</span></div>
+      </div>
+      <div class="band" id="bandSel">
+        <button data-f="125">125Hz</button>
+        <button data-f="500" class="active">500Hz</button>
+        <button data-f="2000">2kHz</button>
+      </div>
+      <div class="metric" style="margin-top:10px">
+        <div class="lbl">Room volume (2.7 m ceiling)</div>
+        <div><span class="big" id="vol" style="font-size:22px">—</span> <span class="unit">m³</span></div>
+        <div class="lbl" style="margin-top:6px">Total absorption</div>
+        <div><span id="absorb" style="font-weight:700">—</span> <span class="unit">sabins</span></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>Echo heat map</h3>
+      <div class="legend"><span>calm</span><div class="bar"></div><span>harsh</span></div>
+      <p class="hint" style="margin-top:8px">Red / orange zones bounce sound back at the listener — conversation gets fatiguing. Green zones are absorbed and comfortable.</p>
+    </div>
+    <div class="sec">
+      <h3>Walls</h3>
+      <div class="surflist" id="surflist"><p class="hint">No walls yet.</p></div>
+    </div>
+    <div class="sec">
+      <h3>Client takeaway</h3>
+      <p class="hint" id="advice">Draw or load a room to generate a recommendation.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ===== materials: absorption α by octave band [125,500,2000] Hz ===== */
+const MATERIALS = [
+  { id:'concrete', name:'Concrete / glass', color:'#6db3ff', a:[0.02,0.03,0.05] },
+  { id:'hardwood', name:'Hardwood',         color:'#e0a458', a:[0.15,0.10,0.07] },
+  { id:'drywall',  name:'Drywall',          color:'#c9d1d9', a:[0.10,0.05,0.09] },
+  { id:'curtain',  name:'Heavy curtain',    color:'#b07cff', a:[0.14,0.55,0.70] },
+  { id:'carpet',   name:'Carpet + pad',     color:'#2ec27e', a:[0.08,0.30,0.65] },
+  { id:'panel',    name:'Acoustic panel',   color:'#ff8f6b', a:[0.20,0.85,0.95] },
+];
+let activeMat = MATERIALS[0];
+let band = 1;
+const CEIL = 2.7, PX_PER_M = 26, GRID = 6;
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const cv3 = document.getElementById('c3'), ctx3 = cv3.getContext('2d');
+const W = cv.width, H = cv.height;
+
+let pts=[], mats=[], closed=false, mouse={x:0,y:0};
+let source={x:W*0.5,y:H*0.55}, draggingSource=false;
+let heat=null;
+let view='2d';
+
+/* ===== materials UI ===== */
+const matBox=document.getElementById('materials');
+MATERIALS.forEach(m=>{
+  const el=document.createElement('div');
+  el.className='mat'+(m===activeMat?' active':'');
+  el.innerHTML=`<span class="sw" style="background:${m.color}"></span>
+    <span class="name">${m.name}</span><span class="a">α ${m.a[band].toFixed(2)}</span>`;
+  el.onclick=()=>{activeMat=m;[...matBox.children].forEach(c=>c.classList.remove('active'));el.classList.add('active');};
+  matBox.appendChild(el);
+});
+const refreshMatAlphas=()=>[...matBox.children].forEach((el,i)=>el.querySelector('.a').textContent='α '+MATERIALS[i].a[band].toFixed(2));
+
+/* ===== geometry ===== */
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function pointInPoly(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+  const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+  if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;}return inside;}
+function polyAreaM2(poly){let a=0;for(let i=0,j=poly.length-1;i<poly.length;j=i++)a+=(poly[j].x+poly[i].x)*(poly[j].y-poly[i].y);
+  return Math.abs(a/2)/(PX_PER_M*PX_PER_M);}
+function edges(){const e=[];const n=closed?pts.length:pts.length-1;
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%pts.length];
+    e.push({a,b,mat:MATERIALS.find(m=>m.id===mats[i])||MATERIALS[0]});}return e;}
+function rayHit(ox,oy,dx,dy,segs){let best=null,bestT=Infinity;
+  for(const s of segs){const x1=s.a.x,y1=s.a.y,x2=s.b.x,y2=s.b.y,ex=x2-x1,ey=y2-y1;
+    const den=dx*ey-dy*ex;if(Math.abs(den)<1e-9)continue;
+    const t=((x1-ox)*ey-(y1-oy)*ex)/den,u=((x1-ox)*dy-(y1-oy)*dx)/den;
+    if(t>0.001&&u>=0&&u<=1&&t<bestT){bestT=t;best={t,seg:s,u};}}return best;}
+
+/* ===== heat map ===== */
+function computeHeat(){
+  if(!closed||pts.length<3){heat=null;return;}
+  const segs=edges(),cols=Math.ceil(W/GRID),rows=Math.ceil(H/GRID);
+  heat={cols,rows,data:new Float32Array(cols*rows)};
+  const nRays=+document.getElementById('rays').value, maxB=+document.getElementById('bounces').value;
+  for(let r=0;r<nRays;r++){
+    const ang=(r/nRays)*Math.PI*2;
+    let ox=source.x,oy=source.y,dx=Math.cos(ang),dy=Math.sin(ang),energy=1;
+    for(let b=0;b<maxB;b++){
+      const hit=rayHit(ox,oy,dx,dy,segs);if(!hit)break;
+      const steps=Math.max(1,Math.floor(hit.t/GRID));
+      for(let s=0;s<steps;s++){const px=ox+dx*s*GRID,py=oy+dy*s*GRID;
+        const gx=Math.floor(px/GRID),gy=Math.floor(py/GRID);
+        if(gx>=0&&gy>=0&&gx<cols&&gy<rows)heat.data[gy*cols+gx]+=energy;}
+      const s=hit.seg,ex=s.b.x-s.a.x,ey=s.b.y-s.a.y,nl=Math.hypot(ex,ey);
+      let nx=-ey/nl,ny=ex/nl;const dot=dx*nx+dy*ny;dx-=2*dot*nx;dy-=2*dot*ny;
+      ox=s.a.x+ex*hit.u;oy=s.a.y+ey*hit.u;energy*=(1-s.mat.a[band]);if(energy<0.02)break;}
+  }
+  let mx=0;for(const v of heat.data)if(v>mx)mx=v;if(mx>0)for(let i=0;i<heat.data.length;i++)heat.data[i]/=mx;
+}
+
+/* ===== ray PATHS for animation ===== */
+let simPaths=[], simT=0, simRunning=false, simRAF=null;
+function buildSimPaths(){
+  simPaths=[];if(!closed||pts.length<3)return;
+  const segs=edges(),maxB=Math.min(10,+document.getElementById('bounces').value),N=90;
+  for(let r=0;r<N;r++){
+    const ang=(r/N)*Math.PI*2;
+    let ox=source.x,oy=source.y,dx=Math.cos(ang),dy=Math.sin(ang),energy=1;
+    const path=[{x:ox,y:oy,e:energy}];
+    for(let b=0;b<maxB;b++){
+      const hit=rayHit(ox,oy,dx,dy,segs);if(!hit)break;
+      const s=hit.seg,ex=s.b.x-s.a.x,ey=s.b.y-s.a.y;
+      ox=s.a.x+ex*hit.u;oy=s.a.y+ey*hit.u;
+      const nl=Math.hypot(ex,ey);let nx=-ey/nl,ny=ex/nl;const dot=dx*nx+dy*ny;dx-=2*dot*nx;dy-=2*dot*ny;
+      energy*=(1-s.mat.a[band]);path.push({x:ox,y:oy,e:energy});
+      if(energy<0.03)break;}
+    // precompute cumulative length
+    let len=0;for(let i=1;i<path.length;i++){path[i].d=len+=dist(path[i-1],path[i]);}
+    path[0].d=0;path.total=len;simPaths.push(path);
+  }
+}
+function startSim(){
+  if(!closed){recompute();return;}
+  buildSimPaths();simT=0;simRunning=true;
+  if(simRAF)cancelAnimationFrame(simRAF);
+  const t0=performance.now();
+  const step=(now)=>{
+    simT=(now-t0)/1000;                 // seconds elapsed
+    if(view==='2d')draw();else draw3d();
+    if(simT<3.2){simRAF=requestAnimationFrame(step);}
+    else{simRunning=false;if(view==='2d')draw();else draw3d();}
+  };
+  simRAF=requestAnimationFrame(step);
+}
+// distance the wavefront has traveled (px) at time simT
+const WAVE_SPEED=900; // px/s (scaled "speed of sound")
+function waveHead(){return simT*WAVE_SPEED;}
+
+/* ===== Sabine RT60 ===== */
+function computeRT60(){
+  if(!closed||pts.length<3)return null;
+  const floorArea=polyAreaM2(pts),vol=floorArea*CEIL,segs=edges();
+  let A=0;for(const s of segs){const lenM=dist(s.a,s.b)/PX_PER_M,area=lenM*CEIL;A+=area*s.mat.a[band];}
+  A+=floorArea*0.10;A+=floorArea*0.06;
+  return{rt60:0.161*vol/Math.max(A,0.01),vol,A,floorArea};
+}
+
+/* ===== color ramp ===== */
+function heatColor(v){const stops=[[46,194,126],[143,209,79],[240,169,43],[242,86,77]];
+  const t=Math.min(1,Math.max(0,v))*3,i=Math.min(2,Math.floor(t)),f=t-i,a=stops[i],b=stops[i+1];
+  return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];}
+
+/* ===== 2D DRAW ===== */
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,.03)';
+  for(let x=0;x<W;x+=PX_PER_M){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=PX_PER_M){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  if(heat&&closed){
+    ctx.save();ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.clip();
+    for(let gy=0;gy<heat.rows;gy++)for(let gx=0;gx<heat.cols;gx++){
+      const v=heat.data[gy*heat.cols+gx];if(v<=0.001)continue;const c=heatColor(Math.pow(v,0.6));
+      ctx.fillStyle=`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${0.16+0.55*Math.pow(v,0.6)})`;
+      ctx.fillRect(gx*GRID,gy*GRID,GRID,GRID);}
+    ctx.restore();
+  }
+  edges().forEach(e=>{ctx.strokeStyle=e.mat.color;ctx.lineWidth=5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(e.a.x,e.a.y);ctx.lineTo(e.b.x,e.b.y);ctx.stroke();});
+  if(!closed&&pts.length){ctx.strokeStyle=activeMat.color;ctx.setLineDash([6,6]);ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(pts[pts.length-1].x,pts[pts.length-1].y);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([]);}
+  pts.forEach((p,i)=>{ctx.fillStyle=(i===0&&!closed&&pts.length>2&&dist(mouse,p)<12)?'#fff':'#0c1017';
+    ctx.strokeStyle=activeMat.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();ctx.stroke();});
+  if(simRunning)drawSim2D();
+  if(closed){ctx.fillStyle='#4da3ff';ctx.strokeStyle='#fff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(source.x,source.y,9,0,7);ctx.fill();ctx.stroke();
+    if(simRunning){const wr=waveHead()%260;ctx.strokeStyle=`rgba(77,163,255,${Math.max(0,0.5-wr/260*0.5)})`;
+      ctx.lineWidth=2;ctx.beginPath();ctx.arc(source.x,source.y,10+wr,0,7);ctx.stroke();}
+    else{ctx.fillStyle='rgba(77,163,255,.25)';ctx.beginPath();ctx.arc(source.x,source.y,16,0,7);ctx.fill();}}
+}
+function drawSim2D(){
+  const head=waveHead();
+  ctx.lineCap='round';
+  for(const path of simPaths){
+    for(let i=1;i<path.length;i++){
+      const p0=path[i-1],p1=path[i];
+      if(head<p0.d)break;
+      const segEnd=Math.min(head,p1.d);
+      const f=(segEnd-p0.d)/(p1.d-p0.d||1);
+      const ex=p0.x+(p1.x-p0.x)*f, ey=p0.y+(p1.y-p0.y)*f;
+      // fade tail: only show a moving band behind the head
+      const behind=head-segEnd;
+      const alpha=Math.max(0,(1-behind/220))*p0.e;
+      if(alpha<=0.01)continue;
+      const c=heatColor(1-p0.e);
+      ctx.strokeStyle=`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${alpha})`;
+      ctx.lineWidth=1.6+2.4*p0.e;
+      ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(ex,ey);ctx.stroke();
+    }
+  }
+}
+
+/* ===== 3D DRAW (self-contained projection) ===== */
+let yaw=0.7, pitch=0.62, camDist=34, rotating=false, lastM=null;
+function centroidM(){let cx=0,cy=0;pts.forEach(p=>{cx+=p.x;cy+=p.y;});
+  return{x:cx/pts.length/PX_PER_M, z:cy/pts.length/PX_PER_M};}
+function project(wx,wy,wz){ // world meters: x,z ground, y up
+  const c=centroidM();
+  let x=wx-c.x, y=wy, z=wz-c.z;
+  const cy=Math.cos(yaw),sy=Math.sin(yaw);
+  let x1=x*cy - z*sy, z1=x*sy + z*cy;
+  const cp=Math.cos(pitch),sp=Math.sin(pitch);
+  let y1=y*cp - z1*sp, z2=y*sp + z1*cp;
+  const d=camDist, focal=620;
+  const zz=z2+d; if(zz<0.1)return null;
+  const f=focal/zz;
+  return{x:W/2 + x1*f, y:H/2 - y1*f + 40, depth:zz};
+}
+function draw3d(){
+  ctx3.clearRect(0,0,W,H);
+  ctx3.fillStyle='#0c1017';ctx3.fillRect(0,0,W,H);
+  if(!closed||pts.length<3){ctx3.fillStyle='#8b98a5';ctx3.font='14px sans-serif';ctx3.textAlign='center';
+    ctx3.fillText('Draw or load a room in 2D plan, then switch to 3D',W/2,H/2);return;}
+  const P=pts.map(p=>({x:p.x/PX_PER_M,z:p.y/PX_PER_M}));
+  // floor heat cells as depth-sorted quads
+  const quads=[];
+  if(heat){
+    for(let gy=0;gy<heat.rows;gy++)for(let gx=0;gx<heat.cols;gx++){
+      const v=heat.data[gy*heat.cols+gx];if(v<=0.02)continue;
+      const cxp=(gx+0.5)*GRID, cyp=(gy+0.5)*GRID;
+      if(!pointInPoly(cxp,cyp,pts))continue;
+      const x0=gx*GRID/PX_PER_M,z0=gy*GRID/PX_PER_M,x1=(gx+1)*GRID/PX_PER_M,z1=(gy+1)*GRID/PX_PER_M;
+      const pA=project(x0,0,z0),pB=project(x1,0,z0),pC=project(x1,0,z1),pD=project(x0,0,z1);
+      if(!pA||!pB||!pC||!pD)continue;
+      const c=heatColor(Math.pow(v,0.6));
+      quads.push({depth:(pA.depth+pC.depth)/2,pts:[pA,pB,pC,pD],
+        fill:`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${0.35+0.55*Math.pow(v,0.6)})`});
+    }
+  } else {
+    // plain floor
+    const fp=P.map(p=>project(p.x,0,p.z));
+    if(fp.every(q=>q)){quads.push({depth:1e9,pts:fp,fill:'rgba(30,40,52,.8)'});}
+  }
+  // walls extruded to CEIL
+  const es=[];const n=pts.length;
+  for(let i=0;i<n;i++){
+    const a=P[i],b=P[(i+1)%n],mat=MATERIALS.find(m=>m.id===mats[i])||MATERIALS[0];
+    const bl=project(a.x,0,a.z),br=project(b.x,0,b.z),tr=project(b.x,CEIL,b.z),tl=project(a.x,CEIL,a.z);
+    if(!bl||!br||!tr||!tl)continue;
+    const depth=(bl.depth+br.depth+tr.depth+tl.depth)/4;
+    es.push({depth,pts:[bl,br,tr,tl],mat});
+  }
+  // draw floor quads first (sorted far->near), then walls far->near mixed
+  const all=[...quads.map(q=>({...q,type:'f'})),...es.map(e=>({...e,type:'w'}))];
+  all.sort((a,b)=>b.depth-a.depth);
+  for(const item of all){
+    ctx3.beginPath();item.pts.forEach((p,i)=>i?ctx3.lineTo(p.x,p.y):ctx3.moveTo(p.x,p.y));ctx3.closePath();
+    if(item.type==='f'){ctx3.fillStyle=item.fill;ctx3.fill();}
+    else{
+      const g=item.mat.color;
+      ctx3.fillStyle=hexA(g,0.30);ctx3.fill();
+      ctx3.strokeStyle=g;ctx3.lineWidth=2.5;ctx3.stroke();
+      // material label baseline
+      ctx3.fillStyle=hexA(g,0.9);
+    }
+  }
+  // animated rays in 3D (on floor plane, slight lift)
+  if(simRunning){
+    const head=waveHead();
+    ctx3.lineCap='round';
+    for(const path of simPaths){
+      for(let i=1;i<path.length;i++){
+        const p0=path[i-1],p1=path[i];if(head<p0.d)break;
+        const segEnd=Math.min(head,p1.d),f=(segEnd-p0.d)/(p1.d-p0.d||1);
+        const behind=head-segEnd,alpha=Math.max(0,(1-behind/220))*p0.e;if(alpha<=0.02)continue;
+        const A=project(p0.x/PX_PER_M,0.1,p0.z===undefined?p0.y/PX_PER_M:p0.y/PX_PER_M);
+        const ex=p0.x+(p1.x-p0.x)*f, ey=p0.y+(p1.y-p0.y)*f;
+        const S=project(p0.x/PX_PER_M,0.1,p0.y/PX_PER_M),E=project(ex/PX_PER_M,0.1,ey/PX_PER_M);
+        if(!S||!E)continue;const c=heatColor(1-p0.e);
+        ctx3.strokeStyle=`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${alpha})`;ctx3.lineWidth=1.4+2*p0.e;
+        ctx3.beginPath();ctx3.moveTo(S.x,S.y);ctx3.lineTo(E.x,E.y);ctx3.stroke();
+      }
+    }
+  }
+  // source marker (small pole)
+  const sm={x:source.x/PX_PER_M,z:source.y/PX_PER_M};
+  const base=project(sm.x,0,sm.z),topp=project(sm.x,1.2,sm.z);
+  if(base&&topp){ctx3.strokeStyle='#4da3ff';ctx3.lineWidth=3;ctx3.beginPath();ctx3.moveTo(base.x,base.y);ctx3.lineTo(topp.x,topp.y);ctx3.stroke();
+    ctx3.fillStyle='#4da3ff';ctx3.beginPath();ctx3.arc(topp.x,topp.y,6,0,7);ctx3.fill();
+    ctx3.strokeStyle='#fff';ctx3.lineWidth=2;ctx3.stroke();}
+}
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+
+/* ===== panel ===== */
+function updatePanel(){
+  const surf=document.getElementById('surflist'),e=edges();
+  surf.innerHTML=e.length?e.map(s=>`<div class="surf"><span class="sw" style="background:${s.mat.color}"></span>
+    ${s.mat.name}<span class="len">${(dist(s.a,s.b)/PX_PER_M).toFixed(1)} m</span></div>`).join(''):'<p class="hint">No walls yet.</p>';
+  const r=computeRT60(),rt=document.getElementById('rt60'),rate=document.getElementById('rt60rate');
+  if(!r){rt.textContent='—';rate.textContent='—';rate.style.background='transparent';
+    document.getElementById('vol').textContent='—';document.getElementById('absorb').textContent='—';
+    document.getElementById('advice').textContent='Draw or load a room to generate a recommendation.';return;}
+  rt.textContent=r.rt60.toFixed(2);document.getElementById('vol').textContent=Math.round(r.vol);
+  document.getElementById('absorb').textContent=r.A.toFixed(1);
+  let label,col,adv;
+  if(r.rt60<0.5){label='Dry / intimate';col='var(--good)';adv='Excellent for speech clarity — offices, meeting rooms, restaurants. Conversation stays effortless.';}
+  else if(r.rt60<0.9){label='Balanced';col='#8fd14f';adv='Comfortable, natural room. Good for open lounges and cafés.';}
+  else if(r.rt60<1.4){label='Live / echoey';col='var(--warn)';adv='Noticeably reverberant. Diners will raise their voices; add curtains or acoustic panels to hard walls.';}
+  else{label='Harsh / noisy';col='var(--bad)';adv='Sound piles up — this space will feel loud and fatiguing. Replace glass/concrete walls with acoustic panels or carpet to cut RT60 below 0.9 s.';}
+  rate.textContent=label;rate.style.background=col;rate.style.color='#0b0e13';document.getElementById('advice').textContent=adv;
+}
+function recompute(){computeHeat();updatePanel();if(view==='2d')draw();else draw3d();}
+
+/* ===== 2D interaction ===== */
+const pos=ev=>{const r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)*(W/r.width),y:(ev.clientY-r.top)*(H/r.height)};};
+cv.addEventListener('mousemove',ev=>{mouse=pos(ev);
+  if(draggingSource){source=mouse;recompute();return;}if(!closed)draw();});
+cv.addEventListener('mousedown',ev=>{const p=pos(ev);if(closed&&dist(p,source)<16)draggingSource=true;});
+window.addEventListener('mouseup',()=>{draggingSource=false;});
+cv.addEventListener('click',ev=>{
+  if(draggingSource||closed)return;const p=pos(ev);
+  if(pts.length>2&&dist(p,pts[0])<12){closed=true;if(mats.length<pts.length)mats.push(activeMat.id);
+    let cx=0,cy=0;pts.forEach(q=>{cx+=q.x;cy+=q.y;});source={x:cx/pts.length,y:cy/pts.length};recompute();return;}
+  pts.push(p);if(pts.length>1)mats.push(activeMat.id);draw();updatePanel();});
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){pts=[];mats=[];closed=false;heat=null;simRunning=false;recompute();}
+  if((e.key==='z'||e.key==='Z')&&!closed){pts.pop();mats.pop();draw();updatePanel();}});
+
+/* ===== 3D orbit ===== */
+cv3.addEventListener('mousedown',e=>{rotating=true;lastM={x:e.clientX,y:e.clientY};cv3.classList.add('grabbing');});
+window.addEventListener('mousemove',e=>{if(!rotating)return;
+  yaw+=(e.clientX-lastM.x)*0.01;pitch=Math.max(0.05,Math.min(1.35,pitch+(e.clientY-lastM.y)*0.006));
+  lastM={x:e.clientX,y:e.clientY};if(!simRunning)draw3d();});
+window.addEventListener('mouseup',()=>{rotating=false;cv3.classList.remove('grabbing');});
+cv3.addEventListener('wheel',e=>{e.preventDefault();camDist=Math.max(12,Math.min(80,camDist+e.deltaY*0.03));if(!simRunning)draw3d();},{passive:false});
+
+/* ===== controls ===== */
+document.getElementById('bounces').oninput=e=>{document.getElementById('bounceVal').textContent=e.target.value;if(closed)recompute();};
+document.getElementById('rays').oninput=e=>{document.getElementById('rayVal').textContent=e.target.value;};
+document.getElementById('rays').onchange=()=>{if(closed)recompute();};
+document.getElementById('btnSim').onclick=startSim;
+document.getElementById('btnClear').onclick=()=>{pts=[];mats=[];closed=false;heat=null;simRunning=false;recompute();};
+document.getElementById('bandSel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  band=b.dataset.f==='125'?0:b.dataset.f==='2000'?2:1;
+  [...e.currentTarget.children].forEach(c=>c.classList.remove('active'));b.classList.add('active');
+  refreshMatAlphas();if(closed)recompute();});
+document.getElementById('viewSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  view=b.dataset.v;[...e.currentTarget.children].forEach(c=>c.classList.remove('active'));b.classList.add('active');
+  cv.classList.toggle('hidden',view==='3d');cv3.classList.toggle('hidden',view==='2d');
+  document.getElementById('ov3').classList.toggle('hidden',view==='2d');
+  if(view==='2d')draw();else draw3d();});
+
+document.getElementById('btnPreset').onclick=()=>{
+  pts=[{x:160,y:120},{x:660,y:120},{x:660,y:500},{x:160,y:500}];
+  mats=['concrete','hardwood','curtain','panel'];closed=true;source={x:410,y:310};recompute();};
+
+draw();updatePanel();
+</script>
+</body>
+</html>

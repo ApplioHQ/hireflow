@@ -92,6 +92,35 @@
 .rotator { white-space: nowrap; max-width: 100%; }
 .rotator { color: #a5b4fc; display: inline-block; }
 .hero-sub { font-size: 18px; color: rgba(255,255,255,.7); max-width: 520px; line-height: 1.55; margin-bottom: 36px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 12px;
+  margin: 0 0 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgba(255,255,255,.92);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.hero-eyebrow:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.32); transform: translateY(-1px); }
+.hero-eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74,222,128,.22);
+  animation: hero-eb-pulse 2.2s ease-in-out infinite;
+}
+@keyframes hero-eb-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,.22); }
+  50%      { box-shadow: 0 0 0 6px rgba(74,222,128,.05); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-eyebrow-dot { animation: none; } }
+
 .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .hero-cta-ghost {
   display: inline-flex; align-items: center; gap: 6px;

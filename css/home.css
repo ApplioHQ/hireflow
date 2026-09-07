@@ -1385,26 +1385,40 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ============ HERO STATS STRIP ============
-   Dark full-width strip pinned directly under the hero. Real numbers only.
-   Numbers animate in via data-magic-ticker (js/magic.js). */
+   Full-width strip continuing the hero. Real numbers only.
+   Uses the exact hero palette (matches .hero-bg gradients) so it reads as
+   one continuous scene, not a separate slice. Numbers animate in via
+   data-magic-ticker (js/magic.js). */
 .hero-stats {
-  background: linear-gradient(180deg, #07091a 0%, #0d1130 100%);
-  border-top: 1px solid rgba(255,255,255,.06);
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  padding: 32px 20px;
   position: relative;
+  background:
+    radial-gradient(circle at 20% 60%, rgba(99,102,241,.14), transparent 55%),
+    radial-gradient(circle at 80% 40%, rgba(139,92,246,.12), transparent 55%),
+    linear-gradient(180deg, #0f1437 0%, #0a0e27 100%);
+  padding: 40px 20px 44px;
   z-index: 2;
+}
+.hero-stats::before {
+  /* Fine top hairline so the transition from the hero's wave divider
+     into this strip has a barely-perceptible edge. No border-bottom
+     because the section below (Sound familiar?) is white and gets its
+     own wave divider. */
+  content: "";
+  position: absolute;
+  top: 0; left: 5%; right: 5%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
 }
 .hero-stats .hs-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-  max-width: 1080px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px 16px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: 0 12px;
 }
 .hs-item { text-align: center; }
 .hs-num {
-  font-size: clamp(28px, 3.6vw, 40px);
+  font-size: clamp(26px, 3.2vw, 38px);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #fff;
@@ -1414,14 +1428,18 @@ section[id] { scroll-margin-top: 80px; }
 }
 .hs-num .hs-suffix { color: #a5b4fc; font-weight: 700; }
 .hs-label {
-  font-size: 13px;
-  color: rgba(255,255,255,.62);
+  font-size: 12.5px;
+  color: rgba(255,255,255,.65);
   font-weight: 500;
   letter-spacing: 0.01em;
+  line-height: 1.35;
 }
-@media (max-width: 720px) {
-  .hero-stats .hs-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
-  .hero-stats { padding: 24px 16px; }
+@media (max-width: 900px) {
+  .hero-stats .hs-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 560px) {
+  .hero-stats .hs-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 14px; }
+  .hero-stats { padding: 28px 16px 32px; }
 }
 
 /* ============ LIVE ATS DEMO SECTION ============

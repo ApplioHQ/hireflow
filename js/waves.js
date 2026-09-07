@@ -147,8 +147,13 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    const el = document.getElementById('hero-waves');
     // Themed to the app: indigo lines over the hero's brand gradient (transparent bg).
-    if (el) initWaves(el, { strokeColor: '#818cf8', backgroundColor: 'transparent', strokeOpacity: 0.16 });
+    // Init on any element with a data-waves attribute OR the legacy #hero-waves /
+    // new #stats-waves ids, so the same animation extends seamlessly across the
+    // hero and the stats strip immediately below it.
+    ['hero-waves', 'stats-waves'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) initWaves(el, { strokeColor: '#818cf8', backgroundColor: 'transparent', strokeOpacity: 0.16 });
+    });
   });
 })();

@@ -295,19 +295,27 @@
   </a>
 </section>
 
-<!-- ============ STATS STRIP ============ -->
-<!-- Dark strip immediately below hero. Real, defensible numbers only.
-     Uses data-magic-ticker (from js/magic.js) to count up on scroll. -->
+<!-- ============ STATS STRIP ============
+     Dark strip immediately below hero. Real, defensible numbers only.
+     '70+ job seekers' is the visual anchor (hs-hero), the other four sit
+     in a supporting row. Same wavy background as the hero via a second
+     waves canvas (init'd by js/waves.js), so it reads as an extension
+     of the hero, not a separate slice. -->
 <section class="hero-stats" aria-label="Applio in numbers">
-  <div class="container">
+  <div id="stats-waves" aria-hidden="true"></div>
+  <div class="container hs-container">
+    <div class="hs-hero">
+      <div class="hs-hero-eyebrow">Trusted by</div>
+      <div class="hs-hero-num">
+        <span data-magic-ticker="70" data-magic-ticker-duration="1500">0</span><span class="hs-hero-suffix">+</span>
+      </div>
+      <div class="hs-hero-label">Job seekers building better resumes with Applio</div>
+    </div>
+    <div class="hs-divider" aria-hidden="true"></div>
     <div class="hs-grid">
       <div class="hs-item">
-        <div class="hs-num"><span data-magic-ticker="70" data-magic-ticker-duration="1500">0</span><span class="hs-suffix">+</span></div>
-        <div class="hs-label">Job seekers using Applio</div>
-      </div>
-      <div class="hs-item">
         <div class="hs-num"><span data-magic-ticker="25" data-magic-ticker-duration="1400">0</span></div>
-        <div class="hs-label">ATS-friendly templates</div>
+        <div class="hs-label">ATS templates</div>
       </div>
       <div class="hs-item">
         <div class="hs-num"><span data-magic-ticker="11" data-magic-ticker-duration="1200">0</span></div>
@@ -315,7 +323,7 @@
       </div>
       <div class="hs-item">
         <div class="hs-num"><span data-magic-ticker="100" data-magic-ticker-duration="1600">0</span><span class="hs-suffix">+</span></div>
-        <div class="hs-label">Resume examples &amp; guides</div>
+        <div class="hs-label">Examples &amp; guides</div>
       </div>
       <div class="hs-item">
         <div class="hs-num">0<span class="hs-suffix">-100</span></div>

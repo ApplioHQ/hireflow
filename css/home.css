@@ -1385,40 +1385,100 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ============ HERO STATS STRIP ============
-   Full-width strip continuing the hero. Real numbers only.
-   Uses the exact hero palette (matches .hero-bg gradients) so it reads as
-   one continuous scene, not a separate slice. Numbers animate in via
-   data-magic-ticker (js/magic.js). */
+   Continuation of the hero. Uses the same wavy background (via a second
+   waves canvas #stats-waves, init'd by js/waves.js) over the exact hero
+   palette so it reads as one continuous scene. '70+ job seekers' is the
+   visual anchor; the other 4 numbers sit in a supporting row beside it. */
 .hero-stats {
   position: relative;
+  overflow: hidden;
   background:
     radial-gradient(circle at 20% 60%, rgba(99,102,241,.14), transparent 55%),
     radial-gradient(circle at 80% 40%, rgba(139,92,246,.12), transparent 55%),
     linear-gradient(180deg, #0f1437 0%, #0a0e27 100%);
-  padding: 40px 20px 44px;
+  padding: 52px 20px 60px;
   z-index: 2;
 }
+/* Second waves canvas — same styling as #hero-waves so the animation
+   appears to extend from the hero into this strip seamlessly. */
+#stats-waves {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .85;
+}
+/* Barely-perceptible top hairline stitching hero → stats.
+   Nothing on the bottom — the white wave-divider handles that. */
 .hero-stats::before {
-  /* Fine top hairline so the transition from the hero's wave divider
-     into this strip has a barely-perceptible edge. No border-bottom
-     because the section below (Sound familiar?) is white and gets its
-     own wave divider. */
   content: "";
   position: absolute;
   top: 0; left: 5%; right: 5%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent);
+  z-index: 1;
 }
-.hero-stats .hs-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 24px 16px;
-  max-width: 1120px;
+.hs-container {
+  position: relative;
+  z-index: 2;
+  max-width: 1160px;
   margin: 0 auto;
-  padding: 0 12px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 1px 2.2fr;
+  gap: 44px;
+  align-items: center;
+}
+.hs-hero {
+  text-align: left;
+  padding: 4px 0;
+}
+.hs-hero-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  margin-bottom: 8px;
+}
+.hs-hero-num {
+  font-size: clamp(56px, 7vw, 88px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 60%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hs-hero-suffix {
+  background: linear-gradient(135deg, #a5b4fc, #7c85f0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+}
+.hs-hero-label {
+  font-size: 14px;
+  color: rgba(255,255,255,.72);
+  font-weight: 500;
+  line-height: 1.45;
+  margin-top: 10px;
+  max-width: 260px;
+}
+.hs-divider {
+  width: 1px;
+  align-self: stretch;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.14), transparent);
+}
+.hs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
 }
 .hs-item { text-align: center; }
 .hs-num {
-  font-size: clamp(26px, 3.2vw, 38px);
+  font-size: clamp(24px, 2.6vw, 32px);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #fff;
@@ -1429,17 +1489,21 @@ section[id] { scroll-margin-top: 80px; }
 .hs-num .hs-suffix { color: #a5b4fc; font-weight: 700; }
 .hs-label {
   font-size: 12.5px;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.62);
   font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1.35;
 }
 @media (max-width: 900px) {
-  .hero-stats .hs-grid { grid-template-columns: repeat(3, 1fr); }
+  .hs-container { grid-template-columns: 1fr; gap: 28px; }
+  .hs-hero { text-align: center; }
+  .hs-hero-label { max-width: none; margin-left: auto; margin-right: auto; }
+  .hs-divider { width: 60%; height: 1px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent); }
 }
 @media (max-width: 560px) {
-  .hero-stats .hs-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 14px; }
-  .hero-stats { padding: 28px 16px 32px; }
+  .hs-grid { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; }
+  .hero-stats { padding: 36px 16px 40px; }
+  .hs-container { gap: 22px; }
 }
 
 /* ============ LIVE ATS DEMO SECTION ============

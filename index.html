@@ -367,7 +367,24 @@
 <!-- ============ TEMPLATE PROOF ============ -->
 <style>
   /* ===== Templates carousel ===== */
-  #templates .tpl-carousel { display:flex; align-items:center; justify-content:center; gap:18px; margin:32px auto 0; max-width:960px; }
+  #templates .tpl-filters { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:22px auto 6px; max-width:820px; }
+  #templates .tpl-filter {
+    padding:8px 14px; border-radius:999px; border:1px solid #e6e8ef; background:#fff;
+    color:#334155; font-size:13px; font-weight:600; cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  #templates .tpl-filter:hover { border-color:#c7d2fe; color:#6366f1; }
+  #templates .tpl-filter.active { background:#6366f1; color:#fff; border-color:#6366f1; }
+  #templates .tpl-swatches { display:flex; align-items:center; justify-content:center; gap:8px; margin:14px 0 2px; }
+  #templates .tpl-swatches-label { font-size:12px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-right:4px; }
+  #templates .tpl-swatch {
+    width:22px; height:22px; border-radius:50%; border:2px solid #fff;
+    cursor:pointer; padding:0; box-shadow:0 0 0 1px #e6e8ef;
+    transition:transform .15s ease, box-shadow .2s ease;
+  }
+  #templates .tpl-swatch:hover { transform:scale(1.1); }
+  #templates .tpl-swatch.active { box-shadow:0 0 0 2px #0f172a; transform:scale(1.15); }
+  #templates .tpl-carousel { display:flex; align-items:center; justify-content:center; gap:18px; margin:20px auto 0; max-width:960px; touch-action:pan-y; }
   #templates .tpl-stage { flex:1; max-width:720px; }
   #templates .tpl-frame-wrap {
     position:relative; width:100%; aspect-ratio: 8.5 / 11;
@@ -467,6 +484,8 @@
     <h2 class="section-title">Pick a look. Switch anytime.</h2>
     <p class="section-sub">Recruiter-tested layouts from clean and minimal to bold and modern. Change template, colors, and fonts without retyping a single line.</p>
 
+    <div class="tpl-filters" id="tpl-filters" role="tablist" aria-label="Filter templates by category"></div>
+
     <div class="tpl-carousel">
       <button class="tpl-nav tpl-nav-prev" id="tpl-prev" aria-label="Previous template">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -481,11 +500,14 @@
       </button>
     </div>
 
-    <div class="tpl-caption" id="tpl-caption">Harvard <span class="tpl-cap-num">1 of 25</span></div>
+    <div class="tpl-caption" id="tpl-caption" aria-live="polite">Harvard <span class="tpl-cap-num">1 of 25</span></div>
+    <div class="tpl-swatches" id="tpl-swatches" aria-label="Try a different accent color">
+      <span class="tpl-swatches-label">Color</span>
+    </div>
     <div class="tpl-dots" id="tpl-dots"></div>
 
     <div class="tpl-cta">
-      <a href="editor" class="btn btn-primary btn-lg">Use this template free →</a>
+      <a href="editor" id="tpl-cta-link" class="btn btn-primary btn-lg">Use this template free →</a>
       <p class="tpl-cta-sub">Free forever · No credit card · Switch templates anytime</p>
     </div>
   </div>
@@ -500,18 +522,27 @@
   var frame = document.getElementById('tpl-frame');
   var caption = document.getElementById('tpl-caption');
   var dotsEl = document.getElementById('tpl-dots');
+  var swatchEl = document.getElementById('tpl-swatches');
+  var filtersEl = document.getElementById('tpl-filters');
   var prevBtn = document.getElementById('tpl-prev');
   var nextBtn = document.getElementById('tpl-next');
+  var ctaLink = document.getElementById('tpl-cta-link');
 
-  var TPLS = [
-    ['harvard','Harvard'],['stanford','Stanford'],['modern','Modern'],['minimal','Minimal'],
-    ['googledocs','Google Docs'],['consulting','Consulting'],['wharton','Wharton'],
-    ['executive','Executive'],['professional','Professional'],['classic','Classic'],
-    ['elegant','Elegant'],['ivory','Ivory'],['cascade','Cascade'],['jake',"Jake's Resume"],
-    ['faang','FAANG'],['mit','MIT'],['deedy','Deedy'],['creative','Creative'],
-    ['slate','Slate'],['compact','Compact'],['timeline','Timeline'],['twocolumn','Two-Column'],
-    ['healthcare','Healthcare'],['sales','Sales'],['ats','ATS Clean']
+  // TEMPLATE_DEFS comes from js/templates.js — {id, name, cat} for all 25.
+  var ALL = (typeof TEMPLATE_DEFS !== 'undefined') ? TEMPLATE_DEFS.slice() : [];
+  var CATS = ['All','Students','Business','Technology','Creative','Industry'];
+  var SWATCHES = [
+    { name:'Indigo',  value:'#6366f1' },
+    { name:'Slate',   value:'#0f172a' },
+    { name:'Emerald', value:'#10b981' },
+    { name:'Rose',    value:'#ec4899' },
+    { name:'Amber',   value:'#f59e0b' },
+    { name:'Violet',  value:'#8b5cf6' }
   ];
+
+  var activeCat = 'All';
+  var accent = SWATCHES[0].value;
+  var visible = ALL.slice(); // filtered list currently rendered as slides
 
   var FILLER = {
     personal: {
@@ -563,32 +594,80 @@
   }
 
   function render(i) {
-    var t = TPLS[i]; if (!t) return;
+    var t = visible[i]; if (!t) return;
     try {
-      var html = renderTemplate(t[0], FILLER, false, '#6366f1');
+      var html = renderTemplate(t.id, FILLER, false, accent);
       writeResumeFrame(frame, html, 816);
       fitFrame();
-      caption.innerHTML = t[1] + ' <span class="tpl-cap-num">' + (i + 1) + ' of ' + TPLS.length + '</span>';
+      caption.innerHTML = t.name + ' <span class="tpl-cap-num">' + (i + 1) + ' of ' + visible.length + '</span>';
       dotsEl.querySelectorAll('.tpl-dot').forEach(function (d, j) {
         d.classList.toggle('active', j === i);
       });
+      if (ctaLink) ctaLink.setAttribute('href', 'editor?template=' + encodeURIComponent(t.id));
+      // Reflect state in URL without adding history entries.
+      if (window.history && history.replaceState) {
+        history.replaceState(null, '', '#templates/' + t.id);
+      }
     } catch (e) {
-      caption.textContent = t[1] + ' (preview unavailable)';
-      console.warn('Template render failed:', t[0], e);
+      caption.textContent = t.name + ' (preview unavailable)';
+      console.warn('Template render failed:', t.id, e);
     }
   }
 
-  function go(delta) { idx = (idx + delta + TPLS.length) % TPLS.length; render(idx); }
+  function go(delta) { idx = (idx + delta + visible.length) % visible.length; render(idx); }
 
-  dotsEl.innerHTML = TPLS.map(function (_, i) {
-    return '<button class="tpl-dot' + (i === 0 ? ' active' : '') + '" data-i="' + i + '" aria-label="Go to template ' + (i + 1) + '"></button>';
+  function rebuildDots() {
+    dotsEl.innerHTML = visible.map(function (_, i) {
+      return '<button class="tpl-dot' + (i === 0 ? ' active' : '') + '" data-i="' + i + '" aria-label="Go to template ' + (i + 1) + '"></button>';
+    }).join('');
+    dotsEl.querySelectorAll('.tpl-dot').forEach(function (d) {
+      d.addEventListener('click', function () { idx = parseInt(d.getAttribute('data-i'), 10); render(idx); });
+    });
+  }
+
+  function applyFilter(cat) {
+    activeCat = cat;
+    visible = (cat === 'All') ? ALL.slice() : ALL.filter(function (t) { return t.cat === cat; });
+    if (!visible.length) visible = ALL.slice();
+    idx = 0;
+    rebuildDots();
+    render(idx);
+    filtersEl.querySelectorAll('.tpl-filter').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+    });
+  }
+
+  // Build filter chips
+  filtersEl.innerHTML = CATS.map(function (c) {
+    return '<button class="tpl-filter' + (c === 'All' ? ' active' : '') + '" data-cat="' + c + '" role="tab">' + c + '</button>';
   }).join('');
-  dotsEl.querySelectorAll('.tpl-dot').forEach(function (d) {
-    d.addEventListener('click', function () { idx = parseInt(d.getAttribute('data-i'), 10); render(idx); });
+  filtersEl.querySelectorAll('.tpl-filter').forEach(function (b) {
+    b.addEventListener('click', function () { applyFilter(b.getAttribute('data-cat')); });
   });
+
+  // Build color swatches
+  SWATCHES.forEach(function (sw, i) {
+    var btn = document.createElement('button');
+    btn.className = 'tpl-swatch' + (i === 0 ? ' active' : '');
+    btn.style.background = sw.value;
+    btn.setAttribute('data-color', sw.value);
+    btn.setAttribute('aria-label', sw.name + ' accent');
+    btn.title = sw.name;
+    btn.addEventListener('click', function () {
+      accent = sw.value;
+      swatchEl.querySelectorAll('.tpl-swatch').forEach(function (s) {
+        s.classList.toggle('active', s.getAttribute('data-color') === accent);
+      });
+      render(idx);
+    });
+    swatchEl.appendChild(btn);
+  });
+
+  rebuildDots();
   prevBtn.addEventListener('click', function () { go(-1); });
   nextBtn.addEventListener('click', function () { go(1); });
 
+  // Keyboard: arrows navigate when the carousel is in view
   document.addEventListener('keydown', function (e) {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     var rect = stage.getBoundingClientRect();
@@ -598,8 +677,33 @@
     if (e.key === 'ArrowRight') { go(1);  e.preventDefault(); }
   });
 
+  // Touch swipe on the stage — horizontal drag advances, vertical falls through to scroll.
+  var tx = 0, ty = 0, td = 0;
+  stage.addEventListener('touchstart', function (e) {
+    var t = e.touches[0]; tx = t.clientX; ty = t.clientY; td = Date.now();
+  }, { passive: true });
+  stage.addEventListener('touchend', function (e) {
+    var t = e.changedTouches[0];
+    var dx = t.clientX - tx, dy = t.clientY - ty, dt = Date.now() - td;
+    if (dt < 600 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      go(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  // Deep link: #templates/<id> or #templates opens that slide
+  function idxOfId(id) {
+    for (var i = 0; i < ALL.length; i++) if (ALL[i].id === id) return i;
+    return -1;
+  }
+  var hash = (location.hash || '').replace(/^#/, '');
+  var m = hash.match(/^templates\/(.+)$/);
+  if (m) {
+    var found = idxOfId(m[1]);
+    if (found >= 0) { idx = found; }
+  }
+
   window.addEventListener('resize', fitFrame);
-  render(0);
+  render(idx);
 })();
 </script>
 

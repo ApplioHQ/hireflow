@@ -13,25 +13,61 @@ function rafThrottle(fn) {
   };
 }
 
-// ----- Hero rotating word: smooth whole-word crossfade -----
-// Fades the current word up and out, swaps to the next COMPLETE word while it's hidden,
-// then fades it back in. Never shows a half-typed word, so it can't be caught mid-glitch.
+// ----- Hero rotating word: typewriter effect -----
+// Types the current word character-by-character, holds, deletes it, then
+// types the next word. The blinking caret is CSS (`.rotator::after`), so
+// this file only manages the text content. Deletes are slightly faster
+// than types (matches the standard IBM-style typewriter cadence).
 const ROTATOR_WORDS = ['interviews', 'callbacks', 'offers'];
 (function rotateHeroWord() {
   const el = document.getElementById('hero-rotator');
   if (!el) return;
-  el.textContent = ROTATOR_WORDS[0];
-  // Respect reduced-motion: leave the first word static, no animation.
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  let i = 0;
-  setInterval(function () {
-    el.classList.add('rot-out');
-    setTimeout(function () {
-      i = (i + 1) % ROTATOR_WORDS.length;
-      el.textContent = ROTATOR_WORDS[i];   // swap while hidden
-      el.classList.remove('rot-out');
-    }, 300);                               // matches the CSS transition duration
-  }, 2600);
+
+  // Reduced-motion: leave the first word static, no animation.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = ROTATOR_WORDS[0];
+    return;
+  }
+
+  const TYPE_MS = 85;       // ms per character while typing in
+  const DELETE_MS = 45;     // ms per character while deleting out (feels natural faster)
+  const HOLD_MS = 1600;     // pause with the full word visible
+  const GAP_MS = 250;       // pause after delete before typing next word
+  let wordIdx = 0;
+
+  el.textContent = "";      // start blank; the caret is visible via CSS
+
+  function typeWord(word, cb) {
+    let i = 0;
+    (function step() {
+      if (i >= word.length) { cb(); return; }
+      el.textContent = word.slice(0, ++i);
+      setTimeout(step, TYPE_MS);
+    })();
+  }
+
+  function deleteWord(cb) {
+    const start = el.textContent;
+    let len = start.length;
+    (function step() {
+      if (len <= 0) { cb(); return; }
+      el.textContent = start.slice(0, --len);
+      setTimeout(step, DELETE_MS);
+    })();
+  }
+
+  function loop() {
+    const word = ROTATOR_WORDS[wordIdx];
+    typeWord(word, function () {
+      setTimeout(function () {
+        deleteWord(function () {
+          wordIdx = (wordIdx + 1) % ROTATOR_WORDS.length;
+          setTimeout(loop, GAP_MS);
+        });
+      }, HOLD_MS);
+    });
+  }
+  loop();
 })();
 
 // ----- Pricing toggle (Monthly / Lifetime) -----

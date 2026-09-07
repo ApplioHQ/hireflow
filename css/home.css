@@ -869,13 +869,43 @@
 .step-line { opacity: 0; transition: opacity .7s ease .4s; }
 .step.fade-in-up .step-line { opacity: 1; }
 
-/* ── Hero rotating word: smooth whole-word crossfade (never shows a half-typed word) ── */
+/* ── Hero rotating word: typewriter effect with blinking caret ──
+   Text is typed in char-by-char, pauses, then deleted char-by-char before
+   the next word types in. A vertical bar caret sits at the end and blinks.
+   The rotator span itself has no fade/slide — the caret does the animation
+   work while the text writes in and out. */
 .rotator {
   display: inline-block;
-  transition: opacity .3s ease, transform .3s cubic-bezier(.2,.7,.2,1);
-  will-change: opacity, transform;
+  position: relative;
+  min-height: 1em;
 }
-.rotator.rot-out { opacity: 0; transform: translateY(-0.16em); }
+.rotator::after {
+  content: "";
+  display: inline-block;
+  width: 0.05em;
+  height: 0.9em;
+  margin-left: 0.05em;
+  vertical-align: -0.05em;
+  background: currentColor;
+  color: #a5b4fc;
+  animation: rotator-caret-blink 0.9s steps(2, jump-none) infinite;
+  border-radius: 1px;
+  transform: translateY(0.02em);
+}
+/* When the aurora gradient is applied to the rotator, currentColor is
+   transparent (text is clipped). Force the caret to the aurora accent so
+   it stays visible. */
+.rotator.magic-aurora::after,
+.rotator.magic-aurora--applio::after {
+  background: #a5b4fc;
+}
+@keyframes rotator-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rotator::after { animation: none; opacity: 1; }
+}
 
 /* ── Pricing: sliding pill toggle ── */
 .price-toggle { position: relative; }
@@ -1384,38 +1414,24 @@ section[id] { scroll-margin-top: 80px; }
   .spot-mock:hover .spot-card { transform:none; }
 }
 
-/* ============ HERO STATS STRIP ============
-   Continuation of the hero. Uses the same wavy background (via a second
-   waves canvas #stats-waves, init'd by js/waves.js) over the exact hero
-   palette so it reads as one continuous scene. '70+ job seekers' is the
-   visual anchor; the other 4 numbers sit in a supporting row beside it. */
+/* ============ HERO STATS STRIP (inside .hero) ============
+   Lives inside the hero so #hero-waves and .hero-bg naturally extend
+   over it — no separate canvas, no separate gradient. The strip is just
+   a positioned block at the bottom of the hero content flow. '70+ job
+   seekers' is the visual anchor; four supporting stats sit beside it. */
 .hero-stats {
   position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 20% 60%, rgba(99,102,241,.14), transparent 55%),
-    radial-gradient(circle at 80% 40%, rgba(139,92,246,.12), transparent 55%),
-    linear-gradient(180deg, #0f1437 0%, #0a0e27 100%);
-  padding: 52px 20px 60px;
+  margin: 56px auto 0;
+  max-width: 1200px;
+  padding: 32px 20px 0;
   z-index: 2;
 }
-/* Second waves canvas — same styling as #hero-waves so the animation
-   appears to extend from the hero into this strip seamlessly. */
-#stats-waves {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: .85;
-}
-/* Barely-perceptible top hairline stitching hero → stats.
-   Nothing on the bottom — the white wave-divider handles that. */
+/* Subtle hairline separating hero content above from the stats block. */
 .hero-stats::before {
   content: "";
   position: absolute;
-  top: 0; left: 5%; right: 5%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent);
-  z-index: 1;
+  top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
 }
 .hs-container {
   position: relative;

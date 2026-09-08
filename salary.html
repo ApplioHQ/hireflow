@@ -41,6 +41,10 @@
   .sw-conf.high { color:#22c55e; background:rgba(34,197,94,.14); }
   .sw-conf.medium { color:#f59e0b; background:rgba(245,158,11,.14); }
   .sw-conf.low { color:#ef4444; background:rgba(239,68,68,.14); }
+  .sw-res-meta { margin-top: 6px; }
+  .sw-src { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding: 3px 9px; border-radius: var(--r-full); }
+  .sw-src-live { color:#22c55e; background:rgba(34,197,94,.14); }
+  .sw-src-est  { color:#8b5cf6; background:rgba(139,92,246,.14); }
   .sw-median { font-size: 34px; font-weight: 800; letter-spacing:-.5px; margin: 18px 0 2px; }
   .sw-median small { font-size: 15px; font-weight: 600; color: var(--muted); }
   .sw-range-lbl { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
@@ -197,10 +201,16 @@ function _render(d){
     ? '<div class="sw-section-t">Negotiation tip</div><div class="sw-nego">' + esc(d.negotiation) + '</div>'
     : '';
 
+  var srcPill = (d.source === 'adzuna')
+    ? '<span class="sw-src sw-src-live" title="Based on real job listings">● Live market data · '
+        + (Number(d.sampleSize)||0).toLocaleString() + ' listings</span>'
+    : '<span class="sw-src sw-src-est" title="AI estimate, not live data">● AI estimate</span>';
+
   document.getElementById('sw-body').innerHTML =
     '<div class="sw-res-head">'
     +   '<div><div class="sw-res-role">' + esc(d.role || '') + '</div>'
-    +   '<div class="sw-res-loc">' + esc(d.location || 'Not specified') + (d.level ? ' · ' + esc(d.level) : '') + '</div></div>'
+    +   '<div class="sw-res-loc">' + esc(d.location || 'Not specified') + (d.level ? ' · ' + esc(d.level) : '') + '</div>'
+    +   '<div class="sw-res-meta">' + srcPill + '</div></div>'
     +   '<span class="sw-conf ' + conf + '">' + conf + ' confidence</span>'
     + '</div>'
     + '<div class="sw-median">' + _money(mid, cur) + ' <small>/ year median</small></div>'

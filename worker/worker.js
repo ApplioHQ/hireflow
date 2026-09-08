@@ -2606,9 +2606,87 @@ OUTPUT: Just the comma-separated list. Nothing else.`;
 // "relevant" must be verbatim from the user's own list; it never invents skills the
 // candidate has, and frames gaps as "verify you have it / learn it", not "claim it".
 // ============ Salary insights ============
-// Estimated pay ranges for a role + location, to help decide if an opportunity is
-// worth pursuing. These are MODEL ESTIMATES from general knowledge, not a live market
-// feed, so the output always carries that caveat and the frontend shows it plainly.
+// Pay ranges for a role + location. PRIMARY source: Adzuna's live histogram
+// (real listings). FALLBACK: the LLM's general knowledge, clearly disclaimed.
+// The frontend renders the source so users can tell "live market data" from
+// "AI estimate."
+//
+// Adzuna countries the API supports. Location strings we can't confidently map
+// fall through to 'us' since that's the largest pool.
+const ADZUNA_COUNTRIES = new Set(["at","au","be","br","ca","ch","de","es","fr","gb","in","it","mx","nl","nz","pl","sg","us","za"]);
+function inferAdzunaCountry(loc) {
+  const s = String(loc || "").toLowerCase();
+  if (!s) return "us";
+  // Explicit country codes / names
+  if (/\b(united kingdom|uk|england|scotland|wales|london|manchester|birmingham|leeds|glasgow|edinburgh|bristol)\b/.test(s)) return "gb";
+  if (/\b(canada|toronto|vancouver|montreal|ottawa|calgary|edmonton)\b/.test(s)) return "ca";
+  if (/\b(australia|sydney|melbourne|brisbane|perth|adelaide)\b/.test(s)) return "au";
+  if (/\b(germany|deutschland|berlin|munich|hamburg|frankfurt|cologne)\b/.test(s)) return "de";
+  if (/\b(france|paris|lyon|marseille|toulouse|nice)\b/.test(s)) return "fr";
+  if (/\b(india|bangalore|bengaluru|mumbai|delhi|hyderabad|pune|chennai|kolkata)\b/.test(s)) return "in";
+  if (/\b(singapore)\b/.test(s)) return "sg";
+  if (/\b(new zealand|auckland|wellington|christchurch)\b/.test(s)) return "nz";
+  if (/\b(netherlands|amsterdam|rotterdam|the hague)\b/.test(s)) return "nl";
+  if (/\b(spain|madrid|barcelona|valencia|seville)\b/.test(s)) return "es";
+  if (/\b(italy|rome|milan|naples|turin)\b/.test(s)) return "it";
+  if (/\b(brazil|sao paulo|são paulo|rio|brasilia)\b/.test(s)) return "br";
+  if (/\b(mexico|cdmx|guadalajara|monterrey)\b/.test(s)) return "mx";
+  return "us";
+}
+
+// Adzuna currency by country — histogram values come back in local currency
+// without a currency tag, so we tag it ourselves.
+const ADZUNA_CURRENCY = { us:"USD", gb:"GBP", ca:"CAD", au:"AUD", de:"EUR", fr:"EUR",
+  in:"INR", sg:"SGD", nz:"NZD", nl:"EUR", es:"EUR", it:"EUR", br:"BRL", mx:"MXN",
+  at:"EUR", be:"EUR", ch:"CHF", pl:"PLN", za:"ZAR" };
+
+// Compute percentiles from Adzuna's histogram: `{ "10000": count, "20000": count, ... }`
+// where each key is a lower salary bucket boundary. We expand into a weighted list
+// then read p25/p50/p75; ignores obviously-empty buckets so noise doesn't skew the range.
+function percentilesFromHistogram(histogram) {
+  const buckets = Object.entries(histogram || {})
+    .map(([k, v]) => [Number(k), Number(v) || 0])
+    .filter(([k, v]) => k > 0 && v > 0)
+    .sort((a, b) => a[0] - b[0]);
+  const total = buckets.reduce((sum, [, v]) => sum + v, 0);
+  if (total < 8) return null; // too little signal — fall back to AI
+  const pAt = (p) => {
+    const target = total * p;
+    let cum = 0;
+    for (const [k, v] of buckets) {
+      cum += v;
+      if (cum >= target) return k;
+    }
+    return buckets[buckets.length - 1][0];
+  };
+  return { p25: pAt(0.25), p50: pAt(0.50), p75: pAt(0.75), count: total };
+}
+
+async function adzunaSalary(env, { role, location }) {
+  const appId = env.ADZUNA_APP_ID, appKey = env.ADZUNA_APP_KEY;
+  if (!appId || !appKey) return null;
+  const country = inferAdzunaCountry(location);
+  if (!ADZUNA_COUNTRIES.has(country)) return null;
+  const params = new URLSearchParams({
+    app_id: appId, app_key: appKey,
+    what: role, content_type: "application/json"
+  });
+  if (location) params.set("where", location);
+  const url = `https://api.adzuna.com/v1/api/jobs/${country}/histogram?${params.toString()}`;
+  try {
+    const r = await fetch(url, { cf: { cacheTtl: 86400, cacheEverything: true } });
+    if (!r.ok) return null;
+    const j = await r.json().catch(() => null);
+    const p = percentilesFromHistogram(j && j.histogram);
+    if (!p) return null;
+    return {
+      low: p.p25, median: p.p50, high: p.p75,
+      currency: ADZUNA_CURRENCY[country] || "USD",
+      country, sampleSize: p.count
+    };
+  } catch (_) { return null; }
+}
+
 async function aiSalary(env, { role, location, level, resume }) {
   const target = String(role || "").trim().slice(0, 120);
   if (!target) throw err(400, "Enter a job title to see salary ranges.");
@@ -2621,9 +2699,40 @@ async function aiSalary(env, { role, location, level, resume }) {
     if (exp.length) years = `${exp.length} listed role(s)`;
   } catch (_) {}
 
+  // "v2" namespace so existing AI-only cache entries don't shadow the new
+  // Adzuna-preferred results.
   const cacheKey = (target + "|" + loc + "|" + lvl).toLowerCase().slice(0, 300);
-  const cached = await aiCacheGet(env, "salary", cacheKey);
+  const cached = await aiCacheGet(env, "salaryv2", cacheKey);
   if (cached) return cached;
+
+  // --- 1) Try Adzuna's live histogram first (real market data) ---
+  const az = await adzunaSalary(env, { role: target, location: loc });
+  if (az && az.median > 0) {
+    const out = {
+      role: target,
+      location: loc || `Not specified (${az.country.toUpperCase()} national)`,
+      currency: az.currency,
+      period: "year",
+      low: az.low, median: az.median, high: az.high,
+      level: lvl || "",
+      factors: [
+        "Sample: " + az.sampleSize.toLocaleString() + " live job postings",
+        "Range is 25th–75th percentile of advertised base pay",
+        "Actual offers vary with company size, seniority, and negotiation",
+      ],
+      negotiation: "Anchor at the 75th percentile (" + Math.round(az.high).toLocaleString() +
+        " " + az.currency + ") when you can point to comparable listings — recruiters expect a range, not a single number.",
+      confidence: az.sampleSize >= 100 ? "high" : (az.sampleSize >= 30 ? "medium" : "low"),
+      source: "adzuna",
+      sampleSize: az.sampleSize,
+      estimate: false,
+      disclaimer: "Based on " + az.sampleSize.toLocaleString() + " live listings from Adzuna in the last 3 months. Advertised base pay only, excludes bonus/equity."
+    };
+    await aiCachePut(env, "salaryv2", cacheKey, out, 86400);
+    return out;
+  }
+
+  // --- 2) Fall back to the LLM's general knowledge (clearly disclaimed) ---
 
   const sys = GROUNDING + "\n\n" + `You are a compensation analyst. Give a realistic ESTIMATED annual pay range for a role, based on your general knowledge of typical market compensation. You do not have live market data, so these are informed estimates, be honest about that.
 
@@ -2683,10 +2792,11 @@ Return the JSON.`;
     factors: Array.isArray(data.factors) ? data.factors.map(f => String(f).slice(0, 200)).filter(Boolean).slice(0, 5) : [],
     negotiation: String(data.negotiation || "").slice(0, 300),
     confidence: ["low", "medium", "high"].includes(String(data.confidence)) ? data.confidence : "medium",
+    source: "ai-estimate",
     estimate: true,
     disclaimer: "AI estimate from general market knowledge, not live data. Verify against listings and sites like Levels.fyi, Glassdoor, or the BLS before deciding.",
   };
-  await aiCachePut(env, "salary", cacheKey, out, 86400);
+  await aiCachePut(env, "salaryv2", cacheKey, out, 86400);
   return out;
 }
 

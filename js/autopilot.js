@@ -58,7 +58,14 @@
     if (!paid && !admin) { runFree(jd, resume); els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
 
     setLoading(true);
-    els.results.classList.remove('show');
+    // Skeleton in the results area while the tailored resume + cover letter
+    // generate; feels like content is on its way instead of a blank pane.
+    if (typeof skeleton === 'function') {
+      els.results.innerHTML = skeleton('letter');
+      els.results.classList.add('show');
+    } else {
+      els.results.classList.remove('show');
+    }
     fetch(API + '/ai/autopilot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },

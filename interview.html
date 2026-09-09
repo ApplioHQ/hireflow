@@ -7,6 +7,7 @@
 <title>Interview Prep | Applio</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
 <style>
   .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); overflow: hidden; box-shadow: var(--sh-1); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
@@ -166,6 +167,7 @@
 <script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/health-badge.js"></script>
+<script src="js/skeleton.js"></script>
 <script>
 
 function showAILoading(msg) { aiLoading(msg); }
@@ -187,7 +189,9 @@ async function generate() {
   let resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch { resume = {}; }
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
   var _rb = document.getElementById('_resume-banner'); if (_rb) _rb.remove();   // starting fresh
-  document.getElementById('results').innerHTML = '';
+  // Skeleton "analysis" preset ~= section heading + 5 bullet lines, matching
+  // the [Category] → question list shape the AI actually returns.
+  document.getElementById('results').innerHTML = (typeof skeleton === 'function') ? skeleton('analysis') : '';
   showAILoading('Generating your interview questions…');
   try {
     const r = await fetch(API + '/ai/interview', {

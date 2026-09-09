@@ -101,7 +101,11 @@
     var restore = useJD ? 'Analyze this posting' : 'Find my gaps';
     var btn = document.getElementById(btnId);
     btn.disabled = true; btn.textContent = 'Analyzing…';
-    out.innerHTML = '<div class="sg-status">' + (useJD ? 'Comparing your resume against this job posting…' : 'Comparing your resume against what ' + esc(role) + ' roles expect…') + '</div>';
+    // Skeleton mirrors the two-column analysis layout so the page doesn't shift
+     // when the AI's real result comes back.
+     out.innerHTML = (typeof skeleton === 'function')
+       ? skeleton('analysis')
+       : '<div class="sg-status">' + (useJD ? 'Comparing your resume against this job posting…' : 'Comparing your resume against what ' + esc(role) + ' roles expect…') + '</div>';
     var body = { role: role, skills: currentSkills(), context: resumeContext() };
     if (jd) body.jobDescription = jd;
     fetch(API + '/ai/skill-gap', {

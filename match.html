@@ -7,6 +7,7 @@
 <title>Best Match | Applio</title>
 <link rel="icon" href="logo.ico">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
 <style>
   .bm-cand { border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-2); padding:12px; margin-bottom:12px; box-shadow:var(--sh-1); }
@@ -159,6 +160,7 @@
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/notify.js"></script>
+<script src="js/skeleton.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/health-badge.js"></script>
 <script>
@@ -228,7 +230,13 @@ async function runMatch(){
   // free user's "1 free ATS use" is consistent everywhere. One match run = one use.
   if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
 
-  document.getElementById('bm-results').innerHTML = '';
+  // Skeleton cards mirror the results grid (one card per candidate) so the
+  // page reserves the right shape while each resume is scored serially.
+  if (typeof skeleton === 'function') {
+    document.getElementById('bm-results').innerHTML = skeleton('cards', { count: cands.length, cols: cands.length >= 3 ? 3 : 2 });
+  } else {
+    document.getElementById('bm-results').innerHTML = '';
+  }
   const scored = [];
   let paywalled = false;
   aiLoading('Scoring resume 1 of ' + cands.length + '…');

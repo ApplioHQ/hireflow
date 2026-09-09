@@ -1,0 +1,69 @@
+/* Reusable skeleton loader — layout-matched placeholders that shimmer while
+   real content loads, so the page doesn't shift when data arrives.
+   Include this stylesheet on any page that shows an async result, then swap
+   the loading state to skeleton() presets from js/skeleton.js. */
+
+:root {
+  --sk-bg: rgba(148, 163, 184, 0.14);
+  --sk-hi: rgba(255, 255, 255, 0.06);
+}
+[data-theme="light"] {
+  --sk-bg: rgba(15, 23, 42, 0.06);
+  --sk-hi: rgba(255, 255, 255, 0.85);
+}
+
+.sk {
+  display: block;
+  background: linear-gradient(90deg, var(--sk-bg) 0%, var(--sk-hi) 50%, var(--sk-bg) 100%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: sk-shimmer 1.35s linear infinite;
+}
+@keyframes sk-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none; background: var(--sk-bg); }
+}
+
+/* Size primitives — the building blocks presets are composed from. */
+.sk-line     { height: 12px; }
+.sk-line-lg  { height: 16px; }
+.sk-line-xl  { height: 22px; border-radius: 8px; }
+.sk-hero     { height: 42px; border-radius: 10px; }
+.sk-pill     { height: 22px; width: 130px; border-radius: 999px; }
+.sk-avatar   { width: 40px; height: 40px; border-radius: 50%; flex: none; }
+.sk-block    { height: 62px; border-radius: 10px; }
+.sk-block-lg { height: 120px; border-radius: 10px; }
+.sk-card     { height: 180px; border-radius: 14px; }
+.sk-bar-h    { height: 12px; width: 100%; border-radius: 999px; }
+.sk-square   { aspect-ratio: 1 / 1; border-radius: 12px; }
+
+/* Widths — mix into any .sk element. */
+.sk-w25 { width: 25%; } .sk-w30 { width: 30%; } .sk-w40 { width: 40%; }
+.sk-w50 { width: 50%; } .sk-w60 { width: 60%; } .sk-w70 { width: 70%; }
+.sk-w80 { width: 80%; } .sk-w85 { width: 85%; } .sk-w90 { width: 90%; }
+.sk-w95 { width: 95%; } .sk-w100 { width: 100%; }
+
+/* Layout containers for skeletons. */
+.sk-wrap { display: flex; flex-direction: column; gap: 14px; padding: 4px 2px; }
+.sk-row  { display: flex; align-items: center; gap: 12px; }
+.sk-row-top { align-items: flex-start; }
+.sk-between { justify-content: space-between; gap: 16px; }
+.sk-col  { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.sk-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sk-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 640px) {
+  .sk-grid-2, .sk-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* Chat-message skeleton — one bubble on the left, avatar included. */
+.sk-msg { display: flex; gap: 12px; padding: 10px 0; }
+.sk-msg .sk-bubble {
+  flex: 1; max-width: 640px;
+  padding: 12px 14px;
+  background: var(--sk-bg);
+  border-radius: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}

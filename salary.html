@@ -62,10 +62,27 @@
   .sw-nego strong { color: var(--text); }
   .sw-disclaimer { margin-top: 20px; font-size: 11.5px; color: var(--muted); line-height:1.5; display:flex; gap:8px; align-items:flex-start; }
   .sw-disclaimer svg { flex-shrink:0; width:15px; height:15px; margin-top:1px; opacity:.8; }
-  .sw-loading { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--muted); padding:40px; }
-  .sw-loading .sw-spark { width:34px; height:34px; color:var(--accent); animation: swPulse 1.3s ease-in-out infinite; margin-bottom:16px; }
-  @keyframes swPulse { 0%,100%{ transform:scale(1); opacity:1;} 50%{ transform:scale(.82); opacity:.55;} }
-  @media (prefers-reduced-motion: reduce) { .sw-loading .sw-spark { animation:none; } }
+  /* Skeleton loader — mirrors the result layout so the page doesn't jump when
+     data arrives. Each block is a rounded shimmer bar sized like the real content. */
+  .sw-skel { display:flex; flex-direction:column; gap:14px; padding:4px 2px; }
+  .sw-skel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:6px; }
+  .sw-skel-head-l { flex:1; display:flex; flex-direction:column; gap:8px; }
+  .sw-sk { display:block; background: linear-gradient(90deg, var(--bg-2) 0%, rgba(255,255,255,.06) 50%, var(--bg-2) 100%); background-size: 200% 100%; border-radius: 6px; animation: swShimmer 1.35s linear infinite; }
+  .sw-sk-lg     { height: 42px; width: 62%; border-radius: 10px; }
+  .sw-sk-title  { height: 18px; width: 55%; }
+  .sw-sk-sub    { height: 12px; width: 38%; }
+  .sw-sk-pill   { height: 22px; width: 130px; border-radius: 999px; }
+  .sw-sk-bar    { height: 12px; width: 100%; border-radius: 999px; margin-top: 6px; }
+  .sw-sk-legend { display:flex; gap: 40px; }
+  .sw-sk-legend .sw-sk { height: 10px; width: 50px; }
+  .sw-sk-section { height: 13px; width: 40%; margin-top: 10px; }
+  .sw-sk-line    { height: 12px; }
+  .sw-sk-line.w95 { width: 95%; } .sw-sk-line.w85 { width: 85%; }
+  .sw-sk-line.w80 { width: 80%; } .sw-sk-line.w70 { width: 70%; }
+  .sw-sk-line.w60 { width: 60%; }
+  .sw-sk-block  { height: 62px; width: 100%; border-radius: 10px; margin-top: 6px; }
+  @keyframes swShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .sw-sk { animation: none; background: var(--bg-2); } }
   .sw-gate { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 44px 30px; }
   .sw-gate .badge { font-size: 11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: var(--accent); background: rgba(99,102,241,.14); border:1px solid rgba(99,102,241,.3); border-radius: var(--r-full); padding: 5px 12px; margin-bottom: 16px; }
   .sw-gate h4 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
@@ -176,11 +193,31 @@ function _gate(){
 }
 
 function _loadingState(){
+  // Skeleton mirrors _render()'s layout: header (role+loc+source pill) →
+  // median → range bar → factors list → negotiation block → disclaimer line.
+  // Same rough dimensions so the page doesn't shift when data arrives.
   document.getElementById('sw-body').innerHTML =
-    '<div class="sw-loading">'
-    + '<svg class="sw-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>'
-    + '<div style="font-weight:600;color:var(--text);">Estimating pay range…</div>'
-    + '<div style="font-size:12.5px;margin-top:4px;">Weighing role, seniority, and location.</div>'
+    '<div class="sw-skel" aria-hidden="true" role="status" aria-label="Loading salary insights">'
+    +   '<div class="sw-skel-head">'
+    +     '<div class="sw-skel-head-l">'
+    +       '<span class="sw-sk sw-sk-title"></span>'
+    +       '<span class="sw-sk sw-sk-sub"></span>'
+    +       '<span class="sw-sk sw-sk-pill"></span>'
+    +     '</div>'
+    +     '<span class="sw-sk sw-sk-pill" style="width:120px;"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-lg"></span>'
+    +   '<span class="sw-sk sw-sk-sub" style="width:46%;"></span>'
+    +   '<span class="sw-sk sw-sk-bar"></span>'
+    +   '<div class="sw-sk-legend">'
+    +     '<span class="sw-sk"></span><span class="sw-sk"></span><span class="sw-sk"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-line w95"></span>'
+    +   '<span class="sw-sk sw-sk-line w85"></span>'
+    +   '<span class="sw-sk sw-sk-line w70"></span>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-block"></span>'
     + '</div>';
 }
 

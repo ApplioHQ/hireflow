@@ -134,6 +134,13 @@
   .gd-cards a:hover { border-color: var(--accent); }
   .gd-cards .t { font-weight: 700; font-size: 15px; }
   .gd-cards .d { color: var(--muted); font-size: 13px; margin-top: 3px; line-height:1.5; }
+
+  .rp-section { margin: 36px 0; }
+  .rp-section h2 { font-size: 22px; font-weight: 800; letter-spacing:-.3px; margin-bottom: 14px; }
+  .rp-frame-outer { position: relative; width: 100%; max-width: 680px; aspect-ratio: 8.5/11; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 28px rgba(0,0,0,.18), 0 0 0 1px var(--border); }
+  .rp-frame-inner { position: absolute; top: 0; left: 0; width: 816px; height: 1056px; border: none; transform-origin: top left; }
+  .rp-cta-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  .rp-cta-note { font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -149,7 +156,18 @@
   <article>
     <h1>Teacher Resume Examples &amp; Template</h1>
     <div class="gd-meta">Updated 2026-07-08 · Applio</div>
-    <div class="gd-answer">A strong teacher resume highlights your state certification, grade level and subject expertise, and classroom outcomes like improved test scores or engagement. Lead with credentials and show how you plan lessons, differentiate instruction, and support student growth.</div>
+    <div class="gd-answer">A strong teacher resume highlights your state certification, grade level and subject expertise, and classroom outcomes like improved test scores or engagement. Lead with credentials and show how you plan lessons, differentiate instruction, and support student growth.
+    <section class="gd-section rp-section">
+      <h2>Teacher resume example</h2>
+      <div class="rp-frame-outer" id="rp-outer-teacher">
+        <iframe class="rp-frame-inner" id="rp-frame-teacher" scrolling="no"></iframe>
+      </div>
+      <div class="rp-cta-row">
+        <a class="btn btn-primary" href="/login?mode=signup&template=professional">Use this template free</a>
+        <span class="rp-cta-note">No credit card · Export PDF instantly</span>
+      </div>
+    </section>
+    </div>
 
     <section class="gd-section">
       <h2>Teacher resume summary example</h2>
@@ -193,5 +211,42 @@
     <a class="btn btn-primary" href="/login?mode=signup">Start free, no credit card</a>
   </div>
 </main>
+<script src="/js/templates.js"></script>
+<script>
+(function(){
+  var outer = document.getElementById('rp-outer-teacher');
+  if (!outer || typeof renderTemplate !== 'function') return;
+  var frame = document.getElementById('rp-frame-teacher');
+  var FILLER = {
+    personal: {
+      fullName: 'Alex Carter', email: 'alex.carter@example.com', phone: '(415) 555-0123',
+      location: 'San Francisco, CA', linkedin: 'linkedin.com/in/alexcarter',
+      github: 'github.com/alexcarter', website: 'alexcarter.dev',
+      summary: 'Experienced Teacher with a track record of delivering measurable results. Skilled at cross-functional collaboration, data-driven decision-making, and shipping high-impact work on time.'
+    },
+    experience: [
+      { title: 'Senior Teacher', company: 'Northwind', start: '2022', end: 'Present', location: 'Remote',
+        description: '\u2022 Led key initiatives that improved team output by 35% and reduced delivery time by 20%\n\u2022 Collaborated with 6 cross-functional stakeholders to ship 3 major projects on time and under budget\n\u2022 Mentored 2 junior team members, both promoted within 18 months' },
+      { title: 'Teacher', company: 'Lumen Labs', start: '2019', end: '2022', location: 'San Francisco, CA',
+        description: '\u2022 Owned end-to-end delivery of 12 projects with 100% on-time completion rate\n\u2022 Improved key process efficiency by 28% through systematic analysis and tooling changes\n\u2022 Recognized as top performer two consecutive years' },
+      { title: 'Junior Teacher', company: 'Bright Studio', start: '2018', end: '2019', location: 'Remote',
+        description: '\u2022 Supported 8 client engagements and contributed to proposals worth $2M+\n\u2022 Reduced reporting time by 40% by automating weekly status updates' }
+    ],
+    education: [{ school: 'UC Berkeley', degree: 'B.S.', field: 'Business Administration', gpa: '3.7', start: '2014', end: '2018' }],
+    skills: { categories: [{ name: 'Core Skills', items: ['Project Management','Data Analysis','Communication','Problem Solving','Leadership'] }, { name: 'Tools', items: ['Excel','Slack','Notion','Jira','Google Suite'] }] },
+    projects: [], certifications: [], awards: [], leadership: [], volunteer: [], publications: []
+  };
+  try {
+    var html = renderTemplate('professional', FILLER, false, null);
+    writeResumeFrame(frame, html, 816);
+  } catch(e) { console.warn('preview render failed', e); }
+  function fit() {
+    var w = outer.clientWidth;
+    frame.style.transform = 'scale(' + (w / 816) + ')';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+})();
+</script>
 </body>
 </html>

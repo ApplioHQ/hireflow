@@ -4,64 +4,59 @@
 <meta charset="UTF-8">
 <title>Alex Carter — All Templates</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #e5e7eb; font-family: sans-serif; }
-  .controls {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: #1e293b; color: #fff; padding: 10px 20px;
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: -apple-system, sans-serif; }
+
+  #ui {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    background: rgba(15,23,42,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,.08); z-index: 100;
   }
-  .controls label { font-size: 13px; color: #94a3b8; }
-  .controls select, .controls button {
-    padding: 5px 12px; border-radius: 6px; border: none;
-    background: #334155; color: #fff; font-size: 13px; cursor: pointer;
+  #ui button {
+    padding: 6px 14px; border: none; border-radius: 7px; cursor: pointer;
+    font-size: 13px; font-weight: 600; background: #334155; color: #fff;
   }
-  .controls button { background: #3b82f6; }
-  .controls button:hover { background: #2563eb; }
-  #jump { width: 180px; }
-  .toc { display: flex; flex-wrap: wrap; gap: 6px; padding: 20px; margin-top: 48px; }
-  .toc a {
-    padding: 4px 12px; background: #fff; border-radius: 999px;
-    font-size: 12px; text-decoration: none; color: #1e293b;
-    border: 1px solid #cbd5e1;
+  #ui button:hover { background: #475569; }
+  #ui button.primary { background: #3b82f6; }
+  #ui button.primary:hover { background: #2563eb; }
+  #counter { font-size: 13px; color: #94a3b8; min-width: 80px; text-align: center; }
+  #caption { font-size: 14px; font-weight: 600; color: #e2e8f0; flex: 1; }
+  #hint { font-size: 11px; color: #475569; }
+
+  #stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding-top: 52px;
   }
-  .toc a:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-  .sheet-wrap {
-    width: 816px; margin: 24px auto; position: relative;
+  #frame-wrap {
+    /* sized by JS */
+    position: relative; flex-shrink: 0;
   }
-  .sheet-label {
-    font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: .08em;
-    text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;
-  }
-  .sheet-frame {
-    width: 816px; height: 1056px; border: none; display: block;
-    box-shadow: 0 4px 24px rgba(0,0,0,.18);
-  }
-  @media print {
-    .controls, .toc { display: none !important; }
-    body { background: #fff; }
-    .sheet-wrap { margin: 0; page-break-after: always; }
-    .sheet-label { display: none; }
-    .sheet-frame { box-shadow: none; }
+  #rframe {
+    width: 816px; height: 1056px;
+    border: none; display: block;
+    transform-origin: top left;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
   }
 </style>
 </head>
 <body>
 
-<div class="controls">
-  <span style="font-weight:700;font-size:15px;">Alex Carter · All Templates</span>
-  <label>Jump to:
-    <select id="jump" onchange="document.getElementById(this.value)?.scrollIntoView({behavior:'smooth'})">
-      <option value="">— select —</option>
-    </select>
-  </label>
-  <button onclick="window.print()">Print / Save PDF</button>
-  <span style="font-size:12px;color:#64748b;">Ctrl+P → Save as PDF for single-template screenshots</span>
+<div id="ui">
+  <button onclick="go(-1)">← Prev</button>
+  <button onclick="go(1)">Next →</button>
+  <span id="counter"></span>
+  <span id="caption"></span>
+  <span id="hint">← → arrow keys · Cmd+Shift+4 to screenshot</span>
+  <button class="primary" onclick="window.print()">Print / PDF</button>
 </div>
 
-<div class="toc" id="toc"></div>
-
-<div id="sheets"></div>
+<div id="stage">
+  <div id="frame-wrap">
+    <iframe id="rframe" scrolling="no"></iframe>
+  </div>
+</div>
 
 <script src="js/templates.js"></script>
 <script>
@@ -106,38 +101,23 @@ var FILLER = {
   publications: []
 };
 
-var sheets = document.getElementById('sheets');
-var toc = document.getElementById('toc');
-var jump = document.getElementById('jump');
+var idx = 0;
+var frame = document.getElementById('rframe');
+var wrap  = document.getElementById('frame-wrap');
+var counter = document.getElementById('counter');
+var caption = document.getElementById('caption');
 
-TEMPLATE_DEFS.forEach(function(t) {
-  var anchorId = 'tpl-' + t.id;
+function fit() {
+  var avW = window.innerWidth  - 48;
+  var avH = window.innerHeight - 52 - 32; // toolbar + padding
+  var scale = Math.min(avW / 816, avH / 1056);
+  frame.style.transform = 'scale(' + scale + ')';
+  wrap.style.width  = Math.round(816 * scale) + 'px';
+  wrap.style.height = Math.round(1056 * scale) + 'px';
+}
 
-  var tocA = document.createElement('a');
-  tocA.href = '#' + anchorId;
-  tocA.textContent = t.name;
-  toc.appendChild(tocA);
-
-  var opt = document.createElement('option');
-  opt.value = anchorId;
-  opt.textContent = t.name;
-  jump.appendChild(opt);
-
-  var wrap = document.createElement('div');
-  wrap.className = 'sheet-wrap';
-  wrap.id = anchorId;
-
-  var label = document.createElement('div');
-  label.className = 'sheet-label';
-  label.textContent = t.name + (t.cat ? ' · ' + t.cat : '');
-  wrap.appendChild(label);
-
-  var frame = document.createElement('iframe');
-  frame.className = 'sheet-frame';
-  frame.setAttribute('scrolling', 'no');
-  wrap.appendChild(frame);
-  sheets.appendChild(wrap);
-
+function render(i) {
+  var t = TEMPLATE_DEFS[i];
   try {
     var html = renderTemplate(t.id, FILLER, false, null);
     writeResumeFrame(frame, html, 816);
@@ -145,7 +125,23 @@ TEMPLATE_DEFS.forEach(function(t) {
     frame.srcdoc = '<body style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#94a3b8;">' + t.name + ' — render error</body>';
     console.warn(t.id, e);
   }
+  counter.textContent = (i + 1) + ' / ' + TEMPLATE_DEFS.length;
+  caption.textContent = t.name + (t.cat ? ' · ' + t.cat : '');
+  fit();
+}
+
+function go(dir) {
+  idx = (idx + dir + TEMPLATE_DEFS.length) % TEMPLATE_DEFS.length;
+  render(idx);
+}
+
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    go(-1);
 });
+window.addEventListener('resize', fit);
+
+render(0);
 </script>
 </body>
 </html>

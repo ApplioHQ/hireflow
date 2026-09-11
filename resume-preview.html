@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alex Carter — All Templates</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e5e7eb; font-family: sans-serif; }
+  .controls {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #1e293b; color: #fff; padding: 10px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .controls label { font-size: 13px; color: #94a3b8; }
+  .controls select, .controls button {
+    padding: 5px 12px; border-radius: 6px; border: none;
+    background: #334155; color: #fff; font-size: 13px; cursor: pointer;
+  }
+  .controls button { background: #3b82f6; }
+  .controls button:hover { background: #2563eb; }
+  #jump { width: 180px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px; padding: 20px; margin-top: 48px; }
+  .toc a {
+    padding: 4px 12px; background: #fff; border-radius: 999px;
+    font-size: 12px; text-decoration: none; color: #1e293b;
+    border: 1px solid #cbd5e1;
+  }
+  .toc a:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+  .sheet-wrap {
+    width: 816px; margin: 24px auto; position: relative;
+  }
+  .sheet-label {
+    font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;
+  }
+  .sheet-frame {
+    width: 816px; height: 1056px; border: none; display: block;
+    box-shadow: 0 4px 24px rgba(0,0,0,.18);
+  }
+  @media print {
+    .controls, .toc { display: none !important; }
+    body { background: #fff; }
+    .sheet-wrap { margin: 0; page-break-after: always; }
+    .sheet-label { display: none; }
+    .sheet-frame { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <span style="font-weight:700;font-size:15px;">Alex Carter · All Templates</span>
+  <label>Jump to:
+    <select id="jump" onchange="document.getElementById(this.value)?.scrollIntoView({behavior:'smooth'})">
+      <option value="">— select —</option>
+    </select>
+  </label>
+  <button onclick="window.print()">Print / Save PDF</button>
+  <span style="font-size:12px;color:#64748b;">Ctrl+P → Save as PDF for single-template screenshots</span>
+</div>
+
+<div class="toc" id="toc"></div>
+
+<div id="sheets"></div>
+
+<script src="js/templates.js"></script>
+<script>
+var FILLER = {
+  personal: {
+    fullName: 'Alex Carter',
+    email: 'alex.carter@example.com',
+    phone: '(415) 555-0123',
+    location: 'San Francisco, CA',
+    linkedin: 'linkedin.com/in/alexcarter',
+    github: 'github.com/alexcarter',
+    website: 'alexcarter.dev',
+    summary: 'Senior frontend engineer with 6+ years shipping high-performance web apps used by 2M+ monthly users. Deep in React, TypeScript, and design systems. Recently led a checkout redesign that lifted conversion 22% and cut load time 40%.'
+  },
+  experience: [
+    { title: 'Senior Frontend Engineer', company: 'Northwind', start: '2022', end: 'Present', location: 'Remote',
+      description: '• Led the React 18 migration across 12 product surfaces, cutting average load time 40% and lifting SEO scores from 62 to 91\n• Redesigned the checkout flow with server components, boosting conversion 22% and reducing bounce 18%\n• Built the internal design system used by 8 engineers across 5 products; cut new-screen build time 62%\n• Mentored 3 mid-level engineers, all of whom shipped their first production feature within 30 days' },
+    { title: 'Frontend Engineer', company: 'Lumen Labs', start: '2019', end: '2022', location: 'San Francisco, CA',
+      description: '• Built a component library of 140 accessible components used across the entire product suite\n• Cut bundle size 32% by adopting code-splitting and lazy loading on 24 heavy routes\n• Owned the analytics rebuild in TypeScript, replacing 47 legacy events with 14 canonical ones\n• Won the internal hackathon 2020 with a real-time collaboration prototype later shipped to production' },
+    { title: 'Junior Web Developer', company: 'Bright Studio', start: '2018', end: '2019', location: 'Remote',
+      description: '• Shipped 8 marketing websites in the first year, each launched on-time and within 5% of budget\n• Introduced Storybook + visual regression testing, reducing pixel-drift bugs by ~70%' }
+  ],
+  education: [
+    { school: 'UC Berkeley', degree: 'B.S.', field: 'Computer Science', gpa: '3.8', start: '2015', end: '2018' }
+  ],
+  skills: {
+    categories: [
+      { name: 'Languages', items: ['TypeScript','JavaScript','Python','SQL','HTML/CSS'] },
+      { name: 'Frameworks', items: ['React','Next.js','Vue','Node.js','Tailwind'] },
+      { name: 'Tools', items: ['Git','Figma','Jest','Playwright','Datadog','Storybook'] },
+      { name: 'Practices', items: ['System Design','A/B Testing','Code Review','Mentoring'] }
+    ]
+  },
+  projects: [
+    { name: 'Applio Resume Builder', tech: 'React, TypeScript, Cloudflare Workers', description: 'Open-source AI resume builder; grew to 70+ active users in first 3 months' },
+    { name: 'papers-with-code-search', tech: 'Next.js, SBERT', description: 'Semantic paper search using sentence embeddings; 1.4K GitHub stars' }
+  ],
+  certifications: [ { name: 'AWS Certified Developer', issuer: 'Amazon', date: '2023' } ],
+  awards: [ { name: 'Northwind Innovation Award', issuer: 'Northwind Inc.', date: '2024', description: 'For leading the design-system launch adopted across 5 products.' } ],
+  leadership: [ { title: 'Frontend Guild Lead', org: 'Northwind', start: '2023', end: 'Present', description: 'Runs biweekly technical review across 12 engineers; wrote hiring rubric adopted org-wide.' } ],
+  volunteer: [ { role: 'Coding Instructor', org: 'CodeNow', start: '2021', end: '2023', description: 'Taught intro JavaScript to 40+ high schoolers across 6 cohorts.' } ],
+  publications: []
+};
+
+var sheets = document.getElementById('sheets');
+var toc = document.getElementById('toc');
+var jump = document.getElementById('jump');
+
+TEMPLATE_DEFS.forEach(function(t) {
+  var anchorId = 'tpl-' + t.id;
+
+  var tocA = document.createElement('a');
+  tocA.href = '#' + anchorId;
+  tocA.textContent = t.name;
+  toc.appendChild(tocA);
+
+  var opt = document.createElement('option');
+  opt.value = anchorId;
+  opt.textContent = t.name;
+  jump.appendChild(opt);
+
+  var wrap = document.createElement('div');
+  wrap.className = 'sheet-wrap';
+  wrap.id = anchorId;
+
+  var label = document.createElement('div');
+  label.className = 'sheet-label';
+  label.textContent = t.name + (t.cat ? ' · ' + t.cat : '');
+  wrap.appendChild(label);
+
+  var frame = document.createElement('iframe');
+  frame.className = 'sheet-frame';
+  frame.setAttribute('scrolling', 'no');
+  wrap.appendChild(frame);
+  sheets.appendChild(wrap);
+
+  try {
+    var html = renderTemplate(t.id, FILLER, false, null);
+    writeResumeFrame(frame, html, 816);
+  } catch(e) {
+    frame.srcdoc = '<body style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#94a3b8;">' + t.name + ' — render error</body>';
+    console.warn(t.id, e);
+  }
+});
+</script>
+</body>
+</html>

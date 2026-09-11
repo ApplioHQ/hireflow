@@ -635,10 +635,6 @@
         d.classList.toggle('active', j === i);
       });
       if (ctaLink) ctaLink.setAttribute('href', 'editor?template=' + encodeURIComponent(t.id));
-      // Reflect state in URL without adding history entries.
-      if (window.history && history.replaceState) {
-        history.replaceState(null, '', '#templates/' + t.id);
-      }
     } catch (e) {
       caption.textContent = t.name + ' (preview unavailable)';
       console.warn('Template render failed:', t.id, e);
@@ -726,13 +722,6 @@
     for (var i = 0; i < ALL.length; i++) if (ALL[i].id === id) return i;
     return -1;
   }
-  var hash = (location.hash || '').replace(/^#/, '');
-  var m = hash.match(/^templates\/(.+)$/);
-  if (m) {
-    var found = idxOfId(m[1]);
-    if (found >= 0) { idx = found; }
-  }
-
   window.addEventListener('resize', fitFrame);
   render(idx);
 })();

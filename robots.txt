@@ -13,7 +13,7 @@ Disallow: /success
 Disallow: /match
 Disallow: /assistant
 Disallow: /cover-letter
-Disallow: /salary
+Disallow: /salary/lookup
 Disallow: /letters
 Disallow: /skill-gap
 Disallow: /brag-doc

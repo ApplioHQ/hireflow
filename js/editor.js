@@ -3113,19 +3113,21 @@ async function openReferralPanel() {
     const token = localStorage.getItem('hf_token');
     if (!token) throw new Error('Not signed in');
     const r = await fetch(API + '/referral/code', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token } });
-    const d = await r.json();
     if (r.status === 401 || r.status === 403) throw new Error('Session expired');
-    if (!r.ok) throw new Error(d.error || 'Failed');
+    if (!r.ok) { const d = await r.json().catch(function() { return {}; }); throw new Error(d.error || 'Failed'); }
+    const d = await r.json();
     const link = 'https://appliohq.com/?ref=' + d.code;
     const row = document.getElementById('ref-link-row');
     if (row) row.innerHTML = '<input class="ref-link-input" type="text" readonly value="' + link + '" onclick="this.select()">' +
       '<button class="ref-copy-btn" onclick="_copyRefLink(this)">Copy</button>';
     const sr = await fetch(API + '/referral/stats', { headers: { Authorization: 'Bearer ' + token } });
-    const sd = await sr.json();
-    const stats = document.getElementById('ref-stats');
-    if (stats && sd.count > 0) stats.innerHTML = '<span class="ref-stat-num">' + sd.count + '</span> friend' + (sd.count !== 1 ? 's' : '') + ' joined through your link';
-    const badge = document.getElementById('acct-ref-count');
-    if (badge && sd.count > 0) { badge.textContent = sd.count; badge.style.display = ''; }
+    if (sr.ok) {
+      const sd = await sr.json();
+      const stats = document.getElementById('ref-stats');
+      if (stats && sd.count > 0) stats.innerHTML = '<span class="ref-stat-num">' + sd.count + '</span> friend' + (sd.count !== 1 ? 's' : '') + ' joined through your link';
+      const badge = document.getElementById('acct-ref-count');
+      if (badge && sd.count > 0) { badge.textContent = sd.count; badge.style.display = ''; }
+    }
   } catch (e) {
     const row = document.getElementById('ref-link-row');
     if (row) {
@@ -3133,6 +3135,8 @@ async function openReferralPanel() {
         row.innerHTML = '<span class="ref-error">Sign in to get your referral link.</span>';
       } else if (e.message === 'Token expired' || e.message === 'Session expired') {
         row.innerHTML = '<span class="ref-error">Your session expired. <a href="login" style="color:var(--accent)">Sign in again</a> to get your link.</span>';
+      } else if (e instanceof TypeError) {
+        row.innerHTML = '<span class="ref-error">Could not connect. Check your internet and <button style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:inherit;" onclick="document.getElementById(\'referral-bd\').remove();openReferralPanel()">try again</button>.</span>';
       } else {
         row.innerHTML = '<span class="ref-error">Could not load referral link. <button style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:inherit;" onclick="document.getElementById(\'referral-bd\').remove();openReferralPanel()">Retry</button></span>';
       }

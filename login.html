@@ -144,6 +144,22 @@
       <div class="oauth-block"><div id="gbtn-signup" class="gbtn"></div><div class="oauth-divider"><span>or</span></div></div>
       <form id="form-signup">
         <div class="form-field">
+          <label for="su-category">I am a…</label>
+          <select id="su-category" name="category" required>
+            <option value="" disabled selected>Select your category</option>
+            <option value="student">Student</option>
+            <option value="internship">Looking for internships</option>
+            <option value="no-experience">Entry level / no experience</option>
+            <option value="software-engineer">Software engineer</option>
+            <option value="finance">Finance / accounting</option>
+            <option value="project-manager">Project / product manager</option>
+            <option value="nurse">Nurse / healthcare</option>
+            <option value="teacher">Teacher / education</option>
+            <option value="career-changer">Career changer</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
           <label for="su-email">Email</label>
           <input id="su-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
         </div>

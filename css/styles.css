@@ -240,6 +240,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   font-weight: 500; white-space: nowrap; flex-shrink: 0;
 }
 .topbar-tab.active, .topbar-tab:hover { background: var(--bg-2); color: var(--text); }
+.topbar-nav { display: flex; align-items: center; gap: 4px; }
+.topbar-nav a { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 7px 10px; border-radius: 7px; white-space: nowrap; }
+.topbar-nav a:hover, .topbar-nav a[aria-current] { color: var(--text); background: var(--bg-2); }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 /* ===== Expandable action buttons (icon-only, reveal label on hover) ===== */
@@ -959,6 +962,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
      button is "Sign up free", so a :last-child rule silently matches nothing
      and the whole bar overflows. */
   .topbar-tabs { display: none; }
+  .topbar-nav { display: none; }
   .topbar-right [onclick*="signOut"] { display: none; }   /* signed in: Sign out */
   .topbar-right #anon-signin-btn { display: none; }       /* anon: keep only "Sign up free" */
 

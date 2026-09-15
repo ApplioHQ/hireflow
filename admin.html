@@ -9,45 +9,127 @@
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/theme.js"></script>
 <style>
-  .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
-  .admin-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .admin-head h1 { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-  .admin-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
-  .admin-grid.single { grid-template-columns: 1fr; }
-  .user-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
-    background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
-  }
-  .user-table th {
-    text-align: left; padding: 12px 14px; font-size: 11px;
-    text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
-    background: var(--bg-2); border-bottom: 1px solid var(--border); font-weight: 600;
-  }
-  .user-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .user-table tr:last-child td { border-bottom: none; }
-  .user-table tr:hover { background: rgba(99,102,241,.05); }
-  .user-email { font-weight: 500; }
-  .user-meta { font-size: 11px; color: var(--muted); }
-  .ctrl-card {
-    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px; margin-bottom: 14px;
-  }
-  .ctrl-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-  .ctrl-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-  .ctrl-row { display: flex; gap: 8px; align-items: center; }
-  .ctrl-row input[type=number] {
-    width: 90px; padding: 8px 10px; background: var(--bg-2);
-    border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px;
-  }
-  .status-on { color: var(--danger); font-weight: 600; }
-  .status-off { color: var(--success); font-weight: 600; }
+  .admin-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 80px; }
+  .admin-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .admin-head h1 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
   .role-banner {
     padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 18px;
     background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.15));
     border: 1px solid rgba(99,102,241,.3);
   }
   .role-banner .role-name { color: #c4b5fd; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+
+  /* ===== Hero stat cards row ===== */
+  .hero-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 24px; }
+  .hero-card {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; position: relative; overflow: hidden;
+  }
+  .hero-card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 7px; }
+  .hero-card-label svg { color: var(--muted); opacity: .7; }
+  .hero-card-num { font-size: 32px; font-weight: 800; letter-spacing: -.5px; line-height: 1.1; }
+  .hero-card-trend { font-size: 11.5px; font-weight: 600; margin-top: 6px; }
+  .hero-card-trend.up { color: #22c55e; }
+  .hero-card-trend.down { color: #ef4444; }
+  .hero-card-trend.flat { color: var(--muted); }
+  @media (max-width: 900px) { .hero-stats { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 540px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ===== Section cards ===== */
+  .section-card {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .section-hd {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .section-hd h2 { font-size: 15px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .section-hd .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .section-bd { padding: 20px; }
+
+  /* ===== Two-column layout ===== */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .dash-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 900px) { .dash-grid, .dash-grid.triple { grid-template-columns: 1fr; } }
+
+  /* ===== Area chart / sparkline ===== */
+  .chart-wrap { position: relative; height: 160px; }
+  .chart-wrap svg { width: 100%; height: 100%; }
+  .chart-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
+  .chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ===== Horizontal bar list ===== */
+  .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .hbar-label { font-size: 12px; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hbar-track { flex: 1; height: 22px; background: var(--bg-2); border-radius: 4px; overflow: hidden; position: relative; }
+  .hbar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+  .hbar-val { font-size: 11px; font-weight: 600; min-width: 30px; text-align: right; }
+
+  /* ===== User segments ===== */
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .seg-grid { grid-template-columns: 1fr; } }
+  .seg-col h3 { font-size: 14px; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .seg-col .seg-sub { font-size: 11.5px; color: var(--muted); margin-bottom: 12px; }
+  .seg-user { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .seg-user:last-child { border-bottom: none; }
+  .seg-user-email { font-size: 13px; font-weight: 500; }
+  .seg-user-meta { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ===== OS / device bars ===== */
+  .os-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; margin-bottom: 4px; }
+  .os-bar div { height: 100%; }
+  .os-labels { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--muted); }
+  .os-labels span { display: flex; align-items: center; gap: 4px; }
+  .os-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  /* ===== User table ===== */
+  .user-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .user-table th {
+    text-align: left; padding: 10px 14px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    background: var(--bg-2); border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  .user-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .user-table tr:last-child td { border-bottom: none; }
+  .user-table tr:hover { background: rgba(99,102,241,.04); }
+  .user-email { font-weight: 500; }
+  .user-meta { font-size: 11px; color: var(--muted); }
+
+  /* ===== Controls panel ===== */
+  .ctrl-card {
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .ctrl-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .ctrl-card p { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+  .ctrl-row { display: flex; gap: 8px; align-items: center; }
+  .ctrl-row input[type=number], .ctrl-row input[type=email] {
+    padding: 8px 10px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px;
+  }
+  .ctrl-row input[type=number] { width: 90px; }
+  .ctrl-row input[type=email] { min-width: 240px; }
+  .status-on { color: var(--danger); font-weight: 600; }
+  .status-off { color: var(--success); font-weight: 600; }
   .empty-tbl { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  /* ===== Period selector ===== */
+  .period-sel { display: flex; background: var(--bg-2); border-radius: 8px; padding: 2px; gap: 2px; }
+  .period-btn {
+    padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    color: var(--muted); cursor: pointer; border: none; background: none;
+  }
+  .period-btn.active { background: var(--bg-1); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
+  /* Tabs (for chart sections) */
+  .tab-row { display: flex; gap: 2px; }
+  .tab-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border: none; background: none; }
+  .tab-btn.active { background: var(--bg-2); color: var(--text); }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -58,13 +140,10 @@
     <a class="topbar-tab" href="dashboard">Home</a>
     <a class="topbar-tab" href="autopilot">Autopilot</a>
     <a class="topbar-tab active" href="admin">Admin Console</a>
-    <a class="topbar-tab" href="#" onclick="scrollToId('analytics-section');return false;">Analytics</a>
-    <a class="topbar-tab" href="#" onclick="scrollToId('feedback-section');return false;">Feedback</a>
     <a class="topbar-tab" href="editor">Resume Builder</a>
   </nav>
   <div class="topbar-right">
     <span id="role-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
@@ -76,121 +155,190 @@
   </div>
 
   <div class="admin-head">
-    <h1 id="admin-title">Admin Console</h1>
-    <div style="display:flex; gap:8px;">
+    <h1 id="admin-title">Company Overview</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="analytics-updated" style="font-size:11px; color:var(--muted);"></span>
       <button class="btn btn-secondary btn-sm" onclick="refresh()">↻ Refresh</button>
     </div>
   </div>
 
-  <!-- Analytics: always visible at the top of the console -->
-  <section id="analytics-section" style="margin-bottom:22px;">
-    <div class="ctrl-card" style="padding:18px 20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; display:flex; align-items:center; gap:8px;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" fill="var(--accent)" stroke="none"/><rect x="12" y="8" width="3" height="10" fill="var(--accent)" stroke="none"/><rect x="17" y="5" width="3" height="13" fill="var(--accent)" stroke="none"/></svg> Site Analytics</h3>
-        <span id="analytics-updated" style="font-size:11px; color:var(--muted);"></span>
-      </div>
-      <div id="analytics-body" style="font-size:13px; line-height:1.7; color:var(--muted);">Loading…</div>
-    </div>
-  </section>
-
-  <div class="admin-grid" id="admin-grid">
-    <!-- Users panel -->
-    <div>
-      <div class="ctrl-card" style="padding:0; overflow:hidden;">
-        <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h3 style="margin:0;">All Users</h3>
-            <p style="margin:4px 0 0;" id="user-summary">-</p>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn btn-ghost btn-xs" id="email-toggle" onclick="toggleEmails()" title="Show or hide user emails">Show emails</button>
-            <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
-          </div>
-        </div>
-        <div style="max-height:65vh; overflow-y:auto;" class="no-scrollbar">
-          <table class="user-table">
-            <thead>
-              <tr>
-                <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th>Features Used</th><th id="actions-col" style="display:none;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="users-tbody"></tbody>
-          </table>
-          <div id="users-empty" class="empty-tbl" style="display:none;">No users yet.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Super controls panel -->
-    <div id="super-controls" style="display:none;">
-      <div class="ctrl-card">
-        <h3>System Status</h3>
-        <div id="status-readout" style="font-size:13px; line-height:1.7;">Loading…</div>
-      </div>
-
-      <div class="ctrl-card">
-        <h3>Disable AI globally</h3>
-        <p>Blocks all AI endpoints (Improve, Tailor, ATS, Analyze, Parse, Interview) for every user. You bypass the block.</p>
-        <div class="ctrl-row">
-          <input type="number" id="ai-mins" placeholder="minutes" min="1" max="10080">
-          <button class="btn btn-danger btn-sm" onclick="setAI()">Disable</button>
-          <button class="btn btn-ghost btn-sm" onclick="setAI(0)">Re-enable</button>
-        </div>
-      </div>
-
-      <div class="ctrl-card">
-        <h3>Take site offline</h3>
-        <p>Replaces every page (home, signup, sign in, editor, etc.) with a "site offline" screen for non-admin visitors. Admins and you bypass it.</p>
-        <div class="ctrl-row">
-          <input type="number" id="maint-mins" placeholder="minutes" min="1" max="10080">
-          <button class="btn btn-danger btn-sm" onclick="setMaint()">Take offline</button>
-          <button class="btn btn-ghost btn-sm" onclick="setMaint(0)">Bring online</button>
-        </div>
-      </div>
-
-      <div class="ctrl-card">
-        <h3>ADMIN tier access</h3>
-        <p>Toggle whether the literal "ADMIN" user can log in or use their existing session. You (super admin) are never affected.</p>
-        <div class="ctrl-row">
-          <button class="btn btn-success btn-sm" onclick="setAdminAccessFromPanel(true)">Enable</button>
-          <button class="btn btn-danger btn-sm" onclick="setAdminAccessFromPanel(false)">Disable</button>
-        </div>
-      </div>
-
-    </div>
-
+  <!-- ===== Hero stat cards ===== -->
+  <div class="hero-stats" id="hero-stats">
+    <div class="hero-card"><div class="hero-card-label">Visitors</div><div class="hero-card-num" id="hc-visitors">–</div><div class="hero-card-trend flat" id="hc-visitors-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Signups</div><div class="hero-card-num" id="hc-signups">–</div><div class="hero-card-trend flat" id="hc-signups-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">New Paid</div><div class="hero-card-num" id="hc-paid">–</div><div class="hero-card-trend flat" id="hc-paid-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">MRR</div><div class="hero-card-num" id="hc-mrr">–</div><div class="hero-card-trend flat" id="hc-mrr-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Activation</div><div class="hero-card-num" id="hc-activation">–</div><div class="hero-card-trend flat" id="hc-activation-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Total Users</div><div class="hero-card-num" id="hc-total">–</div><div class="hero-card-trend flat" id="hc-total-trend"></div></div>
   </div>
 
-  <!-- Email tools: visible to any admin (not just super) so the owner can verify delivery -->
-  <section id="email-tools-section" style="margin-top:22px;">
-    <div class="ctrl-card">
-      <h3>Test win-nudge email</h3>
-      <p>Sends one weekly "log your win" email right now, the same template as the Friday cron, to confirm Resend delivery is working end-to-end. Check your inbox and spam folder.</p>
-      <div class="ctrl-row">
-        <input type="email" id="testnudge-email" placeholder="you@email.com" style="min-width:240px;">
-        <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- User feedback: always visible -->
-  <section id="feedback-section" style="margin-top:22px;">
-    <div class="ctrl-card" style="padding:0; overflow:hidden;">
-      <div style="padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+  <!-- ===== Charts row ===== -->
+  <div class="dash-grid" style="margin-bottom:20px;">
+    <!-- Signups chart -->
+    <div class="section-card">
+      <div class="section-hd">
         <div>
-          <h3 style="margin:0; display:flex; align-items:center; gap:8px;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> User Feedback</h3>
-          <p style="margin:4px 0 0;" id="fb-count">Loading…</p>
-        </div>
-        <div id="fb-filters" style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button class="pill success" data-f="all" onclick="setFbFilter('all')">All</button>
-          <button class="pill" data-f="up" onclick="setFbFilter('up')">👍 Positive</button>
-          <button class="pill" data-f="down" onclick="setFbFilter('down')">👎 Negative</button>
-          <button class="pill" data-f="msg" onclick="setFbFilter('msg')">✍ With message</button>
+          <h2>Signups</h2>
+          <div class="sub">Last 30 days</div>
         </div>
       </div>
-      <div id="fb-body" style="padding:16px 18px; max-height:70vh; overflow-y:auto;">Loading…</div>
+      <div class="section-bd">
+        <div class="chart-wrap" id="chart-signups"></div>
+        <div class="chart-labels" id="chart-signups-labels"></div>
+      </div>
     </div>
-  </section>
+    <!-- Page views chart -->
+    <div class="section-card">
+      <div class="section-hd">
+        <div>
+          <h2>Page Views</h2>
+          <div class="sub">Last 7 days</div>
+        </div>
+      </div>
+      <div class="section-bd">
+        <div class="chart-wrap" id="chart-pv"></div>
+        <div class="chart-labels" id="chart-pv-labels"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Attribution + Geo row ===== -->
+  <div class="dash-grid" style="margin-bottom:20px;">
+    <div class="section-card">
+      <div class="section-hd">
+        <h2>Signup Sources</h2>
+      </div>
+      <div class="section-bd" id="attribution-bars"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-hd">
+        <h2>Users by Country</h2>
+      </div>
+      <div class="section-bd" id="geo-bars"></div>
+    </div>
+  </div>
+
+  <!-- ===== Retention + Revenue row ===== -->
+  <div class="dash-grid" style="margin-bottom:20px;">
+    <div class="section-card">
+      <div class="section-hd"><h2>Retention &amp; Engagement</h2></div>
+      <div class="section-bd" id="retention-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-hd"><h2>Revenue</h2></div>
+      <div class="section-bd" id="revenue-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== AI + Feature usage row ===== -->
+  <div class="dash-grid" style="margin-bottom:20px;">
+    <div class="section-card">
+      <div class="section-hd"><h2>AI Feature Usage</h2></div>
+      <div class="section-bd" id="ai-bars"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-hd"><h2>Feature Usage</h2></div>
+      <div class="section-bd" id="feature-bars"></div>
+    </div>
+  </div>
+
+  <!-- ===== Template picks ===== -->
+  <div class="section-card" style="margin-bottom:20px;">
+    <div class="section-hd"><h2>Template Picks</h2></div>
+    <div class="section-bd" id="template-bars"></div>
+  </div>
+
+  <!-- ===== User segments ===== -->
+  <div class="section-card" style="margin-bottom:20px;">
+    <div class="section-hd">
+      <div>
+        <h2>Users</h2>
+        <div class="sub" id="user-summary">Loading…</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn btn-ghost btn-xs" id="email-toggle" onclick="toggleEmails()">Show emails</button>
+        <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
+      </div>
+    </div>
+    <div style="max-height:65vh; overflow-y:auto;">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th>Features Used</th><th id="actions-col" style="display:none;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+      <div id="users-empty" class="empty-tbl" style="display:none;">No users yet.</div>
+    </div>
+  </div>
+
+  <!-- ===== Super controls ===== -->
+  <div id="super-controls" style="display:none;">
+    <div class="dash-grid" style="margin-bottom:20px;">
+      <div>
+        <div class="ctrl-card">
+          <h3>System Status</h3>
+          <div id="status-readout" style="font-size:13px; line-height:1.7;">Loading…</div>
+        </div>
+        <div class="ctrl-card">
+          <h3>Disable AI globally</h3>
+          <p>Blocks all AI endpoints for every user. You bypass the block.</p>
+          <div class="ctrl-row">
+            <input type="number" id="ai-mins" placeholder="minutes" min="1" max="10080">
+            <button class="btn btn-danger btn-sm" onclick="setAI()">Disable</button>
+            <button class="btn btn-ghost btn-sm" onclick="setAI(0)">Re-enable</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ctrl-card">
+          <h3>Take site offline</h3>
+          <p>Non-admin visitors see an offline screen. Admins bypass it.</p>
+          <div class="ctrl-row">
+            <input type="number" id="maint-mins" placeholder="minutes" min="1" max="10080">
+            <button class="btn btn-danger btn-sm" onclick="setMaint()">Take offline</button>
+            <button class="btn btn-ghost btn-sm" onclick="setMaint(0)">Bring online</button>
+          </div>
+        </div>
+        <div class="ctrl-card">
+          <h3>ADMIN tier access</h3>
+          <p>Toggle whether ADMIN users can log in. Super admin is never affected.</p>
+          <div class="ctrl-row">
+            <button class="btn btn-success btn-sm" onclick="setAdminAccessFromPanel(true)">Enable</button>
+            <button class="btn btn-danger btn-sm" onclick="setAdminAccessFromPanel(false)">Disable</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Email tools ===== -->
+  <div class="ctrl-card" style="margin-bottom:20px;">
+    <h3>Test win-nudge email</h3>
+    <p>Sends the weekly "log your win" email to verify Resend delivery end-to-end.</p>
+    <div class="ctrl-row">
+      <input type="email" id="testnudge-email" placeholder="you@email.com">
+      <button class="btn btn-primary btn-sm" onclick="sendTestNudge()">Send test</button>
+    </div>
+  </div>
+
+  <!-- ===== User feedback ===== -->
+  <div class="section-card">
+    <div class="section-hd">
+      <div>
+        <h2>User Feedback</h2>
+        <div class="sub" id="fb-count">Loading…</div>
+      </div>
+      <div id="fb-filters" style="display:flex; gap:4px; flex-wrap:wrap;">
+        <button class="pill success" data-f="all" onclick="setFbFilter('all')">All</button>
+        <button class="pill" data-f="up" onclick="setFbFilter('up')">👍</button>
+        <button class="pill" data-f="down" onclick="setFbFilter('down')">👎</button>
+        <button class="pill" data-f="msg" onclick="setFbFilter('msg')">✍ With message</button>
+      </div>
+    </div>
+    <div id="fb-body" style="padding:16px 20px; max-height:70vh; overflow-y:auto;">Loading…</div>
+  </div>
 </main>
 
 <script src="js/config.js"></script>
@@ -198,13 +346,13 @@
 <script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
 <script>
-const API = window.HIREFLOW_CONFIG.API_URL;
-const TOKEN = localStorage.getItem('hf_token');
+var API = window.HIREFLOW_CONFIG.API_URL;
+var TOKEN = localStorage.getItem('hf_token');
 if (!TOKEN) location.href = 'login';
-let ALL_USERS = [];
-let ROLE = null;
+var ALL_USERS = [];
+var ROLE = null;
 
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];});}
 function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
 function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
 function fmtPlan(p) {
@@ -214,109 +362,271 @@ function fmtPlan(p) {
 }
 
 async function apiGet(path) {
-  const r = await fetch(API + path, { headers: { Authorization: 'Bearer ' + TOKEN } });
-  if (!r.ok) throw new Error((await r.json().catch(()=>({}))).error || 'Request failed');
+  var r = await fetch(API + path, { headers: { Authorization: 'Bearer ' + TOKEN } });
+  if (!r.ok) throw new Error((await r.json().catch(function(){return {};}).then(function(d){return d;})).error || 'Request failed');
   return r.json();
 }
 async function apiPost(path, body) {
-  const r = await fetch(API + path, {
+  var r = await fetch(API + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
     body: JSON.stringify(body || {})
   });
-  if (!r.ok) throw new Error((await r.json().catch(()=>({}))).error || 'Request failed');
+  if (!r.ok) throw new Error((await r.json().catch(function(){return {};}).then(function(d){return d;})).error || 'Request failed');
   return r.json();
 }
 
 async function init() {
-  // Check role from /me
-  let me;
+  var me;
   try { me = await apiGet('/me'); }
-  catch { localStorage.removeItem('hf_token'); location.href = 'login'; return; }
+  catch(e) { localStorage.removeItem('hf_token'); location.href = 'login'; return; }
   ROLE = me.role;
   if (ROLE !== 'admin' && ROLE !== 'super') {
-    document.body.innerHTML = '<div style="padding:60px 24px; max-width:480px; margin:0 auto; text-align:center;"><h1>Access denied</h1><p style="color:var(--muted); margin-top:8px;">This page is only available to admin accounts.</p><p style="margin-top:20px;"><a href="editor" class="btn btn-primary">Back to Editor</a></p></div>';
+    document.body.innerHTML = '<div style="padding:60px 24px;max-width:480px;margin:0 auto;text-align:center;"><h1>Access denied</h1><p style="color:var(--muted);margin-top:8px;">Admin accounts only.</p><p style="margin-top:20px;"><a href="editor" class="btn btn-primary">Back to Editor</a></p></div>';
     return;
   }
-  // role-pill may already have been removed by acctcenter.js (which rebuilds
-  // .topbar-right into the account dropdown while we await /me), guard it so a
-  // missing cosmetic element never aborts the role-gating + data load below.
-  var _rp = document.getElementById('role-pill');
-  if (_rp) _rp.innerHTML =
-    `<span class="pill ${ROLE==='super'?'error':''}">${ICON('crown','ico ico-sm')} ${ROLE==='super'?'SUPER ADMIN':'ADMIN'}</span>`;
+  var rp = document.getElementById('role-pill');
+  if (rp) rp.innerHTML = '<span class="pill ' + (ROLE==='super'?'error':'') + '">' + ICON('crown','ico ico-sm') + ' ' + (ROLE==='super'?'SUPER ADMIN':'ADMIN') + '</span>';
   document.getElementById('banner-role').textContent = ROLE === 'super' ? 'SUPER ADMIN ACCESS' : 'ADMIN ACCESS';
   document.getElementById('banner-msg').textContent = ROLE === 'super'
     ? 'Full control: view, delete users, disable AI, take site offline.'
     : 'Manage users: view and delete. System controls are super-admin only.';
-  document.getElementById('actions-col').style.display = '';   // any admin can delete users
-  if (ROLE === 'super') {
-    document.getElementById('super-controls').style.display = '';
-    document.getElementById('admin-grid').classList.remove('single');
-  } else {
-    document.getElementById('admin-grid').classList.add('single');
-  }
-
+  document.getElementById('actions-col').style.display = '';
+  if (ROLE === 'super') document.getElementById('super-controls').style.display = '';
   await refresh();
 }
 
 async function refresh() {
   try {
-    const [usersRes, statusRes] = await Promise.all([
-      apiGet('/admin/users'),
-      apiGet('/status')
-    ]);
-    ALL_USERS = usersRes.users || [];
+    var results = await Promise.all([apiGet('/admin/users'), apiGet('/status')]);
+    ALL_USERS = results[0].users || [];
     renderUsers();
-    renderStatus(statusRes);
+    renderStatus(results[1]);
   } catch (e) {
     toast('Failed to load: ' + e.message, { type: 'error' });
-    // Never leave the panels stuck on a placeholder, show the error clearly.
-    var us = document.getElementById('user-summary');
-    if (us) us.innerHTML = '<span style="color:var(--danger);">Couldn\'t load users: ' + esc(e.message) + '</span>';
-    var sr = document.getElementById('status-readout');
-    if (sr && /loading/i.test(sr.textContent)) sr.innerHTML = '<span style="color:var(--danger);">Couldn\'t load status.</span>';
   }
-  // Analytics + feedback are always shown; load them independently so one failing
-  // never blanks the other.
   loadAnalytics();
   loadFeedback();
 }
 
-function scrollToId(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ─────────────── Hero cards + charts ───────────────
+async function loadAnalytics() {
+  try {
+    var d = await apiGet('/admin/analytics');
+    renderHeroCards(d);
+    renderAreaChart('chart-signups', 'chart-signups-labels', d.signupsByDay, '#6366f1');
+    renderAreaChart('chart-pv', 'chart-pv-labels', d.pvByDay, '#06b6d4');
+    renderAttributionBars(d.attribution || {});
+    renderGeoBars(d.geoCountry || {});
+    renderRetention(d);
+    renderRevenue(d);
+    renderAiBars(d.aiByAction || {}, d.usersByFeature || {});
+    renderFeatureBars(d.featureUsage || {}, d.usersByNonAiFeature || {}, d.featureLast7 || {});
+    renderTemplateBars(d.templatePicks || {});
+    var upd = document.getElementById('analytics-updated');
+    if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  } catch (e) {
+    document.getElementById('hero-stats').innerHTML = '<div style="grid-column:1/-1;color:var(--danger);font-size:13px;">Couldn\'t load analytics: ' + esc(e.message) + '</div>';
+  }
 }
 
-// Emails are masked by default (privacy / screen-sharing safe); toggle to reveal.
-let SHOW_EMAILS = false;
+function renderHeroCards(d) {
+  var trend = d.signupTrend || 0;
+  _setHero('hc-visitors', (d.visitors || 0).toLocaleString(), (d.visitorsToday || 0) + ' today', null);
+  _setHero('hc-signups', (d.last7Signups || 0).toLocaleString(),
+    (trend > 0 ? '↑ ' : trend < 0 ? '↓ ' : '') + Math.abs(trend) + '% vs prior week',
+    trend > 0 ? 'up' : trend < 0 ? 'down' : 'flat');
+  _setHero('hc-paid', (d.payingCustomers || 0).toLocaleString(),
+    d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime', null);
+  _setHero('hc-mrr', '$' + (d.mrr || 0).toLocaleString(),
+    (d.activePremiumSubs || 0) + ' active sub' + (d.activePremiumSubs === 1 ? '' : 's'), null);
+  _setHero('hc-activation', (d.activationRate || 0) + '%',
+    (d.activated || 0) + ' of ' + d.total + ' activated', null);
+  _setHero('hc-total', (d.total || 0).toLocaleString(),
+    (d.signupsToday || 0) + ' today · ' + (d.last30Signups || 0) + ' last 30d', null);
+}
+
+function _setHero(id, val, sub, trendClass) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+  var tr = document.getElementById(id + '-trend');
+  if (tr) { tr.textContent = sub || ''; tr.className = 'hero-card-trend ' + (trendClass || 'flat'); }
+}
+
+// ─── Area chart (SVG) ───
+function renderAreaChart(wrId, lblId, byDay, color) {
+  var wrap = document.getElementById(wrId);
+  var lbls = document.getElementById(lblId);
+  if (!wrap) return;
+  var entries = Object.entries(byDay || {}).sort();
+  if (!entries.length) { wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;">No data</div>'; return; }
+  var vals = entries.map(function(e){return e[1];});
+  var max = Math.max.apply(null, vals.concat([1]));
+  var w = 600, h = 140, padB = 4;
+  var pts = vals.map(function(v,i){
+    var x = entries.length === 1 ? w/2 : (i / (entries.length - 1)) * w;
+    var y = h - padB - ((v / max) * (h - padB - 8));
+    return x + ',' + y;
+  });
+  var lineStr = pts.join(' ');
+  var areaStr = '0,' + (h - padB) + ' ' + lineStr + ' ' + w + ',' + (h - padB);
+  wrap.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">'
+    + '<defs><linearGradient id="g-' + wrId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + color + '" stop-opacity=".25"/><stop offset="100%" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>'
+    + '<polygon points="' + areaStr + '" fill="url(#g-' + wrId + ')"/>'
+    + '<polyline points="' + lineStr + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
+    + '</svg>';
+  if (lbls) {
+    var first = entries[0][0].slice(5);
+    var last = entries[entries.length - 1][0].slice(5);
+    var total = vals.reduce(function(a,b){return a+b;},0);
+    lbls.innerHTML = '<span>' + first + '</span><span style="font-weight:600;color:var(--text);">' + total.toLocaleString() + ' total</span><span>' + last + '</span>';
+  }
+}
+
+// ─── Horizontal bar charts ───
+function _renderHBars(containerId, data, color) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var entries = Object.entries(data).sort(function(a,b){return b[1]-a[1];}).slice(0, 10);
+  if (!entries.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No data yet</div>'; return; }
+  var max = entries[0][1] || 1;
+  el.innerHTML = entries.map(function(e) {
+    var pct = Math.round((e[1] / max) * 100);
+    return '<div class="hbar-row">'
+      + '<div class="hbar-label" title="' + esc(e[0]) + '">' + esc(e[0]) + '</div>'
+      + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:' + color + ';"></div></div>'
+      + '<div class="hbar-val">' + e[1].toLocaleString() + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderAttributionBars(data) { _renderHBars('attribution-bars', data, '#8b5cf6'); }
+function renderGeoBars(data) { _renderHBars('geo-bars', data, '#06b6d4'); }
+
+// ─── Retention ───
+function renderRetention(d) {
+  var el = document.getElementById('retention-grid');
+  if (!el) return;
+  el.innerHTML =
+    _miniStat('Weekly Active', d.wau || 0, (d.activeToday || 0) + ' today')
+    + _miniStat('Monthly Active', d.mau || 0, (d.stickiness || 0) + '% stickiness')
+    + _miniStat('Returning Users', d.returning || 0, (d.returnRate || 0) + '% came back')
+    + _miniStat('Repeat AI Users', d.aiRepeat || 0, (d.aiRepeatRate || 0) + '% of AI users');
+}
+
+function renderRevenue(d) {
+  var el = document.getElementById('revenue-grid');
+  if (!el) return;
+  el.innerHTML =
+    _miniStat('MRR', '$' + (d.mrr || 0).toLocaleString(), (d.activePremiumSubs || 0) + ' premium subs')
+    + _miniStat('Lifetime Revenue', '$' + (d.lifetimeRevenue || 0).toLocaleString(), (d.plans.lifetime || 0) + ' purchases')
+    + _miniStat('Paying Total', d.payingCustomers || 0, (d.total ? Math.round((d.payingCustomers / d.total) * 1000) / 10 : 0) + '% of users')
+    + _miniStat('Avg Downloads', d.avgDownloads || 0, (d.totalDownloads || 0) + ' total');
+}
+
+function _miniStat(label, val, sub) {
+  return '<div style="background:var(--bg-2);border-radius:8px;padding:14px;">'
+    + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">' + label + '</div>'
+    + '<div style="font-size:22px;font-weight:800;line-height:1.1;">' + val + '</div>'
+    + (sub ? '<div style="font-size:10.5px;color:var(--muted);margin-top:4px;">' + sub + '</div>' : '')
+    + '</div>';
+}
+
+// ─── AI / Feature bars ───
+var _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', letter: 'Letter Writer', interview: 'Interview Prep', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', salary: 'Salary Insights', win: 'Win Polish', parse: 'Resume Import' };
+function _aiLabel(k) { return _AI_LABELS[k] || k; }
+var _FEATURE_LABELS = {
+  template_select: 'Template Changed', download_pdf: 'PDF Download', export_gdoc: 'Google Docs Export',
+  export_print: 'Print', job_tracker_open: 'Job Tracker', job_tracker_save: 'Job Saved',
+  cover_letter_open: 'Cover Letter', interview_prep_open: 'Interview Prep',
+  salary_open: 'Salary Lookup', skill_gap_open: 'Skill Gap',
+  version_restore: 'Version Restored', resume_import: 'Resume Imported',
+  referral_open: 'Referral Panel', onboarding_complete: 'Onboarding Done',
+};
+function _featureLabel(k) { return _FEATURE_LABELS[k] || k.replace(/_/g,' '); }
+
+function renderAiBars(byAction, byUser) {
+  var el = document.getElementById('ai-bars');
+  if (!el) return;
+  var keys = Object.keys(byAction).concat(Object.keys(byUser)).filter(function(k,i,a){return a.indexOf(k)===i;});
+  if (!keys.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No AI usage yet</div>'; return; }
+  keys.sort(function(a,b){return (byAction[b]||0)-(byAction[a]||0);});
+  var max = byAction[keys[0]] || 1;
+  el.innerHTML = keys.map(function(k) {
+    var uses = byAction[k] || 0, users = byUser[k] || 0;
+    var pct = Math.round((uses / max) * 100);
+    return '<div class="hbar-row">'
+      + '<div class="hbar-label">' + _aiLabel(k) + '</div>'
+      + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#8b5cf6;"></div></div>'
+      + '<div class="hbar-val">' + uses + ' <span class="user-meta">· ' + users + ' user' + (users===1?'':'s') + '</span></div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderFeatureBars(byFeature, byUser, last7) {
+  var el = document.getElementById('feature-bars');
+  if (!el) return;
+  var keys = Object.keys(byFeature).concat(Object.keys(byUser)).filter(function(k,i,a){return a.indexOf(k)===i;});
+  if (!keys.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No feature usage yet</div>'; return; }
+  keys.sort(function(a,b){return (byFeature[b]||0)-(byFeature[a]||0);});
+  var max = byFeature[keys[0]] || 1;
+  el.innerHTML = keys.map(function(k) {
+    var uses = byFeature[k] || 0, users = byUser[k] || 0, w = last7[k] || 0;
+    var pct = Math.round((uses / max) * 100);
+    return '<div class="hbar-row">'
+      + '<div class="hbar-label">' + _featureLabel(k) + '</div>'
+      + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#14b8a6;"></div></div>'
+      + '<div class="hbar-val">' + uses + ' <span class="user-meta">· ' + users + 'u' + (w ? ' · ' + w + '/7d' : '') + '</span></div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderTemplateBars(picks) {
+  var el = document.getElementById('template-bars');
+  if (!el) return;
+  var keys = Object.keys(picks);
+  if (!keys.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No template data</div>'; return; }
+  keys.sort(function(a,b){return (picks[b]||0)-(picks[a]||0);});
+  var max = picks[keys[0]] || 1;
+  var total = keys.reduce(function(s,k){return s+(picks[k]||0);},0);
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + keys.map(function(k) {
+    var n = picks[k] || 0, pct = total ? Math.round(n/total*100) : 0;
+    var w = Math.max(4, Math.round((n / max) * 100));
+    return '<div style="background:var(--bg-2);border-radius:6px;padding:8px 12px;flex:0 0 auto;border:1px solid var(--border);">'
+      + '<div style="font-size:12px;font-weight:600;">' + k + '</div>'
+      + '<div style="font-size:18px;font-weight:800;margin:2px 0;">' + n + '</div>'
+      + '<div style="font-size:10px;color:var(--muted);">' + pct + '%</div>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+// ─────────────── Users table ───────────────
+var SHOW_EMAILS = false;
 function _maskEmail(e) {
   e = String(e || '');
   if (SHOW_EMAILS || !e) return e;
-  const at = e.indexOf('@');
+  var at = e.indexOf('@');
   if (at < 1) return '•••••';
-  const domain = e.slice(at + 1), dot = domain.lastIndexOf('.');
-  const dn = dot > 0 ? domain.slice(0, dot) : domain, tld = dot > 0 ? domain.slice(dot) : '';
+  var domain = e.slice(at + 1), dot = domain.lastIndexOf('.');
+  var dn = dot > 0 ? domain.slice(0, dot) : domain, tld = dot > 0 ? domain.slice(dot) : '';
   return e[0] + '•••@' + (dn ? dn[0] : '') + '•••' + tld;
 }
 function toggleEmails() {
   SHOW_EMAILS = !SHOW_EMAILS;
-  const b = document.getElementById('email-toggle');
+  var b = document.getElementById('email-toggle');
   if (b) b.textContent = SHOW_EMAILS ? 'Hide emails' : 'Show emails';
   renderUsers();
   if (typeof renderFeedback === 'function') renderFeedback();
 }
 
-// Signup onboarding answers for the Users table:
-//   category    = "What best describes you?" (from the signup form)
-//   attribution = "Where did you hear about us?" (post-signup prompt)
-const _CATEGORY_LABELS = {
+var _CATEGORY_LABELS = {
   'student': 'Student', 'internship': 'Seeking internship', 'no-experience': 'No experience yet',
   'software-engineer': 'Software Engineer', 'finance': 'Finance', 'project-manager': 'Project Manager',
   'nurse': 'Nurse', 'teacher': 'Teacher', 'career-changer': 'Career changer', 'other': 'Other'
 };
 function _profileCell(u) {
-  const cat = u.category ? (_CATEGORY_LABELS[u.category] || u.category) : '';
-  const src = u.attribution || '';
+  var cat = u.category ? (_CATEGORY_LABELS[u.category] || u.category) : '';
+  var src = u.attribution || '';
   if (!cat && !src) return '<span class="user-meta">-</span>';
   var html = '';
   if (cat) html += '<div>' + esc(cat) + '</div>';
@@ -324,356 +634,171 @@ function _profileCell(u) {
   return html;
 }
 
-// Per-user AI feature breakdown for the Users table. Shows total AI uses plus the
-// features that user has actually used, sorted by count, with the full list on hover.
 function _aiUseCell(u) {
-  const f = u.aiFeatures || {};
-  const entries = Object.entries(f).filter(e => (Number(e[1]) || 0) > 0)
-    .sort((a, b) => b[1] - a[1]);
-  const totalRaw = u.aiTotal != null ? u.aiTotal : entries.reduce((s, e) => s + (Number(e[1]) || 0), 0);
-  const total = Number(totalRaw) || 0;
+  var f = u.aiFeatures || {};
+  var entries = Object.entries(f).filter(function(e){return (Number(e[1]) || 0) > 0;})
+    .sort(function(a,b){return b[1]-a[1];});
+  var totalRaw = u.aiTotal != null ? u.aiTotal : entries.reduce(function(s,e){return s+(Number(e[1])||0);},0);
+  var total = Number(totalRaw) || 0;
   if (!total) return '<span class="user-meta">-</span>';
-  const full = entries.map(e => _aiLabel(e[0]) + ' ' + e[1]).join(', ');
-  const top = entries.slice(0, 3).map(e =>
-    '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _aiLabel(e[0]) + ' ' + e[1] + '</span>').join(' ');
-  const more = entries.length > 3 ? ' <span class="user-meta">+' + (entries.length - 3) + '</span>' : '';
-  const last = u.aiLastAt ? '<div class="user-meta" style="margin-top:3px;">last: ' + _aiLabel(u.aiLastFeature || '') + ' · ' + fmtDate(u.aiLastAt) + '</div>' : '';
+  var full = entries.map(function(e){return _aiLabel(e[0])+' '+e[1];}).join(', ');
+  var top = entries.slice(0, 3).map(function(e){
+    return '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _aiLabel(e[0]) + ' ' + e[1] + '</span>';}).join(' ');
+  var more = entries.length > 3 ? ' <span class="user-meta">+' + (entries.length - 3) + '</span>' : '';
+  var last = u.aiLastAt ? '<div class="user-meta" style="margin-top:3px;">last: ' + _aiLabel(u.aiLastFeature || '') + ' · ' + fmtDate(u.aiLastAt) + '</div>' : '';
   return '<div title="' + esc(full) + '"><strong>' + total + '</strong> ' + top + more + last + '</div>';
 }
 
 function _featureUseCell(u) {
-  const f = u.features || {};
-  const entries = Object.entries(f).filter(e => (Number(e[1]) || 0) > 0).sort((a,b) => b[1]-a[1]);
+  var f = u.features || {};
+  var entries = Object.entries(f).filter(function(e){return (Number(e[1]) || 0) > 0;}).sort(function(a,b){return b[1]-a[1];});
   if (!entries.length) return '<span class="user-meta">-</span>';
-  const top = entries.slice(0, 2).map(e =>
-    '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _featureLabel(e[0]) + ' ' + e[1] + '</span>').join(' ');
-  const more = entries.length > 2 ? ' <span class="user-meta">+' + (entries.length - 2) + '</span>' : '';
-  const full = entries.map(e => _featureLabel(e[0]) + ' ' + e[1]).join(', ');
+  var top = entries.slice(0, 2).map(function(e){
+    return '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _featureLabel(e[0]) + ' ' + e[1] + '</span>';}).join(' ');
+  var more = entries.length > 2 ? ' <span class="user-meta">+' + (entries.length - 2) + '</span>' : '';
+  var full = entries.map(function(e){return _featureLabel(e[0])+' '+e[1];}).join(', ');
   return '<div title="' + esc(full) + '">' + top + more + '</div>';
 }
 
 function renderUsers() {
-  const q = (document.getElementById('search').value || '').toLowerCase().trim();
-  const list = ALL_USERS.filter(u => !q || (u.email||'').toLowerCase().includes(q));
+  var q = (document.getElementById('search').value || '').toLowerCase().trim();
+  var list = ALL_USERS.filter(function(u){return !q || (u.email||'').toLowerCase().indexOf(q)>=0;});
   document.getElementById('user-summary').textContent =
-    `${list.length} of ${ALL_USERS.length} users · ${ALL_USERS.filter(u=>u.plan!=='free').length} paid`;
+    list.length + ' of ' + ALL_USERS.length + ' users · ' + ALL_USERS.filter(function(u){return u.plan!=='free';}).length + ' paid';
   if (!list.length) {
     document.getElementById('users-tbody').innerHTML = '';
     document.getElementById('users-empty').style.display = '';
     return;
   }
   document.getElementById('users-empty').style.display = 'none';
-  document.getElementById('users-tbody').innerHTML = list.map(u => {
-    const notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
-                  u.currentPeriodEnd ? `Renews ${fmtUnix(u.currentPeriodEnd)}` : '-';
-    const stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
-    return `
-      <tr>
-        <td><div class="user-email">${esc(_maskEmail(u.email))}</div></td>
-        <td>${fmtPlan(u.plan)}</td>
-        <td>${_profileCell(u)}</td>
-        <td>${fmtDate(u.createdAt)}</td>
-        <td>${esc(notes)} ${stripe}</td>
-        <td>${u.downloadsUsed}</td>
-        <td>${_aiUseCell(u)}</td>
-        <td>${_featureUseCell(u)}</td>
-        <td><button class="btn btn-ghost btn-xs" onclick="deleteUser('${esc(u.email)}')" title="Delete user + resume">${ICON('trash','ico ico-sm')}</button></td>
-      </tr>`;
+  document.getElementById('users-tbody').innerHTML = list.map(function(u) {
+    var notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
+                u.currentPeriodEnd ? 'Renews ' + fmtUnix(u.currentPeriodEnd) : '-';
+    var stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
+    return '<tr>'
+      + '<td><div class="user-email">' + esc(_maskEmail(u.email)) + '</div></td>'
+      + '<td>' + fmtPlan(u.plan) + '</td>'
+      + '<td>' + _profileCell(u) + '</td>'
+      + '<td>' + fmtDate(u.createdAt) + '</td>'
+      + '<td>' + esc(notes) + ' ' + stripe + '</td>'
+      + '<td>' + u.downloadsUsed + '</td>'
+      + '<td>' + _aiUseCell(u) + '</td>'
+      + '<td>' + _featureUseCell(u) + '</td>'
+      + '<td><button class="btn btn-ghost btn-xs" onclick="deleteUser(\'' + esc(u.email) + '\')" title="Delete user + resume">' + ICON('trash','ico ico-sm') + '</button></td>'
+      + '</tr>';
   }).join('');
 }
 
+// ─────────────── Status + controls ───────────────
 function renderStatus(s) {
-  const r = document.getElementById('status-readout');
+  var r = document.getElementById('status-readout');
   if (!r) return;
-  const ai = s.aiDisabled
-    ? `<span class="status-on">AI: DISABLED</span> until ${fmtUnix(s.aiDisabledUntil)} ${new Date(s.aiDisabledUntil*1000).toLocaleTimeString()}`
-    : `<span class="status-off">AI: enabled</span>`;
-  const m = s.maintenance
-    ? `<span class="status-on">Site: OFFLINE</span> until ${fmtUnix(s.maintenanceUntil)} ${new Date(s.maintenanceUntil*1000).toLocaleTimeString()}`
-    : `<span class="status-off">Site: online</span>`;
-  const a = s.adminEnabled === false
-    ? `<span class="status-on">ADMIN tier: DISABLED</span>`
-    : `<span class="status-off">ADMIN tier: enabled</span>`;
-  r.innerHTML = `<div>${ai}</div><div>${m}</div><div>${a}</div>`;
+  var ai = s.aiDisabled
+    ? '<span class="status-on">AI: DISABLED</span> until ' + fmtUnix(s.aiDisabledUntil)
+    : '<span class="status-off">AI: enabled</span>';
+  var m = s.maintenance
+    ? '<span class="status-on">Site: OFFLINE</span> until ' + fmtUnix(s.maintenanceUntil)
+    : '<span class="status-off">Site: online</span>';
+  var a = s.adminEnabled === false
+    ? '<span class="status-on">ADMIN tier: DISABLED</span>'
+    : '<span class="status-off">ADMIN tier: enabled</span>';
+  r.innerHTML = '<div>' + ai + '</div><div>' + m + '</div><div>' + a + '</div>';
 }
 
 async function setAdminAccessFromPanel(enabled) {
   if (!enabled) {
-    const ok = await confirmDialog({
-      title: 'Disable ADMIN tier?',
-      body: 'All ADMIN users will be signed out immediately and unable to log back in. Only you (super admin) will be able to re-enable them.',
-      confirmText: 'Disable ADMIN',
-      cancelText: 'Cancel',
-      danger: true
-    });
+    var ok = await confirmDialog({ title:'Disable ADMIN tier?', body:'All ADMIN users will be signed out immediately.', confirmText:'Disable ADMIN', cancelText:'Cancel', danger:true });
     if (!ok) return;
   }
-  const res = await setAdminAccess(enabled);
+  var res = await setAdminAccess(enabled);
   if (res) refresh();
 }
 
 async function deleteUser(email) {
-  const ok = await confirmDialog({
-    title: 'Delete this user?',
-    body: `This will permanently delete ${email} and their saved resume. The Stripe subscription (if any) is NOT cancelled, do that separately in Stripe.`,
-    confirmText: 'Delete user',
-    cancelText: 'Cancel',
-    danger: true
-  });
+  var ok = await confirmDialog({ title:'Delete this user?', body:'Permanently deletes ' + email + ' and their resume. Stripe subscription is NOT cancelled.', confirmText:'Delete user', cancelText:'Cancel', danger:true });
   if (!ok) return;
-  try {
-    await apiPost('/admin/users/delete', { email });
-    toast('Deleted ' + email, { type: 'success' });
-    refresh();
-  } catch (e) { toast('Delete failed: ' + e.message, { type: 'error' }); }
+  try { await apiPost('/admin/users/delete', { email }); toast('Deleted ' + email, { type: 'success' }); refresh(); }
+  catch (e) { toast('Delete failed: ' + e.message, { type: 'error' }); }
 }
 
 async function setAI(minutesOverride) {
-  const m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('ai-mins').value, 10);
+  var m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('ai-mins').value, 10);
   if (!minutesOverride && (!m || m < 1)) return toast('Enter a number of minutes', { type: 'warn' });
-  try {
-    const res = await apiPost('/admin/ai-disable', { minutes: m });
-    toast(res.aiDisabledUntil ? `AI disabled for ${m} min` : 'AI re-enabled', { type: 'success' });
-    refresh();
-  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+  try { var res = await apiPost('/admin/ai-disable', { minutes: m }); toast(res.aiDisabledUntil ? 'AI disabled for ' + m + ' min' : 'AI re-enabled', { type: 'success' }); refresh(); }
+  catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
 
 async function setMaint(minutesOverride) {
-  const m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('maint-mins').value, 10);
+  var m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('maint-mins').value, 10);
   if (!minutesOverride) {
     if (!m || m < 1) return toast('Enter a number of minutes', { type: 'warn' });
-    const ok = await confirmDialog({
-      title: 'Take the site offline?',
-      body: `Every non-admin visitor will see an offline screen for ${m} minutes. Admins (including you) bypass it.`,
-      confirmText: 'Take offline',
-      cancelText: 'Cancel',
-      danger: true
-    });
+    var ok = await confirmDialog({ title:'Take site offline?', body:'Non-admin visitors see an offline screen for ' + m + ' minutes.', confirmText:'Take offline', cancelText:'Cancel', danger:true });
     if (!ok) return;
   }
-  try {
-    const res = await apiPost('/admin/maintenance', { minutes: m });
-    toast(res.maintenanceUntil ? `Site offline for ${m} min` : 'Site back online', { type: 'success' });
-    refresh();
-  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+  try { var res = await apiPost('/admin/maintenance', { minutes: m }); toast(res.maintenanceUntil ? 'Site offline for ' + m + ' min' : 'Site back online', { type: 'success' }); refresh(); }
+  catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
 
 async function sendTestNudge() {
-  const el = document.getElementById('testnudge-email');
-  const email = (el.value || '').trim() || (localStorage.getItem('hf_email') || '');
+  var el = document.getElementById('testnudge-email');
+  var email = (el.value || '').trim() || (localStorage.getItem('hf_email') || '');
   if (!email || email.indexOf('@') < 0) return toast('Enter a valid email', { type: 'warn' });
-  try {
-    const res = await apiPost('/admin/test-win-nudge', { email });
-    if (res.ok) toast('Test email sent to ' + email + ', check inbox & spam.', { type: 'success' });
-    else toast('Send failed: ' + (res.error || 'unknown'), { type: 'error' });
-  } catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+  try { var res = await apiPost('/admin/test-win-nudge', { email }); if (res.ok) toast('Test email sent to ' + email, { type: 'success' }); else toast('Send failed: ' + (res.error || 'unknown'), { type: 'error' }); }
+  catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
 
-function signOut() {
-  localStorage.removeItem('hf_token');
-  localStorage.removeItem('hf_email');
-  location.href = '/';
-}
+function signOut() { localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href = '/'; }
 
-// ─────────────── Analytics (always visible) ───────────────
-async function loadAnalytics() {
-  const body = document.getElementById('analytics-body');
-  if (!body) return;
-  try {
-    const d = await apiGet('/admin/analytics');
-    const trend = d.signupTrend || 0;
-    const trendStr = (trend > 0 ? '▲ ' : trend < 0 ? '▼ ' : '') + Math.abs(trend) + '% WoW';
-    const trendColor = trend > 0 ? '#22c55e' : trend < 0 ? '#ef4444' : 'var(--muted)';
-    body.innerHTML =
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
-      + _statBox('Unique Visitors', (d.visitors || 0).toLocaleString(), '#ec4899', (d.visitorsToday || 0) + ' today')
-      + _statBox('AI Uses', (d.aiUses || 0).toLocaleString(), '#14b8a6', (d.aiToday || 0) + ' today · ' + (d.aiLast7 || 0) + ' this week')
-      + _statBox('Total Users', d.total, '#6366f1')
-      + _statBox('Active Paid', d.activeSubs, '#22c55e', (d.plans.premium + ' premium · ' + d.plans.lifetime + ' lifetime'))
-      + (d.earlyBird ? _statBox('Founding Members', (d.earlyBird.claimed || 0) + ' / ' + d.earlyBird.limit, '#f59e0b', (d.earlyBird.open ? (d.earlyBird.remaining + ' spots left') : 'promo closed') + ((d.compedPremium || 0) ? (' · ' + d.compedPremium + ' active comps') : '')) : '')
-      + _statBox('Activation', (d.activationRate || 0) + '%', '#f59e0b', (d.activated || 0) + ' of ' + d.total + ' used AI or exported')
-      + _statBox('Conversion', d.conversionRate + '%', '#8b5cf6', (d.plans.premium + d.plans.lifetime) + ' of ' + d.total + ' paid')
-      + _statBox('Signups Today', d.signupsToday, '#06b6d4')
-      + _statBox('Signups (7d)', d.last7Signups, '#06b6d4', trendStr, trendColor)
-      + _statBox('Signups (30d)', d.last30Signups, '#06b6d4')
-      + _statBox('Avg Downloads', d.avgDownloads, '#f59e0b', d.totalDownloads + ' total')
-      + _statBox('Stripe Linked', d.stripeLinked, '#635bff')
-      + _statBox('Dormant', d.dormant, '#ef4444', 'joined >7d ago, 0 downloads')
-      + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Retention &amp; Repeat Usage</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
-      + _statBox('Returning Users', (d.returning || 0), '#10b981', (d.returnRate || 0) + '% came back a 2nd day')
-      + _statBox('Weekly Active', (d.wau || 0), '#10b981', (d.activeToday || 0) + ' active today')
-      + _statBox('Monthly Active', (d.mau || 0), '#10b981', (d.stickiness || 0) + '% stickiness (WAU/MAU)')
-      + _statBox('Repeat AI Users', (d.aiRepeat || 0), '#14b8a6', (d.aiRepeatRate || 0) + '% of AI users · ' + (d.avgAiPerUser || 0) + ' avg uses')
-      + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Revenue <span style="font-weight:400;opacity:.7;">(estimated from list price)</span></div>'
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">'
-      + _statBox('MRR', '$' + (d.mrr || 0).toLocaleString(), '#22c55e', (d.activePremiumSubs || 0) + ' active premium sub' + (d.activePremiumSubs === 1 ? '' : 's'))
-      + _statBox('Lifetime Revenue', '$' + (d.lifetimeRevenue || 0).toLocaleString(), '#635bff', (d.plans.lifetime || 0) + ' one-time purchase' + (d.plans.lifetime === 1 ? '' : 's'))
-      + _statBox('Paying Customers', (d.payingCustomers || 0), '#22c55e', (d.total ? Math.round((d.payingCustomers / d.total) * 1000) / 10 : 0) + '% of users')
-      + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Plan Breakdown</div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
-      + '<span class="pill">Free: ' + d.plans.free + '</span>'
-      + '<span class="pill success">Premium: ' + d.plans.premium + '</span>'
-      + '<span class="pill success">Lifetime: ' + d.plans.lifetime + '</span>'
-      + '</div>'
-      + _aiFeatureBlock(d.aiByAction || {}, d.usersByFeature || {})
-      + _nonAiFeatureBlock(d.featureUsage || {}, d.usersByNonAiFeature || {}, d.featureLast7 || {})
-      + _templatePicksBlock(d.templatePicks || {})
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Page Views, Last 7 Days</div>'
-      + _sparkline(d.pvByDay, 'view')
-      + '<div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;">Signups, Last 30 Days</div>'
-      + _sparkline(d.signupsByDay, 'signup');
-    const upd = document.getElementById('analytics-updated');
-    if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  } catch (e) {
-    body.innerHTML = '<span style="color:var(--danger);">Couldn\'t load analytics: ' + esc(e.message) + '</span>';
-  }
-}
-
-// AI feature usage: total successful uses + how many distinct users touched each
-// feature, sorted by uses. Answers "who uses which AI feature" at the aggregate level;
-// the per-user breakdown lives in the Users table ("AI use" column).
-function _aiFeatureBlock(byAction, byUser) {
-  var keys = Object.keys(byAction).concat(Object.keys(byUser))
-    .filter(function (k, i, a) { return a.indexOf(k) === i; });
-  if (!keys.length) return '';
-  keys.sort(function (a, b) { return (byAction[b] || 0) - (byAction[a] || 0); });
-  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">AI Feature Usage (all-time) · uses · unique users</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
-    + keys.map(function (k) {
-        var uses = byAction[k] || 0, users = byUser[k] || 0;
-        return '<span class="pill" title="' + users + ' distinct user' + (users === 1 ? '' : 's') + '">'
-          + _aiLabel(k) + ': ' + uses.toLocaleString()
-          + ' <span style="opacity:.6;">· ' + users + ' user' + (users === 1 ? '' : 's') + '</span></span>';
-      }).join('')
-    + '</div>';
-}
-
-function _statBox(label, value, color, sub, subColor) {
-  return '<div style="background:var(--bg-2);border:1px solid var(--border);border-top:3px solid ' + (color || '#6366f1') + ';border-radius:8px;padding:12px 14px;">'
-    + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">' + label + '</div>'
-    + '<div style="font-size:24px;font-weight:800;color:var(--text);line-height:1.1;">' + value + '</div>'
-    + (sub ? '<div style="font-size:10.5px;color:' + (subColor || 'var(--muted)') + ';margin-top:4px;">' + sub + '</div>' : '')
-    + '</div>';
-}
-
-const _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', letter: 'Letter Writer', interview: 'Interview Prep', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', salary: 'Salary Insights', win: 'Win Polish', parse: 'Resume Import' };
-function _aiLabel(k) { return _AI_LABELS[k] || k; }
-
-const _FEATURE_LABELS = {
-  template_select: 'Template Changed', download_pdf: 'PDF Download', export_gdoc: 'Google Docs Export',
-  export_print: 'Print', job_tracker_open: 'Job Tracker Opened', job_tracker_save: 'Job Saved to Tracker',
-  cover_letter_open: 'Cover Letter Generated', interview_prep_open: 'Interview Prep Run',
-  salary_open: 'Salary Lookup', skill_gap_open: 'Skill Gap Check',
-  version_restore: 'Version Restored', resume_import: 'Resume Imported',
-  referral_open: 'Referral Panel Opened', onboarding_complete: 'Onboarding Completed',
-};
-function _featureLabel(k) { return _FEATURE_LABELS[k] || k.replace(/_/g,' '); }
-
-function _nonAiFeatureBlock(byFeature, byUser, last7) {
-  var keys = Object.keys(byFeature).concat(Object.keys(byUser))
-    .filter(function(k,i,a){return a.indexOf(k)===i;});
-  if (!keys.length) return '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">No feature usage tracked yet. Starts recording on next user actions.</div>';
-  keys.sort(function(a,b){return (byFeature[b]||0)-(byFeature[a]||0);});
-  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Feature Usage (all-time) · uses · unique users · 7-day uses</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
-    + keys.map(function(k){
-        var uses=byFeature[k]||0, users=byUser[k]||0, w=last7[k]||0;
-        return '<span class="pill" title="'+users+' distinct user'+(users===1?'':'s')+'">'
-          + _featureLabel(k)+': '+uses.toLocaleString()
-          + ' <span style="opacity:.6;">· '+users+' user'+(users===1?'':'s')+(w?' · '+w+' this week':'')+'</span></span>';
-      }).join('')
-    + '</div>';
-}
-
-function _templatePicksBlock(picks) {
-  var keys = Object.keys(picks);
-  if (!keys.length) return '';
-  keys.sort(function(a,b){return (picks[b]||0)-(picks[a]||0);});
-  var total = keys.reduce(function(s,k){return s+(picks[k]||0);},0);
-  return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Template Picks (all-time)</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'
-    + keys.map(function(k){
-        var n=picks[k]||0, pct=total?Math.round(n/total*100):0;
-        return '<span class="pill">'+k+': '+n+' <span style="opacity:.6;">('+pct+'%)</span></span>';
-      }).join('')
-    + '</div>';
-}
-
-function _sparkline(byDay, label) {
-  label = label || 'signup';
-  const entries = Object.entries(byDay || {}).sort();
-  if (!entries.length) return '<div style="height:52px;background:var(--bg-2);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;">No data yet</div>';
-  const vals = entries.map(function(e) { return e[1]; });
-  const max = Math.max.apply(null, vals.concat([1]));
-  var bars = vals.map(function(v, i) {
-    const h = Math.max(2, Math.round((v / max) * 48));
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:52px;" title="' + entries[i][0] + ': ' + v + ' ' + label + (v===1?'':'s') + '">'
-      + '<div style="width:80%;background:linear-gradient(180deg,#8b5cf6,#6366f1);border-radius:2px 2px 0 0;height:' + h + 'px;"></div>'
-      + '</div>';
-  }).join('');
-  return '<div style="display:flex;align-items:flex-end;gap:1px;height:52px;background:var(--bg-2);border-radius:6px;padding:4px;">' + bars + '</div>';
-}
-
-// ─────────────── User feedback (always visible) ───────────────
-let ALL_FEEDBACK = [];
-let FB_FILTER = 'all';
-const _RATING = { up: { icon: '👍', color: '#22c55e' }, down: { icon: '👎', color: '#ef4444' }, none: { icon: '💬', color: '#64748b' } };
+// ─────────────── Feedback ───────────────
+var ALL_FEEDBACK = [];
+var FB_FILTER = 'all';
+var _RATING = { up: { icon: '👍', color: '#22c55e' }, down: { icon: '👎', color: '#ef4444' }, none: { icon: '💬', color: '#64748b' } };
 function _rk(f) { return f.rating === 'up' ? 'up' : f.rating === 'down' ? 'down' : 'none'; }
 function _fbDate(ts) {
   if (!ts) return '';
-  const d = new Date(ts);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' +
-         d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  var d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
 }
 function setFbFilter(f) {
   FB_FILTER = f;
-  document.querySelectorAll('#fb-filters [data-f]').forEach(function(b) { b.classList.toggle('success', b.dataset.f === f); });
+  document.querySelectorAll('#fb-filters [data-f]').forEach(function(b){b.classList.toggle('success', b.dataset.f === f);});
   renderFeedback();
 }
 
 async function loadFeedback() {
-  const body = document.getElementById('fb-body');
-  if (!body) return;
   try {
-    const data = await apiGet('/feedback/list');
+    var data = await apiGet('/feedback/list');
     ALL_FEEDBACK = Array.isArray(data.feedback) ? data.feedback : [];
     renderFeedback();
   } catch (e) {
     document.getElementById('fb-count').textContent = '';
-    body.innerHTML = '<div style="color:var(--danger);font-size:13px;">Couldn\'t load feedback: ' + esc(e.message) + '</div>';
+    document.getElementById('fb-body').innerHTML = '<div style="color:var(--danger);font-size:13px;">Couldn\'t load feedback: ' + esc(e.message) + '</div>';
   }
 }
 
 function renderFeedback() {
-  const body = document.getElementById('fb-body');
-  const up = ALL_FEEDBACK.filter(f => f.rating === 'up').length;
-  const down = ALL_FEEDBACK.filter(f => f.rating === 'down').length;
-  const withMsg = ALL_FEEDBACK.filter(f => (f.message || '').trim()).length;
+  var body = document.getElementById('fb-body');
+  var up = ALL_FEEDBACK.filter(function(f){return f.rating==='up';}).length;
+  var down = ALL_FEEDBACK.filter(function(f){return f.rating==='down';}).length;
+  var withMsg = ALL_FEEDBACK.filter(function(f){return (f.message||'').trim();}).length;
   document.getElementById('fb-count').innerHTML =
-    ALL_FEEDBACK.length + ' total · <span style="color:#22c55e;">' + up + ' 👍</span> · <span style="color:#ef4444;">' + down + ' 👎</span> · ' + withMsg + ' with a message';
-  const list = ALL_FEEDBACK.filter(function(f) {
+    ALL_FEEDBACK.length + ' total · <span style="color:#22c55e;">' + up + ' 👍</span> · <span style="color:#ef4444;">' + down + ' 👎</span> · ' + withMsg + ' with message';
+  var list = ALL_FEEDBACK.filter(function(f) {
     if (FB_FILTER === 'all') return true;
     if (FB_FILTER === 'msg') return (f.message || '').trim();
     return _rk(f) === FB_FILTER;
   });
-  if (!list.length) {
-    body.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:28px;">No feedback in this view yet.</div>';
-    return;
-  }
+  if (!list.length) { body.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:28px;">No feedback in this view.</div>'; return; }
   body.innerHTML = list.map(function(f) {
-    const r = _RATING[_rk(f)];
-    const where = [f.context, f.page].filter(Boolean).map(esc).join(' · ');
+    var r = _RATING[_rk(f)];
+    var where = [f.context, f.page].filter(Boolean).map(esc).join(' · ');
     return '<div style="border-left:3px solid ' + r.color + ';background:var(--bg-2);border-radius:8px;padding:12px 14px;margin-bottom:10px;">'
       + '<div style="display:flex;align-items:flex-start;gap:11px;">'
       + '<span style="font-size:20px;line-height:1.2;">' + r.icon + '</span>'
       + '<div style="flex:1;min-width:0;">'
       + (f.message && f.message.trim()
           ? '<p style="font-size:13.5px;line-height:1.6;margin:0;word-break:break-word;">' + esc(f.message) + '</p>'
-          : '<p style="font-size:13px;color:var(--muted);font-style:italic;margin:0;">(rating only, no message)</p>')
+          : '<p style="font-size:13px;color:var(--muted);font-style:italic;margin:0;">(rating only)</p>')
       + '<div style="display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11px;color:var(--muted);margin-top:8px;">'
       + '<span>👤 ' + (esc(_maskEmail(f.email)) || 'unknown') + ' (' + esc(f.plan || 'free') + ')</span>'
       + (where ? '<span>📍 ' + where + '</span>' : '')

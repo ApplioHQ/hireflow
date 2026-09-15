@@ -90,7 +90,7 @@
 .hero-title { font-size: clamp(40px, 5.2vw, 72px); font-weight: 700; line-height: 1.04; letter-spacing: -1.5px; margin-bottom: 28px; color: #fff; }
 /* The rotating word can be the longest line, keep it on one line and never let it clip. */
 .rotator { white-space: nowrap; max-width: 100%; }
-.rotator { color: #a5b4fc; display: inline-block; }
+.rotator { color: #fff; display: inline-block; }
 .hero-sub { font-size: 18px; color: rgba(255,255,255,.7); max-width: 520px; line-height: 1.55; margin-bottom: 36px; }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;

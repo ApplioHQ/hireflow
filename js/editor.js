@@ -446,7 +446,7 @@ function renderTemplateSection() {
         const items = TEMPLATE_DEFS.filter(t => (cat ? t.cat === cat : true));
         if (!items.length) return '';
         return `
-        ${cat ? `<div class="tpl-cat-label">${cat}</div>` : ''}
+        ${cat ? `<div class="tpl-cat-label">${cat}</div>${cat === 'Your Resume' ? '<div style="font-size:12px;color:var(--muted);margin:-6px 0 8px;">Keep the look your resume already has</div>' : ''}` : ''}
         <div class="template-grid">
           ${items.map(t => `
             <div class="template-card ${resume.template===t.id?'selected':''} ${_tplLocked(t.id)?'tpl-locked':''}" onclick="selectTemplate('${t.id}')">
@@ -863,6 +863,22 @@ const TEMPLATE_THUMBS = {
     <rect x="8" y="74" width="61" height="1.2" rx=".5" fill="#d4d4d4"/>
     <rect x="26" y="82" width="33" height="1.8" rx=".5" fill="#111"/><rect x="8" y="85" width="69" height=".5" fill="#111"/>
     <rect x="8" y="89" width="58" height="1.2" rx=".5" fill="#d4d4d4"/>
+  </svg>`,
+  plain: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="22" y="10" width="41" height="5" rx="1" fill="#111"/>
+    <rect x="24" y="18" width="37" height="1.6" rx=".5" fill="#777"/>
+    <rect x="8" y="26" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="29.5" width="69" height=".6" fill="#333"/>
+    <rect x="8" y="34" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="34" width="15" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="38" width="63" height="1.2" rx=".5" fill="#d4d4d4"/><rect x="8" y="41.5" width="57" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="48" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="51.5" width="69" height=".6" fill="#333"/>
+    <rect x="8" y="56" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="56" width="15" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="60" width="61" height="1.2" rx=".5" fill="#d4d4d4"/><rect x="8" y="63.5" width="55" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="70" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="73.5" width="69" height=".6" fill="#333"/>
+    <rect x="8" y="78" width="36" height="1.6" rx=".5" fill="#333"/>
+    <rect x="8" y="82" width="58" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="89" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="92.5" width="69" height=".6" fill="#333"/>
+    <rect x="8" y="97" width="56" height="1.2" rx=".5" fill="#d4d4d4"/>
   </svg>`,
   mit: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>

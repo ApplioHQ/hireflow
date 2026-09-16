@@ -4,8 +4,10 @@
 // Customize options (font, spacing, margins, section toggles) all apply.
 
 // `cat` groups templates in the picker: Students, Business, Technology, Creative.
-const TEMPLATE_CATEGORIES = ['Students', 'Business', 'Technology', 'Creative', 'Industry'];
+const TEMPLATE_CATEGORIES = ['Your Resume', 'Students', 'Business', 'Technology', 'Creative', 'Industry'];
 const TEMPLATE_DEFS = [
+  // Your Resume — clean default that looks like a standard Word/PDF resume
+  { id: 'plain',        name: 'Plain',          cat: 'Your Resume' },
   // Students
   { id: 'harvard',      name: 'Harvard',        cat: 'Students' },
   { id: 'stanford',     name: 'Stanford',       cat: 'Students' },
@@ -1132,6 +1134,39 @@ function tMit(r, accent) {
     </div>`;
 }
 
+// ── Plain: a clean, standard resume format that looks like what most people
+// already have — no strong design opinions, just clean typography.
+// For users who import a resume and want to keep a familiar look.
+function tPlain(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
+  return `
+    <style>
+      .t-plain { font-family: "Times New Roman", Times, Georgia, serif; color:#111; height:100%;
+        padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.38; }
+      .t-plain .p-name { font-size:210%; font-weight:700; text-align:center; letter-spacing:.01em; }
+      .t-plain .p-contact { text-align:center; font-size:85%; color:#333; margin-top:4px; }
+      .t-plain .p-contact span:not(:last-child)::after { content:"  |  "; color:#999; }
+      .t-plain h2 { font-size:100%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.06em;
+        margin: calc(4% * var(--app-space,1)) 0 calc(1.2% * var(--app-space,1)); padding-bottom:3px;
+        border-bottom:1px solid #333; }
+      .t-plain .t-entry { margin-bottom: calc(2.6% * var(--app-space,1)); }
+      .t-plain .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight:700; font-size:97%; }
+      .t-plain .t-entry-date { font-weight:400; font-size:88%; white-space:nowrap; padding-left:4%; }
+      .t-plain .t-entry-sub { font-size:91%; color:#222; }
+      .t-plain .t-entry-desc, .t-plain .summary { font-size:92%; }
+      .t-plain .t-bullets { font-size:92%; }
+      .t-plain .t-bullets li::before { color:#333; opacity:1; }
+    </style>
+    <div class="t-plain" style="${st}">
+      <div class="p-name">${esc(p.fullName)}</div>
+      ${contact.length ? `<div class="p-contact">${contact.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
 // ── Google Docs: the ubiquitous "resume template Google Docs" aesthetic.
 // Arial-family sans, left-aligned name, thin blue accent, clean and universal.
 // Ranks for the biggest resume-template keyword on Google.
@@ -1174,7 +1209,8 @@ const TEMPLATE_RENDERERS = {
   compact: tCompact, elegant: tElegant, slate: tSlate,
   ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy,
   twocolumn: tTwocolumn, healthcare: tHealthcare, sales: tSales, ats: tAts,
-  wharton: tWharton, mit: tMit, googledocs: tGoogledocs
+  wharton: tWharton, mit: tMit, googledocs: tGoogledocs,
+  plain: tPlain
 };
 
 // Public API: render any template

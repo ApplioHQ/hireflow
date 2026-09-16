@@ -848,6 +848,40 @@ const TEMPLATE_THUMBS = {
     <rect x="8" y="76" width="22" height="2" rx=".5" fill="#000"/><rect x="8" y="79.5" width="69" height=".7" fill="#000"/>
     <rect x="8" y="84" width="36" height="1.6" rx=".5" fill="#333"/><rect x="8" y="88" width="58" height="1.3" rx=".5" fill="#cfcfcf"/>
   </svg>`,
+  wharton: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="18" y="10" width="49" height="4.5" rx="1" fill="#111"/>
+    <rect x="22" y="17" width="41" height="1.6" rx=".5" fill="#777"/>
+    <rect x="8" y="21" width="69" height=".8" fill="#111"/>
+    <rect x="26" y="28" width="33" height="1.8" rx=".5" fill="#111"/><rect x="8" y="31" width="69" height=".5" fill="#111"/>
+    <rect x="8" y="35" width="36" height="1.6" rx=".5" fill="#333"/><rect x="60" y="35" width="17" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="39" width="63" height="1.2" rx=".5" fill="#d4d4d4"/><rect x="8" y="42.5" width="57" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="48" width="36" height="1.6" rx=".5" fill="#333"/><rect x="60" y="48" width="17" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="52" width="60" height="1.2" rx=".5" fill="#d4d4d4"/><rect x="8" y="55.5" width="55" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="26" y="63" width="33" height="1.8" rx=".5" fill="#111"/><rect x="8" y="66" width="69" height=".5" fill="#111"/>
+    <rect x="8" y="70" width="36" height="1.6" rx=".5" fill="#333"/><rect x="60" y="70" width="17" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="74" width="61" height="1.2" rx=".5" fill="#d4d4d4"/>
+    <rect x="26" y="82" width="33" height="1.8" rx=".5" fill="#111"/><rect x="8" y="85" width="69" height=".5" fill="#111"/>
+    <rect x="8" y="89" width="58" height="1.2" rx=".5" fill="#d4d4d4"/>
+  </svg>`,
+  mit: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="48" height="6" rx="1" fill="#111"/>
+    <rect x="8" y="18" width="42" height="1.8" rx=".5" fill="#888"/>
+    <rect x="8" y="22" width="69" height="2" fill="#8a1a2b"/>
+    <rect x="8" y="30" width="22" height="1.8" rx=".5" fill="#8a1a2b"/>
+    <rect x="8" y="35" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="35" width="15" height="1.4" rx=".5" fill="#999"/>
+    <polygon points="8,40 10,41.2 8,42.4" fill="#8a1a2b"/><rect x="11" y="40" width="58" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <polygon points="8,44 10,45.2 8,46.4" fill="#8a1a2b"/><rect x="11" y="44" width="52" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="52" width="22" height="1.8" rx=".5" fill="#8a1a2b"/>
+    <rect x="8" y="57" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="57" width="15" height="1.4" rx=".5" fill="#999"/>
+    <polygon points="8,62 10,63.2 8,64.4" fill="#8a1a2b"/><rect x="11" y="62" width="60" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <polygon points="8,66 10,67.2 8,68.4" fill="#8a1a2b"/><rect x="11" y="66" width="54" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="74" width="22" height="1.8" rx=".5" fill="#8a1a2b"/>
+    <rect x="8" y="79" width="18" height="3.5" rx="1.5" fill="#f3e8ea"/><rect x="28" y="79" width="22" height="3.5" rx="1.5" fill="#f3e8ea"/>
+    <rect x="52" y="79" width="16" height="3.5" rx="1.5" fill="#f3e8ea"/>
+    <rect x="8" y="85" width="20" height="3.5" rx="1.5" fill="#f3e8ea"/><rect x="30" y="85" width="24" height="3.5" rx="1.5" fill="#f3e8ea"/>
+  </svg>`,
 };
 
 // ============ Personal ============

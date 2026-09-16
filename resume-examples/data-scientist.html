@@ -25,43 +25,8 @@
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What should a data scientist emphasize on a resume?","acceptedAnswer":{"@type":"Answer","text":"Business impact from data science work: revenue lifted, cost saved, decisions changed, users affected. Recruiters know you can use Python and SQL; they care whether your models shipped and moved metrics. Lead with outcomes ('reduced churn 18%'), then technical depth ('by training an XGBoost model with 42 engineered features')."}},{"@type":"Question","name":"Should a data scientist resume include a projects section?","acceptedAnswer":{"@type":"Answer","text":"Yes, especially for new grads, career changers, or anyone with limited industry experience. Include 3-5 personal or class projects with a short description, the tech stack, the outcome (accuracy, F1, business result), and a link to the code or a hosted demo."}},{"@type":"Question","name":"How long should a data scientist resume be?","acceptedAnswer":{"@type":"Answer","text":"One page for entry to mid-level (up to ~7 years). Two pages for senior or staff data scientists with publication history or extensive project scope. Never three pages for industry roles."}},{"@type":"Question","name":"Do data scientists need a Kaggle rank or Github on their resume?","acceptedAnswer":{"@type":"Answer","text":"They help but aren't required. A high Kaggle rank (top 1%) or a widely-used open-source ML project signals credibility. A quiet GitHub with a few solid projects also helps. Neither is a substitute for shipped work with business impact."}}]}
 </script>
 <link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/resume-examples.css">
 <script src="/js/theme.js"></script>
-<style>
-  .gd-wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; }
-  .gd-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
-  .gd-crumb a { color: var(--muted); } .gd-crumb a:hover { color: var(--accent); }
-  .gd-wrap h1 { font-size: clamp(28px,5vw,38px); font-weight: 800; letter-spacing:-.6px; line-height:1.15; }
-  .gd-meta { color: var(--muted); font-size: 13px; margin-top: 10px; }
-  .gd-answer { margin: 22px 0 8px; padding: 18px 20px; border:1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-md); background: var(--bg-1); box-shadow: var(--sh-1); font-size: 16px; line-height: 1.65; }
-  .gd-section { margin-top: 34px; }
-  .gd-section h2 { font-size: 22px; font-weight: 800; letter-spacing:-.3px; margin-bottom: 12px; }
-  .gd-section h3 { font-size: 16px; font-weight: 700; margin: 16px 0 8px; }
-  .gd-section p, .gd-section li { color: var(--text); line-height: 1.75; font-size: 15.5px; }
-  .gd-section ul, .gd-section ol { padding-left: 20px; } .gd-section li { margin-bottom: 8px; }
-  .gd-section a { color: var(--accent); } .gd-section a:hover { text-decoration: underline; }
-  .gd-example { border:1px solid var(--border); border-radius: var(--r-md); background: var(--bg-1); padding:16px 18px; box-shadow: var(--sh-1); font-size:15px; line-height:1.7; color:var(--text); }
-  .gd-note { font-size:12.5px; color:var(--muted); margin-top:6px; }
-  .gd-chips { display:flex; flex-wrap:wrap; gap:8px; }
-  .gd-chip { font-size:12.5px; font-weight:600; color:#a5b4fc; background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.24); border-radius:999px; padding:5px 12px; }
-  .gd-faq { margin-top: 40px; }
-  .gd-faq h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
-  .gd-faq details { border-top: 1px solid var(--border); padding: 12px 0; }
-  .gd-faq summary { font-weight: 700; cursor: pointer; font-size: 15px; }
-  .gd-faq p { color: var(--muted); margin-top: 8px; line-height: 1.65; font-size: 14.5px; }
-  .gd-rel { margin-top: 40px; }
-  .gd-rel h2 { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
-  .gd-rel a { display: block; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r-md); margin-bottom: 8px; font-size: 14px; color: var(--text); text-decoration: none; }
-  .gd-rel a:hover { border-color: var(--accent); }
-  .gd-final { margin-top: 46px; text-align:center; padding: 34px 20px; border:1px solid var(--border); border-radius: var(--r-lg); background: linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-1)); box-shadow: var(--sh-1); }
-  .gd-final h2 { font-size: 22px; font-weight: 800; } .gd-final p { color: var(--muted); margin: 8px 0 16px; }
-
-  .rp-section { margin: 36px 0; }
-  .rp-section h2 { font-size: 22px; font-weight: 800; letter-spacing:-.3px; margin-bottom: 14px; }
-  .rp-frame-outer { position: relative; width: 100%; max-width: 680px; aspect-ratio: 8.5/11; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 28px rgba(0,0,0,.18), 0 0 0 1px var(--border); }
-  .rp-frame-inner { position: absolute; top: 0; left: 0; width: 816px; height: 1056px; border: none; transform-origin: top left; }
-  .rp-cta-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-  .rp-cta-note { font-size: 13px; color: var(--muted); }
-</style>
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -78,11 +43,15 @@
     <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
   </div>
 </header>
-<main class="gd-wrap">
-  <nav class="gd-crumb"><a href="/">Home</a> › <a href="/resume-examples">Resume Examples</a> › Data Scientist</nav>
-  <article>
+<div class="gd-hero">
+  <div class="gd-hero-inner">
+    <nav class="gd-crumb"><a href="/">Home</a> <span>›</span> <a href="/resume-examples">Resume Examples</a> <span>›</span> Data Scientist</nav>
     <h1>Data Scientist Resume Examples &amp; Template</h1>
     <div class="gd-meta">Updated 2026-09-05 · Applio</div>
+  </div>
+</div>
+<main class="gd-wrap">
+  <article>
     <div class="gd-answer">A strong data scientist resume leads with business impact from data science work: revenue lifted, cost saved, decisions changed, users affected. Recruiters and hiring managers know you can use Python and SQL. They care whether your models shipped and moved metrics. Lead with outcomes ("reduced churn 18%"), then the technical depth ("by training an XGBoost model with 42 engineered features on user behavior sequences"). One page early-to-mid career; two pages for senior/staff.
     <section class="gd-section rp-section">
       <h2>Data Scientist resume example</h2>

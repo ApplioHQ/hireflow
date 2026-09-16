@@ -618,7 +618,8 @@
 
 /* ===== Alternate section background ===== */
 .section-alt {
-  background: #f7f8fc; padding: 80px 40px;
+  background: linear-gradient(180deg, #f7f8fc 0%, #f7f8fc 60%, #c8cce0 82%, #4a5180 94%, #0a0e27 100%);
+  padding: 80px 40px 160px;
 }
 
 /* ===== Problem cards: color-coded ===== */
@@ -819,7 +820,7 @@
   .ba-arrow-wrap { flex-direction: row; }
   .logo-wall { gap: 8px; }
   .logo-chip { font-size: 12px; padding: 6px 14px; }
-  .section-alt { padding: 64px 20px; }
+  .section-alt { padding: 64px 20px 120px; }
   .rating-headline { flex-wrap: wrap; gap: 6px; }
   .final-avatars { display: none; }
   .final-social-proof { flex-wrap: wrap; }
@@ -1232,20 +1233,15 @@ section[id] { scroll-margin-top: 80px; }
     radial-gradient(70% 40% at 80% 40%, rgba(99,102,241,.10), transparent 60%),
     radial-gradient(60% 40% at 15% 65%, rgba(139,92,246,.08), transparent 60%),
     linear-gradient(180deg,
-      #f7f8fc 0%,
-      #d4d7e6 4%,
-      #8d94b8 8%,
-      #3d456e 13%,
-      #171d3e 17%,
-      #0a0e27 22%,
-      #0a0e27 78%,
-      #171d3e 83%,
-      #3d456e 87%,
-      #8d94b8 92%,
-      #d4d7e6 96%,
+      #0a0e27 0%,
+      #0a0e27 70%,
+      #171d3e 78%,
+      #3d456e 84%,
+      #8d94b8 90%,
+      #c8cce0 95%,
       #fff 100%
     );
-  padding: 200px 0 200px; position: relative; overflow: hidden;
+  padding: 120px 0 220px; position: relative; overflow: hidden;
 }
 .spotlights::before, .spotlights::after { display: none; }
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;

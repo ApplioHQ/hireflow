@@ -996,18 +996,22 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* ===== ATS Result Card ===== */
 .ats-result-card {
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
-  padding: 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+}
+.ats-score-top {
+  display: flex; align-items: center; gap: 20px;
 }
 .ats-ring-wrap {
-  position: relative; width: 120px; height: 120px; flex-shrink: 0;
+  position: relative; width: 100px; height: 100px; flex-shrink: 0;
 }
 .ats-ring-center {
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
 }
-.ats-ring-num { font-size: 36px; font-weight: 800; line-height: 1; color: var(--text); letter-spacing: -1px; }
-.ats-ring-sub { font-size: 11px; color: var(--muted); font-weight: 500; }
-.ats-verdict  { font-size: 15px; font-weight: 700; }
+.ats-ring-num { font-size: 32px; font-weight: 800; line-height: 1; color: var(--text); letter-spacing: -1px; }
+.ats-ring-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+.ats-score-text { flex: 1; min-width: 0; }
+.ats-verdict  { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
 /* Score breakdown bars */
 .ats-breakdown { width: 100%; display: flex; flex-direction: column; gap: 10px; }
 .ats-bd-row { width: 100%; }

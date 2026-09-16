@@ -2389,6 +2389,10 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
   _renderFitIndicator(doc._lastRatio, pages);
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
+  // Re-scale after iframe fonts/images settle — the initial scrollHeight can be wrong
+  // before web fonts load, causing the bottom half to appear cut off.
+  setTimeout(function () { _scaleMini(wrap, sizer, frame, doc); }, 400);
+  if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { _scaleMini(wrap, sizer, frame, doc); });
 }
 
 // Scale the true-size iframe down to fit the panel (× the user's zoom). The
@@ -3832,27 +3836,31 @@ function _renderATSResult(r) {
 
   document.getElementById('ats-result').innerHTML = `
     <div class="ats-result-card">
-      <div class="ats-ring-wrap">
-        <svg viewBox="0 0 120 120" width="120" height="120">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10"/>
-          <circle id="ats-res-ring" cx="60" cy="60" r="50" fill="none" stroke="${color}" stroke-width="10"
-            stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"
-            stroke-linecap="round" transform="rotate(-90 60 60)"
-            style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,0,.2,1);filter:drop-shadow(0 0 6px ${color}88);"/>
-        </svg>
-        <div class="ats-ring-center">
-          <div class="ats-ring-num" id="ats-res-num">0</div>
-          <div class="ats-ring-sub">/100</div>
+      <div class="ats-score-top">
+        <div class="ats-ring-wrap">
+          <svg viewBox="0 0 120 120" width="100" height="100">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10"/>
+            <circle id="ats-res-ring" cx="60" cy="60" r="50" fill="none" stroke="${color}" stroke-width="10"
+              stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"
+              stroke-linecap="round" transform="rotate(-90 60 60)"
+              style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,0,.2,1);filter:drop-shadow(0 0 6px ${color}88);"/>
+          </svg>
+          <div class="ats-ring-center">
+            <div class="ats-ring-num" id="ats-res-num">0</div>
+            <div class="ats-ring-sub">/100</div>
+          </div>
+        </div>
+        <div class="ats-score-text">
+          <div class="ats-verdict" style="color:${color};">${label}</div>
+          ${feedbackText ? `<div class="ats-feedback-text ai-body" style="margin-top:6px;">${_renderAiBody(feedbackText)}</div>` : ''}
         </div>
       </div>
-      <div class="ats-verdict" style="color:${color};">${label}</div>
       ${bd ? `<div class="ats-breakdown">
         ${bar('Keywords', bd.keywords)}
         ${bar('Experience', bd.experience)}
         ${bar('Formatting', bd.formatting)}
         ${bar('Completeness', bd.completeness)}
       </div>` : ''}
-      ${feedbackText ? `<div class="ats-feedback-text ai-body">${_renderAiBody(feedbackText)}</div>` : ''}
       ${wins.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ What's working</div><ul class="ai-rec-list" id="ats-wins"></ul></div>` : ''}
       ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing keywords</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
       ${_atsNextSteps(score, missing.length)}
@@ -4037,11 +4045,16 @@ function _atsSkeleton() {
     <div class="sk" style="flex:1;height:8px;border-radius:999px;"></div></div>`;
   const chip = () => `<div class="sk" style="width:64px;height:24px;border-radius:8px;"></div>`;
   return `
-    <div class="ats-result-card" style="display:flex;flex-direction:column;align-items:center;">
-      <div class="sk" style="width:120px;height:120px;border-radius:50%;"></div>
-      <div class="sk" style="width:110px;height:16px;border-radius:6px;margin:14px 0 8px;"></div>
-      <div style="width:100%;max-width:340px;">${bar()}${bar()}${bar()}${bar()}</div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:14px;">${chip()}${chip()}${chip()}${chip()}</div>
+    <div class="ats-result-card">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="sk" style="width:100px;height:100px;border-radius:50%;flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div class="sk" style="width:110px;height:16px;border-radius:6px;margin-bottom:8px;"></div>
+          <div class="sk" style="width:180px;height:10px;border-radius:6px;"></div>
+        </div>
+      </div>
+      <div style="width:100%;">${bar()}${bar()}${bar()}${bar()}</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;">${chip()}${chip()}${chip()}${chip()}</div>
     </div>`;
 }
 

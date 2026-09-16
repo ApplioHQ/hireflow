@@ -141,6 +141,7 @@
   <div class="modal">
     <button class="modal-close" onclick="closeModal('import')">×</button>
     <h3 id="modal-import-title">Import Your Resume</h3>
+    <div id="import-hint" style="font-size:12px; margin-bottom:10px; min-height:16px;"></div>
     <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Upload your resume file or paste the text, and AI will parse it and fill in your sections.</p>
     <div class="rf-upload" id="import-drop">
       <div class="rf-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
@@ -149,7 +150,6 @@
     </div>
     <div id="import-drop-status" class="rf-status"></div>
     <div class="rf-or">or paste text</div>
-    <div id="import-hint" style="font-size:12px; margin-bottom:10px; min-height:16px;"></div>
     <textarea id="import-text" rows="6" placeholder="Paste your resume text here…" style="width:100%; padding:10px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; color:var(--text);"></textarea>
     <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="importResume()" id="btn-import-go"></button>
   </div>

@@ -60,13 +60,15 @@
   .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; }
   .chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
   .chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .chart-tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 10; }
-  .chart-tooltip.visible { opacity: 1; }
-  .chart-vline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); pointer-events: none; }
-  .chart-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-1); box-shadow: 0 0 0 1px rgba(0,0,0,.1); transform: translate(-50%, -50%); pointer-events: none; }
-  .chart-tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 12px rgba(0,0,0,.12); white-space: nowrap; pointer-events: none; }
+  .chart-hover { position: absolute; inset: 0; cursor: crosshair; }
+  .chart-vline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .chart-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-1); box-shadow: 0 0 0 1px rgba(0,0,0,.1); pointer-events: none; opacity: 0; transition: opacity .12s; }
+  .chart-tip { position: absolute; background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 12px rgba(0,0,0,.15); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .12s; z-index: 10; }
   .chart-tip-date { font-size: 11px; color: var(--muted); font-weight: 600; }
   .chart-tip-val { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .chart-wrap:hover .chart-vline,
+  .chart-wrap:hover .chart-dot,
+  .chart-wrap:hover .chart-tip { opacity: 1; }
 
   /* ===== Horizontal bar list ===== */
   .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -483,17 +485,17 @@ function renderAreaChart(wrId, lblId, byDay, color) {
     + '<polyline points="' + lineStr + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
     + '</svg>';
 
-  // Tooltip overlay
-  var tt = document.createElement('div');
-  tt.className = 'chart-tooltip';
-  tt.innerHTML = '<div class="chart-vline"></div><div class="chart-dot" style="background:' + color + ';"></div>'
-    + '<div class="chart-tip"><div class="chart-tip-date"></div><div class="chart-tip-val" style="color:' + color + ';"></div></div>';
-  wrap.appendChild(tt);
-  var vline = tt.querySelector('.chart-vline');
-  var dot = tt.querySelector('.chart-dot');
-  var tipBox = tt.querySelector('.chart-tip');
-  var tipDate = tt.querySelector('.chart-tip-date');
-  var tipVal = tt.querySelector('.chart-tip-val');
+  // Tooltip elements — placed directly in wrap (which is position:relative)
+  var vline = document.createElement('div'); vline.className = 'chart-vline'; wrap.appendChild(vline);
+  var dot = document.createElement('div'); dot.className = 'chart-dot'; dot.style.background = color; wrap.appendChild(dot);
+  var tipBox = document.createElement('div'); tipBox.className = 'chart-tip';
+  tipBox.innerHTML = '<div class="chart-tip-date"></div><div class="chart-tip-val" style="color:' + color + ';"></div>';
+  wrap.appendChild(tipBox);
+  var tipDate = tipBox.querySelector('.chart-tip-date');
+  var tipVal = tipBox.querySelector('.chart-tip-val');
+
+  // Invisible hover zone on top of the SVG
+  var hoverZone = document.createElement('div'); hoverZone.className = 'chart-hover'; wrap.appendChild(hoverZone);
 
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -502,7 +504,7 @@ function renderAreaChart(wrId, lblId, byDay, color) {
     return DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
 
-  wrap.addEventListener('mousemove', function(e) {
+  hoverZone.addEventListener('mousemove', function(e) {
     var rect = wrap.getBoundingClientRect();
     var mx = (e.clientX - rect.left) / rect.width;
     var nearest = 0, bestDist = Infinity;
@@ -511,22 +513,22 @@ function renderAreaChart(wrId, lblId, byDay, color) {
       if (dist < bestDist) { bestDist = dist; nearest = i; }
     }
     var p = ptData[nearest];
-    var leftPx = p.xFrac * 100;
-    var topPx = p.yFrac * 100;
-    vline.style.left = leftPx + '%';
-    dot.style.left = leftPx + '%';
-    dot.style.top = topPx + '%';
-    tipBox.style.left = leftPx + '%';
-    tipBox.style.bottom = (100 - topPx) + '%';
-    // Keep tip on-screen
-    if (leftPx < 20) { tipBox.style.transform = 'translateX(-10%)'; }
-    else if (leftPx > 80) { tipBox.style.transform = 'translateX(-90%)'; }
-    else { tipBox.style.transform = 'translateX(-50%)'; }
+    var leftPct = (p.xFrac * 100) + '%';
+    var topPct = (p.yFrac * 100) + '%';
+    vline.style.left = leftPct;
+    dot.style.left = leftPct;
+    dot.style.top = topPct;
+    dot.style.transform = 'translate(-50%, -50%)';
+    // Position tip card above the dot
+    tipBox.style.left = leftPct;
+    tipBox.style.top = topPct;
+    tipBox.style.transform = 'translate(-50%, calc(-100% - 12px))';
+    // Clamp to edges
+    if (p.xFrac < 0.15) { tipBox.style.transform = 'translate(-10%, calc(-100% - 12px))'; }
+    else if (p.xFrac > 0.85) { tipBox.style.transform = 'translate(-90%, calc(-100% - 12px))'; }
     tipDate.textContent = fmtDate(entries[nearest][0]);
     tipVal.textContent = vals[nearest].toLocaleString();
-    tt.classList.add('visible');
   });
-  wrap.addEventListener('mouseleave', function() { tt.classList.remove('visible'); });
 
   if (lbls) {
     var first = entries[0][0].slice(5);

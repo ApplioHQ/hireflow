@@ -25,11 +25,16 @@ function setMsg(formId, type, text) {
 }
 
 async function apiPost(path, body) {
-  const r = await fetch(API + path, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
+  let r;
+  try {
+    r = await fetch(API + path, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+  } catch (e) {
+    throw new Error('Could not reach the server. Check your internet connection and try again.');
+  }
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
   return data;

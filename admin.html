@@ -60,6 +60,13 @@
   .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; }
   .chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
   .chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chart-tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 10; }
+  .chart-tooltip.visible { opacity: 1; }
+  .chart-vline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); pointer-events: none; }
+  .chart-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-1); box-shadow: 0 0 0 1px rgba(0,0,0,.1); transform: translate(-50%, -50%); pointer-events: none; }
+  .chart-tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 12px rgba(0,0,0,.12); white-space: nowrap; pointer-events: none; }
+  .chart-tip-date { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .chart-tip-val { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
 
   /* ===== Horizontal bar list ===== */
   .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -453,7 +460,7 @@ function _setHero(id, val, sub, trendClass) {
   if (tr) { tr.textContent = sub || ''; tr.className = 'hero-card-trend ' + (trendClass || 'flat'); }
 }
 
-// ─── Area chart (SVG) ───
+// ─── Area chart (SVG) with hover tooltip ───
 function renderAreaChart(wrId, lblId, byDay, color) {
   var wrap = document.getElementById(wrId);
   var lbls = document.getElementById(lblId);
@@ -463,18 +470,64 @@ function renderAreaChart(wrId, lblId, byDay, color) {
   var vals = entries.map(function(e){return e[1];});
   var max = Math.max.apply(null, vals.concat([1]));
   var w = 600, h = 140, padB = 4;
-  var pts = vals.map(function(v,i){
+  var ptData = vals.map(function(v,i){
     var x = entries.length === 1 ? w/2 : (i / (entries.length - 1)) * w;
     var y = h - padB - ((v / max) * (h - padB - 8));
-    return x + ',' + y;
+    return { x: x, y: y, xFrac: x / w, yFrac: y / h };
   });
-  var lineStr = pts.join(' ');
+  var lineStr = ptData.map(function(p){ return p.x + ',' + p.y; }).join(' ');
   var areaStr = '0,' + (h - padB) + ' ' + lineStr + ' ' + w + ',' + (h - padB);
   wrap.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">'
     + '<defs><linearGradient id="g-' + wrId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + color + '" stop-opacity=".25"/><stop offset="100%" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>'
     + '<polygon points="' + areaStr + '" fill="url(#g-' + wrId + ')"/>'
     + '<polyline points="' + lineStr + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
     + '</svg>';
+
+  // Tooltip overlay
+  var tt = document.createElement('div');
+  tt.className = 'chart-tooltip';
+  tt.innerHTML = '<div class="chart-vline"></div><div class="chart-dot" style="background:' + color + ';"></div>'
+    + '<div class="chart-tip"><div class="chart-tip-date"></div><div class="chart-tip-val" style="color:' + color + ';"></div></div>';
+  wrap.appendChild(tt);
+  var vline = tt.querySelector('.chart-vline');
+  var dot = tt.querySelector('.chart-dot');
+  var tipBox = tt.querySelector('.chart-tip');
+  var tipDate = tt.querySelector('.chart-tip-date');
+  var tipVal = tt.querySelector('.chart-tip-val');
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function fmtDate(iso) {
+    var d = new Date(iso + 'T00:00:00');
+    return DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  wrap.addEventListener('mousemove', function(e) {
+    var rect = wrap.getBoundingClientRect();
+    var mx = (e.clientX - rect.left) / rect.width;
+    var nearest = 0, bestDist = Infinity;
+    for (var i = 0; i < ptData.length; i++) {
+      var dist = Math.abs(ptData[i].xFrac - mx);
+      if (dist < bestDist) { bestDist = dist; nearest = i; }
+    }
+    var p = ptData[nearest];
+    var leftPx = p.xFrac * 100;
+    var topPx = p.yFrac * 100;
+    vline.style.left = leftPx + '%';
+    dot.style.left = leftPx + '%';
+    dot.style.top = topPx + '%';
+    tipBox.style.left = leftPx + '%';
+    tipBox.style.bottom = (100 - topPx) + '%';
+    // Keep tip on-screen
+    if (leftPx < 20) { tipBox.style.transform = 'translateX(-10%)'; }
+    else if (leftPx > 80) { tipBox.style.transform = 'translateX(-90%)'; }
+    else { tipBox.style.transform = 'translateX(-50%)'; }
+    tipDate.textContent = fmtDate(entries[nearest][0]);
+    tipVal.textContent = vals[nearest].toLocaleString();
+    tt.classList.add('visible');
+  });
+  wrap.addEventListener('mouseleave', function() { tt.classList.remove('visible'); });
+
   if (lbls) {
     var first = entries[0][0].slice(5);
     var last = entries[entries.length - 1][0].slice(5);

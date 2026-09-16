@@ -45,6 +45,33 @@ const FREE_TRIAL_LIMITS = { assistant: 0, autopilot: 0, skills: 1 };
 const FREE_AI_DAILY = 50;
 const PAID_AI_DAILY = 400;
 
+// ===== IP-based rate limiting (DDoS / abuse protection) =====
+// Uses KV with TTL for sliding windows. Two tiers:
+//   - Global: max requests per IP per minute across all endpoints
+//   - Auth:   stricter limit on auth endpoints to prevent credential stuffing
+const RATE_GLOBAL_PER_MIN = 120;
+const RATE_AUTH_PER_MIN = 10;
+const RATE_AI_PER_MIN = 20;
+
+async function checkRateLimit(ip, bucket, limit, windowSec, env) {
+  if (!env.KV) return null;
+  const key = `rl:${bucket}:${ip}`;
+  const now = Math.floor(Date.now() / 1000);
+  let rec;
+  try { rec = await env.KV.get(key, "json"); } catch { rec = null; }
+  if (!rec || now - rec.ts > windowSec) rec = { ts: now, c: 0 };
+  rec.c++;
+  if (rec.c > limit) {
+    const retry = windowSec - (now - rec.ts);
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json", "Retry-After": String(retry) },
+    });
+  }
+  try { await env.KV.put(key, JSON.stringify(rec), { expirationTtl: windowSec + 5 }); } catch {}
+  return null;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -52,6 +79,23 @@ export default {
     const cors = corsHeaders(env, req);
 
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+
+    // --- Rate limiting ---
+    const ip = req.headers.get("CF-Connecting-IP") || req.headers.get("X-Real-IP") || "unknown";
+
+    // Global per-IP limit
+    const globalBlock = await checkRateLimit(ip, "g", RATE_GLOBAL_PER_MIN, 60, env);
+    if (globalBlock) return withCors(globalBlock, cors);
+
+    // Stricter limits on sensitive endpoints
+    if (path.startsWith("/auth/")) {
+      const authBlock = await checkRateLimit(ip, "a", RATE_AUTH_PER_MIN, 60, env);
+      if (authBlock) return withCors(authBlock, cors);
+    }
+    if (path.startsWith("/ai/")) {
+      const aiBlock = await checkRateLimit(ip, "ai", RATE_AI_PER_MIN, 60, env);
+      if (aiBlock) return withCors(aiBlock, cors);
+    }
 
     // Stripe webhook gets raw body, handle before JSON parsing
     if (path === "/stripe/webhook") {

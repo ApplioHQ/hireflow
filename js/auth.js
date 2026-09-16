@@ -101,12 +101,18 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen
-    // Send attribution source if provided (inline on signup form now)
+    // Send attribution: first-touch data (captured silently) + self-reported source
     const source = f.get('source');
-    if (source) {
-      apiPost('/attribution', { source }).catch(() => {});
-    } else {
-      localStorage.setItem('hf_ask_attribution', '1'); // only ask post-signup if they skipped
+    let attrPayload = { source: source || undefined };
+    try {
+      const ft = JSON.parse(localStorage.getItem('hf_attr') || 'null');
+      if (ft) attrPayload.firstTouch = ft;
+    } catch (e) {}
+    if (source || attrPayload.firstTouch) {
+      apiPost('/attribution', attrPayload).catch(() => {});
+    }
+    if (!source) {
+      localStorage.setItem('hf_ask_attribution', '1');
     }
     // Founding-member promo: flag it so the destination page can celebrate the free Premium.
     if (data.promoEarlyBird) localStorage.setItem('hf_promo_earlybird', '1');

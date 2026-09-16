@@ -414,7 +414,7 @@ function _clientIp(req) {
 // IPs are PII, so we never store them raw: the KV key is an HMAC of the IP keyed
 // with JWT_SECRET (not reversible, not enumerable without the secret).
 async function _ipAccountKey(env, ip) {
-  return "ipacct:" + (await hmacHex(env.JWT_SECRET, "ip " + ip));
+  return "ipacct:" + (await hmacHex(env.JWT_SECRET, "ip" + ip));
 }
 // Enforced UNLESS explicitly disabled (set the ONE_ACCOUNT_PER_IP var to "off" to
 // flip this off instantly without a redeploy — e.g. if it starts blocking real
@@ -810,12 +810,14 @@ async function adminAnalytics(req, env) {
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
   const attribution = {};
+  const channels = {};
   const geoCountry = {}, geoCity = {};
   const usersByFeature = {};   // distinct users who have used each AI feature at least once
   const records = await _readAllUserRecords(env);
   for (const u of records) {
     total++;
     if (u.attribution) attribution[u.attribution] = (attribution[u.attribution] || 0) + 1;
+    if (u.firstTouch && u.firstTouch.ch) channels[u.firstTouch.ch] = (channels[u.firstTouch.ch] || 0) + 1;
     if (u.geo && u.geo.country) {
       geoCountry[u.geo.country] = (geoCountry[u.geo.country] || 0) + 1;
       if (u.geo.city) {
@@ -983,7 +985,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, attribution, geoCountry, geoCity,
+    signupsByDay, attribution, channels, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,
@@ -1075,9 +1077,23 @@ async function saveAttribution(req, env) {
   const payload = await authenticate(req, env);
   const body = await req.json().catch(() => ({}));
   const source = String(body.source || "").trim().slice(0, 40);
-  if (!source) return { ok: false };
+  const ft = body.firstTouch && typeof body.firstTouch === "object" ? body.firstTouch : null;
+  if (!source && !ft) return { ok: false };
   const user = await getUser(env, payload.email).catch(() => null);
-  if (user) { user.attribution = source; user.attributionAt = Date.now(); await putUser(env, user); }
+  if (user) {
+    if (source) { user.attribution = source; user.attributionAt = Date.now(); }
+    if (ft) {
+      user.firstTouch = {
+        ch: String(ft.ch || "").slice(0, 80),
+        ref: String(ft.ref || "").slice(0, 500),
+        lp: String(ft.lp || "").slice(0, 200),
+        utm: ft.utm && typeof ft.utm === "object" ? ft.utm : undefined,
+        cid: ft.cid && typeof ft.cid === "object" ? ft.cid : undefined,
+        t: typeof ft.t === "number" ? ft.t : Date.now()
+      };
+    }
+    await putUser(env, user);
+  }
   return { ok: true };
 }
 

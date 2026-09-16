@@ -19,10 +19,15 @@
   // Step 1 answer: record where they came from, then advance to the email opt-in.
   function submitSource(source) {
     if (API && source) {
+      var payload = { source: source };
+      try {
+        var ft = JSON.parse(localStorage.getItem('hf_attr') || 'null');
+        if (ft) payload.firstTouch = ft;
+      } catch (e) {}
       fetch(API + '/attribution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-        body: JSON.stringify({ source: source })
+        body: JSON.stringify(payload)
       }).catch(function () {});
     }
     showStep2();

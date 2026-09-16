@@ -215,7 +215,15 @@
   <div class="dash-grid" style="margin-bottom:20px;">
     <div class="section-card">
       <div class="section-hd">
+        <h2>Traffic Channels</h2>
+        <span class="section-sub">First-touch attribution</span>
+      </div>
+      <div class="section-bd" id="channel-bars"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-hd">
         <h2>Signup Sources</h2>
+        <span class="section-sub">Self-reported</span>
       </div>
       <div class="section-bd" id="attribution-bars"></div>
     </div>
@@ -425,6 +433,7 @@ async function loadAnalytics() {
     renderHeroCards(d);
     renderAreaChart('chart-signups', 'chart-signups-labels', d.signupsByDay, '#6366f1');
     renderAreaChart('chart-pv', 'chart-pv-labels', d.pvByDay, '#06b6d4');
+    renderChannelBars(d.channels || {});
     renderAttributionBars(d.attribution || {});
     renderGeoBars(d.geoCountry || {});
     renderRetention(d);
@@ -555,6 +564,7 @@ function _renderHBars(containerId, data, color) {
   }).join('');
 }
 
+function renderChannelBars(data) { _renderHBars('channel-bars', data, '#10b981'); }
 function renderAttributionBars(data) { _renderHBars('attribution-bars', data, '#8b5cf6'); }
 function renderGeoBars(data) { _renderHBars('geo-bars', data, '#06b6d4'); }
 

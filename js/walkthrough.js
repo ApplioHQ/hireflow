@@ -164,7 +164,14 @@
       if (!localStorage.getItem('hf_onboarded')) return;   // onboarding will call us when it finishes
       if (localStorage.getItem(FLAG)) return;
     } catch (e) { return; }
-    setTimeout(function () { start(false); }, 1200);
+    function tryStart() {
+      if (document.getElementById('attr-backdrop') || document.getElementById('onb-overlay')) {
+        setTimeout(tryStart, 500);
+        return;
+      }
+      start(false);
+    }
+    setTimeout(tryStart, 1200);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoRun);
   else autoRun();

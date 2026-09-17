@@ -149,6 +149,7 @@ export default {
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
       if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
+      if (path === "/admin/excluded-ips")      return json(await adminExcludedIps(req, env), 200, cors);
       if (path === "/referral/code" && req.method === "POST") return json(await referralGetCode(req, env), 200, cors);
       if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
       if (path === "/interview-win" && req.method === "POST") return json(await recordInterviewWin(req, env), 200, cors);
@@ -813,7 +814,17 @@ async function adminListUsers(req, env) {
 //   nd=1  -> first view from this browser today (unique visitor, today)
 // KV has no atomic increment, so this is read-modify-write: fine for an approximate
 // traffic metric at this scale (occasional same-second collisions may undercount).
+let _excludedIpsCache = { val: null, at: 0 };
 async function trackPageview(req, env) {
+  const ip = req.headers.get("CF-Connecting-IP") || "";
+  if (ip) {
+    if (Date.now() - _excludedIpsCache.at > 300_000) {
+      _excludedIpsCache = { val: (await env.HIREFLOW_KV.get("config:excluded_ips")) || "", at: Date.now() };
+    }
+    if (_excludedIpsCache.val.split(",").map(s => s.trim()).filter(Boolean).includes(ip)) {
+      return { ok: true, excluded: true };
+    }
+  }
   const u = new URL(req.url);
   const today = new Date().toISOString().slice(0, 10);
   const bump = async (key) => {
@@ -1081,6 +1092,19 @@ async function adminSetAdminAccess(req, env) {
     await env.HIREFLOW_KV.delete("system:admin_disabled");
   }
   return { ok: true, adminEnabled: enabled !== false };
+}
+
+async function adminExcludedIps(req, env) {
+  await requireAdmin(req, env);
+  const callerIp = req.headers.get("CF-Connecting-IP") || "";
+  if (req.method === "POST") {
+    const { ips } = await req.json();
+    const cleaned = (ips || "").split(",").map(s => s.trim()).filter(Boolean).join(",");
+    await env.HIREFLOW_KV.put("config:excluded_ips", cleaned);
+    return { ok: true, ips: cleaned, yourIp: callerIp };
+  }
+  const raw = (await env.HIREFLOW_KV.get("config:excluded_ips")) || "";
+  return { ips: raw, yourIp: callerIp };
 }
 
 // ============ Resume ============

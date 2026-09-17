@@ -330,6 +330,17 @@
     </div>
   </div>
 
+  <!-- ===== IP exclusion ===== -->
+  <div class="ctrl-card" style="margin-bottom:20px;">
+    <h3>Exclude IPs from analytics</h3>
+    <p>Page views from these IPs won't count. Your current IP: <strong id="your-ip">…</strong></p>
+    <div class="ctrl-row">
+      <input type="text" id="excluded-ips" placeholder="1.2.3.4, 5.6.7.8" style="flex:1;">
+      <button class="btn btn-primary btn-sm" onclick="saveExcludedIps()">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="addMyIp()">+ Add my IP</button>
+    </div>
+  </div>
+
   <!-- ===== Email tools ===== -->
   <div class="ctrl-card" style="margin-bottom:20px;">
     <h3>Test win-nudge email</h3>
@@ -424,6 +435,7 @@ async function refresh() {
   }
   loadAnalytics();
   loadFeedback();
+  loadExcludedIps();
 }
 
 // ─────────────── Hero cards + charts ───────────────
@@ -810,6 +822,29 @@ async function sendTestNudge() {
   if (!email || email.indexOf('@') < 0) return toast('Enter a valid email', { type: 'warn' });
   try { var res = await apiPost('/admin/test-win-nudge', { email }); if (res.ok) toast('Test email sent to ' + email, { type: 'success' }); else toast('Send failed: ' + (res.error || 'unknown'), { type: 'error' }); }
   catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+}
+
+async function loadExcludedIps() {
+  try {
+    var res = await apiGet('/admin/excluded-ips');
+    document.getElementById('excluded-ips').value = res.ips || '';
+    document.getElementById('your-ip').textContent = res.yourIp || 'unknown';
+  } catch (e) {}
+}
+async function saveExcludedIps() {
+  var ips = document.getElementById('excluded-ips').value;
+  try { await apiPost('/admin/excluded-ips', { ips }); toast('Excluded IPs saved', { type: 'success' }); }
+  catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
+}
+function addMyIp() {
+  var ip = document.getElementById('your-ip').textContent;
+  if (!ip || ip === '…' || ip === 'unknown') return toast('IP not loaded yet', { type: 'warn' });
+  var el = document.getElementById('excluded-ips');
+  var current = el.value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+  if (current.indexOf(ip) >= 0) return toast('Already excluded', { type: 'warn' });
+  current.push(ip);
+  el.value = current.join(', ');
+  saveExcludedIps();
 }
 
 function signOut() { localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href = '/'; }

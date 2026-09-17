@@ -240,6 +240,16 @@ function listBlocks(items, fields) {
 function skillsLine(skills) {
   return esc((skills?.categories||[]).flatMap(c=>c.items).join(' · '));
 }
+function skillsHTML(skills, compact) {
+  const cats = (skills?.categories||[]).filter(c=>c.items&&c.items.length);
+  if (!cats.length) return '';
+  const pills = items => items.map(i => `<span class="sk-pill">${esc(i)}</span>`).join('');
+  if (cats.length === 1 && (!cats[0].name || cats[0].name === 'All'))
+    return `<div class="sk-wrap${compact?' sk-compact':''}">${pills(cats[0].items)}</div>`;
+  return cats.map(c =>
+    `<div class="sk-group${compact?' sk-compact':''}"><span class="sk-label">${esc(c.name)}</span>${pills(c.items)}</div>`
+  ).join('');
+}
 
 // ============ Reorderable body sections ============
 // The user can reorder these in Customize (e.g. Skills before Experience). Summary
@@ -251,7 +261,7 @@ const MAIN_COLUMN_KEYS = ['experience','projects','certifications','awards','lea
 const SECTION_DEF = {
   experience:     { title: 'Experience',     html: r => r.experience.length ? expBlocks(r.experience) : '' },
   education:      { title: 'Education',       html: r => r.education.length ? eduBlocks(r.education) : '' },
-  skills:         { title: 'Skills',          html: (r, cls) => skillsLine(r.skills) ? `<div class="${cls || 'summary'}">${skillsLine(r.skills)}</div>` : '' },
+  skills:         { title: 'Skills',          html: (r, cls) => { const h = skillsHTML(r.skills); return h || ''; } },
   projects:       { title: 'Projects',        html: r => r.projects.length ? projBlocks(r.projects) : '' },
   certifications: { title: 'Certifications',  html: r => r.certifications.length ? listBlocks(r.certifications, ['name','issuer','date']) : '' },
   awards:         { title: 'Awards',          html: r => r.awards.length ? listBlocks(r.awards, ['name','issuer','date']) : '' },
@@ -472,7 +482,7 @@ function tProfessional(r, accent) {
         ${p.phone?`<div class="item">${esc(p.phone)}</div>`:''}
         ${p.location?`<div class="item">${esc(p.location)}</div>`:''}
         ${p.linkedin?`<div class="item">${esc(p.linkedin)}</div>`:''}
-        ${skillsLine(r.skills)?`<h3>Core Skills</h3><div class="item">${skillsLine(r.skills)}</div>`:''}
+        ${skillsHTML(r.skills,true)?`<h3>Core Skills</h3><div class="item">${skillsHTML(r.skills,true)}</div>`:''}
         ${r.education.length?`<h3>Education</h3>${r.education.map(e=>`<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}</div>`).join('')}`:''}
       </div>
       <div class="main">
@@ -781,7 +791,7 @@ function tIvory(r, accent) {
         ${p.location ? `<div class="item">${esc(p.location)}</div>` : ''}
         ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
         ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
-        ${skillsLine(r.skills) ? `<h3>Skills</h3><div class="item">${skillsLine(r.skills)}</div>` : ''}
+        ${skillsHTML(r.skills,true) ? `<h3>Skills</h3><div class="item">${skillsHTML(r.skills,true)}</div>` : ''}
         ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' - ' + esc(e.end) : ''}</div>`).join('')}` : ''}
       </div>
       <div class="main">
@@ -903,7 +913,7 @@ function tDeedy(r, accent) {
       <div class="cols">
         <div class="col-left">
           ${r.education.length ? `<h2>Education</h2>${r.education.map(e => `<div class="side-item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.end ? '<br>' + esc(e.start) + ' - ' + esc(e.end) : ''}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
-          ${skillsLine(r.skills) ? `<h2>Skills</h2><div class="side-item">${skillsLine(r.skills)}</div>` : ''}
+          ${skillsHTML(r.skills,true) ? `<h2>Skills</h2><div class="side-item">${skillsHTML(r.skills,true)}</div>` : ''}
         </div>
         <div class="col-right">
           ${orderedBody(r, { only: MAIN_COLUMN_KEYS })}
@@ -945,7 +955,7 @@ function tTwocolumn(r, accent) {
         ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
         ${p.github ? `<div class="item">${esc(p.github)}</div>` : ''}
         ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
-        ${skillsLine(r.skills) ? `<h3>Skills</h3><div class="item">${skillsLine(r.skills)}</div>` : ''}
+        ${skillsHTML(r.skills,true) ? `<h3>Skills</h3><div class="item">${skillsHTML(r.skills,true)}</div>` : ''}
         ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
       </div>
       <div class="main">
@@ -1266,6 +1276,11 @@ function resumeDocHTML(bodyHTML, pageWidth) {
      sidebar and the main column from splitting mid-block across a page break,
      which is what makes the columns look offset on page 2. */
   .sidebar, .main { break-inside:avoid; page-break-inside:avoid; }
+  .sk-wrap, .sk-group { display:flex; flex-wrap:wrap; gap:4px 5px; margin-top:2px; }
+  .sk-group { margin-bottom:4px; }
+  .sk-label { font-weight:700; font-size:85%; margin-right:3px; white-space:nowrap; align-self:center; }
+  .sk-pill { display:inline-block; padding:1.5px 8px; border-radius:3px; background:#f1f3f5; color:#1f2937; font-size:84%; line-height:1.6; white-space:nowrap; }
+  .sk-compact .sk-pill { padding:1px 6px; font-size:80%; }
 </style></head><body>${bodyHTML}</body></html>`;
 }
 

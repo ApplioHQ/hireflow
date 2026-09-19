@@ -1742,32 +1742,37 @@ function _refreshTrialUI() {
 
 function renderTailor() {
   const wc = _jdWordCount(resume.tailor.jobDescription);
+  const stat = (num, lbl) => `<div class="ats-stat"><span class="ats-stat-num" style="color:#a5b4fc;">${num}</span><span class="ats-stat-lbl">${lbl}</span></div>`;
   return `
-    <div class="section-card ai-card ai-card-indigo">
-      <div class="ai-card-header">
-        <div class="ai-card-icon ai-icon-indigo">${ICON('target')}</div>
-        <div>
-          <h3 class="ai-card-title">Tailor to Job</h3>
-          <p class="ai-card-sub">AI rewrites your summary &amp; bullets to match the role.</p>
-        </div>
-        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <button class="btn btn-primary btn-sm" onclick="aiTailor()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Generate</button>
-          ${freeAiLabel('tailor')}
+    <div class="section-card tailor-shell">
+      <div class="tailor-hero">
+        <div class="tailor-hero-glow"></div>
+        <div class="tailor-hero-badge">${ICON('sparkle','ico ico-sm')} AI TAILORING</div>
+        <h2 class="tailor-hero-title">Match any job in seconds</h2>
+        <p class="ats-hero-sub">Paste a job description and Applio rewrites your bullets, aligns keywords, and reframes your summary &mdash; grounded in your real experience, never invented.</p>
+        <div class="ats-stat-strip">
+          ${stat('+38pts', 'average ATS score increase')}
+          ${stat('~30s', 'to tailor vs 45 min manually')}
+          ${stat('2&times;', 'more callbacks when tailored')}
         </div>
       </div>
       <div class="ai-card-body">
         ${freeAiBanner('tailor')}
-        <div class="form-field">
-          <label style="display:flex;justify-content:space-between;">
-            <span>Job Description</span>
-            <span id="tailor-wc" style="font-size:11px;color:var(--muted);">${wc}</span>
-          </label>
-          <textarea data-bind="tailor.jobDescription" rows="12"
-            placeholder="Paste the full job description here, the more detail, the better the tailoring…"
+        <div class="ats-console tailor-console">
+          <div class="ats-console-head">
+            <span class="ats-console-dots"><i></i><i></i><i></i></span>
+            <span class="ats-console-title">Paste the job description</span>
+            <button type="button" class="tailor-paste-btn" onclick="_tailorPaste()">${ICON('doc','ico ico-sm')} Paste</button>
+            <span id="tailor-wc" class="ats-wc">${wc}</span>
+          </div>
+          <textarea data-bind="tailor.jobDescription" rows="11"
+            placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
             oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
-            style="font-size:13px;line-height:1.6;"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
+        <button class="btn btn-indigo btn-block tailor-run-btn" onclick="aiTailor()">${ICON('sparkle')} <span>Tailor My Resume</span></button>
+        ${freeAiLabel('tailor')}
+        <div id="tailor-result" style="margin-top:18px;">
         ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
           <div class="ai-result-box ai-result-indigo">
             <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
@@ -1776,9 +1781,27 @@ function renderTailor() {
             </div>
             <div style="padding:14px;">${resume.tailor.result ? _renderTailorStructured(resume.tailor.result) : _renderTailorResult(resume.tailor.tailoredSummary)}</div>
           </div>` : _tailorEmptyState()}
+        </div>
         ${navRow('publications','ats')}
       </div>
     </div>`;
+}
+async function _tailorPaste() {
+  const ta = document.querySelector('.tailor-console textarea');
+  if (!ta) return;
+  try {
+    const txt = await navigator.clipboard.readText();
+    if (txt && txt.trim()) {
+      ta.value = txt.trim();
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ta.focus();
+    } else {
+      toast('Clipboard is empty, copy a job description first.', { type: 'warn' });
+    }
+  } catch (_) {
+    ta.focus();
+    toast('Press ' + (navigator.platform.includes('Mac') ? '⌘V' : 'Ctrl+V') + ' to paste the job description.', { type: 'info' });
+  }
 }
 
 function renderATS() {

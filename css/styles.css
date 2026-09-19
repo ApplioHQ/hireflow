@@ -841,13 +841,13 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ats-stat-lbl { font-size: 11px; color: var(--muted); line-height: 1.35; }
 
 .ats-console { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; background: var(--bg-1); box-shadow: inset 0 1px 0 rgba(255,255,255,.03); }
-.ats-console-head { display: flex; align-items: center; gap: 10px; padding: 9px 13px; background: var(--bg-2); border-bottom: 1px solid var(--border); }
+.ats-console-head { display: flex; align-items: center; gap: 10px; padding: 9px 13px; background: var(--bg-2); border-bottom: 1px solid var(--border); flex-wrap: nowrap; }
 .ats-console-dots { display: inline-flex; gap: 5px; }
 .ats-console-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); display: block; }
 .ats-console-dots i:nth-child(1) { background: #ef4444aa; }
 .ats-console-dots i:nth-child(2) { background: #f59e0baa; }
 .ats-console-dots i:nth-child(3) { background: #22c55eaa; }
-.ats-console-title { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.ats-console-title { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .ats-paste-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #34d399; background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); padding: 5px 11px; border-radius: 8px; cursor: pointer; transition: background .15s; }
 .ats-paste-btn:hover { background: rgba(16,185,129,.2); }
 .ats-wc { font-size: 11px; color: var(--muted); min-width: 54px; text-align: right; }
@@ -857,6 +857,43 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 .ats-scan-btn { margin-top: 14px; font-size: 15px; font-weight: 800; padding: 14px 16px; letter-spacing: .01em; box-shadow: 0 8px 22px rgba(5,150,105,.34); }
 .ats-scan-btn:hover { box-shadow: 0 10px 26px rgba(5,150,105,.44); }
+
+/* ── Tailor showcase (indigo variant of ATS hero) ── */
+.tailor-shell { padding: 0 !important; overflow: hidden; }
+.tailor-hero {
+  position: relative; overflow: hidden; text-align: center;
+  padding: 34px 26px 30px;
+  background:
+    radial-gradient(120% 140% at 50% -20%, rgba(91,84,232,.22) 0%, rgba(91,84,232,.05) 42%, transparent 70%),
+    linear-gradient(180deg, rgba(49,46,129,.35), transparent);
+  border-bottom: 1px solid var(--border);
+}
+.tailor-hero-glow {
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 380px; height: 200px; pointer-events: none;
+  background: radial-gradient(circle, rgba(165,180,252,.35), transparent 65%);
+  filter: blur(20px); opacity: .7;
+}
+.tailor-hero-badge {
+  position: relative; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #a5b4fc;
+  background: rgba(91,84,232,.13); border: 1px solid rgba(91,84,232,.32);
+  padding: 5px 12px; border-radius: 999px; margin-bottom: 14px;
+}
+.tailor-hero-title {
+  position: relative; font-size: 27px; font-weight: 900; letter-spacing: -.02em;
+  line-height: 1.12; margin: 0 0 10px; color: var(--text);
+  background: linear-gradient(120deg, #fff, #c7d2fe 60%, #a5b4fc);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.tailor-paste-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #a5b4fc; background: rgba(91,84,232,.12); border: 1px solid rgba(91,84,232,.3); padding: 5px 11px; border-radius: 8px; cursor: pointer; transition: background .15s; }
+.tailor-paste-btn:hover { background: rgba(91,84,232,.2); }
+.tailor-console:focus-within { border-color: rgba(91,84,232,.5); box-shadow: 0 0 0 3px rgba(91,84,232,.12); }
+.btn-indigo { background: linear-gradient(180deg, #5b54e8, #4840cf); color: #fff; font-weight: 800; }
+.btn-indigo:hover { background: linear-gradient(180deg, #6a63ee, #5b54e8); transform: translateY(-1px); }
+.tailor-run-btn { margin-top: 14px; font-size: 15px; font-weight: 800; padding: 14px 16px; letter-spacing: .01em; box-shadow: 0 8px 22px rgba(91,84,232,.34); }
+.tailor-run-btn:hover { box-shadow: 0 10px 26px rgba(91,84,232,.44); }
+
 .btn-violet {
   background: rgba(139,92,246,.15); color: #a78bfa;
   border: 1px solid rgba(139,92,246,.3);

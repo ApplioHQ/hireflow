@@ -58,6 +58,34 @@
   .rt-crumb a { color: var(--muted); } .rt-crumb a:hover { color: var(--accent); }
   .rt-hero h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -.7px; line-height: 1.15; margin-bottom: 12px; }
   .rt-hero p { color: var(--muted); font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+
+  /* ── Showcase block (ATS-scanner style) ── */
+  .rt-showcase { text-align: center; padding: 64px 24px 56px; margin-bottom: 40px; background: linear-gradient(180deg, rgba(91,84,232,.06) 0%, transparent 100%); border-radius: var(--r-xl); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .rt-showcase::before { content:""; position:absolute; inset:0; background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(91,84,232,.12), transparent 70%); pointer-events:none; }
+  .rt-eyebrow { display: inline-flex; align-items: center; gap: 7px; padding: 5px 16px; border-radius: var(--r-full); border: 1px solid rgba(91,84,232,.35); background: rgba(91,84,232,.1); color: #a5b4fc; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; }
+  .rt-eyebrow svg { width: 15px; height: 15px; stroke: #a5b4fc; fill: none; stroke-width: 2; }
+  .rt-showcase h2 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; position: relative; }
+  .rt-showcase > p { color: var(--muted); font-size: 16px; max-width: 580px; margin: 0 auto 32px; line-height: 1.6; position: relative; }
+  .rt-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 680px; margin: 0 auto 40px; position: relative; }
+  .rt-stat { padding: 22px 16px 18px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-1); }
+  .rt-stat-num { font-size: 32px; font-weight: 800; color: #a5b4fc; margin-bottom: 4px; font-family: var(--font-display); }
+  .rt-stat-label { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  @media (max-width: 560px) { .rt-stats { grid-template-columns: 1fr; } }
+
+  /* Mock app window */
+  .rt-mock { max-width: 680px; margin: 0 auto; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-2); position: relative; text-align: left; }
+  .rt-mock-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  .rt-mock-dots { display: flex; gap: 7px; }
+  .rt-mock-dots span { width: 11px; height: 11px; border-radius: 50%; }
+  .rt-mock-dots span:nth-child(1) { background: #ef4444; }
+  .rt-mock-dots span:nth-child(2) { background: #f59e0b; }
+  .rt-mock-dots span:nth-child(3) { background: #22c55e; }
+  .rt-mock-title { font-size: 14px; font-weight: 700; }
+  .rt-mock-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: var(--r-sm); border: 1px solid rgba(91,84,232,.35); background: rgba(91,84,232,.1); color: #a5b4fc; font-size: 12.5px; font-weight: 600; cursor: default; }
+  .rt-mock-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .rt-mock-body { padding: 20px; }
+  .rt-mock-body textarea { width: 100%; min-height: 200px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 16px; color: var(--muted); font-size: 14px; line-height: 1.6; resize: vertical; font-family: inherit; }
+
   .rt-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
   @media (max-width: 640px) { .rt-steps { grid-template-columns: 1fr; } }
   .rt-step { padding: 20px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); text-align: center; }
@@ -110,11 +138,41 @@
     <p>Sending the same resume to every job is why most applications go unread. Applio's AI rewrites your summary and bullet points to match the language of each role you apply for, in seconds, without inventing anything.</p>
   </div>
 
-  <div class="section-card" style="text-align: center; padding: 36px 32px;">
-    <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Use the full tailoring tool</h2>
-    <p style="color: var(--muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">Build or import your resume, paste a job description, and Applio rewrites it to match. Your original resume stays saved so you can tailor again for the next role.</p>
-    <a href="/login?mode=signup" class="btn btn-primary btn-lg">Start tailoring for free →</a>
-    <p style="font-size: 12.5px; color: var(--muted); margin-top: 12px;">Free account. No credit card. Takes 2 minutes to set up.</p>
+  <div class="rt-showcase">
+    <span class="rt-eyebrow"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> AI TAILORING</span>
+    <h2>Match any job in seconds</h2>
+    <p>Sending the same resume to every role is why most applications go unread. Paste a job description and Applio rewrites your bullets, aligns the keywords, and reframes your summary, grounded in your real experience.</p>
+
+    <div class="rt-stats">
+      <div class="rt-stat">
+        <div class="rt-stat-num">+38pts</div>
+        <div class="rt-stat-label">average ATS score increase</div>
+      </div>
+      <div class="rt-stat">
+        <div class="rt-stat-num">~30s</div>
+        <div class="rt-stat-label">to tailor vs 45 min manually</div>
+      </div>
+      <div class="rt-stat">
+        <div class="rt-stat-num">2×</div>
+        <div class="rt-stat-label">more callbacks when tailored</div>
+      </div>
+    </div>
+
+    <div class="rt-mock">
+      <div class="rt-mock-bar">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="rt-mock-dots"><span></span><span></span><span></span></div>
+          <div class="rt-mock-title">Paste the job description</div>
+        </div>
+        <span class="rt-mock-btn"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Paste</span>
+      </div>
+      <div class="rt-mock-body">
+        <textarea readonly>Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume, rewrite your bullets, and score ATS compatibility.</textarea>
+      </div>
+    </div>
+
+    <a href="/login?mode=signup" class="btn btn-primary" style="margin-top: 32px; padding: 13px 32px; font-size: 15px;">Start tailoring for free →</a>
+    <p style="font-size: 12.5px; color: var(--muted); margin-top: 12px; position: relative;">Free account. No credit card. Takes 2 minutes.</p>
   </div>
 
   <div class="rt-steps">

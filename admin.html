@@ -247,6 +247,12 @@
     </div>
   </div>
 
+  <!-- ===== Exports ===== -->
+  <div class="section-card" style="margin-bottom:20px;">
+    <div class="section-hd"><h2>Exports</h2></div>
+    <div class="section-bd" id="exports-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;"></div>
+  </div>
+
   <!-- ===== AI + Feature usage row ===== -->
   <div class="dash-grid" style="margin-bottom:20px;">
     <div class="section-card">
@@ -450,6 +456,7 @@ async function loadAnalytics() {
     renderGeoBars(d.geoCountry || {});
     renderRetention(d);
     renderRevenue(d);
+    renderExports(d);
     renderAiBars(d.aiByAction || {}, d.usersByFeature || {});
     renderFeatureBars(d.featureUsage || {}, d.usersByNonAiFeature || {}, d.featureLast7 || {});
     renderTemplateBars(d.templatePicks || {});
@@ -607,6 +614,27 @@ function _miniStat(label, val, sub) {
     + '<div style="font-size:22px;font-weight:800;line-height:1.1;">' + val + '</div>'
     + (sub ? '<div style="font-size:10.5px;color:var(--muted);margin-top:4px;">' + sub + '</div>' : '')
     + '</div>';
+}
+
+// ─── Exports ───
+function renderExports(d) {
+  var el = document.getElementById('exports-grid');
+  if (!el) return;
+  var fu = d.featureUsage || {};
+  var fl7 = d.featureLast7 || {};
+  var pdf = fu.download_pdf || 0;
+  var gdoc = fu.export_gdoc || 0;
+  var print = fu.export_print || 0;
+  var total = pdf + gdoc + print;
+  var pdf7 = fl7.download_pdf || 0;
+  var gdoc7 = fl7.export_gdoc || 0;
+  el.innerHTML =
+    _miniStat('Total Exports', total, (d.everDownloaded || 0) + ' users have exported')
+    + _miniStat('PDF Downloads', pdf, pdf7 ? pdf7 + ' last 7 days' : 'all time')
+    + _miniStat('Google Docs', gdoc, gdoc7 ? gdoc7 + ' last 7 days' : 'all time')
+    + _miniStat('Print', print, 'all time')
+    + _miniStat('Avg per User', d.avgDownloads || 0, (d.totalDownloads || 0) + ' total downloads')
+    + _miniStat('Ever Exported', d.everDownloaded || 0, d.total ? Math.round((d.everDownloaded / d.total) * 1000) / 10 + '% of users' : '');
 }
 
 // ─── AI / Feature bars ───

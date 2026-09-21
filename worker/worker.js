@@ -2393,8 +2393,8 @@ async function aiStream(req, env, action, cors) {
     const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.` : "";
     const isSummary = target === "summary" || target === "personal";
     sysPrompt = isSummary
-      ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\n\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths (skills, domains, or scope), concrete nouns, not adjectives.\n- Ends with the value the candidate brings to a hiring manager.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter".\n- Plain text only, no markdown, no headers, no quotation marks.\n\nOUTPUT: Only the rewritten summary. Nothing else.`
-      : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.\n${roleLine}\n\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- Lead with impact. Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
+      ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\n\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths (skills, domains, or scope), concrete nouns, not adjectives.\n- Ends with the value the candidate brings to a hiring manager.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Write like a hiring manager describing the candidate to their boss: plain, specific, no corporate theater.\n- Plain text only, no markdown, no headers, no quotation marks.\n\nOUTPUT: Only the rewritten summary. Nothing else.`
+      : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.\n${roleLine}\n\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs (overused AI clichés): Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored. Use plain verbs instead.\n- Lead with impact. Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Write like a hiring manager describing work to their boss: plain, specific, no corporate theater.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
     userPrompt = `Original content:\n${text}\n\nRewrite it.`;
   } else {
     return fail(404, "Streaming not supported for this action");
@@ -2481,6 +2481,7 @@ You help with: resume feedback and rewrites, tailoring to a job, interview prep,
 Style:
 - Concise and direct. Short paragraphs and bullet points, never walls of text.
 - Warm and motivating, but honest. No fluff, no restating the question.
+- Never use overused AI-resume clichés: "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed", "results-driven", "passionate". Write like a real career coach, plain and specific.
 - Ground every answer in the user's actual resume below; reference their real roles/skills.
 - If asked to write or rewrite something, output the finished text.
 - If a question needs info you don't have, ask ONE focused follow-up.
@@ -2518,7 +2519,8 @@ WRITE IT SO IT:
 - Names 2-3 standout, specific strengths (skills, domains, or scope), concrete nouns, not adjectives.
 - Ends with the value the candidate brings to a hiring manager for this kind of role.
 - Active voice; third-person implied (no "I", no "you").
-- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter".
+- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".
+- Write like a hiring manager describing the candidate to their boss: plain, specific, no corporate theater.
 - Preserves the candidate's real facts, never invent titles, numbers, employers, or achievements.
 - Plain text only, no markdown, no headers, no quotation marks.
 
@@ -2536,10 +2538,12 @@ HARD RULES, follow exactly:
 - Begin each bullet with a DISTINCT strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected, Launched, Cut, Scaled, Automated, Negotiated). Never reuse a verb.
 - Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if present in or directly implied by the input. NEVER invent numbers.
 - Keep real facts; prefer concrete outcomes over stacked adjectives.
-- BANNED openers/phrases (never use): "Responsible for", "Worked on", "Helped", "Assisted with", "Tasked with", "Duties included", "Successfully", "In order to", "Various", "Leveraged", "Utilized", "Spearheaded".
+- BANNED openers/phrases (never use): "Responsible for", "Worked on", "Helped", "Assisted with", "Tasked with", "Duties included", "Successfully", "In order to", "Various".
+- BANNED verbs (overused AI-resume clichés, never use): "Spearheaded", "Leveraged", "Utilized", "Orchestrated", "Pioneered", "Championed", "Facilitated", "Synergized", "Endeavored". Use plain, specific verbs instead (Led, Built, Cut, Shipped, Grew, Ran, Designed, Reduced, Automated, Launched, Negotiated, Delivered).
+- Write like a hiring manager describing the candidate's work to their boss: plain, specific, no corporate theater.
 - Plain text only. No markdown, no headers, no preamble, no closing remarks.
 
-Before answering, silently self-check each bullet: unique strong verb? one sentence, ≤20 words? no banned phrase? no invented number? Fix any that fail.
+Before answering, silently self-check each bullet: unique strong verb? not a banned verb? one sentence, ≤20 words? no invented number? Fix any that fail.
 
 EXAMPLES (weak input → strong bullet):
   "Responsible for the website and worked on making it faster."
@@ -2581,7 +2585,7 @@ ${roleLine}HARD RULES:
 - Output EXACTLY one bullet, starting with "• ".
 - One sentence, 12-20 words, leading with a strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Launched, Cut, Scaled, Automated, Improved).
 - Lead with impact. Keep any real metric from the note; NEVER invent numbers, tools, names, dates, or scope that aren't in the note.
-- No buzzwords (results-driven, dynamic, passionate, team player, detail-oriented, hard-working).
+- No buzzwords (results-driven, dynamic, passionate, team player, detail-oriented, hard-working, spearheaded, leveraged, utilized, orchestrated, pioneered, championed).
 - Plain text only, output only the bullet, nothing else.`;
   const out = await runAI(env, sys, `Rough note:\n${text}\n\nPolish it into one bullet.`, { model: SMART_MODEL, max_tokens: 90, temperature: 0.25 });
   const bullet = (_tightenBullets(out).split("\n")[0] || "").replace(/^•\s*/, "").trim();
@@ -2593,6 +2597,7 @@ ${roleLine}HARD RULES:
 // are almost always padding), hard-caps ~20 words, and limits to 6 bullets.
 // Weak/filler openers to strip so a bullet always leads with a strong verb.
 const _WEAK_OPENERS = /^(responsible for|worked on|tasked with|assisted with|assisted in|helped to|helped with|helped|duties included|in charge of|was |were |involved in|participated in|successfully )/i;
+const _BANNED_VERBS = /^(spearheaded|leveraged|utilized|orchestrated|pioneered|championed|facilitated|synergized|endeavored|effectuated)\b/i;
 function _tightenBullets(out) {
   const lines = out.split("\n").map(l => l.trim()).filter(Boolean);
   const bullets = [];
@@ -2600,9 +2605,11 @@ function _tightenBullets(out) {
   for (const line of lines) {
     let s = line.replace(/^\s*(?:[••*\-]+|\d+[.)])\s*/, "").replace(/\*\*/g, "").trim();
     if (!s) continue;
-    // Strip a weak/filler opener and re-capitalize what remains (leads with the real action).
+    // Strip weak/filler openers and overused AI-smell verbs so the bullet leads with a real action.
     let prev;
     do { prev = s; s = s.replace(_WEAK_OPENERS, "").trim(); } while (s !== prev && _WEAK_OPENERS.test(s));
+    if (!s) continue;
+    s = s.replace(_BANNED_VERBS, "").trim();
     if (!s) continue;
     const m = s.match(/^(.*?[.!?])(?:\s+\S[^]*)?$/);      // keep first sentence only
     if (m) s = m[1].trim();
@@ -2975,6 +2982,8 @@ Calibrate bulletSuggestions to THIS quality bar (rewrite the candidate's own bul
   Weak:   "Responsible for managing the deployment process and helping the team."
   Strong: "Owned CI/CD for 12 services, cutting deploy time 45% and incidents 30%."
 Every strong bullet: past-tense action verb + specific scope + a quantified result, mirroring the JD's language, using ONLY facts the candidate actually stated.
+BANNED verbs (overused AI-resume clichés, never use in bullets or summary): "Spearheaded", "Leveraged", "Utilized", "Orchestrated", "Pioneered", "Championed", "Facilitated", "Synergized", "Endeavored". Use plain, specific verbs instead (Led, Built, Cut, Shipped, Grew, Ran, Designed, Reduced, Automated, Launched).
+Write like a hiring manager describing the candidate's work to their boss: plain, specific, no corporate theater.
 
 Rules:
 - matchedKeywords: 6-10 entries the JD asks for that the resume already shows
@@ -2993,8 +3002,10 @@ Rules:
   const missingKeywords = Array.isArray(j.missingKeywords) ? j.missingKeywords : [];
   const emphasize = Array.isArray(j.emphasize) ? j.emphasize : [];
   // Normalize bullets to {before, after}; tolerate the model returning plain strings.
+  // Run each "after" through _tightenBullets to strip banned verbs and enforce formatting.
   const bulletSuggestions = (Array.isArray(j.bulletSuggestions) ? j.bulletSuggestions : [])
     .map(b => typeof b === "string" ? { before: "", after: b } : { before: b.before || "", after: b.after || "" })
+    .map(b => ({ before: b.before, after: _tightenBullets(b.after).replace(/^•\s*/, "").trim() }))
     .filter(b => b.after);
 
   // Legacy text blob so an older frontend still renders something sensible.
@@ -3410,6 +3421,7 @@ Requirements:
 - Address it to "Dear Hiring Manager," unless a name is clearly provided.
 - Sign off with "Sincerely," followed by the candidate's name${name ? ` (${name})` : ""}.
 - Mirror the most important keywords and priorities from the job description naturally.
+- BANNED words/phrases (overused AI clichés, never use): "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed", "facilitated", "synergized", "results-driven", "dynamic", "passionate", "self-starter". Write like a real person, plain and specific.
 - NO placeholders or brackets like [Company] or [Your achievement], use the real details provided; if a detail is unknown, write around it gracefully.
 - Plain text only. No markdown, no headings, no preamble like "Here's your cover letter". Output ONLY the letter.`;
 
@@ -3492,6 +3504,7 @@ Requirements:
 - Ground every fact ONLY in the details and resume provided. NEVER invent dates, names, job titles, companies, numbers, or reasons that weren't given. If a needed detail (like a last working day) is missing, write around it gracefully rather than guessing.
 - Address it to ${recipient ? `"${String(recipient).slice(0, 80)}"` : '"Dear [appropriate recipient]," using a natural, specific greeting if the recipient is clear from the details, otherwise "Dear Hiring Manager," or "To whom it may concern,"'}.
 - Sign off warmly (e.g. "Sincerely," or "With gratitude,") followed by the sender's name${name ? ` (${name})` : ""}.
+- Avoid overused AI clichés: "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed", "results-driven", "passionate". Write like a real person.
 - NO markdown, NO headings, NO placeholders or brackets like [Company] or [Date] unless the user left that detail blank and it truly must be filled in by hand.
 - Output ONLY the letter, no preamble like "Here's your letter".`;
 

@@ -1,0 +1,15 @@
+{
+  "name": "@applio/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Applio — AI resume builder, ATS checker, job search, and salary data",
+  "type": "module",
+  "bin": {
+    "applio-mcp": "./index.js"
+  },
+  "main": "index.js",
+  "keywords": ["mcp", "resume", "ats", "job-search", "applio"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  }
+}

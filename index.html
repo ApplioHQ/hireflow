@@ -176,6 +176,7 @@
   <div class="home-nav-links" id="nav-links">
     <a href="/resume-templates">Templates</a>
     <a href="ats-checker">ATS Checker</a>
+    <a href="/job-search">Jobs</a>
     <a href="#pricing">Pricing</a>
     <div class="nav-dd">
       <button class="nav-dd-trigger" type="button" aria-expanded="false" aria-haspopup="true">Resources
@@ -237,7 +238,7 @@
           <span class="liquid-btn-blur" aria-hidden="true"></span>
           <span class="liquid-btn-label">Build My Resume Free →</span>
         </a>
-        <a href="#templates" class="hero-cta-ghost">See templates</a>
+        <a href="ats-checker" class="hero-cta-ghost">Score my resume</a>
       </div>
       <div class="hero-trust-icons">
         <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> No credit card</span>
@@ -395,6 +396,62 @@
         <h3>Tailoring takes forever</h3>
         <p>Customizing your resume for each job posting eats hours. Most people give up and send a generic one.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ATS EDUCATION ============ -->
+<style>
+  #ats-education { padding: 80px 40px; background: linear-gradient(180deg, #f8fafc 0%, #fff 100%); }
+  .ats-edu-inner { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .ats-edu-visual { position: relative; }
+  .ats-funnel { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .ats-funnel-stage { display: flex; align-items: center; gap: 16px; width: 100%; max-width: 420px; padding: 18px 24px; border-radius: 12px; position: relative; }
+  .ats-funnel-stage:nth-child(1) { background: #fef2f2; border: 1px solid #fecaca; }
+  .ats-funnel-stage:nth-child(2) { background: #fff7ed; border: 1px solid #fed7aa; max-width: 340px; }
+  .ats-funnel-stage:nth-child(3) { background: #f0fdf4; border: 1px solid #bbf7d0; max-width: 260px; }
+  .ats-funnel-arrow { color: #d1d5db; font-size: 20px; padding: 4px 0; }
+  .ats-funnel-num { font-size: 28px; font-weight: 800; flex: none; width: 50px; text-align: center; }
+  .ats-funnel-stage:nth-child(1) .ats-funnel-num { color: #ef4444; }
+  .ats-funnel-stage:nth-child(2) .ats-funnel-num { color: #f59e0b; }
+  .ats-funnel-stage:nth-child(3) .ats-funnel-num { color: #22c55e; }
+  .ats-funnel-text { font-size: 14px; color: #374151; line-height: 1.4; }
+  .ats-funnel-text strong { font-weight: 700; }
+  .ats-edu-copy h2 { font-size: clamp(28px, 3.5vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; color: #111827; }
+  .ats-edu-copy h2 span { color: #ef4444; }
+  .ats-edu-copy p { font-size: 16px; color: #6b7280; line-height: 1.65; margin-bottom: 16px; }
+  .ats-edu-cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 12px 22px; background: #6366f1; color: #fff; border-radius: 999px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background .15s, transform .15s; }
+  .ats-edu-cta:hover { background: #4f46e5; transform: translateY(-1px); }
+  @media (max-width: 900px) {
+    .ats-edu-inner { grid-template-columns: 1fr; gap: 32px; }
+    .ats-edu-visual { order: -1; }
+  }
+</style>
+<section id="ats-education">
+  <div class="ats-edu-inner">
+    <div class="ats-edu-visual">
+      <div class="ats-funnel">
+        <div class="ats-funnel-stage">
+          <div class="ats-funnel-num">250</div>
+          <div class="ats-funnel-text"><strong>Resumes submitted</strong> per corporate job posting on average</div>
+        </div>
+        <div class="ats-funnel-arrow">↓</div>
+        <div class="ats-funnel-stage">
+          <div class="ats-funnel-num">~12</div>
+          <div class="ats-funnel-text"><strong>Pass ATS filters</strong> — the rest are never seen by a human</div>
+        </div>
+        <div class="ats-funnel-arrow">↓</div>
+        <div class="ats-funnel-stage">
+          <div class="ats-funnel-num">4-6</div>
+          <div class="ats-funnel-text"><strong>Get interviewed</strong> — these resumes matched the job</div>
+        </div>
+      </div>
+    </div>
+    <div class="ats-edu-copy">
+      <h2>Most resumes are rejected<br>before a human reads them. <span>Yours might be too.</span></h2>
+      <p>An ATS (Applicant Tracking System) scans every resume for the right keywords, formatting, and structure. If it doesn't find them, your application is filtered out — no matter how qualified you are.</p>
+      <p>Applio gives you the exact ATS score a recruiter's system would, shows you what's missing, and fixes it. In 30 seconds, not 30 minutes.</p>
+      <a href="ats-checker" class="ats-edu-cta">Check your resume's ATS score free →</a>
     </div>
   </div>
 </section>
@@ -926,6 +983,7 @@
     <div class="by-row">
       <span class="by-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg> Cover letters</span>
       <span class="by-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Interview prep</span>
+      <span class="by-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Job search</span>
       <span class="by-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Job tracker</span>
       <span class="by-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> AI career coach</span>
     </div>
@@ -1244,7 +1302,7 @@
         </div>
       </div>
       <div class="footer-cols">
-        <div><h4>Product</h4><a href="/resume-builder">Resume Builder</a><a href="/resume-templates">Resume Templates</a><a href="/cover-letter-templates">Cover Letter Templates</a><a href="/cover-letter-generator">Cover Letter Generator</a><a href="/interview-preparation">Interview Prep</a><a href="/resume-examples">Resume Examples</a><a href="/ats-checker">Free ATS Checker</a><a href="/tools">All Free Tools</a><a href="/guides">Guides</a><a href="#pricing">Pricing</a></div>
+        <div><h4>Product</h4><a href="/resume-builder">Resume Builder</a><a href="/resume-templates">Resume Templates</a><a href="/cover-letter-templates">Cover Letter Templates</a><a href="/cover-letter-generator">Cover Letter Generator</a><a href="/interview-preparation">Interview Prep</a><a href="/job-search">Job Search</a><a href="/resume-examples">Resume Examples</a><a href="/ats-checker">Free ATS Checker</a><a href="/tools">All Free Tools</a><a href="/guides">Guides</a><a href="#pricing">Pricing</a></div>
         <div><h4>Account</h4><a href="login">Sign in</a><a href="login?mode=signup">Sign up free</a><a href="pricing">Upgrade</a></div>
         <div><h4>Legal</h4><a href="privacy">Privacy</a><a href="terms">Terms</a><span class="footer-status"><span class="status-dot"></span>All systems operational</span></div>
       </div>

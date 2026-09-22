@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Search — Find Jobs & Build a Tailored Resume | Applio</title>
+<meta name="description" content="Search thousands of jobs, then build and tailor your resume to match any listing with Applio's AI. Free job search, real salary data, and one-click resume tailoring.">
+<link rel="canonical" href="https://appliohq.com/job-search">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Job Search — Find Jobs & Build a Tailored Resume | Applio">
+<meta property="og:description" content="Search thousands of jobs, then build and tailor your resume to match any listing with Applio's AI.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/job-search">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","name":"Job Search","url":"https://appliohq.com/job-search","description":"Search jobs and build a resume tailored to any listing.","publisher":{"@type":"Organization","name":"Applio","url":"https://appliohq.com/"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://appliohq.com/"},{"@type":"ListItem","position":2,"name":"Job Search","item":"https://appliohq.com/job-search"}]}
+</script>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<style>
+  .js-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+  .js-hero { text-align: center; margin-bottom: 36px; }
+  .js-hero h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
+  .js-hero p { color: var(--muted); font-size: 16px; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+  .js-form { display: flex; gap: 10px; margin-bottom: 32px; flex-wrap: wrap; }
+  .js-input {
+    flex: 1; min-width: 180px; padding: 12px 16px; background: var(--bg-2);
+    border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text);
+    font-size: 15px; font-family: inherit;
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .js-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .js-input::placeholder { color: var(--muted); }
+  .js-btn {
+    padding: 12px 24px; background: var(--accent); color: #fff; border: none;
+    border-radius: var(--r-md); font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: background .15s, transform .15s;
+  }
+  .js-btn:hover { background: #4f46e5; transform: translateY(-1px); }
+  .js-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .js-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .js-count { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .js-region { font-size: 12px; color: var(--muted); background: var(--bg-2); padding: 4px 10px; border-radius: 999px; }
+  .js-results { display: flex; flex-direction: column; gap: 12px; }
+  .js-card {
+    padding: 20px; background: var(--bg-1); border: 1px solid var(--border);
+    border-radius: var(--r-md); box-shadow: var(--sh-1);
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .js-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--sh-2); }
+  .js-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+  .js-title { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .js-salary { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .js-company { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+  .js-loc { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .js-loc svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 3px; }
+  .js-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+  .js-card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .js-apply {
+    display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px;
+    background: var(--accent); color: #fff; border-radius: var(--r-sm); font-size: 13px;
+    font-weight: 700; text-decoration: none; transition: background .15s;
+  }
+  .js-apply:hover { background: #4f46e5; }
+  .js-tailor {
+    display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px;
+    background: var(--bg-2); color: var(--accent); border: 1px solid var(--border);
+    border-radius: var(--r-sm); font-size: 13px; font-weight: 700; text-decoration: none;
+    transition: border-color .15s, background .15s;
+  }
+  .js-tailor:hover { border-color: var(--accent); background: rgba(99,102,241,.06); }
+  .js-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .js-tag { font-size: 11px; padding: 3px 8px; background: var(--bg-2); color: var(--muted); border-radius: 999px; font-weight: 600; }
+  .js-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .js-empty h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .js-loading { text-align: center; padding: 40px; color: var(--muted); font-size: 15px; }
+  .js-pager { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+  .js-page-btn {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--r-sm);
+    background: var(--bg-1); color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s;
+  }
+  .js-page-btn:hover { border-color: var(--accent); }
+  .js-page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .js-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .js-cta-block { margin-top: 48px; padding: 32px; background: linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-1)); border: 1px solid var(--border); border-radius: var(--r-lg); text-align: center; }
+  .js-cta-block h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .js-cta-block p { color: var(--muted); font-size: 15px; margin-bottom: 16px; max-width: 460px; margin-left: auto; margin-right: auto; }
+  @media (max-width: 600px) { .js-form { flex-direction: column; } }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio logo"><span>Applio</span></a>
+  <nav class="topbar-nav">
+    <a href="/resume-templates">Templates</a>
+    <a href="/resume-examples">Examples</a>
+    <a href="/ats-checker">ATS Checker</a>
+    <a href="/salary">Salary</a>
+    <a href="/pricing">Pricing</a>
+  </nav>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="js-wrap">
+  <div class="js-hero">
+    <h1>Find jobs. Build a tailored resume.</h1>
+    <p>Search thousands of open positions, then use Applio's AI to build and tailor your resume to match any listing — in minutes, not hours.</p>
+  </div>
+
+  <form class="js-form" id="search-form">
+    <input type="text" class="js-input" id="q" name="q" placeholder="Job title, skill, or keyword" required autocomplete="off">
+    <input type="text" class="js-input" id="loc" name="location" placeholder="City or country (optional)" autocomplete="off">
+    <button type="submit" class="js-btn" id="search-btn">Search jobs</button>
+  </form>
+
+  <div id="results-area"></div>
+
+  <div class="js-cta-block">
+    <h2>Found a job you want? Build a resume for it.</h2>
+    <p>Applio's AI tailors your resume to any job description, scores it against the ATS, and shows you exactly what to fix.</p>
+    <a href="/editor" class="btn btn-primary">Build my resume free →</a>
+  </div>
+</main>
+
+<footer style="text-align:center; padding: 32px 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; margin-top: 40px;">
+  <p><a href="/" style="color:var(--muted);">Applio</a> &middot; <a href="/privacy" style="color:var(--muted);">Privacy</a> &middot; <a href="/terms" style="color:var(--muted);">Terms</a></p>
+</footer>
+
+<script src="/js/config.js"></script>
+<script>
+(function () {
+  var API = window.HIREFLOW_CONFIG ? window.HIREFLOW_CONFIG.API_URL : '';
+  var form = document.getElementById('search-form');
+  var area = document.getElementById('results-area');
+  var btn = document.getElementById('search-btn');
+  var currentPage = 1;
+  var lastQ = '', lastLoc = '';
+
+  function formatSalary(min, max, currency) {
+    if (!min && !max) return '';
+    var sym = { USD: '$', GBP: '£', EUR: '€', CAD: 'CA$', AUD: 'A$', INR: '₹', SGD: 'S$', NZD: 'NZ$', BRL: 'R$', MXN: 'MX$', CHF: 'CHF ', PLN: 'PLN ', ZAR: 'R' }[currency] || currency + ' ';
+    var fmt = function (n) { return Math.round(n).toLocaleString(); };
+    if (min && max && min !== max) return sym + fmt(min) + ' – ' + sym + fmt(max);
+    return sym + fmt(min || max);
+  }
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    var diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    var days = Math.floor(diff / 86400);
+    if (days === 1) return '1 day ago';
+    if (days < 30) return days + ' days ago';
+    return d.toLocaleDateString();
+  }
+
+  function renderResults(data) {
+    if (!data.results || !data.results.length) {
+      area.innerHTML = '<div class="js-empty"><h3>No jobs found</h3><p>Try different keywords or a broader location.</p></div>';
+      return;
+    }
+    var html = '<div class="js-meta"><span class="js-count">' + data.total.toLocaleString() + ' jobs found</span><span class="js-region">' + data.country + '</span></div>';
+    html += '<div class="js-results">';
+    data.results.forEach(function (j) {
+      var sal = formatSalary(j.salary_min, j.salary_max, j.currency);
+      var ago = timeAgo(j.created);
+      html += '<div class="js-card">';
+      html += '<div class="js-card-top"><div class="js-title">' + esc(j.title) + '</div>';
+      if (sal) html += '<div class="js-salary">' + sal + '</div>';
+      html += '</div>';
+      if (j.company) html += '<div class="js-company">' + esc(j.company) + '</div>';
+      html += '<div class="js-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' + esc(j.location) + (ago ? ' · ' + ago : '') + '</div>';
+      if (j.description) html += '<div class="js-desc">' + esc(j.description) + '…</div>';
+      html += '<div class="js-card-actions">';
+      if (j.url) html += '<a class="js-apply" href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer">Apply →</a>';
+      html += '<a class="js-tailor" href="/editor">Tailor resume to this job →</a>';
+      var tags = [];
+      if (j.contract_type) tags.push(j.contract_type);
+      if (j.contract_time) tags.push(j.contract_time);
+      if (j.category) tags.push(j.category);
+      if (tags.length) {
+        html += '<div class="js-tags">';
+        tags.forEach(function (t) { html += '<span class="js-tag">' + esc(t) + '</span>'; });
+        html += '</div>';
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+
+    if (data.pages > 1) {
+      html += '<div class="js-pager">';
+      for (var i = 1; i <= data.pages; i++) {
+        html += '<button class="js-page-btn' + (i === data.page ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+      }
+      html += '</div>';
+    }
+
+    area.innerHTML = html;
+    area.querySelectorAll('.js-page-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        currentPage = parseInt(b.getAttribute('data-page'));
+        doSearch(currentPage);
+      });
+    });
+  }
+
+  function esc(s) {
+    var el = document.createElement('span');
+    el.textContent = s || '';
+    return el.innerHTML;
+  }
+
+  function doSearch(page) {
+    var q = document.getElementById('q').value.trim();
+    var loc = document.getElementById('loc').value.trim();
+    if (!q) return;
+    lastQ = q; lastLoc = loc; currentPage = page || 1;
+
+    btn.disabled = true;
+    area.innerHTML = '<div class="js-loading">Searching jobs…</div>';
+
+    var params = new URLSearchParams({ q: q, page: String(currentPage) });
+    if (loc) params.set('location', loc);
+
+    fetch(API + '/job-search?' + params.toString())
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (data.error) {
+          area.innerHTML = '<div class="js-empty"><h3>Something went wrong</h3><p>' + esc(data.error) + '</p></div>';
+          return;
+        }
+        renderResults(data);
+        window.scrollTo({ top: area.offsetTop - 80, behavior: 'smooth' });
+      })
+      .catch(function () {
+        btn.disabled = false;
+        area.innerHTML = '<div class="js-empty"><h3>Connection error</h3><p>Check your internet and try again.</p></div>';
+      });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    doSearch(1);
+  });
+
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('q')) {
+    document.getElementById('q').value = urlParams.get('q');
+    if (urlParams.get('location')) document.getElementById('loc').value = urlParams.get('location');
+    doSearch(1);
+  }
+})();
+</script>
+</body>
+</html>

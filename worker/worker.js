@@ -156,6 +156,7 @@ export default {
       if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
+      if (path === "/job-search" && req.method === "GET") return json(await jobSearch(req, env), 200, cors);
       if (path.startsWith("/ai/stream/"))      return aiStream(req, env, path.slice(11), cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
@@ -2776,6 +2777,61 @@ async function adzunaSalary(env, { role, location }) {
       country, sampleSize: p.count
     };
   } catch (_) { return null; }
+}
+
+async function jobSearch(req, env) {
+  const url = new URL(req.url);
+  const query = url.searchParams.get("q") || "";
+  const location = url.searchParams.get("location") || "";
+  const page = Math.max(1, Math.min(10, parseInt(url.searchParams.get("page")) || 1));
+
+  if (!query.trim()) throw err(400, "Search query is required.");
+
+  const appId = env.ADZUNA_APP_ID, appKey = env.ADZUNA_APP_KEY;
+  if (!appId || !appKey) throw err(503, "Job search is temporarily unavailable.");
+
+  const country = inferAdzunaCountry(location);
+  const params = new URLSearchParams({
+    app_id: appId,
+    app_key: appKey,
+    results_per_page: "20",
+    page: String(page),
+    what: query.trim().slice(0, 200),
+    content_type: "application/json",
+    sort_by: "relevance",
+  });
+  if (location.trim()) params.set("where", location.trim().slice(0, 200));
+
+  const apiUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`;
+  const r = await fetch(apiUrl, { cf: { cacheTtl: 3600, cacheEverything: true } });
+  if (!r.ok) throw err(502, "Job search failed. Try again.");
+
+  const data = await r.json().catch(() => null);
+  if (!data) throw err(502, "Invalid response from job search.");
+
+  const currency = ADZUNA_CURRENCY[country] || "USD";
+  const results = (data.results || []).map(j => ({
+    title: j.title || "",
+    company: (j.company && j.company.display_name) || "",
+    location: (j.location && j.location.display_name) || "",
+    description: (j.description || "").slice(0, 300),
+    url: j.redirect_url || "",
+    salary_min: j.salary_min || null,
+    salary_max: j.salary_max || null,
+    currency,
+    created: j.created || "",
+    category: (j.category && j.category.label) || "",
+    contract_type: j.contract_type || "",
+    contract_time: j.contract_time || "",
+  }));
+
+  return {
+    results,
+    total: data.count || 0,
+    page,
+    pages: Math.min(10, Math.ceil((data.count || 0) / 20)),
+    country: country.toUpperCase(),
+  };
 }
 
 async function aiSalary(env, { role, location, level, resume }) {

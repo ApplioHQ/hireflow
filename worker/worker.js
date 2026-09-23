@@ -166,6 +166,7 @@ export default {
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
       if (path === "/job-search" && req.method === "GET") return json(await jobSearch(req, env), 200, cors);
+      if (path === "/student/claim" && req.method === "POST") return json(await claimStudent(req, env), 200, cors);
       if (path === "/site/config" && req.method === "GET")   return json(await getSiteConfig(req, env), 200, cors);
       if (path === "/site/publish" && req.method === "POST")  return json(await publishSite(req, env), 200, cors);
       if (path === "/site/unpublish" && req.method === "POST") return json(await unpublishSite(req, env), 200, cors);
@@ -330,6 +331,9 @@ async function touchActivity(env, user, req) {
 }
 function isPaidPlan(user) {
   if (!user) return false;
+  // Student grant: full Premium access until the grant expires. Independent of
+  // Stripe so a Stripe sync never revokes it.
+  if (user.studentUntil && user.studentUntil > Math.floor(Date.now() / 1000)) return true;
   if (user.plan === "lifetime") return true;
   if (user.plan === "premium") {
     return !user.currentPeriodEnd || user.currentPeriodEnd > Math.floor(Date.now() / 1000);
@@ -726,6 +730,7 @@ async function me(req, env) {
     referralCode: user.referralCode || null,
     referralCount: user.referralCount || 0,
     lastSeen: user.lastSeen || null,
+    studentUntil: user.studentUntil || null,
   };
 }
 
@@ -2844,6 +2849,42 @@ async function jobSearch(req, env) {
     pages: Math.min(10, Math.ceil((data.count || 0) / 20)),
     country: country.toUpperCase(),
   };
+}
+
+// ===== Student program =====
+// Free Premium for verified students. Verification is by academic email domain
+// (.edu, .ac.<cc>, .edu.<cc>), the standard lightweight check. Grants 180 days.
+const STUDENT_GRANT_DAYS = 180;
+
+function isAcademicEmail(email) {
+  const domain = String(email || "").toLowerCase().split("@")[1] || "";
+  if (!domain) return false;
+  if (/\.edu$/.test(domain)) return true;              // US
+  if (/\.edu\.[a-z]{2}$/.test(domain)) return true;    // .edu.au, .edu.cn, etc.
+  if (/\.ac\.[a-z]{2}$/.test(domain)) return true;     // .ac.uk, .ac.jp, etc.
+  return false;
+}
+
+async function claimStudent(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  if (!isAcademicEmail(email)) {
+    throw err(400, "Sign in with your school email (ending in .edu, .ac.uk, .edu.au, etc.) to claim free Premium.");
+  }
+  const user = await getUser(env, email);
+  if (!user) throw err(404, "User not found");
+  const now = Math.floor(Date.now() / 1000);
+  if (user.studentUntil && user.studentUntil > now) {
+    return { ok: true, alreadyActive: true, studentUntil: user.studentUntil };
+  }
+  user.studentUntil = now + STUDENT_GRANT_DAYS * 86400;
+  user.studentClaimedAt = now;
+  await putUser(env, user);
+  try {
+    const cur = parseInt(await env.HIREFLOW_KV.get("stats:student_claims") || "0", 10) || 0;
+    await env.HIREFLOW_KV.put("stats:student_claims", String(cur + 1));
+  } catch (_) {}
+  return { ok: true, studentUntil: user.studentUntil, days: STUDENT_GRANT_DAYS };
 }
 
 // ===== Personal website (portfolio) from resume =====

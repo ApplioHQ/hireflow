@@ -36,6 +36,7 @@
     +     '<a href="/interview-preparation">Interview Prep</a>'
     +     '<a href="/resume-examples">Resume Examples</a>'
     +     '<a href="/cover-letter-examples">Cover Letter Examples</a>'
+    +     '<a href="/students">Students (Free Premium)</a>'
     +     '<a href="/guides">Guides</a>'
     +     '<a href="/blog">Blog</a>'
     +     '<a href="/compare">Compare</a>'

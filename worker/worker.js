@@ -112,6 +112,15 @@ export default {
       return gdriveCallback(req, url, env).catch(e => new Response(`<html><body><script>window.opener&&window.opener.postMessage({type:'gdrive_error',error:${JSON.stringify(e.message)}},'*');window.close();</script><p>Error: ${e.message}</p></body></html>`, { status: 500, headers: { "Content-Type": "text/html" } }));
     }
 
+    // Public personal website: /p/:slug renders a portfolio page from a user's
+    // opted-in resume data. No auth, HTML response. Only fields the user chose
+    // to publish are included; contact details are hidden unless opted in.
+    if (path.startsWith("/p/")) {
+      return renderPublicSite(path.slice(3), env).catch(() =>
+        new Response("<!doctype html><meta charset=utf-8><title>Not found</title><body style=\"font-family:system-ui;text-align:center;padding:80px\"><h1>Page not found</h1><p>This personal site doesn't exist or was unpublished.</p></body>",
+          { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } }));
+    }
+
     try {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
@@ -157,6 +166,9 @@ export default {
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
       if (path === "/job-search" && req.method === "GET") return json(await jobSearch(req, env), 200, cors);
+      if (path === "/site/config" && req.method === "GET")   return json(await getSiteConfig(req, env), 200, cors);
+      if (path === "/site/publish" && req.method === "POST")  return json(await publishSite(req, env), 200, cors);
+      if (path === "/site/unpublish" && req.method === "POST") return json(await unpublishSite(req, env), 200, cors);
       if (path.startsWith("/ai/stream/"))      return aiStream(req, env, path.slice(11), cors);
       if (path.startsWith("/ai/"))             return json(await ai(req, env, path.slice(4)), 200, cors);
       return json({ error: "Not found" }, 404, cors);
@@ -2832,6 +2844,202 @@ async function jobSearch(req, env) {
     pages: Math.min(10, Math.ceil((data.count || 0) / 20)),
     country: country.toUpperCase(),
   };
+}
+
+// ===== Personal website (portfolio) from resume =====
+// Opt-in only. The user picks a slug and chooses whether to show contact info.
+// Public route /p/:slug renders their resume as a portfolio page.
+
+function normalizeSlug(s) {
+  return String(s || "").toLowerCase().trim().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+}
+
+async function getSiteConfig(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  const raw = await env.HIREFLOW_KV.get(`sitecfg:${email}`);
+  const cfg = raw ? JSON.parse(raw) : null;
+  return { config: cfg };
+}
+
+async function publishSite(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  const body = await req.json();
+  const slug = normalizeSlug(body.slug);
+  if (slug.length < 3) throw err(400, "Choose a slug with at least 3 letters or numbers.");
+
+  // Slug must be free, or already owned by this user.
+  const owner = await env.HIREFLOW_KV.get(`site:${slug}`);
+  if (owner && owner.toLowerCase() !== email) throw err(409, "That link is already taken. Try another.");
+
+  // A resume must exist to publish.
+  const resumeRaw = await env.HIREFLOW_KV.get(`resume:${email}`);
+  if (!resumeRaw) throw err(400, "Build and save your resume before publishing a site.");
+
+  // Release any previous slug this user held.
+  const prevRaw = await env.HIREFLOW_KV.get(`sitecfg:${email}`);
+  if (prevRaw) {
+    const prev = JSON.parse(prevRaw);
+    if (prev.slug && prev.slug !== slug) {
+      try { await env.HIREFLOW_KV.delete(`site:${prev.slug}`); } catch (_) {}
+    }
+  }
+
+  const cfg = {
+    slug,
+    showEmail: !!body.showEmail,
+    showPhone: !!body.showPhone,
+    showLinkedin: body.showLinkedin !== false,
+    theme: ["indigo", "slate", "emerald", "rose"].includes(body.theme) ? body.theme : "indigo",
+    published: true,
+    updatedAt: Date.now(),
+  };
+  await env.HIREFLOW_KV.put(`site:${slug}`, email);
+  await env.HIREFLOW_KV.put(`sitecfg:${email}`, JSON.stringify(cfg));
+  const base = env.SITE_URL || "https://appliohq.com";
+  return { ok: true, url: `${base}/p/${slug}`, config: cfg };
+}
+
+async function unpublishSite(req, env) {
+  const payload = await authenticate(req, env);
+  const email = payload.email.toLowerCase();
+  const raw = await env.HIREFLOW_KV.get(`sitecfg:${email}`);
+  if (raw) {
+    const cfg = JSON.parse(raw);
+    if (cfg.slug) { try { await env.HIREFLOW_KV.delete(`site:${cfg.slug}`); } catch (_) {} }
+    cfg.published = false;
+    await env.HIREFLOW_KV.put(`sitecfg:${email}`, JSON.stringify(cfg));
+  }
+  return { ok: true };
+}
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+async function renderPublicSite(slug, env) {
+  slug = normalizeSlug(slug);
+  const email = slug ? await env.HIREFLOW_KV.get(`site:${slug}`) : null;
+  if (!email) throw err(404, "Not found");
+  const cfgRaw = await env.HIREFLOW_KV.get(`sitecfg:${email.toLowerCase()}`);
+  const cfg = cfgRaw ? JSON.parse(cfgRaw) : null;
+  if (!cfg || !cfg.published) throw err(404, "Not found");
+  const resumeRaw = await env.HIREFLOW_KV.get(`resume:${email.toLowerCase()}`);
+  if (!resumeRaw) throw err(404, "Not found");
+  const r = JSON.parse(resumeRaw);
+  const html = buildPortfolioHtml(r, cfg, env);
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Cache-Control": "public, max-age=300",
+    },
+  });
+}
+
+function buildPortfolioHtml(r, cfg, env) {
+  const p = r.personal || {};
+  const themes = {
+    indigo: { accent: "#6366f1", bg: "#0f1120", soft: "#1a1d33" },
+    slate:  { accent: "#0ea5e9", bg: "#0f172a", soft: "#1e293b" },
+    emerald:{ accent: "#10b981", bg: "#0c1a14", soft: "#14261d" },
+    rose:   { accent: "#f43f5e", bg: "#1a0f14", soft: "#2a1720" },
+  };
+  const t = themes[cfg.theme] || themes.indigo;
+  const name = esc(p.fullName || "Your Name");
+  const contacts = [];
+  if (cfg.showEmail && p.email) contacts.push(`<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`);
+  if (cfg.showPhone && p.phone) contacts.push(`<span>${esc(p.phone)}</span>`);
+  if (p.location) contacts.push(`<span>${esc(p.location)}</span>`);
+  if (cfg.showLinkedin && p.linkedin) {
+    const li = String(p.linkedin).replace(/^https?:\/\//, "");
+    contacts.push(`<a href="https://${esc(li)}" rel="noopener nofollow">${esc(li)}</a>`);
+  }
+  const expHtml = (r.experience || []).map(e => {
+    const dates = [e.start, e.end].filter(Boolean).join(" – ");
+    const desc = String(e.description || "").split("\n").filter(Boolean)
+      .map(l => `<li>${esc(l.replace(/^[•\-\*]\s*/, ""))}</li>`).join("");
+    return `<div class="item">
+      <div class="item-head"><h3>${esc(e.title || "")}</h3><span class="dates">${esc(dates)}</span></div>
+      <div class="sub">${esc([e.company, e.location].filter(Boolean).join(" · "))}</div>
+      ${desc ? `<ul>${desc}</ul>` : ""}
+    </div>`;
+  }).join("");
+  const eduHtml = (r.education || []).map(e => {
+    const dates = [e.start, e.end].filter(Boolean).join(" – ");
+    const deg = [e.degree, e.field].filter(Boolean).join(", ");
+    return `<div class="item">
+      <div class="item-head"><h3>${esc(e.school || "")}</h3><span class="dates">${esc(dates)}</span></div>
+      <div class="sub">${esc(deg)}</div>
+    </div>`;
+  }).join("");
+  let skills = [];
+  if (r.skills && Array.isArray(r.skills.categories)) {
+    for (const c of r.skills.categories) if (Array.isArray(c.items)) skills = skills.concat(c.items);
+  }
+  const skillsHtml = skills.length ? `<div class="chips">${skills.map(s => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : "";
+  const projHtml = (r.projects || []).map(pr => `<div class="item">
+      <div class="item-head"><h3>${esc(pr.name || pr.title || "")}</h3></div>
+      ${pr.description ? `<p>${esc(pr.description)}</p>` : ""}
+    </div>`).join("");
+  const base = env.SITE_URL || "https://appliohq.com";
+
+  return `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${name}${p.title ? " – " + esc(p.title) : ""}</title>
+<meta name="description" content="${name}'s professional profile.">
+<meta property="og:title" content="${name}">
+<meta property="og:type" content="profile">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root { --accent:${t.accent}; --bg:${t.bg}; --soft:${t.soft}; --text:#e8eaf2; --muted:#9aa0b5; --border:rgba(255,255,255,.09); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .wrap { max-width:760px; margin:0 auto; padding:64px 24px 80px; }
+  header { border-bottom:1px solid var(--border); padding-bottom:28px; margin-bottom:36px; }
+  h1 { font-size:clamp(30px,6vw,44px); font-weight:800; letter-spacing:-1px; margin:0 0 6px; }
+  .title { color:var(--accent); font-weight:600; font-size:17px; }
+  .contacts { display:flex; flex-wrap:wrap; gap:14px; margin-top:16px; font-size:14px; color:var(--muted); }
+  .contacts a { color:var(--muted); text-decoration:none; border-bottom:1px solid var(--border); }
+  .contacts a:hover { color:var(--accent); }
+  .summary { font-size:17px; margin:22px 0 0; color:var(--text); }
+  section { margin-top:40px; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent); font-weight:700; margin:0 0 18px; }
+  .item { margin-bottom:24px; }
+  .item-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .item h3 { font-size:17px; font-weight:700; margin:0; }
+  .dates { color:var(--muted); font-size:13px; white-space:nowrap; }
+  .sub { color:var(--muted); font-size:14.5px; margin-top:2px; }
+  .item ul { margin:10px 0 0; padding-left:18px; }
+  .item li { margin-bottom:5px; font-size:14.5px; }
+  .item p { font-size:14.5px; color:var(--text); margin:6px 0 0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { background:var(--soft); border:1px solid var(--border); border-radius:999px; padding:6px 13px; font-size:13px; }
+  footer { margin-top:56px; padding-top:24px; border-top:1px solid var(--border); text-align:center; font-size:13px; color:var(--muted); }
+  footer a { color:var(--accent); text-decoration:none; }
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <h1>${name}</h1>
+    ${p.title ? `<div class="title">${esc(p.title)}</div>` : ""}
+    ${contacts.length ? `<div class="contacts">${contacts.join("")}</div>` : ""}
+    ${p.summary ? `<p class="summary">${esc(p.summary)}</p>` : ""}
+  </header>
+  ${expHtml ? `<section><h2>Experience</h2>${expHtml}</section>` : ""}
+  ${projHtml ? `<section><h2>Projects</h2>${projHtml}</section>` : ""}
+  ${eduHtml ? `<section><h2>Education</h2>${eduHtml}</section>` : ""}
+  ${skillsHtml ? `<section><h2>Skills</h2>${skillsHtml}</section>` : ""}
+  <footer>Made with <a href="${esc(base)}" rel="noopener">Applio</a></footer>
+</div>
+</body></html>`;
 }
 
 async function aiSalary(env, { role, location, level, resume }) {

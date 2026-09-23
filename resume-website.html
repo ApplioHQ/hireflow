@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Website | Applio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/logo.ico">
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  .pw-wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+  .pw-card { border:1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1); padding: 24px; box-shadow: var(--sh-1); margin-bottom: 20px; }
+  .pw-card h2 { font-size: 17px; font-weight: 800; margin: 0 0 4px; }
+  .pw-card .pw-desc { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+  .pw-field { margin-bottom: 16px; }
+  .pw-field label { display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .pw-slug-row { display:flex; align-items:center; border:1px solid var(--border); border-radius: var(--r-md); overflow:hidden; background: var(--bg-0); }
+  .pw-slug-row .pw-prefix { padding: 10px 4px 10px 12px; color: var(--muted); font-size: 14px; white-space:nowrap; }
+  .pw-slug-row input { flex:1; border:0; background:transparent; padding: 10px 12px 10px 2px; color: var(--text); font-size: 14px; outline:none; }
+  .pw-toggles { display:flex; flex-direction:column; gap:10px; }
+  .pw-toggle { display:flex; align-items:center; gap:10px; font-size:14px; }
+  .pw-themes { display:flex; gap:10px; flex-wrap:wrap; }
+  .pw-theme { width:34px; height:34px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
+  .pw-theme.active { border-color: var(--text); }
+  .pw-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+  .pw-live { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius: var(--r-md); background: rgba(16,185,129,.08); font-size:14px; margin-bottom:16px; }
+  .pw-live a { color: var(--accent); font-weight:600; word-break: break-all; }
+  .pw-dot { width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0; }
+  .pw-msg { font-size:13.5px; margin-top:12px; min-height:18px; }
+  .pw-msg.err { color:#ef4444; } .pw-msg.ok { color:#10b981; }
+  .pw-hidden { display:none; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="dashboard">Home</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab active" href="resume-website">Personal Site</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="pw-wrap">
+  <div style="margin-bottom:22px;">
+    <h1 style="font-size:24px; font-weight:800; letter-spacing:-.4px; margin:0 0 4px;">Your personal website</h1>
+    <p style="color:var(--muted); font-size:14px; margin:0;">Turn your resume into a shareable web page with a clean link. Put it on LinkedIn, in your email signature, or on business cards.</p>
+  </div>
+
+  <div id="pw-live-box" class="pw-live pw-hidden">
+    <span class="pw-dot"></span>
+    <div>Your site is live at <a id="pw-live-link" href="#" target="_blank" rel="noopener"></a></div>
+  </div>
+
+  <div class="pw-card">
+    <h2>Site settings</h2>
+    <p class="pw-desc">Choose your link and what to show. Your site is built from your saved resume.</p>
+
+    <div class="pw-field">
+      <label for="pw-slug">Your link</label>
+      <div class="pw-slug-row">
+        <span class="pw-prefix" id="pw-prefix">appliohq.com/p/</span>
+        <input type="text" id="pw-slug" placeholder="your-name" autocomplete="off" spellcheck="false" maxlength="40">
+      </div>
+    </div>
+
+    <div class="pw-field">
+      <label>Show on your site</label>
+      <div class="pw-toggles">
+        <label class="pw-toggle"><input type="checkbox" id="pw-email"> Email address</label>
+        <label class="pw-toggle"><input type="checkbox" id="pw-phone"> Phone number</label>
+        <label class="pw-toggle"><input type="checkbox" id="pw-linkedin" checked> LinkedIn link</label>
+      </div>
+    </div>
+
+    <div class="pw-field">
+      <label>Accent color</label>
+      <div class="pw-themes" id="pw-themes">
+        <div class="pw-theme active" data-theme="indigo" style="background:#6366f1;" title="Indigo"></div>
+        <div class="pw-theme" data-theme="slate" style="background:#0ea5e9;" title="Blue"></div>
+        <div class="pw-theme" data-theme="emerald" style="background:#10b981;" title="Emerald"></div>
+        <div class="pw-theme" data-theme="rose" style="background:#f43f5e;" title="Rose"></div>
+      </div>
+    </div>
+
+    <div class="pw-actions">
+      <button class="btn btn-primary" id="pw-publish" onclick="publish()">Publish my site</button>
+      <button class="btn btn-ghost" id="pw-preview" onclick="preview()">Preview</button>
+      <button class="btn btn-ghost pw-hidden" id="pw-unpublish" onclick="unpublish()" style="color:#ef4444;">Unpublish</button>
+    </div>
+    <div class="pw-msg" id="pw-msg"></div>
+  </div>
+
+  <p style="color:var(--muted); font-size:12.5px; text-align:center;">Only the fields you choose are shown publicly. You can unpublish anytime.</p>
+</main>
+
+<script>
+var API = window.HIREFLOW_CONFIG.API_URL;
+var TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login';
+var theme = 'indigo';
+
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+
+function msg(text, kind){ var m=document.getElementById('pw-msg'); m.textContent=text||''; m.className='pw-msg'+(kind?' '+kind:''); }
+
+function api(path, method, body){
+  return fetch(API+path, {
+    method: method||'GET',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||'Something went wrong'); return j; }); });
+}
+
+// theme picker
+document.getElementById('pw-themes').addEventListener('click', function(e){
+  var el = e.target.closest('.pw-theme'); if(!el) return;
+  theme = el.getAttribute('data-theme');
+  document.querySelectorAll('.pw-theme').forEach(function(t){ t.classList.toggle('active', t===el); });
+});
+
+function currentSlug(){ return (document.getElementById('pw-slug').value||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,''); }
+
+function showLive(url){
+  var box=document.getElementById('pw-live-box'), link=document.getElementById('pw-live-link');
+  if(url){ link.textContent=url; link.href=url; box.classList.remove('pw-hidden'); document.getElementById('pw-unpublish').classList.remove('pw-hidden'); }
+  else { box.classList.add('pw-hidden'); document.getElementById('pw-unpublish').classList.add('pw-hidden'); }
+}
+
+function publish(){
+  var slug = currentSlug();
+  if(slug.length < 3){ msg('Pick a link with at least 3 letters or numbers.', 'err'); return; }
+  var btn=document.getElementById('pw-publish'); btn.disabled=true; btn.textContent='Publishing…';
+  api('/site/publish','POST',{
+    slug: slug,
+    showEmail: document.getElementById('pw-email').checked,
+    showPhone: document.getElementById('pw-phone').checked,
+    showLinkedin: document.getElementById('pw-linkedin').checked,
+    theme: theme
+  }).then(function(j){
+    msg('Published! Your site is live.', 'ok');
+    showLive(j.url);
+  }).catch(function(e){ msg(e.message, 'err'); })
+    .finally(function(){ btn.disabled=false; btn.textContent='Publish my site'; });
+}
+
+function unpublish(){
+  api('/site/unpublish','POST',{}).then(function(){
+    msg('Your site has been unpublished.', 'ok');
+    showLive(null);
+  }).catch(function(e){ msg(e.message,'err'); });
+}
+
+function preview(){
+  var slug = currentSlug();
+  if(slug.length < 3){ msg('Enter a link first, then publish to preview.', 'err'); return; }
+  // Preview only works after publish (the public page reads saved data).
+  window.open('/p/'+slug, '_blank');
+}
+
+// load existing config
+api('/site/config').then(function(j){
+  var c = j.config;
+  if(!c) return;
+  if(c.slug) document.getElementById('pw-slug').value = c.slug;
+  document.getElementById('pw-email').checked = !!c.showEmail;
+  document.getElementById('pw-phone').checked = !!c.showPhone;
+  document.getElementById('pw-linkedin').checked = c.showLinkedin !== false;
+  if(c.theme){ theme=c.theme; document.querySelectorAll('.pw-theme').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-theme')===c.theme); }); }
+  if(c.published && c.slug){
+    var base = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? location.origin : 'https://appliohq.com';
+    showLive(base + '/p/' + c.slug);
+  }
+}).catch(function(){});
+</script>
+</body>
+</html>

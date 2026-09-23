@@ -228,6 +228,7 @@
     { href: 'skill-gap', icon: 'gauge', title: 'Skill Gap Coach', desc: 'See what your target role wants that you\'re missing' },
     { href: 'salary', icon: 'dollar', title: 'Salary Insights', desc: 'Typical pay ranges for roles you\'re eyeing' },
     { href: 'resume-website', icon: 'globe', title: 'Personal Site', desc: 'Turn your resume into a shareable web page' },
+    { href: 'linkedin-optimizer', icon: 'target', title: 'LinkedIn Optimizer', desc: 'Rewrite your headline & About to rank' },
     { href: 'assistant', icon: 'chat', title: 'Career Coach', desc: 'Ask anything, anytime' }
   ];
   function renderActions() {

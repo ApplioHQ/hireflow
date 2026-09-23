@@ -27,7 +27,7 @@ Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
 // Note: "parse" (resume import) is intentionally NOT here, importing is free for everyone.
-const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot", "letter", "modernize", "salary"]);
+const PRO_AI = new Set(["tailor", "ats", "analyze", "interview", "skills", "improve", "assistant", "autopilot", "letter", "modernize", "salary", "linkedin"]);
 // Career Coach (assistant) is Premium/Lifetime only, it is in PRO_AI above and the
 // frontend shows a Premium gate to free users. Cover letters give a small free taste.
 const FREE_COVER_LETTERS = 2;
@@ -2208,6 +2208,7 @@ async function aiDispatch(env, action, body) {
     case "win":       return aiWin(env, body);
     case "skills":    return aiSkills(env, body);
     case "skill-gap": return aiSkillGap(env, body);
+    case "linkedin":  return aiLinkedIn(env, body);
     case "salary":    return aiSalary(env, body);
     case "tailor":    return aiTailor(env, body);
     case "ats":       return aiATS(env, body);
@@ -3259,6 +3260,59 @@ Return the JSON.`;
   };
   await aiCachePut(env, "skillgap", cacheKey, out.missing.length ? out : null, 86400);
   return out;
+}
+
+// ============ LinkedIn profile optimizer ============
+// Rewrites a headline and About section, grounded ONLY in what the candidate
+// provides. Returns structured JSON the UI renders as copyable sections.
+async function aiLinkedIn(env, { role, currentHeadline, currentAbout, resume }) {
+  const target = String(role || "").trim().slice(0, 120);
+  const headline = String(currentHeadline || "").trim().slice(0, 300);
+  const about = String(currentAbout || "").trim().slice(0, 3000);
+  let resumeCtx = "";
+  if (resume && typeof resume === "object") resumeCtx = JSON.stringify(resume).slice(0, 4000);
+  if (!target && !headline && !about && !resumeCtx) {
+    throw err(400, "Add your target role and current headline or About section first.");
+  }
+
+  const shape = `Return STRICT JSON only, no markdown, in exactly this shape:
+{
+  "headline": "<one optimized LinkedIn headline, max 220 characters, keyword-rich, specific, no clichés>",
+  "about": "<an optimized About section, first person, 3-5 short paragraphs, ~120-200 words, keyword-rich but human>",
+  "tips": [ "<specific, actionable tip to improve the profile>", "..." ]
+}`;
+
+  const sys = GROUNDING + "\n\n" + `You are a LinkedIn profile expert and recruiter. Rewrite a candidate's LinkedIn headline and About section so they rank in recruiter searches and read as credible and human.
+
+${shape}
+
+Rules:
+- Ground EVERY claim ONLY in the candidate's provided headline, About, resume, and target role. NEVER invent employers, titles, metrics, or skills they didn't provide.
+- The headline should lead with the target role/specialty and include the highest-value keywords a recruiter would search. No "|"-spam beyond 2-3 segments. Max 220 characters.
+- The About section is first person, opens with a strong hook, shows what they do and the value they bring, weaves in real skills/keywords, and ends with a light call to connect. No buzzwords like "results-driven", "passionate", "spearheaded", "leveraged", "synergy".
+- 4-6 "tips": concrete profile improvements (e.g. "Add your certifications to the Licenses section", "Turn your top 3 skills into featured endorsements"). Base them on what's missing or weak in the input.
+- No markdown, no headings inside fields, no placeholder brackets.`;
+
+  const user = [
+    `TARGET ROLE: ${target || "(not specified, infer from their materials)"}`,
+    headline ? `CURRENT HEADLINE: ${headline}` : "CURRENT HEADLINE: (none)",
+    about ? `CURRENT ABOUT:\n${about}` : "CURRENT ABOUT: (none)",
+    resumeCtx ? `RESUME CONTEXT (for real facts only):\n${resumeCtx}` : "",
+    "\nReturn the JSON.",
+  ].filter(Boolean).join("\n\n");
+
+  const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 900, temperature: 0.4 });
+  let data = null;
+  try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim()); }
+  catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { data = JSON.parse(m[0]); } catch {} } }
+  if (!data || (!data.headline && !data.about)) {
+    throw err(502, "That didn't come out right. Please try again, it's usually a one-off.");
+  }
+  return {
+    headline: String(data.headline || "").slice(0, 240),
+    about: String(data.about || "").slice(0, 2600),
+    tips: Array.isArray(data.tips) ? data.tips.map(t => String(t).slice(0, 200)).filter(Boolean).slice(0, 8) : [],
+  };
 }
 
 // ============ Tailor to job ============

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Optimizer | Applio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/logo.ico">
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/theme.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  .lo-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  .lo-card { border:1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1); padding: 24px; box-shadow: var(--sh-1); margin-bottom: 20px; }
+  .lo-field { margin-bottom: 16px; }
+  .lo-field label { display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .lo-field input, .lo-field textarea { width: 100%; padding: 10px 12px; border:1px solid var(--border); border-radius: var(--r-md); background: var(--bg-0); color: var(--text); font-size: 14px; font-family: inherit; }
+  .lo-field textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+  .lo-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .lo-out { margin-top: 8px; }
+  .lo-block { border:1px solid var(--border); border-radius: var(--r-md); background: var(--bg-0); padding: 16px; margin-bottom: 14px; }
+  .lo-block-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+  .lo-block-head h3 { font-size: 13px; text-transform:uppercase; letter-spacing:.5px; color: var(--accent); font-weight:700; margin:0; }
+  .lo-copy { font-size: 12px; font-weight:600; color: var(--accent); background:transparent; border:1px solid var(--border); border-radius:6px; padding:4px 10px; cursor:pointer; }
+  .lo-copy:hover { border-color: var(--accent); }
+  .lo-block p { margin:0; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .lo-tips { margin: 6px 0 0; padding-left: 20px; }
+  .lo-tips li { font-size: 14px; margin-bottom: 6px; line-height: 1.5; }
+  .lo-msg { font-size: 13.5px; margin-top: 12px; min-height: 18px; }
+  .lo-msg.err { color:#ef4444; } .lo-msg.ok { color:#10b981; }
+  .hidden { display:none; }
+  .lo-loading { text-align:center; color: var(--muted); padding: 20px; font-size: 14px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <nav class="topbar-tabs">
+    <a class="topbar-tab" href="dashboard">Home</a>
+    <a class="topbar-tab" href="editor">Resume Builder</a>
+    <a class="topbar-tab" href="jobs">Job Tracker</a>
+    <a class="topbar-tab active" href="linkedin-optimizer">LinkedIn</a>
+    <a class="topbar-tab" href="interview">Interview Prep</a>
+    <a class="topbar-tab" href="assistant">Career Coach</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main class="lo-wrap">
+  <div style="margin-bottom:22px;">
+    <h1 style="font-size:24px; font-weight:800; letter-spacing:-.4px; margin:0 0 4px;">LinkedIn optimizer</h1>
+    <p style="color:var(--muted); font-size:14px; margin:0;">Rewrite your headline and About section to rank in recruiter searches, grounded in your real experience.</p>
+  </div>
+
+  <div class="lo-card">
+    <div class="lo-field">
+      <label for="lo-role">Target role</label>
+      <input id="lo-role" placeholder="e.g. Senior Product Manager" maxlength="120">
+    </div>
+    <div class="lo-field">
+      <label for="lo-headline">Current headline <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input id="lo-headline" placeholder="Paste your current LinkedIn headline" maxlength="300">
+    </div>
+    <div class="lo-field">
+      <label for="lo-about">Current About section <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <textarea id="lo-about" placeholder="Paste your current About section, or leave blank to generate one from your resume"></textarea>
+      <div class="lo-hint">We'll use your saved resume for real facts. Nothing is invented.</div>
+    </div>
+    <button class="btn btn-primary" id="lo-go" onclick="optimize()">Optimize my profile</button>
+    <div class="lo-msg" id="lo-msg"></div>
+  </div>
+
+  <div class="lo-loading hidden" id="lo-loading">Optimizing your profile…</div>
+
+  <div class="lo-card hidden" id="lo-results">
+    <div class="lo-block">
+      <div class="lo-block-head"><h3>Optimized headline</h3><button class="lo-copy" data-target="out-headline">Copy</button></div>
+      <p id="out-headline"></p>
+    </div>
+    <div class="lo-block">
+      <div class="lo-block-head"><h3>Optimized About</h3><button class="lo-copy" data-target="out-about">Copy</button></div>
+      <p id="out-about"></p>
+    </div>
+    <div class="lo-block" id="lo-tips-block">
+      <div class="lo-block-head"><h3>Profile tips</h3></div>
+      <ul class="lo-tips" id="out-tips"></ul>
+    </div>
+  </div>
+</main>
+
+<script>
+var API = window.HIREFLOW_CONFIG.API_URL;
+var TOKEN = localStorage.getItem('hf_token');
+if (!TOKEN) location.href = 'login';
+var RESUME = null;
+
+function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+function msg(t, k){ var m=document.getElementById('lo-msg'); m.textContent=t||''; m.className='lo-msg'+(k?' '+k:''); }
+
+// preload resume for grounding
+fetch(API + '/resume', { headers:{ 'Authorization':'Bearer '+TOKEN } })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(j){ if(j && j.resume) RESUME = j.resume; })
+  .catch(function(){});
+
+function optimize(){
+  var role = document.getElementById('lo-role').value.trim();
+  var headline = document.getElementById('lo-headline').value.trim();
+  var about = document.getElementById('lo-about').value.trim();
+  if (!role && !headline && !about) { msg('Add your target role, headline, or About section first.', 'err'); return; }
+  msg('');
+  var btn = document.getElementById('lo-go'); btn.disabled = true; btn.textContent = 'Optimizing…';
+  document.getElementById('lo-loading').classList.remove('hidden');
+  document.getElementById('lo-results').classList.add('hidden');
+
+  fetch(API + '/ai/linkedin', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN },
+    body: JSON.stringify({ role: role, currentHeadline: headline, currentAbout: about, resume: RESUME })
+  }).then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||'Something went wrong'); return j; }); })
+    .then(function(j){
+      document.getElementById('out-headline').textContent = j.headline || '';
+      document.getElementById('out-about').textContent = j.about || '';
+      var tips = document.getElementById('out-tips');
+      tips.innerHTML = '';
+      (j.tips||[]).forEach(function(t){ var li=document.createElement('li'); li.textContent=t; tips.appendChild(li); });
+      document.getElementById('lo-tips-block').style.display = (j.tips && j.tips.length) ? '' : 'none';
+      document.getElementById('lo-results').classList.remove('hidden');
+    })
+    .catch(function(e){ msg(e.message, 'err'); })
+    .finally(function(){
+      btn.disabled=false; btn.textContent='Optimize my profile';
+      document.getElementById('lo-loading').classList.add('hidden');
+    });
+}
+
+document.addEventListener('click', function(e){
+  var b = e.target.closest('.lo-copy'); if(!b) return;
+  var el = document.getElementById(b.getAttribute('data-target'));
+  if(!el) return;
+  var text = el.textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ b.textContent='Copied ✓'; setTimeout(function(){ b.textContent='Copy'; }, 1400); })
+      .catch(function(){ fallbackCopy(el, b); });
+  } else { fallbackCopy(el, b); }
+});
+function fallbackCopy(el, b){
+  var range=document.createRange(); range.selectNodeContents(el);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  try { document.execCommand('copy'); b.textContent='Copied ✓'; setTimeout(function(){ b.textContent='Copy'; },1400); } catch(e){}
+  sel.removeAllRanges();
+}
+</script>
+</body>
+</html>

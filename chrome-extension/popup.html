@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --bg: #ffffff; --card: #f8f9fc; --text: #1a1d2e; --muted: #6b7189;
+    --accent: #6366f1; --accent-d: #4f46e5; --border: #e6e8f0; --green: #16a34a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12141f; --card: #1a1d2e; --text: #eef0f8; --muted: #9aa0b8; --border: #2a2e42; }
+  }
+  * { box-sizing: border-box; }
+  body { width: 340px; margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+  .head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .head img { width: 22px; height: 22px; border-radius: 5px; }
+  .head b { font-size: 15px; }
+  .body { padding: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 4px; }
+  .field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13.5px; }
+  .row { display: flex; gap: 8px; }
+  .row .field { flex: 1; }
+  .btn { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--accent-d); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--border); margin-top: 8px; }
+  .btn-ghost:hover { background: var(--card); }
+  .msg { font-size: 12.5px; margin-top: 10px; min-height: 16px; text-align: center; }
+  .msg.err { color: #ef4444; } .msg.ok { color: var(--green); }
+  .signin { text-align: center; padding: 24px 16px; }
+  .signin p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 14px; }
+  .hidden { display: none; }
+  .foot { padding: 10px 16px; border-top: 1px solid var(--border); text-align: center; }
+  .foot a { color: var(--accent); font-size: 12.5px; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <img src="icons/icon48.png" alt="Applio">
+    <b>Save to Applio</b>
+  </div>
+
+  <div id="signin" class="signin hidden">
+    <p>Sign in to Applio to save jobs to your tracker.</p>
+    <button class="btn" id="go-signin">Sign in to Applio</button>
+  </div>
+
+  <div id="form" class="body hidden">
+    <div class="field">
+      <label>Job title</label>
+      <input id="f-title" placeholder="e.g. Software Engineer">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Company</label>
+        <input id="f-company" placeholder="Company">
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="f-status">
+          <option>Saved</option><option>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <input id="f-location" placeholder="Location">
+    </div>
+    <button class="btn" id="save">Save to my tracker</button>
+    <button class="btn-ghost btn" id="open-tracker">Open job tracker</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="foot">
+    <a href="https://appliohq.com/jobs" target="_blank" id="foot-link">View all tracked jobs →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

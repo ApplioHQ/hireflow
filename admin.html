@@ -271,27 +271,13 @@
     <div class="section-bd" id="template-bars"></div>
   </div>
 
-  <!-- ===== User segments ===== -->
+  <!-- ===== User count (individual users are never displayed; emails stay private) ===== -->
   <div class="section-card" style="margin-bottom:20px;">
     <div class="section-hd">
       <div>
         <h2>Users</h2>
         <div class="sub" id="user-summary">Loading…</div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
-      </div>
-    </div>
-    <div style="max-height:65vh; overflow-y:auto;">
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th>Email</th><th>Plan</th><th>Profile</th><th>Joined</th><th>Renews / Notes</th><th>Downloads</th><th>AI Use</th><th>Features Used</th><th id="actions-col" style="display:none;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="users-tbody"></tbody>
-      </table>
-      <div id="users-empty" class="empty-tbl" style="display:none;">No users yet.</div>
     </div>
   </div>
 
@@ -388,11 +374,6 @@ var ROLE = null;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];});}
 function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
 function fmtUnix(s) { return s ? new Date(s*1000).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '-'; }
-function fmtPlan(p) {
-  if (p === 'lifetime') return '<span class="pill success">Lifetime</span>';
-  if (p === 'premium')  return '<span class="pill success">Premium</span>';
-  return '<span class="pill">Free</span>';
-}
 
 async function apiGet(path) {
   var r = await fetch(API + path, { headers: { Authorization: 'Bearer ' + TOKEN } });
@@ -422,9 +403,8 @@ async function init() {
   if (rp) rp.innerHTML = '<span class="pill ' + (ROLE==='super'?'error':'') + '">' + ICON('crown','ico ico-sm') + ' ' + (ROLE==='super'?'SUPER ADMIN':'ADMIN') + '</span>';
   document.getElementById('banner-role').textContent = ROLE === 'super' ? 'SUPER ADMIN ACCESS' : 'ADMIN ACCESS';
   document.getElementById('banner-msg').textContent = ROLE === 'super'
-    ? 'Full control: view, delete users, disable AI, take site offline.'
-    : 'Manage users: view and delete. System controls are super-admin only.';
-  document.getElementById('actions-col').style.display = '';
+    ? 'Full control: analytics, disable AI, take site offline.'
+    : 'Analytics access. System controls are super-admin only.';
   if (ROLE === 'super') document.getElementById('super-controls').style.display = '';
   await refresh();
 }
@@ -717,74 +697,13 @@ function _maskEmail(e) {
   return e[0] + '•••@' + (dn ? dn[0] : '') + '•••' + tld;
 }
 
-var _CATEGORY_LABELS = {
-  'student': 'Student', 'internship': 'Seeking internship', 'no-experience': 'No experience yet',
-  'software-engineer': 'Software Engineer', 'finance': 'Finance', 'project-manager': 'Project Manager',
-  'nurse': 'Nurse', 'teacher': 'Teacher', 'career-changer': 'Career changer', 'other': 'Other'
-};
-function _profileCell(u) {
-  var cat = u.category ? (_CATEGORY_LABELS[u.category] || u.category) : '';
-  var src = u.attribution || '';
-  if (!cat && !src) return '<span class="user-meta">-</span>';
-  var html = '';
-  if (cat) html += '<div>' + esc(cat) + '</div>';
-  if (src) html += '<div class="user-meta" title="Where they heard about us">via ' + esc(src) + '</div>';
-  return html;
-}
-
-function _aiUseCell(u) {
-  var f = u.aiFeatures || {};
-  var entries = Object.entries(f).filter(function(e){return (Number(e[1]) || 0) > 0;})
-    .sort(function(a,b){return b[1]-a[1];});
-  var totalRaw = u.aiTotal != null ? u.aiTotal : entries.reduce(function(s,e){return s+(Number(e[1])||0);},0);
-  var total = Number(totalRaw) || 0;
-  if (!total) return '<span class="user-meta">-</span>';
-  var full = entries.map(function(e){return _aiLabel(e[0])+' '+e[1];}).join(', ');
-  var top = entries.slice(0, 3).map(function(e){
-    return '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _aiLabel(e[0]) + ' ' + e[1] + '</span>';}).join(' ');
-  var more = entries.length > 3 ? ' <span class="user-meta">+' + (entries.length - 3) + '</span>' : '';
-  var last = u.aiLastAt ? '<div class="user-meta" style="margin-top:3px;">last: ' + _aiLabel(u.aiLastFeature || '') + ' · ' + fmtDate(u.aiLastAt) + '</div>' : '';
-  return '<div title="' + esc(full) + '"><strong>' + total + '</strong> ' + top + more + last + '</div>';
-}
-
-function _featureUseCell(u) {
-  var f = u.features || {};
-  var entries = Object.entries(f).filter(function(e){return (Number(e[1]) || 0) > 0;}).sort(function(a,b){return b[1]-a[1];});
-  if (!entries.length) return '<span class="user-meta">-</span>';
-  var top = entries.slice(0, 2).map(function(e){
-    return '<span class="pill" style="font-size:10px;padding:1px 6px;">' + _featureLabel(e[0]) + ' ' + e[1] + '</span>';}).join(' ');
-  var more = entries.length > 2 ? ' <span class="user-meta">+' + (entries.length - 2) + '</span>' : '';
-  var full = entries.map(function(e){return _featureLabel(e[0])+' '+e[1];}).join(', ');
-  return '<div title="' + esc(full) + '">' + top + more + '</div>';
-}
-
+// Individual users are never displayed in the admin. We only show aggregate
+// counts. Emails are still stored/logged in KV but never sent to this page.
 function renderUsers() {
-  var q = (document.getElementById('search').value || '').toLowerCase().trim();
-  var list = ALL_USERS.filter(function(u){return !q || (u.email||'').toLowerCase().indexOf(q)>=0;});
+  var total = ALL_USERS.length;
+  var paid = ALL_USERS.filter(function(u){return u.plan!=='free';}).length;
   document.getElementById('user-summary').textContent =
-    list.length + ' of ' + ALL_USERS.length + ' users · ' + ALL_USERS.filter(function(u){return u.plan!=='free';}).length + ' paid';
-  if (!list.length) {
-    document.getElementById('users-tbody').innerHTML = '';
-    document.getElementById('users-empty').style.display = '';
-    return;
-  }
-  document.getElementById('users-empty').style.display = 'none';
-  document.getElementById('users-tbody').innerHTML = list.map(function(u) {
-    var notes = u.plan === 'lifetime' ? 'No expiry (Lifetime)' :
-                u.currentPeriodEnd ? 'Renews ' + fmtUnix(u.currentPeriodEnd) : '-';
-    var stripe = u.hasStripeCustomer ? '<span class="user-meta" title="Linked to Stripe">· Stripe ✓</span>' : '';
-    return '<tr>'
-      + '<td><div class="user-email">' + esc(_maskEmail(u.email)) + '</div></td>'
-      + '<td>' + fmtPlan(u.plan) + '</td>'
-      + '<td>' + _profileCell(u) + '</td>'
-      + '<td>' + fmtDate(u.createdAt) + '</td>'
-      + '<td>' + esc(notes) + ' ' + stripe + '</td>'
-      + '<td>' + u.downloadsUsed + '</td>'
-      + '<td>' + _aiUseCell(u) + '</td>'
-      + '<td>' + _featureUseCell(u) + '</td>'
-      + '<td><button class="btn btn-ghost btn-xs" onclick="deleteUser(\'' + esc(u.email) + '\')" title="Delete user + resume">' + ICON('trash','ico ico-sm') + '</button></td>'
-      + '</tr>';
-  }).join('');
+    total.toLocaleString() + ' users · ' + paid.toLocaleString() + ' paid';
 }
 
 // ─────────────── Status + controls ───────────────
@@ -810,14 +729,6 @@ async function setAdminAccessFromPanel(enabled) {
   }
   var res = await setAdminAccess(enabled);
   if (res) refresh();
-}
-
-async function deleteUser(email) {
-  var masked = _maskEmail(email);
-  var ok = await confirmDialog({ title:'Delete this user?', body:'Permanently deletes ' + masked + ' and their resume. Stripe subscription is NOT cancelled.', confirmText:'Delete user', cancelText:'Cancel', danger:true });
-  if (!ok) return;
-  try { await apiPost('/admin/users/delete', { email }); toast('Deleted ' + masked, { type: 'success' }); refresh(); }
-  catch (e) { toast('Delete failed: ' + e.message, { type: 'error' }); }
 }
 
 async function setAI(minutesOverride) {

@@ -804,24 +804,11 @@ async function _readAllUserRecords(env) {
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
   const records = await _readAllUserRecords(env);
-  const users = records.map(u => ({
-    email: u.email,
-    plan: u.plan || "free",
-    createdAt: u.createdAt || null,
-    currentPeriodEnd: u.currentPeriodEnd || null,
-    downloadsUsed: u.downloadsUsed || 0,
-    // Onboarding answers: "What best describes you?" (signup) and "Where did you hear
-    // about us?" (post-signup prompt), so the admin can see who's signing up and how.
-    category: u.category || null,
-    attribution: u.attribution || null,
-    hasStripeCustomer: !!u.stripeCustomerId,
-    updatedAt: u.updatedAt || u.createdAt || null,
-    aiFeatures: u.aiFeatures || {},
-    aiTotal: u.aiFeatures ? Object.values(u.aiFeatures).reduce((a, b) => a + (Number(b) || 0), 0) : 0,
-    aiLastFeature: u.aiLastFeature || null,
-    aiLastAt: u.aiLastAt || null,
-  }));
-  users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));   // newest first
+  // Privacy: individual users are never displayed in the admin, so we never send
+  // emails (or any per-user PII) to the client. Emails remain stored/logged in KV.
+  // We return only the plan for each record, which is all the admin needs to show
+  // aggregate counts (total users, paid users).
+  const users = records.map(u => ({ plan: u.plan || "free" }));
   return { users, total: users.length };
 }
 

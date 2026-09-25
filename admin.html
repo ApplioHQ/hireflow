@@ -279,7 +279,6 @@
         <div class="sub" id="user-summary">Loading…</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn btn-ghost btn-xs" id="email-toggle" onclick="toggleEmails()">Show emails</button>
         <input id="search" placeholder="Search email…" style="width:200px; padding:7px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;" oninput="renderUsers()">
       </div>
     </div>
@@ -706,22 +705,16 @@ function renderTemplateBars(picks) {
 }
 
 // ─────────────── Users table ───────────────
-var SHOW_EMAILS = false;
+// Emails are always masked in the admin UI. Full addresses are never displayed
+// (they are still stored/logged in KV, and remain available to the delete API).
 function _maskEmail(e) {
   e = String(e || '');
-  if (SHOW_EMAILS || !e) return e;
+  if (!e) return e;
   var at = e.indexOf('@');
   if (at < 1) return '•••••';
   var domain = e.slice(at + 1), dot = domain.lastIndexOf('.');
   var dn = dot > 0 ? domain.slice(0, dot) : domain, tld = dot > 0 ? domain.slice(dot) : '';
   return e[0] + '•••@' + (dn ? dn[0] : '') + '•••' + tld;
-}
-function toggleEmails() {
-  SHOW_EMAILS = !SHOW_EMAILS;
-  var b = document.getElementById('email-toggle');
-  if (b) b.textContent = SHOW_EMAILS ? 'Hide emails' : 'Show emails';
-  renderUsers();
-  if (typeof renderFeedback === 'function') renderFeedback();
 }
 
 var _CATEGORY_LABELS = {
@@ -820,9 +813,10 @@ async function setAdminAccessFromPanel(enabled) {
 }
 
 async function deleteUser(email) {
-  var ok = await confirmDialog({ title:'Delete this user?', body:'Permanently deletes ' + email + ' and their resume. Stripe subscription is NOT cancelled.', confirmText:'Delete user', cancelText:'Cancel', danger:true });
+  var masked = _maskEmail(email);
+  var ok = await confirmDialog({ title:'Delete this user?', body:'Permanently deletes ' + masked + ' and their resume. Stripe subscription is NOT cancelled.', confirmText:'Delete user', cancelText:'Cancel', danger:true });
   if (!ok) return;
-  try { await apiPost('/admin/users/delete', { email }); toast('Deleted ' + email, { type: 'success' }); refresh(); }
+  try { await apiPost('/admin/users/delete', { email }); toast('Deleted ' + masked, { type: 'success' }); refresh(); }
   catch (e) { toast('Delete failed: ' + e.message, { type: 'error' }); }
 }
 

@@ -407,14 +407,14 @@
   .ats-edu-visual { position: relative; }
   .ats-funnel { display: flex; flex-direction: column; align-items: center; gap: 0; }
   .ats-funnel-stage { display: flex; align-items: center; gap: 16px; width: 100%; max-width: 420px; padding: 18px 24px; border-radius: 12px; position: relative; }
-  .ats-funnel-stage:nth-child(1) { background: #fef2f2; border: 1px solid #fecaca; }
-  .ats-funnel-stage:nth-child(2) { background: #fff7ed; border: 1px solid #fed7aa; max-width: 340px; }
-  .ats-funnel-stage:nth-child(3) { background: #f0fdf4; border: 1px solid #bbf7d0; max-width: 260px; }
+  .ats-funnel-stage.s1 { background: #fef2f2; border: 1px solid #fecaca; }
+  .ats-funnel-stage.s2 { background: #fff7ed; border: 1px solid #fed7aa; max-width: 340px; }
+  .ats-funnel-stage.s3 { background: #f0fdf4; border: 1px solid #bbf7d0; max-width: 260px; }
   .ats-funnel-arrow { color: #d1d5db; font-size: 20px; padding: 4px 0; }
-  .ats-funnel-num { font-size: 28px; font-weight: 800; flex: none; width: 50px; text-align: center; }
-  .ats-funnel-stage:nth-child(1) .ats-funnel-num { color: #ef4444; }
-  .ats-funnel-stage:nth-child(2) .ats-funnel-num { color: #f59e0b; }
-  .ats-funnel-stage:nth-child(3) .ats-funnel-num { color: #22c55e; }
+  .ats-funnel-num { font-size: 28px; font-weight: 800; flex: none; min-width: 56px; text-align: center; white-space: nowrap; }
+  .ats-funnel-stage.s1 .ats-funnel-num { color: #ef4444; }
+  .ats-funnel-stage.s2 .ats-funnel-num { color: #f59e0b; }
+  .ats-funnel-stage.s3 .ats-funnel-num { color: #22c55e; }
   .ats-funnel-text { font-size: 14px; color: #374151; line-height: 1.4; }
   .ats-funnel-text strong { font-weight: 700; }
   .ats-edu-copy h2 { font-size: clamp(28px, 3.5vw, 40px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px; color: #111827; }
@@ -431,17 +431,17 @@
   <div class="ats-edu-inner">
     <div class="ats-edu-visual">
       <div class="ats-funnel">
-        <div class="ats-funnel-stage">
+        <div class="ats-funnel-stage s1">
           <div class="ats-funnel-num">250</div>
           <div class="ats-funnel-text"><strong>Resumes submitted</strong> per corporate job posting on average</div>
         </div>
         <div class="ats-funnel-arrow">↓</div>
-        <div class="ats-funnel-stage">
+        <div class="ats-funnel-stage s2">
           <div class="ats-funnel-num">~12</div>
           <div class="ats-funnel-text"><strong>Pass ATS filters</strong> — the rest are never seen by a human</div>
         </div>
         <div class="ats-funnel-arrow">↓</div>
-        <div class="ats-funnel-stage">
+        <div class="ats-funnel-stage s3">
           <div class="ats-funnel-num">4-6</div>
           <div class="ats-funnel-text"><strong>Get interviewed</strong> — these resumes matched the job</div>
         </div>

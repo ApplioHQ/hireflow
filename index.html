@@ -51,11 +51,10 @@
     "First 90 Days onboarding plan (30/60/90) for a new role",
     "Export to PDF, HTML, and TXT"
   ],
-  "offers": [
-    { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
-    { "@type": "Offer", "name": "Premium", "price": "4.99", "priceCurrency": "USD" },
-    { "@type": "Offer", "name": "Lifetime", "price": "39.99", "priceCurrency": "USD" }
-  ],
+  "offers": {
+    "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD",
+    "description": "Every Applio feature is free and unlimited. No paid plans, no credit card."
+  },
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.8",
@@ -83,7 +82,7 @@
       "author": { "@type": "Person", "name": "Alex T." },
       "datePublished": "2026-09-01",
       "reviewRating": { "@type": "Rating", "ratingValue": "4", "bestRating": "5" },
-      "reviewBody": "Clean templates and the job-match tool is super useful. Lifetime deal is a steal."
+      "reviewBody": "Clean templates and the job-match tool is super useful. Cannot believe it is all free."
     }
   ]
 }
@@ -105,7 +104,7 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "Is Applio really free to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Free plan gives you the full Resume Builder, all templates, Job Tracker, and 10 PDF downloads per month, no credit card required. AI features and unlimited downloads are part of Premium or Lifetime." } },
+    { "@type": "Question", "name": "Is Applio really free to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely. Every feature is free and unlimited, the full resume builder, all templates, unlimited PDF downloads, the ATS checker, AI tailoring, cover letters, interview prep, and job tracker. No paid plans and no credit card required." } },
     { "@type": "Question", "name": "How does the AI tailor my resume?", "acceptedAnswer": { "@type": "Answer", "text": "You paste a job description and our AI rewrites your bullets, optimizes keywords, and rewrites your summary to match what the role is asking for, grounded in your actual experience, never inventing things." } },
     { "@type": "Question", "name": "What is ATS and why does it matter?", "acceptedAnswer": { "@type": "Answer", "text": "An Applicant Tracking System (ATS) is software most mid-size and large employers use to collect and filter resumes before a person reviews them. A resume that is not ATS-friendly, on formatting or keywords, can be filtered out early. Applio scores your resume against the ATS rubric and tells you exactly what to fix." } },
     { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Passwords are hashed with PBKDF2-SHA256, never stored in plain text. Payment data is handled by Stripe directly. Your resume data is encrypted in transit and at rest." } },
@@ -1082,125 +1081,37 @@
 <!-- ============ PRICING ============ -->
 <section class="section-light" id="pricing">
   <div class="container">
-    <h2 class="section-title">Simple, transparent pricing</h2>
-    <p class="section-sub">Start for free. Upgrade anytime, cancel anytime.</p>
+    <h2 class="section-title">Free. All of it.</h2>
+    <p class="section-sub">No plans, no paywalls, no credit card. Every feature is unlocked and unlimited for everyone.</p>
 
-    <div class="price-toggle" role="tablist">
-      <button class="pt-btn active" data-plan="monthly" onclick="setPriceMode('monthly')">Monthly</button>
-      <button class="pt-btn" data-plan="lifetime" onclick="setPriceMode('lifetime')">Lifetime <span class="pt-badge pt-badge-best">Best value</span></button>
-    </div>
-    <p class="price-social-proof" id="price-social-proof">Lifetime is a one-time payment, no subscription, no renewals.</p>
-
-    <div class="price-grid">
-      <div class="price-card">
-        <div class="price-icon feat-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></div>
-        <h3>Free</h3>
-        <div class="price"><span class="price-num">$0</span><span class="price-period">forever</span></div>
-        <p class="price-sub">Perfect for getting started</p>
-        <ul class="price-list">
-          <li>✓ Resume Builder (all 25 templates)</li>
-          <li>✓ AI resume import (PDF, DOCX, TXT)</li>
-          <li>✓ Job Tracker</li>
-          <li>✓ 10 PDF downloads per month</li>
-          <li>✓ AI Interview Prep + voice mock interviews</li>
-          <li>✓ 2 free AI cover letters</li>
-          <li class="muted">✕ No resume AI (tailor, ATS, analysis)</li>
-        </ul>
-        <a href="editor" class="btn btn-outline btn-block">Get Started Free</a>
-      </div>
-
+    <div class="price-grid" style="grid-template-columns: 1fr; max-width: 560px; margin: 0 auto;">
       <div class="price-card featured">
-        <span class="price-badge" id="price-badge">50% OFF</span>
         <div class="price-icon feat-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-        <h3 id="paid-name">Premium</h3>
-        <div class="price"><span style="text-decoration:line-through;color:var(--muted);font-size:18px;font-weight:400;margin-right:4px;">$9.99</span><span class="price-num" id="paid-price">$4.99</span><span class="price-period" id="paid-period">/month</span></div>
-        <p class="price-sub" id="paid-sub">Best for serious job seekers</p>
-        <p class="price-savings" id="price-savings" style="display:none;"></p>
+        <h3>Everything, free</h3>
+        <div class="price"><span class="price-num">$0</span><span class="price-period">forever</span></div>
+        <p class="price-sub">For every job seeker</p>
         <ul class="price-list">
-          <li>✓ Everything in Free</li>
-          <li>✓ Unlimited PDF downloads</li>
-          <li>✓ AI Resume Tailoring</li>
-          <li>✓ ATS Check &amp; Score</li>
-          <li>✓ Unlimited Cover Letter Maker</li>
-          <li>✓ Unlimited Career Coach</li>
-          <li>✓ AI Resume Analysis &amp; Improvements</li>
-          <li>✓ AI Bullet Improvements</li>
+          <li>✓ All 25 ATS-friendly templates</li>
+          <li>✓ Unlimited PDF downloads, no watermark</li>
+          <li>✓ AI resume tailoring to any job</li>
+          <li>✓ ATS check &amp; score with keyword gaps</li>
+          <li>✓ Cover letter generator</li>
+          <li>✓ AI interview prep + voice mock</li>
+          <li>✓ Job search &amp; application tracker</li>
+          <li>✓ LinkedIn optimizer &amp; personal site</li>
+          <li>✓ Career coach &amp; salary insights</li>
         </ul>
-        <a href="pricing" class="btn btn-primary btn-block" id="paid-cta">Go Premium</a>
+        <a href="editor" class="btn btn-primary btn-block">Build my resume free</a>
       </div>
     </div>
-    <p class="price-foot">Cancel anytime · No questions asked · Secure payments by Stripe</p>
+    <p class="price-foot">100% free · No credit card · No watermark</p>
     <div class="trust-badges">
       <div class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 256-bit SSL</div>
       <div class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> No credit card required</div>
       <div class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Your data never sold</div>
-      <div class="trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 7-day money-back</div>
     </div>
-
-    <!-- Feature comparison matrix — collapsed by default so the pricing cards
-         above stay the visual centrepiece. Users who want the full breakdown
-         click to expand. -->
-    <details class="price-compare">
-      <summary class="price-compare-toggle">
-        <span class="pcc-label">Compare all features</span>
-        <svg class="pcc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M6 9l6 6 6-6"/></svg>
-      </summary>
-      <div class="price-matrix-wrap">
-        <div class="price-matrix-scroll">
-          <table class="price-matrix" aria-label="Feature comparison across plans">
-            <thead>
-              <tr>
-                <th scope="col" class="pm-feat-col">Feature</th>
-                <th scope="col">Free</th>
-                <th scope="col" class="pm-featured">Premium <small>$4.99/mo</small></th>
-                <th scope="col" class="pm-featured">Lifetime <small>$39.99 once</small></th>
-              </tr>
-            </thead>
-            <tbody id="price-matrix-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </details>
   </div>
 </section>
-
-<script>
-// Feature comparison matrix. Rows are the actual shipped features; cells use
-// ✓ / ✕ / text values. Rendered inline so a single edit updates the table.
-(function () {
-  var tbody = document.getElementById('price-matrix-body');
-  if (!tbody) return;
-  var OK = '<span class="pm-mk pm-mk-ok" aria-label="Included">✓</span>';
-  var NO = '<span class="pm-mk pm-mk-no" aria-label="Not included">✕</span>';
-  // [feature, free, premium, lifetime]
-  var ROWS = [
-    ['All 25 ATS-friendly templates', OK, OK, OK],
-    ['Resume import (PDF, DOCX, TXT)', OK, OK, OK],
-    ['PDF, HTML, TXT export', '10 / month', 'Unlimited', 'Unlimited'],
-    ['Job application tracker', OK, OK, OK],
-    ['AI interview prep + voice mock', OK, OK, OK],
-    ['Cover letter maker', '2 free', 'Unlimited', 'Unlimited'],
-    ['AI Tailor to job description', NO, OK, OK],
-    ['ATS Check &amp; Score', NO, OK, OK],
-    ['AI Resume Analysis + Improvements', NO, OK, OK],
-    ['AI Bullet Improvements', NO, OK, OK],
-    ['Career Coach chat', NO, OK, OK],
-    ['Application Autopilot', NO, OK, OK],
-    ['Skill Gap Coach', OK, OK, OK],
-    ['Win Journal + Brag Doc', OK, OK, OK],
-    ['First 90 Days plan', OK, OK, OK],
-    ['Billing', 'Free forever', 'Monthly, cancel anytime', 'One-time payment']
-  ];
-  tbody.innerHTML = ROWS.map(function (r) {
-    return '<tr>' +
-      '<th scope="row" class="pm-feat">' + r[0] + '</th>' +
-      '<td>' + r[1] + '</td>' +
-      '<td class="pm-featured">' + r[2] + '</td>' +
-      '<td class="pm-featured">' + r[3] + '</td>' +
-    '</tr>';
-  }).join('');
-})();
-</script>
 
 <!-- ============ FAQ ============ -->
 <section class="section-alt" id="faq">
@@ -1210,7 +1121,7 @@
     <div class="faq">
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Is Applio really free to use?</span><span class="faq-icon"></span></summary>
-        <div class="faq-content"><p>Yes. The Free plan gives you the full Resume Builder, all 25 templates, Job Tracker, and 10 PDF downloads per month, no credit card required. AI features and unlimited downloads are part of Premium or Lifetime.</p></div>
+        <div class="faq-content"><p>Yes, completely. You get the full resume builder, all 25 templates, the job tracker, unlimited PDF downloads, and every AI feature, all free, with no credit card required.</p></div>
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>How does the AI tailor my resume?</span><span class="faq-icon"></span></summary>
@@ -1221,8 +1132,8 @@
         <div class="faq-content"><p>An Applicant Tracking System (ATS) is software most mid-size and large employers use to collect and filter resumes before a person reviews them. A resume that is not ATS-friendly, on formatting or keywords, can be filtered out early. Applio scores your resume against the ATS rubric and tells you exactly what to fix.</p></div>
       </details>
       <details>
-        <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Can I cancel my subscription anytime?</span><span class="faq-icon"></span></summary>
-        <div class="faq-content"><p>Yes. Cancel from your account menu inside the app, no questions, no friction. You keep Premium access until the end of your billing period.</p></div>
+        <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Do I need a credit card?</span><span class="faq-icon"></span></summary>
+        <div class="faq-content"><p>No. Applio is completely free, there is nothing to pay and no subscription. You only need an email to start.</p></div>
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Is my data secure?</span><span class="faq-icon"></span></summary>
@@ -1305,8 +1216,8 @@
         <div><h4>Resume Builder</h4><a href="/resume-builder">AI Resume Builder</a><a href="/resume-templates">Resume Templates</a><a href="/tools/ai-resume-writer">AI Resume Writer</a><a href="/resume-examples">Resume Examples</a><a href="/editor">Build a Resume Free</a><a href="#pricing">Pricing</a></div>
         <div><h4>ATS &amp; Cover Letters</h4><a href="/ats-checker">Free ATS Checker</a><a href="/tools/resume-scorer">Resume Scorer</a><a href="/cover-letter-generator">Cover Letter Generator</a><a href="/cover-letter-templates">Cover Letter Templates</a><a href="/cover-letter-examples">Cover Letter Examples</a></div>
         <div><h4>Free Tools</h4><a href="/tools">All Free Resume Tools</a><a href="/tools/resume-summary-generator">Summary Generator</a><a href="/tools/resume-bullet-generator">Bullet Generator</a><a href="/tools/resume-skills-generator">Skills Generator</a><a href="/salary">Salary Calculator</a></div>
-        <div><h4>Learn</h4><a href="/guides">Resume Guides</a><a href="/guides/what-is-an-ats">What Is an ATS?</a><a href="/interview-preparation">Interview Prep</a><a href="/job-search">Job Search</a><a href="/students">Students: Free Premium</a></div>
-        <div><h4>Account</h4><a href="login">Sign in</a><a href="login?mode=signup">Sign up free</a><a href="pricing">Upgrade</a><a href="privacy">Privacy</a><a href="terms">Terms</a><span class="footer-status"><span class="status-dot"></span>All systems operational</span></div>
+        <div><h4>Learn</h4><a href="/guides">Resume Guides</a><a href="/guides/what-is-an-ats">What Is an ATS?</a><a href="/interview-preparation">Interview Prep</a><a href="/job-search">Job Search</a></div>
+        <div><h4>Account</h4><a href="login">Sign in</a><a href="login?mode=signup">Sign up free</a><a href="pricing">Pricing (it's free)</a><a href="privacy">Privacy</a><a href="terms">Terms</a><span class="footer-status"><span class="status-dot"></span>All systems operational</span></div>
       </div>
       <div class="footer-seo">
         <h4>Popular resume examples</h4>

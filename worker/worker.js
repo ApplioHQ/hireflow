@@ -330,15 +330,11 @@ async function touchActivity(env, user, req) {
   if (newDay || wasStale) await putUser(env, user);
 }
 function isPaidPlan(user) {
-  if (!user) return false;
-  // Student grant: full Premium access until the grant expires. Independent of
-  // Stripe so a Stripe sync never revokes it.
-  if (user.studentUntil && user.studentUntil > Math.floor(Date.now() / 1000)) return true;
-  if (user.plan === "lifetime") return true;
-  if (user.plan === "premium") {
-    return !user.currentPeriodEnd || user.currentPeriodEnd > Math.floor(Date.now() / 1000);
-  }
-  return false;
+  // Applio is completely free: every feature is unlocked for every user.
+  // This single gate short-circuits all downstream paywall checks (downloads,
+  // PRO_AI features, daily caps route to the generous limit). The Stripe/plan
+  // machinery is left intact but inert. Set to a real check again to re-add tiers.
+  return true;
 }
 
 // ============ Early-bird promo: first N signups get free Premium ============
@@ -714,15 +710,15 @@ async function me(req, env) {
   const user = await getUser(env, payload.email);
   if (!user) throw err(404, "User not found");
   await touchActivity(env, user, req);   // returning-session signal (this endpoint runs on every app load)
-  const limit = parseInt(env.FREE_DOWNLOAD_LIMIT || "10", 10);
+  // Applio is completely free: everyone has unlimited access.
   return {
     email: user.email,
-    plan: user.plan || "free",
-    isPaid: isPaidPlan(user),
+    plan: "free",
+    isPaid: true,
     role: null,
     downloadsUsed: user.downloadsUsed || 0,
-    downloadLimit: limit,
-    currentPeriodEnd: user.currentPeriodEnd || null,
+    downloadLimit: 999999,
+    currentPeriodEnd: null,
     hasStripeCustomer: !!user.stripeCustomerId,
     aiTrials: user.aiTrials || {},
     freeAiTrials: FREE_AI_TRIALS,

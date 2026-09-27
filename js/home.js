@@ -70,40 +70,6 @@ const ROTATOR_WORDS = ['interviews', 'callbacks', 'offers'];
   loop();
 })();
 
-// ----- Pricing toggle (Monthly / Lifetime) -----
-function setPriceMode(mode) {
-  document.querySelectorAll('.pt-btn').forEach(b => b.classList.toggle('active', b.dataset.plan === mode));
-  const name   = document.getElementById('paid-name');
-  const price  = document.getElementById('paid-price');
-  const period = document.getElementById('paid-period');
-  const sub    = document.getElementById('paid-sub');
-  const cta    = document.getElementById('paid-cta');
-  const savings = document.getElementById('price-savings');
-  const badge  = document.getElementById('price-badge');
-  if (mode === 'lifetime') {
-    if (badge)  badge.textContent  = 'BEST VALUE';
-    if (name)   name.textContent   = 'Lifetime';
-    if (price)  price.textContent  = '$39.99';
-    if (period) period.textContent = ' once';
-    if (sub)    sub.textContent    = 'Pay once. Use forever.';
-    if (cta)    cta.textContent    = 'Buy Lifetime';
-    if (savings) { savings.textContent = 'Save $19.89 vs. 12 months of monthly'; savings.style.display ='block'; }
-    const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most popular choice, pay once, own it forever.';
-  } else {
-    if (badge)  badge.textContent  = '50% OFF';
-    if (name)   name.textContent   = 'Premium';
-    if (price)  price.textContent  = '$4.99';
-    if (period) period.textContent = '/month';
-    if (sub)    sub.textContent    = 'Best for serious job seekers';
-    if (cta)    cta.textContent    = 'Go Premium';
-    if (savings) { savings.textContent = ''; savings.style.display = 'none'; }
-    const pp = document.getElementById('price-social-proof');
-    if (pp) pp.textContent = 'Most users choose Lifetime, pay once, use forever.';
-  }
-  if (window._positionPricePill) window._positionPricePill();
-}
-
 // ----- Hamburger menu toggle -----
 const hamburger = document.getElementById('nav-hamburger');
 const navLinks  = document.querySelector('.home-nav-links');

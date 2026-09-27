@@ -290,11 +290,6 @@ async function openBillingPortal() {
   if (!CURRENT_USER) { location.href = 'login'; return; }
 
   const u = CURRENT_USER;
-  const plan = u.plan || 'free';
-  const planName = plan === 'lifetime' ? 'Lifetime' : plan === 'premium' ? 'Premium' : 'Free';
-  const renewsDate = u.currentPeriodEnd
-    ? new Date(u.currentPeriodEnd * 1000).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' })
-    : null;
 
   const bd = document.createElement('div');
   bd.id = 'account-menu-bd';
@@ -302,16 +297,12 @@ async function openBillingPortal() {
   document.body.appendChild(bd);
   requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
 
+  // Applio is completely free: every feature is unlocked, so the account menu
+  // has no plans, billing, or upgrade options.
   const rows = [
     `<div class="acct-row"><span class="acct-label">Email</span><span class="acct-value">${_planEsc(u.email)}</span></div>`,
-    `<div class="acct-row"><span class="acct-label">Plan</span><span class="acct-value"><span class="pill ${plan!=='free'?'success':''}">${planName}</span></span></div>`,
+    `<div class="acct-row"><span class="acct-label">Access</span><span class="acct-value"><span class="pill success">Everything free</span></span></div>`,
   ];
-  if (renewsDate && plan === 'premium')
-    rows.push(`<div class="acct-row"><span class="acct-label">Renews</span><span class="acct-value">${renewsDate}</span></div>`);
-  if (plan === 'lifetime')
-    rows.push(`<div class="acct-row"><span class="acct-label">Status</span><span class="acct-value">No recurring charges</span></div>`);
-  if (!u.hasStripeCustomer && plan !== 'free')
-    rows.push(`<div class="acct-row" style="border:1px solid var(--warning); background:rgba(245,158,11,.08); padding:10px; border-radius:8px;"><span style="font-size:12px; color:#fcd34d; line-height:1.4;">No Stripe billing record is linked yet. If you just paid, click <strong>Sync with Stripe</strong> below.</span></div>`);
 
   const buttons = [];
   // Admin/super-admin: Admin Console (moved here from the topbar).
@@ -322,11 +313,6 @@ async function openBillingPortal() {
   if (u.isAdmin) {
     buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">📥 View user feedback</button>`);
   }
-  if (u.hasStripeCustomer) {
-    buttons.push(`<button class="btn btn-primary" onclick="_openStripePortal()">Manage Billing &amp; Cancel</button>`);
-  }
-  buttons.push(`<button class="btn btn-secondary" onclick="syncWithStripe()">Sync with Stripe</button>`);
-  if (plan === 'free') buttons.push(`<button class="btn btn-primary" onclick="location.href='pricing'">Upgrade</button>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); openFeedbackModal({context:'account_menu'})">Send Feedback</button>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); signOutFromMenu()">Sign out</button>`);
 
@@ -336,7 +322,6 @@ async function openBillingPortal() {
       <h3 class="app-dialog-title" style="margin-bottom:14px;">Your Account</h3>
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">${rows.join('')}</div>
       <div style="display:flex; flex-direction:column; gap:8px;">${buttons.join('')}</div>
-      ${u.hasStripeCustomer ? `<p style="font-size:11px; color:var(--muted); margin-top:14px; text-align:center;">Click Manage Billing to cancel your subscription, update your card, or view invoices in Stripe.</p>` : ''}
     </div>`;
 
   bd.addEventListener('click', e => { if (e.target === bd) closeAccountModal(); });

@@ -72,11 +72,12 @@
     var em = document.getElementById('acct-email'); if (em) em.textContent = email || 'Account';
     var admin = (typeof isAdmin === 'function' && isAdmin());
     var paid = (typeof isPaid === 'function' && isPaid());
-    var pl = document.getElementById('acct-plan-label'); if (pl) pl.textContent = admin ? 'Admin · full access' : (paid ? ((typeof planLabel === 'function' ? planLabel() : 'Premium') + ' plan') : 'Free plan');
-    var mg = document.getElementById('acct-manage-sub'); if (mg) mg.style.display = (paid && !admin) ? '' : 'none';
+    // Applio is completely free: no plans, billing, or upgrade CTAs.
+    var pl = document.getElementById('acct-plan-label'); if (pl) pl.textContent = admin ? 'Admin · full access' : 'Everything free';
+    var mg = document.getElementById('acct-manage-sub'); if (mg) mg.style.display = 'none';
     var ad = document.getElementById('acct-admin-console'); if (ad) ad.style.display = admin ? '' : 'none';
     var pill = document.getElementById('plan-pill');
-    if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : (paid ? '<button class="pill success" onclick="if(typeof openBillingPortal===\'function\')openBillingPortal();" style="cursor:pointer;">' + (typeof planLabel === 'function' ? planLabel() : 'Premium') + '</button>' : '<a class="btn btn-primary btn-xs" href="pricing">Upgrade</a>');
+    if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '<span class="pill success">Free</span>';
   }
   hydrate();
   if (typeof loadCurrentUser === 'function') Promise.resolve(loadCurrentUser()).then(hydrate).catch(function () {});

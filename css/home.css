@@ -1232,27 +1232,35 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ===== Feature spotlights (alternating mockups) ===== */
+/* Spotlights: the whole dark area is now ONE contained component — a single
+   rounded dark panel sitting on the light page, instead of a full-bleed
+   light→dark→light gradient. */
 .spotlights {
-  /* Mercury-style continuous gradient: light → dark peak → light.
-     The background itself IS the transition — no hard dark block. */
-  background:
-    radial-gradient(70% 40% at 80% 40%, rgba(99,102,241,.10), transparent 60%),
-    radial-gradient(60% 40% at 15% 65%, rgba(139,92,246,.08), transparent 60%),
-    linear-gradient(180deg,
-      #f7f8fc 0%,
-      #c8cce0 6%,
-      #4a5180 12%,
-      #171d3e 18%,
-      #0a0e27 24%,
-      #0a0e27 76%,
-      #171d3e 82%,
-      #4a5180 88%,
-      #c8cce0 94%,
-      #fff 100%
-    );
-  padding: 220px 0 220px; position: relative; overflow: hidden;
+  background: #f7f8fc;
+  padding: 80px 24px; position: relative; overflow: hidden;
 }
 .spotlights::before, .spotlights::after { display: none; }
+.spotlights-panel {
+  position: relative;
+  max-width: 1180px; margin: 0 auto;
+  background: #0a0e27;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 30px;
+  padding: 72px 60px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(10,14,39,.4), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.spotlights-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 82% 22%, rgba(99,102,241,.16), transparent 60%),
+    radial-gradient(55% 45% at 12% 78%, rgba(139,92,246,.14), transparent 60%);
+}
+.spotlights-panel > * { position: relative; z-index: 1; }
+@media (max-width: 720px) {
+  .spotlights { padding: 48px 16px; }
+  .spotlights-panel { padding: 44px 24px; border-radius: 22px; }
+}
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
   align-items: center; padding: 34px 0; }
 .spotlight + .spotlight { border-top: 1px solid transparent;

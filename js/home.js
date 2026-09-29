@@ -602,6 +602,9 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     });
     if (!reduce) el.querySelectorAll('.sm-bullets li').forEach(function (li, i) { setTimeout(function () { li.classList.add('hl'); }, 180 * i); });
   }
+  // Exposed so the spotlights carousel can re-trigger a slide's mock animation
+  // when it becomes the active slide (hidden slides never intersect the viewport).
+  window._animateSpot = animateSpot;
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { animateSpot(e.target); io.unobserve(e.target); } });

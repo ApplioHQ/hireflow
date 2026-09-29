@@ -860,8 +860,15 @@
       <p class="section-sub light" style="margin:0 auto;">Tailor it to the job, score it against the ATS, and polish every bullet, then export a recruiter-ready PDF. Here's each step in action.</p>
     </div>
 
+    <div class="spot-tabs" role="tablist" aria-label="Applio tools">
+      <button class="spot-tab is-active" data-slide="0" type="button" aria-selected="true"><span class="n">1</span> AI Resume Tailoring</button>
+      <button class="spot-tab" data-slide="1" type="button" aria-selected="false"><span class="n">2</span> ATS Optimization &amp; Scoring</button>
+      <button class="spot-tab" data-slide="2" type="button" aria-selected="false"><span class="n">3</span> AI Resume Analysis</button>
+    </div>
+
+    <div class="spot-slides">
     <!-- 1. Tailoring -->
-    <div class="spotlight spot-a-indigo" data-spot>
+    <div class="spotlight spot-a-indigo is-active" data-spot>
       <div class="spot-text">
         <div class="spot-eyebrow-row"><span class="spot-step">1</span><span class="spot-eyebrow">AI Resume Tailoring</span></div>
         <h2 class="spot-title">Tailored to the job,<br>in seconds.</h2>
@@ -954,6 +961,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /.spot-slides -->
 
   </div>
 </section>
@@ -1242,6 +1250,38 @@
 <script src="js/plan.js"></script>
 <script src="js/waves.js"></script>
 <script src="js/home.js"></script>
+<script>
+// ===== Spotlights carousel: one tool at a time via tabs, with auto-advance =====
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.spot-tab'));
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.spot-slides .spotlight'));
+  if (!tabs.length || !slides.length) return;
+  var cur = 0, timer = null;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function show(i, animate) {
+    cur = (i + slides.length) % slides.length;
+    tabs.forEach(function (t, k) { var on = k === cur; t.classList.toggle('is-active', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === cur); });
+    if (animate && typeof window._animateSpot === 'function') window._animateSpot(slides[cur]);
+  }
+  function go(i) { show(i, true); restart(); }
+  function restart() { if (reduce) return; clearInterval(timer); timer = setInterval(function () { show(cur + 1, true); }, 7000); }
+
+  tabs.forEach(function (t, i) { t.addEventListener('click', function () { go(i); }); });
+
+  // Start auto-advance only once the panel is on screen; animate the first slide's mock too.
+  var panel = document.querySelector('.spotlights-panel');
+  if (panel && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { restart(); io.disconnect(); } });
+    }, { threshold: 0.25 });
+    io.observe(panel);
+    panel.addEventListener('mouseenter', function () { clearInterval(timer); });
+    panel.addEventListener('mouseleave', restart);
+  } else { restart(); }
+})();
+</script>
 <script src="js/magic.js" defer></script>
 <script>
 // ===== Glowing border effect driver (vanilla port of Aceternity GlowingEffect) =====

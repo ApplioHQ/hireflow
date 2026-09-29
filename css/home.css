@@ -1261,10 +1261,29 @@ section[id] { scroll-margin-top: 80px; }
   .spotlights { padding: 48px 16px; }
   .spotlights-panel { padding: 44px 24px; border-radius: 22px; }
 }
+
+/* ===== Spotlights carousel: show one tool at a time via tabs ===== */
+.spot-tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 8px 0 38px; }
+.spot-tab { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px 10px 11px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9aa3c7; font-size: 13.5px;
+  font-weight: 600; cursor: pointer; transition: color .2s, border-color .2s, background .2s; font-family: inherit; }
+.spot-tab:hover { color: #fff; border-color: rgba(255,255,255,.26); }
+.spot-tab.is-active { color: #fff; background: rgba(99,102,241,.16); border-color: rgba(99,102,241,.5); }
+.spot-tab .n { width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.1); display: grid;
+  place-items: center; font-size: 12px; font-weight: 800; color: #c7cbe6; flex-shrink: 0; }
+.spot-tab.is-active .n { background: var(--accent, #5b54e8); color: #fff; }
+.spot-slides { position: relative; }
+.spot-slides .spotlight { display: none; }
+.spot-slides .spotlight.is-active { display: grid; min-height: 372px; align-content: center;
+  animation: spotSlideIn .5s cubic-bezier(.2,.7,.2,1) both; }
+.spot-slides .spotlight.is-active .spot-card,
+.spot-slides .spotlight.is-active .spot-card-bg { opacity: 1 !important; transform: none !important; }
+@keyframes spotSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (max-width: 720px) { .spot-slides .spotlight.is-active { min-height: 0; } }
+
 .spotlight { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
-  align-items: center; padding: 34px 0; }
-.spotlight + .spotlight { border-top: 1px solid transparent;
-  border-image: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 22%, rgba(255,255,255,.12) 78%, transparent) 1; }
+  align-items: center; padding: 8px 0; }
+.spotlight + .spotlight { border: 0; }
 .spotlight.reverse .spot-text { order: 2; }
 .spotlight.reverse .spot-mock { order: 1; }
 .spot-eyebrow { display:inline-block; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;

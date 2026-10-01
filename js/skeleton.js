@@ -1,14 +1,14 @@
-// Skeleton loader presets — call skeleton(preset, opts) to get HTML for the
+// Skeleton loader presets, call skeleton(preset, opts) to get HTML for the
 // most common loading shapes across the app. Pair with css/skeleton.css.
 //
 // Presets:
-//   'result'   — big-number result card (ATS score, salary median, etc.)
-//   'analysis' — bulleted analysis / recommendation list
-//   'chat'     — 1-3 chat message bubbles with avatars
-//   'letter'   — a paragraph of body copy (cover letter, brag doc, 90-day plan)
-//   'cards'    — a grid of N cards (jobs, matches, skill gaps)
-//   'form'     — labeled input rows (autopilot, apply flow)
-//   'chart'    — a bar/pie placeholder
+//   'result', big-number result card (ATS score, salary median, etc.)
+//   'analysis', bulleted analysis / recommendation list
+//   'chat', 1-3 chat message bubbles with avatars
+//   'letter', a paragraph of body copy (cover letter, brag doc, 90-day plan)
+//   'cards', a grid of N cards (jobs, matches, skill gaps)
+//   'form', labeled input rows (autopilot, apply flow)
+//   'chart', a bar/pie placeholder
 //
 // Usage:
 //   container.innerHTML = skeleton('result');

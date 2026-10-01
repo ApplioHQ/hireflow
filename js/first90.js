@@ -171,7 +171,7 @@
   }
   function renderDayBadge() {
     var d = daysIn(), el = document.getElementById('n90-day');
-    if (d == null) { el.innerHTML = 'Day <span>, set a start date</span>'; return; }
+    if (d == null) { el.innerHTML = 'Day <span>set a start date</span>'; return; }
     if (d < 0) { el.innerHTML = 'Starts in ' + (-d) + ' day' + (-d === 1 ? '' : 's'); return; }
     if (d > 90) { el.innerHTML = 'Day 90+ <span>· ramp complete</span>'; return; }
     el.innerHTML = 'Day ' + d + ' <span>of 90</span>';

@@ -1,4 +1,4 @@
-// Shared theme management, works in <head> because we target <html>, not <body>
+// Shared theme management, works in <head> because we target <html>not <body>
 (function () {
   function applyTheme(light) {
     document.documentElement.classList.toggle('light-mode', light);

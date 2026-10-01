@@ -1000,8 +1000,7 @@ You are a senior career coach giving a sharp, specific resume critique. Judge ON
 
 Output STRICT JSON:
 {
-  "overallScore": <integer 0-100>,
-  "summary": "<exactly 2 sentences: the single biggest strength, then the single most important thing holding this resume back>",
+  "overallScore": <integer 0-100>"summary": "<exactly 2 sentences: the single biggest strength, then the single most important thing holding this resume back>",
   "strengths": [
     "<a concrete strength that names the exact section/role/bullet it comes from>",
     "<another>",
@@ -1226,8 +1225,7 @@ async function aiInterviewFeedback(env, { question, answer }) {
 
 You are an interview coach scoring a practice answer. Output STRICT JSON:
 {
-  "score": <integer 0-100>,
-  "feedback": "<2-4 short sentences: what worked, what to improve, and one concrete tweak. Reference the STAR method (Situation, Task, Action, Result) where relevant.>"
+  "score": <integer 0-100>"feedback": "<2-4 short sentences: what worked, what to improve, and one concrete tweak. Reference the STAR method (Situation, Task, Action, Result) where relevant.>"
 }
 Score on structure, specificity, and impact. Address the reader as "you". OUTPUT ONLY THE JSON.`;
   const raw = await runAI(env, sys,

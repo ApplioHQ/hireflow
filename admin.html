@@ -173,12 +173,12 @@
 
   <!-- ===== Hero stat cards ===== -->
   <div class="hero-stats" id="hero-stats">
-    <div class="hero-card"><div class="hero-card-label">Visitors</div><div class="hero-card-num" id="hc-visitors">–</div><div class="hero-card-trend flat" id="hc-visitors-trend"></div></div>
-    <div class="hero-card"><div class="hero-card-label">Signups</div><div class="hero-card-num" id="hc-signups">–</div><div class="hero-card-trend flat" id="hc-signups-trend"></div></div>
-    <div class="hero-card"><div class="hero-card-label">New Paid</div><div class="hero-card-num" id="hc-paid">–</div><div class="hero-card-trend flat" id="hc-paid-trend"></div></div>
-    <div class="hero-card"><div class="hero-card-label">MRR</div><div class="hero-card-num" id="hc-mrr">–</div><div class="hero-card-trend flat" id="hc-mrr-trend"></div></div>
-    <div class="hero-card"><div class="hero-card-label">Activation</div><div class="hero-card-num" id="hc-activation">–</div><div class="hero-card-trend flat" id="hc-activation-trend"></div></div>
-    <div class="hero-card"><div class="hero-card-label">Total Users</div><div class="hero-card-num" id="hc-total">–</div><div class="hero-card-trend flat" id="hc-total-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Visitors</div><div class="hero-card-num" id="hc-visitors"></div><div class="hero-card-trend flat" id="hc-visitors-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Signups</div><div class="hero-card-num" id="hc-signups"></div><div class="hero-card-trend flat" id="hc-signups-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">New Paid</div><div class="hero-card-num" id="hc-paid"></div><div class="hero-card-trend flat" id="hc-paid-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">MRR</div><div class="hero-card-num" id="hc-mrr"></div><div class="hero-card-trend flat" id="hc-mrr-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Activation</div><div class="hero-card-num" id="hc-activation"></div><div class="hero-card-trend flat" id="hc-activation-trend"></div></div>
+    <div class="hero-card"><div class="hero-card-label">Total Users</div><div class="hero-card-num" id="hc-total"></div><div class="hero-card-trend flat" id="hc-total-trend"></div></div>
   </div>
 
   <!-- ===== Charts row ===== -->
@@ -492,7 +492,7 @@ function renderAreaChart(wrId, lblId, byDay, color) {
     + '<polyline points="' + lineStr + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
     + '</svg>';
 
-  // Tooltip elements — placed directly in wrap (which is position:relative)
+  // Tooltip elements, placed directly in wrap (which is position:relative)
   var vline = document.createElement('div'); vline.className = 'chart-vline'; wrap.appendChild(vline);
   var dot = document.createElement('div'); dot.className = 'chart-dot'; dot.style.background = color; wrap.appendChild(dot);
   var tipBox = document.createElement('div'); tipBox.className = 'chart-tip';

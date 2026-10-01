@@ -37,7 +37,7 @@ server.tool(
     const data = await api(`/job-search?${params}`);
     const lines = [`Found ${data.total} jobs (page ${data.page}/${data.pages}):\n`];
     for (const job of data.results) {
-      let line = `**${job.title}** at ${job.company} — ${job.location}`;
+      let line = `**${job.title}** at ${job.company}, ${job.location}`;
       if (job.salary_min && job.salary_max) {
         line += ` | ${job.currency || "$"}${job.salary_min.toLocaleString()}-${job.salary_max.toLocaleString()}`;
       }
@@ -84,7 +84,7 @@ server.tool(
 
 server.tool(
   "improve_resume_bullets",
-  "Rewrite resume bullet points to be stronger, more quantified, and ATS-friendly. Grounded in the candidate's real experience — never fabricates.",
+  "Rewrite resume bullet points to be stronger, more quantified, and ATS-friendly. Grounded in the candidate's real experience, never fabricates.",
   {
     bullets: z.string().describe("The resume bullet points to improve (one per line)"),
     role: z.string().optional().describe("Target job title for context"),

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job Search — Find Jobs & Build a Tailored Resume | Applio</title>
+<title>Job Search, Find Jobs & Build a Tailored Resume | Applio</title>
 <meta name="description" content="Search thousands of jobs, then build and tailor your resume to match any listing with Applio's AI. Free job search, real salary data, and one-click resume tailoring.">
 <link rel="canonical" href="https://appliohq.com/job-search">
 <link rel="icon" href="/logo.ico">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#6366f1">
-<meta property="og:title" content="Job Search — Find Jobs & Build a Tailored Resume | Applio">
+<meta property="og:title" content="Job Search, Find Jobs & Build a Tailored Resume | Applio">
 <meta property="og:description" content="Search thousands of jobs, then build and tailor your resume to match any listing with Applio's AI.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://appliohq.com/job-search">
@@ -114,7 +114,7 @@
 <main class="js-wrap">
   <div class="js-hero">
     <h1>Find jobs. Build a tailored resume.</h1>
-    <p>Search thousands of open positions, then use Applio's AI to build and tailor your resume to match any listing — in minutes, not hours.</p>
+    <p>Search thousands of open positions, then use Applio's AI to build and tailor your resume to match any listing, in minutes, not hours.</p>
   </div>
 
   <form class="js-form" id="search-form">
@@ -150,7 +150,7 @@
     if (!min && !max) return '';
     var sym = { USD: '$', GBP: '£', EUR: '€', CAD: 'CA$', AUD: 'A$', INR: '₹', SGD: 'S$', NZD: 'NZ$', BRL: 'R$', MXN: 'MX$', CHF: 'CHF ', PLN: 'PLN ', ZAR: 'R' }[currency] || currency + ' ';
     var fmt = function (n) { return Math.round(n).toLocaleString(); };
-    if (min && max && min !== max) return sym + fmt(min) + ' – ' + sym + fmt(max);
+    if (min && max && min !== max) return sym + fmt(min) + ', ' + sym + fmt(max);
     return sym + fmt(min || max);
   }
 

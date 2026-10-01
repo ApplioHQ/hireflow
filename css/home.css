@@ -923,7 +923,7 @@
 /* ── Hero rotating word: typewriter effect with blinking caret ──
    Text is typed in char-by-char, pauses, then deleted char-by-char before
    the next word types in. A vertical bar caret sits at the end and blinks.
-   The rotator span itself has no fade/slide — the caret does the animation
+   The rotator span itself has no fade/slide, the caret does the animation
    work while the text writes in and out. */
 .rotator {
   display: inline-block;
@@ -1232,7 +1232,7 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ===== Feature spotlights (alternating mockups) ===== */
-/* Spotlights: the whole dark area is now ONE contained component — a single
+/* Spotlights: the whole dark area is now ONE contained component, a single
    rounded dark panel sitting on the light page, instead of a full-bleed
    light→dark→light gradient. */
 .spotlights {
@@ -1482,7 +1482,7 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ============ HERO STATS STRIP (inside .hero) ============
    Lives inside the hero so #hero-waves and .hero-bg naturally extend
-   over it — no separate canvas, no separate gradient. The strip is just
+   over it, no separate canvas, no separate gradient. The strip is just
    a positioned block at the bottom of the hero content flow. '70+ job
    seekers' is the visual anchor; four supporting stats sit beside it. */
 .hero-stats {
@@ -1668,7 +1668,7 @@ section[id] { scroll-margin-top: 80px; }
 
 /* ============ PRICING FEATURE MATRIX ============
    Appears below the 2-card pricing UI. All plans visible at once. */
-/* Collapsible "Compare all features" — folds the 16-row matrix behind a
+/* Collapsible "Compare all features", folds the 16-row matrix behind a
    toggle so the two pricing cards remain the visual centrepiece. */
 .price-compare { max-width: 880px; margin: 40px auto 0; }
 .price-compare[open] { margin-bottom: 20px; }

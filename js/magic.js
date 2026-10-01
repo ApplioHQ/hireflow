@@ -1,4 +1,4 @@
-/* magic.js — tiny helpers for magic.css effects that need JS.
+/* magic.js, tiny helpers for magic.css effects that need JS.
    All effects are opt-in via data attributes.
 
      data-magic-ticker="1247"           Count up 0 → N when scrolled into view

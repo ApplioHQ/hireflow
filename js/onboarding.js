@@ -417,7 +417,7 @@
       t.disabled = true; t.textContent = 'Analyzing...';
       Promise.resolve(typeof importResume === 'function' ? importResume(text) : false).then(function (ok) {
         if (ok) {
-          // Resume imported — show the JD step instead of finishing
+          // Resume imported, show the JD step instead of finishing
           goTo(5);
           var jdTa = document.getElementById('onb-jd-ta');
           if (jdTa) setTimeout(function () { jdTa.focus(); }, 300);

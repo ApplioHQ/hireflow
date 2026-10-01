@@ -1,5 +1,5 @@
 /* ==========================================================================
-   magic.css — Vanilla-CSS ports of Magic UI motion effects.
+   magic.css, Vanilla-CSS ports of Magic UI motion effects.
    All utilities opt-in via class names, all respect prefers-reduced-motion.
 
      .magic-aurora            Animated gradient text
@@ -37,7 +37,7 @@
   background-image: linear-gradient(135deg, #a5b4fc 0%, #5b54e8 30%, #38bdf8 55%, #a5b4fc 100%);
 }
 
-/* 2. Border beam — parent must be position:relative + overflow:hidden */
+/* 2. Border beam, parent must be position:relative + overflow:hidden */
 .magic-border-beam {
   position: absolute;
   inset: 0;
@@ -98,7 +98,7 @@
   background-size: 48px 48px;
 }
 
-/* 7. Marquee — duplicate content in HTML for a seamless loop */
+/* 7. Marquee, duplicate content in HTML for a seamless loop */
 .magic-marquee {
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
@@ -108,7 +108,7 @@
 .magic-marquee:hover .magic-marquee-track { animation-play-state: paused; }
 @keyframes magic-marquee-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* 8. Meteors — falling streaks inside position:relative container */
+/* 8. Meteors, falling streaks inside position:relative container */
 .magic-meteors { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .magic-meteors::before,
 .magic-meteors::after {
@@ -167,7 +167,7 @@
 }
 @keyframes magic-shine-slide { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-/* 12. Bento hover — subtle raise + accent border */
+/* 12. Bento hover, subtle raise + accent border */
 .magic-bento { transition: transform .28s cubic-bezier(.2,.9,.3,1.2), border-color .18s, box-shadow .28s; }
 .magic-bento:hover {
   transform: translateY(-3px);

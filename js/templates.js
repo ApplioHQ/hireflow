@@ -6,7 +6,7 @@
 // `cat` groups templates in the picker: Students, Business, Technology, Creative.
 const TEMPLATE_CATEGORIES = ['Your Resume', 'Students', 'Business', 'Technology', 'Creative', 'Industry'];
 const TEMPLATE_DEFS = [
-  // Your Resume — clean default that looks like a standard Word/PDF resume
+  // Your Resume, clean default that looks like a standard Word/PDF resume
   { id: 'plain',        name: 'Plain',          cat: 'Your Resume' },
   // Students
   { id: 'harvard',      name: 'Harvard',        cat: 'Students' },
@@ -1145,7 +1145,7 @@ function tMit(r, accent) {
 }
 
 // ── Plain: a clean, standard resume format that looks like what most people
-// already have — no strong design opinions, just clean typography.
+// already have, no strong design opinions, just clean typography.
 // For users who import a resume and want to keep a familiar look.
 function tPlain(r, accent) {
   const p = r.personal;

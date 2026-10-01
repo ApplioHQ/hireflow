@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EchoMap — Acoustic Heat Map Builder for Interiors</title>
+<title>EchoMap, Acoustic Heat Map Builder for Interiors</title>
 <style>
   :root{
     --bg:#0e1116; --panel:#161b22; --panel2:#1c232d; --line:#2a3340;
@@ -94,7 +94,7 @@
   <aside class="panel">
     <div class="sec">
       <h3>1 · Draw the room</h3>
-      <p class="hint">In <strong>2D plan</strong>, click to drop wall corners, then click the first point to close the loop. Set the material below <em>before</em> drawing each wall. Or load the sample room.</p>
+      <p class="hint">In <strong>2D plan</strong>click to drop wall corners, then click the first point to close the loop. Set the material below <em>before</em> drawing each wall. Or load the sample room.</p>
       <p class="hint"><kbd>Esc</kbd> clear · <kbd>Z</kbd> undo point</p>
     </div>
     <div class="sec">
@@ -126,8 +126,8 @@
       <h3>3 · Acoustic results</h3>
       <div class="metric">
         <div class="lbl">Reverberation time (Sabine)</div>
-        <div><span class="big" id="rt60">—</span> <span class="unit">s RT60</span></div>
-        <div><span class="rate" id="rt60rate">—</span></div>
+        <div><span class="big" id="rt60"></span> <span class="unit">s RT60</span></div>
+        <div><span class="rate" id="rt60rate"></span></div>
       </div>
       <div class="band" id="bandSel">
         <button data-f="125">125Hz</button>
@@ -136,15 +136,15 @@
       </div>
       <div class="metric" style="margin-top:10px">
         <div class="lbl">Room volume (2.7 m ceiling)</div>
-        <div><span class="big" id="vol" style="font-size:22px">—</span> <span class="unit">m³</span></div>
+        <div><span class="big" id="vol" style="font-size:22px"></span> <span class="unit">m³</span></div>
         <div class="lbl" style="margin-top:6px">Total absorption</div>
-        <div><span id="absorb" style="font-weight:700">—</span> <span class="unit">sabins</span></div>
+        <div><span id="absorb" style="font-weight:700"></span> <span class="unit">sabins</span></div>
       </div>
     </div>
     <div class="sec">
       <h3>Echo heat map</h3>
       <div class="legend"><span>calm</span><div class="bar"></div><span>harsh</span></div>
-      <p class="hint" style="margin-top:8px">Red / orange zones bounce sound back at the listener — conversation gets fatiguing. Green zones are absorbed and comfortable.</p>
+      <p class="hint" style="margin-top:8px">Red / orange zones bounce sound back at the listener, conversation gets fatiguing. Green zones are absorbed and comfortable.</p>
     </div>
     <div class="sec">
       <h3>Walls</h3>
@@ -428,16 +428,16 @@ function updatePanel(){
   surf.innerHTML=e.length?e.map(s=>`<div class="surf"><span class="sw" style="background:${s.mat.color}"></span>
     ${s.mat.name}<span class="len">${(dist(s.a,s.b)/PX_PER_M).toFixed(1)} m</span></div>`).join(''):'<p class="hint">No walls yet.</p>';
   const r=computeRT60(),rt=document.getElementById('rt60'),rate=document.getElementById('rt60rate');
-  if(!r){rt.textContent='—';rate.textContent='—';rate.style.background='transparent';
-    document.getElementById('vol').textContent='—';document.getElementById('absorb').textContent='—';
+  if(!r){rt.textContent=', ';rate.textContent=', ';rate.style.background='transparent';
+    document.getElementById('vol').textContent=', ';document.getElementById('absorb').textContent=', ';
     document.getElementById('advice').textContent='Draw or load a room to generate a recommendation.';return;}
   rt.textContent=r.rt60.toFixed(2);document.getElementById('vol').textContent=Math.round(r.vol);
   document.getElementById('absorb').textContent=r.A.toFixed(1);
   let label,col,adv;
-  if(r.rt60<0.5){label='Dry / intimate';col='var(--good)';adv='Excellent for speech clarity — offices, meeting rooms, restaurants. Conversation stays effortless.';}
+  if(r.rt60<0.5){label='Dry / intimate';col='var(--good)';adv='Excellent for speech clarity, offices, meeting rooms, restaurants. Conversation stays effortless.';}
   else if(r.rt60<0.9){label='Balanced';col='#8fd14f';adv='Comfortable, natural room. Good for open lounges and cafés.';}
   else if(r.rt60<1.4){label='Live / echoey';col='var(--warn)';adv='Noticeably reverberant. Diners will raise their voices; add curtains or acoustic panels to hard walls.';}
-  else{label='Harsh / noisy';col='var(--bad)';adv='Sound piles up — this space will feel loud and fatiguing. Replace glass/concrete walls with acoustic panels or carpet to cut RT60 below 0.9 s.';}
+  else{label='Harsh / noisy';col='var(--bad)';adv='Sound piles up, this space will feel loud and fatiguing. Replace glass/concrete walls with acoustic panels or carpet to cut RT60 below 0.9 s.';}
   rate.textContent=label;rate.style.background=col;rate.style.color='#0b0e13';document.getElementById('advice').textContent=adv;
 }
 function recompute(){computeHeat();updatePanel();if(view==='2d')draw();else draw3d();}

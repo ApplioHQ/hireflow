@@ -1,4 +1,4 @@
-/* Reusable skeleton loader — layout-matched placeholders that shimmer while
+/* Reusable skeleton loader, layout-matched placeholders that shimmer while
    real content loads, so the page doesn't shift when data arrives.
    Include this stylesheet on any page that shows an async result, then swap
    the loading state to skeleton() presets from js/skeleton.js. */
@@ -27,7 +27,7 @@
   .sk { animation: none; background: var(--sk-bg); }
 }
 
-/* Size primitives — the building blocks presets are composed from. */
+/* Size primitives, the building blocks presets are composed from. */
 .sk-line     { height: 12px; }
 .sk-line-lg  { height: 16px; }
 .sk-line-xl  { height: 22px; border-radius: 8px; }
@@ -40,7 +40,7 @@
 .sk-bar-h    { height: 12px; width: 100%; border-radius: 999px; }
 .sk-square   { aspect-ratio: 1 / 1; border-radius: 12px; }
 
-/* Widths — mix into any .sk element. */
+/* Widths, mix into any .sk element. */
 .sk-w25 { width: 25%; } .sk-w30 { width: 30%; } .sk-w40 { width: 40%; }
 .sk-w50 { width: 50%; } .sk-w60 { width: 60%; } .sk-w70 { width: 70%; }
 .sk-w80 { width: 80%; } .sk-w85 { width: 85%; } .sk-w90 { width: 90%; }
@@ -58,7 +58,7 @@
   .sk-grid-2, .sk-grid-3 { grid-template-columns: 1fr; }
 }
 
-/* Chat-message skeleton — one bubble on the left, avatar included. */
+/* Chat-message skeleton, one bubble on the left, avatar included. */
 .sk-msg { display: flex; gap: 12px; padding: 10px 0; }
 .sk-msg .sk-bubble {
   flex: 1; max-width: 640px;

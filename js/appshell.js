@@ -9,8 +9,7 @@
   'use strict';
   if (document.querySelector('.app-rail')) return;
 
-  // Tabler icons (stroke-width 2, currentColor). Only the inner elements —
-  // the rail wraps them with the <svg> element.
+  // Tabler icons (stroke-width 2, currentColor). Only the inner elements, // the rail wraps them with the <svg> element.
   var ICONS = {
     home:      '<path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>',
     builder:   '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/>',

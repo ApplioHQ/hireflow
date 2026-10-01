@@ -148,7 +148,7 @@
       }).join('')
       + '<div class="sg-addbar"><span class="sg-addhint" id="sg-addhint">Check the ones you genuinely have, then add them, recruiters and ATS filters only catch what\'s written. Never add a skill you can\'t back up in an interview.</span>'
       + '<button class="btn btn-primary btn-sm" id="sg-add" disabled>Add to my resume</button></div></div>';
-    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong>, the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
+    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong>the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
     out.innerHTML = html;
     wireAdd();
   }
@@ -224,6 +224,6 @@
   if (pre) document.getElementById('sg-role').value = pre;
   if (pre && !_deepJobId) {
     if (currentSkills().length) analyze();
-    else out.innerHTML = '<div class="sg-empty"><h2>Add your skills first</h2><p>Your resume has no skills listed yet. Add them in the <a href="editor" style="color:var(--accent);font-weight:600;">Resume Builder</a>, then come back for a gap analysis.</p></div>';
+    else out.innerHTML = '<div class="sg-empty"><h2>Add your skills first</h2><p>Your resume has no skills listed yet. Add them in the <a href="editor" style="color:var(--accent);font-weight:600;">Resume Builder</a>then come back for a gap analysis.</p></div>';
   }
 })();

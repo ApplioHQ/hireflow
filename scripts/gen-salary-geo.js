@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Generates /salary/[role]/[city].html pages — static SEO shells that fetch live
+/* Generates /salary/[role]/[city].html pages, static SEO shells that fetch live
    Adzuna salary data client-side via the Applio Worker API. Run from repo root:
    node scripts/gen-salary-geo.js
    Existing files are NOT overwritten (idempotent). */
@@ -204,10 +204,10 @@ function makePage(role, city) {
     <h2>What affects a ${esc(role.title)}'s salary in ${esc(city.display)}?</h2>
     <p>Like most metros, ${esc(city.display)} salaries for ${esc(role.title)}s vary by years of experience, company size, industry, and the specific skills on your resume. Here are the biggest levers:</p>
     <ul>
-      <li><strong>Years of experience</strong> — Senior and staff-level ${esc(role.title)}s typically earn 40–80% more than entry-level.</li>
-      <li><strong>Company size</strong> — Large tech companies and enterprises pay a significant premium over startups and nonprofits in ${esc(city.display)}.</li>
-      <li><strong>Specialized skills</strong> — Niche technical certifications or domain expertise (e.g., cloud, ML, compliance) command above-median pay.</li>
-      <li><strong>Negotiation</strong> — Research shows candidates who negotiate starting salary increase lifetime earnings by $500K+. Come in with data.</li>
+      <li><strong>Years of experience</strong>Senior and staff-level ${esc(role.title)}s typically earn 40-80% more than entry-level.</li>
+      <li><strong>Company size</strong>Large tech companies and enterprises pay a significant premium over startups and nonprofits in ${esc(city.display)}.</li>
+      <li><strong>Specialized skills</strong>Niche technical certifications or domain expertise (e.g., cloud, ML, compliance) command above-median pay.</li>
+      <li><strong>Negotiation</strong>Research shows candidates who negotiate starting salary increase lifetime earnings by $500K+. Come in with data.</li>
     </ul>
   </section>
 
@@ -223,10 +223,10 @@ ${CITIES.filter(c => c.slug !== city.slug).slice(0,8).map(c =>
   <section class="sw-section">
     <h2>How to earn more as a ${esc(role.title)} in ${esc(city.display)}</h2>
     <ul>
-      <li>Tailor your resume to each job posting — Applio's ATS checker shows you exactly which keywords are missing.</li>
+      <li>Tailor your resume to each job posting, Applio's ATS checker shows you exactly which keywords are missing.</li>
       <li>Use market data (like what you see above) to anchor salary negotiations at or above median.</li>
       <li>Get certifications that show up in high-paying job postings for this role.</li>
-      <li>Target companies with above-market pay structures — check Levels.fyi and Glassdoor for company-level data.</li>
+      <li>Target companies with above-market pay structures, check Levels.fyi and Glassdoor for company-level data.</li>
     </ul>
   </section>
 

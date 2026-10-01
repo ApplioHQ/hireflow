@@ -475,7 +475,7 @@ async function _ipAccountKey(env, ip) {
   return "ipacct:" + (await hmacHex(env.JWT_SECRET, "ip" + ip));
 }
 // Enforced UNLESS explicitly disabled (set the ONE_ACCOUNT_PER_IP var to "off" to
-// flip this off instantly without a redeploy — e.g. if it starts blocking real
+// flip this off instantly without a redeploy, e.g. if it starts blocking real
 // users behind shared office/school/mobile IPs). Fails OPEN on any error or when
 // the edge gives us no IP, so a glitch never blocks a legitimate signup.
 async function _assertIpMayCreateAccount(req, env) {
@@ -1327,7 +1327,7 @@ async function commercialEmailFooter(env, email, category) {
   return `<hr style="border:0;border-top:1px solid #e9ebf1;margin:30px 0 14px;">
     <p style="color:#9aa0ad;font-size:12px;line-height:1.6;margin:0;">
       You're receiving this because you opted in to ${category.replace("_", " ")} emails from Applio.
-      <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe</a>, takes effect immediately.<br>${addr}
+      <a href="${unsub}" style="color:#9aa0ad;">Unsubscribe</a>takes effect immediately.<br>${addr}
     </p>`;
 }
 
@@ -1830,7 +1830,7 @@ async function _bumpAiUsage(env, action) {
 }
 
 // Increment a named feature counter. Writes three keys: all-time total,
-// today's total, and per-user (if email provided) — so the admin can see
+// today's total, and per-user (if email provided), so the admin can see
 // both site-wide volume and per-user breadth for every tracked action.
 async function _bumpFeature(env, name, email) {
   try {
@@ -1854,7 +1854,7 @@ async function _bumpFeature(env, name, email) {
   } catch (_) {}
 }
 
-// POST /track — lightweight feature-use beacon from the frontend.
+// POST /track, lightweight feature-use beacon from the frontend.
 // Authenticated (needs a valid session token) so we can tie events to a user
 // and prevent spoofing. Fire-and-forget on the client: client never awaits the result.
 const TRACK_ALLOWLIST = new Set([
@@ -2083,9 +2083,9 @@ async function sendWinNudgeEmail(env, email, winCount) {
 // ============ Re-engagement drip (daily cron) ============
 // Sends a single contextual email to users who signed up but went inactive.
 // Drip stages (by days since signup, only the first matching stage fires):
-//   Day 3:  "Your resume is waiting" — nudge to finish building
-//   Day 7:  "Tailor to your dream job" — introduce tailoring
-//   Day 14: "Your resume is getting stale" — come back and refresh
+//   Day 3:  "Your resume is waiting", nudge to finish building
+//   Day 7:  "Tailor to your dream job", introduce tailoring
+//   Day 14: "Your resume is getting stale", come back and refresh
 // Each stage fires at most once per user (tracked in KV). Requires marketing
 // consent. Fully inert until RESEND_API_KEY is set.
 const DRIP_SCAN_CAP = 5000;
@@ -2275,7 +2275,7 @@ async function runAI(env, system, user, opts = {}) {
   throw err(502, `AI model error: ${msg}`);
 }
 
-// Streaming variant of runAI — returns a ReadableStream of SSE chunks.
+// Streaming variant of runAI, returns a ReadableStream of SSE chunks.
 // Each chunk is `data: <token>\n\n`; the stream ends with `data: [DONE]\n\n`.
 // Tries FAST_MODEL first, then falls back to SMART_MODEL if streaming fails or
 // yields nothing. If both streaming attempts fail, falls back to non-streaming
@@ -2316,7 +2316,7 @@ async function runAIStream(env, system, user, opts = {}) {
           if (text) { await send(text); emitted = true; }
         }
         if (emitted) { done(); return; }
-        // Empty response — try the next model.
+        // Empty response, try the next model.
         lastErr = new Error(`${model} returned empty stream`);
         console.error(`AI stream ${model} empty response, falling back`);
       } catch (e) {
@@ -2341,7 +2341,7 @@ async function runAIStream(env, system, user, opts = {}) {
   return readable;
 }
 
-// Handler for /ai/stream/{action} — same auth/gating as /ai/{action} but streams SSE.
+// Handler for /ai/stream/{action}, same auth/gating as /ai/{action} but streams SSE.
 async function aiStream(req, env, action, cors) {
   const sseHeaders = {
     "Content-Type": "text/event-stream",
@@ -2645,8 +2645,7 @@ function _cleanProse(text) {
   return s.trim();
 }
 
-// Unfilled placeholders the model was told never to emit: [Company], {{name}}, <role>,
-// XXXX, [Your achievement], etc. Presence means the output is not send-ready.
+// Unfilled placeholders the model was told never to emit: [Company], {{name}}, <role>// XXXX, [Your achievement], etc. Presence means the output is not send-ready.
 const _PLACEHOLDER_RE = /\[[^\]\n]{1,40}\]|\{\{[^}\n]{1,40}\}\}|<[A-Za-z][^>\n]{0,38}>|\bX{3,}\b|\b(?:your name here|insert [a-z ]+|company name|job title)\b/i;
 // The model refused or broke character instead of producing content.
 const _REFUSAL_RE = /\b(as an ai|i (?:can'?t|cannot|am unable|'m unable)|i do not have|i'm sorry,? but|language model)\b/i;
@@ -2727,7 +2726,7 @@ function inferAdzunaCountry(loc) {
   return "us";
 }
 
-// Adzuna currency by country — histogram values come back in local currency
+// Adzuna currency by country, histogram values come back in local currency
 // without a currency tag, so we tag it ourselves.
 const ADZUNA_CURRENCY = { us:"USD", gb:"GBP", ca:"CAD", au:"AUD", de:"EUR", fr:"EUR",
   in:"INR", sg:"SGD", nz:"NZD", nl:"EUR", es:"EUR", it:"EUR", br:"BRL", mx:"MXN",
@@ -2742,7 +2741,7 @@ function percentilesFromHistogram(histogram) {
     .filter(([k, v]) => k > 0 && v > 0)
     .sort((a, b) => a[0] - b[0]);
   const total = buckets.reduce((sum, [, v]) => sum + v, 0);
-  if (total < 8) return null; // too little signal — fall back to AI
+  if (total < 8) return null; // too little signal, fall back to AI
   const pAt = (p) => {
     const target = total * p;
     let cum = 0;
@@ -2837,7 +2836,7 @@ async function jobSearch(req, env) {
 
 // ===== Student program =====
 // Free Premium for verified students. Verification is by academic email domain
-// (.edu, .ac.<cc>, .edu.<cc>), the standard lightweight check. Grants 180 days.
+// (.edu, .ac.<cc>.edu.<cc>), the standard lightweight check. Grants 180 days.
 const STUDENT_GRANT_DAYS = 180;
 
 function isAcademicEmail(email) {
@@ -2984,7 +2983,7 @@ function buildPortfolioHtml(r, cfg, env) {
     contacts.push(`<a href="https://${esc(li)}" rel="noopener nofollow">${esc(li)}</a>`);
   }
   const expHtml = (r.experience || []).map(e => {
-    const dates = [e.start, e.end].filter(Boolean).join(" – ");
+    const dates = [e.start, e.end].filter(Boolean).join(", ");
     const desc = String(e.description || "").split("\n").filter(Boolean)
       .map(l => `<li>${esc(l.replace(/^[•\-\*]\s*/, ""))}</li>`).join("");
     return `<div class="item">
@@ -2994,7 +2993,7 @@ function buildPortfolioHtml(r, cfg, env) {
     </div>`;
   }).join("");
   const eduHtml = (r.education || []).map(e => {
-    const dates = [e.start, e.end].filter(Boolean).join(" – ");
+    const dates = [e.start, e.end].filter(Boolean).join(", ");
     const deg = [e.degree, e.field].filter(Boolean).join(", ");
     return `<div class="item">
       <div class="item-head"><h3>${esc(e.school || "")}</h3><span class="dates">${esc(dates)}</span></div>
@@ -3016,7 +3015,7 @@ function buildPortfolioHtml(r, cfg, env) {
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${name}${p.title ? " – " + esc(p.title) : ""}</title>
+<title>${name}${p.title ? ", " + esc(p.title) : ""}</title>
 <meta name="description" content="${name}'s professional profile.">
 <meta property="og:title" content="${name}">
 <meta property="og:type" content="profile">
@@ -3097,11 +3096,11 @@ async function aiSalary(env, { role, location, level, resume }) {
       level: lvl || "",
       factors: [
         "Sample: " + az.sampleSize.toLocaleString() + " live job postings",
-        "Range is 25th–75th percentile of advertised base pay",
+        "Range is 25th, 75th percentile of advertised base pay",
         "Actual offers vary with company size, seniority, and negotiation",
       ],
       negotiation: "Anchor at the 75th percentile (" + Math.round(az.high).toLocaleString() +
-        " " + az.currency + ") when you can point to comparable listings — recruiters expect a range, not a single number.",
+        " " + az.currency + ") when you can point to comparable listings, recruiters expect a range, not a single number.",
       confidence: az.sampleSize >= 100 ? "high" : (az.sampleSize >= 30 ? "medium" : "low"),
       source: "adzuna",
       sampleSize: az.sampleSize,
@@ -3122,10 +3121,7 @@ Return STRICT JSON only, no markdown, in exactly this shape:
   "location": "<normalized location, or 'Not specified'>",
   "currency": "<ISO code appropriate to the location, e.g. USD, GBP, EUR, INR>",
   "period": "year",
-  "low": <integer, ~10th-25th percentile base pay>,
-  "median": <integer, typical base pay>,
-  "high": <integer, ~75th-90th percentile base pay>,
-  "level": "<seniority you assumed, e.g. Entry / Mid / Senior>",
+  "low": <integer, ~10th-25th percentile base pay>"median": <integer, typical base pay>"high": <integer, ~75th-90th percentile base pay>"level": "<seniority you assumed, e.g. Entry / Mid / Senior>",
   "factors": [ "<3-5 short bullets on what moves pay up or down for this role>" ],
   "negotiation": "<one concrete, specific negotiation tip for this role>",
   "confidence": "<low | medium | high, based on how standardized pay is for this role/market>"
@@ -3370,12 +3366,8 @@ async function aiATS(env, { jobDescription, resume }) {
 Score the candidate's resume against the job description (or generic best practices if no JD). Be honest and specific. Output STRICT JSON:
 
 {
-  "score": <integer 0-100>,
-  "breakdown": {
-    "keywords": <0-100>,
-    "experience": <0-100>,
-    "formatting": <0-100>,
-    "completeness": <0-100>
+  "score": <integer 0-100>"breakdown": {
+    "keywords": <0-100>"experience": <0-100>"formatting": <0-100>"completeness": <0-100>
   },
   "feedback": "<concise summary of what's working and what's not, 2-3 sentences>",
   "wins": ["<specific thing the resume does well>", "<another>", "<another>"],
@@ -3432,8 +3424,7 @@ async function aiAnalyze(env, { resume }) {
 Output STRICT JSON:
 
 {
-  "overallScore": <0-100>,
-  "summary": "<2-3 sentence overall impression>",
+  "overallScore": <0-100>"summary": "<2-3 sentence overall impression>",
   "strengths": [
     "<specific strength, referencing a section or bullet from the resume>",
     "<another>",
@@ -3499,8 +3490,7 @@ Consider: graduation years and other age-revealing dates; roles older than ~15 y
 Output STRICT JSON:
 {
   "riskLevel": "low|moderate|high",
-  "riskScore": <0-100, higher = more age-bias signals present>,
-  "summary": "<2-3 encouraging sentences on how the resume currently reads on currency/age>",
+  "riskScore": <0-100, higher = more age-bias signals present>"summary": "<2-3 encouraging sentences on how the resume currently reads on currency/age>",
   "signals": [
     {"issue": "<the specific thing in THEIR resume>", "where": "<section/role/phrase>", "why": "<why it can read as dated or reveal age>", "fix": "<the concrete change>", "severity": "high|medium|low"}
   ],
@@ -3702,11 +3692,8 @@ async function aiInterviewFeedback(env, { question, answer, role }) {
   const sys = `You are a senior interview coach scoring a candidate's practice answer. Be honest, specific, and encouraging. Output STRICT JSON:
 
 {
-  "score": <integer 0-100>,
-  "breakdown": {
-    "structure": <0-100>,
-    "impact": <0-100>,
-    "clarity": <0-100>
+  "score": <integer 0-100>"breakdown": {
+    "structure": <0-100>"impact": <0-100>"clarity": <0-100>
   },
   "strengths": ["<specific thing the answer did well>", "<another>"],
   "improvements": ["<specific, actionable fix>", "<another>"],
@@ -4105,7 +4092,7 @@ async function gdriveCallback(req, url, env) {
       if(window.opener){window.opener.postMessage({type:${isError ? "'gdrive_error'" : "'gdrive_connected'"},${isError ? `error:${JSON.stringify(msg)}` : `msg:${JSON.stringify(msg)}`}},'*');setTimeout(()=>window.close(),500);}
       else{document.body.innerHTML='<p>${isError ? "Error: " + msg : msg}</p><p>You can close this tab.</p>';}
     </script>
-    <p>${isError ? "Error: " + msg + " — you can close this tab." : msg}</p>
+    <p>${isError ? "Error: " + msg + ", you can close this tab." : msg}</p>
     </body></html>`,
     { status: 200, headers: { "Content-Type": "text/html" } }
   );
@@ -4147,7 +4134,7 @@ async function exportToGdoc(req, env) {
 
   const accessToken = await _gdriveAccessToken(env, user);
   const p = resume.personal || {};
-  const docTitle = (p.fullName ? p.fullName + " — Resume" : "Resume") + " (via Applio)";
+  const docTitle = (p.fullName ? p.fullName + ", Resume" : "Resume") + " (via Applio)";
 
   // Create an empty document
   const createResp = await fetch("https://docs.googleapis.com/v1/documents", {
@@ -4178,7 +4165,7 @@ async function exportToGdoc(req, env) {
 }
 
 // Build Google Docs API batchUpdate requests from resume JSON.
-// Inserts content then styles headings — index 1 is always the document start.
+// Inserts content then styles headings, index 1 is always the document start.
 function _buildDocRequests(resume) {
   const p = resume.personal || {};
   const exp = Array.isArray(resume.experience) ? resume.experience : [];
@@ -4203,7 +4190,7 @@ function _buildDocRequests(resume) {
   if (exp.length) {
     add("EXPERIENCE\n");
     for (const e of exp) {
-      const header = [e.title, e.company, e.location, [e.start, e.end].filter(Boolean).join(" – ")].filter(Boolean).join(" | ");
+      const header = [e.title, e.company, e.location, [e.start, e.end].filter(Boolean).join(", ")].filter(Boolean).join(" | ");
       add(header + "\n");
       if (e.description) add(e.description.replace(/^•\s*/gm, "• ") + "\n");
       add("\n");
@@ -4213,7 +4200,7 @@ function _buildDocRequests(resume) {
   if (edu.length) {
     add("EDUCATION\n");
     for (const e of edu) {
-      add([e.school, e.degree + (e.field ? " in " + e.field : ""), e.gpa ? "GPA " + e.gpa : "", [e.start, e.end].filter(Boolean).join(" – ")].filter(Boolean).join(" | ") + "\n");
+      add([e.school, e.degree + (e.field ? " in " + e.field : ""), e.gpa ? "GPA " + e.gpa : "", [e.start, e.end].filter(Boolean).join(", ")].filter(Boolean).join(" | ") + "\n");
     }
     add("\n");
   }

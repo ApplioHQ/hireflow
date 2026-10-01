@@ -1749,7 +1749,7 @@ function renderTailor() {
         <div class="tailor-hero-glow"></div>
         <div class="tailor-hero-badge">${ICON('sparkle','ico ico-sm')} AI TAILORING</div>
         <h2 class="tailor-hero-title">Match any job in seconds</h2>
-        <p class="ats-hero-sub">Paste a job description and Applio rewrites your bullets, aligns keywords, and reframes your summary &mdash; grounded in your real experience, never invented.</p>
+        <p class="ats-hero-sub">Paste a job description and Applio rewrites your bullets, aligns keywords, and reframes your summary, grounded in your real experience, never invented.</p>
         <div class="ats-stat-strip">
           ${stat('+38pts', 'average ATS score increase')}
           ${stat('~30s', 'to tailor vs 45 min manually')}
@@ -1986,7 +1986,7 @@ function _tailorEmptyState() {
         <div class="tailor-ba-arrow">${ICON('arrowRight', 'ico')}</div>
         <div class="tailor-ba-col tailor-ba-after">
           <span class="tailor-ba-tag">Tailored to the role</span>
-          <p>Led an <b>8-person team</b> to ship <b>3 cross-functional projects</b>, mapping each win to the role's focus on <b>delivery &amp; ownership</b>.</p>
+          <p>Led an <b>8-person team</b> to ship <b>3 cross-functional projects</b>mapping each win to the role's focus on <b>delivery &amp; ownership</b>.</p>
         </div>
       </div>
       <div class="an-pre-grid">
@@ -2462,7 +2462,7 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
   _renderFitIndicator(doc._lastRatio, pages);
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
-  // Re-scale after iframe fonts/images settle — the initial scrollHeight can be wrong
+  // Re-scale after iframe fonts/images settle, the initial scrollHeight can be wrong
   // before web fonts load, causing the bottom half to appear cut off.
   setTimeout(function () { _scaleMini(wrap, sizer, frame, doc); }, 400);
   if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { _scaleMini(wrap, sizer, frame, doc); });
@@ -3350,7 +3350,7 @@ function _showAiFeedbackNudge() {
   setTimeout(() => { const n = document.getElementById('ai-fb-nudge'); if (n) n.remove(); }, 12000);
 }
 
-// Streaming AI call — shows text building up in the loading overlay as tokens arrive.
+// Streaming AI call, shows text building up in the loading overlay as tokens arrive.
 // Returns the full accumulated text when the stream ends.
 // `onChunk(accumulated)` is called after each chunk with the text so far (optional).
 async function aiStream(endpoint, body, onChunk) {
@@ -3531,7 +3531,7 @@ function _renderPlainLines(text) {
 // it hard to tell what actually changed.
 function _diffBullets(text) {
   return String(text || '').split('\n').map(l => l.trim()).filter(Boolean)
-    .map(l => { const m = l.match(/^([•\-\*–]|\d+[.)])\s+(.*)$/); return (m ? m[2] : l).trim(); })
+    .map(l => { const m = l.match(/^([•\-\*, ]|\d+[.)])\s+(.*)$/); return (m ? m[2] : l).trim(); })
     .filter(Boolean);
 }
 function _wnorm(w) { return String(w).toLowerCase().replace(/[^a-z0-9%$]/g, ''); }
@@ -4170,7 +4170,7 @@ function openModal(id) {
 function _updateImportHint(){
   const el = document.getElementById('import-hint');
   if (!el) return;
-  el.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> <strong style="color:var(--accent);">Free for everyone</strong>, import as many resumes as you like.`;
+  el.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> <strong style="color:var(--accent);">Free for everyone</strong>import as many resumes as you like.`;
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 

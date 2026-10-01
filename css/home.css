@@ -1235,32 +1235,34 @@ section[id] { scroll-margin-top: 80px; }
 /* Spotlights: the whole dark area is now ONE contained component, a single
    rounded dark panel sitting on the light page, instead of a full-bleed
    light→dark→light gradient. */
+/* Spotlights: light section (no dark panel). The little product mockups stay
+   dark, so they read as app screenshots on the light background. */
 .spotlights {
   background: #f7f8fc;
-  padding: 80px 24px; position: relative; overflow: hidden;
+  padding: 88px 24px; position: relative; overflow: hidden;
 }
 .spotlights::before, .spotlights::after { display: none; }
 .spotlights-panel {
   position: relative;
   max-width: 1180px; margin: 0 auto;
-  background: #0a0e27;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 30px;
-  padding: 72px 60px;
-  overflow: hidden;
-  box-shadow: 0 40px 100px rgba(10,14,39,.4), inset 0 1px 0 rgba(255,255,255,.05);
 }
-.spotlights-panel::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(60% 45% at 82% 22%, rgba(99,102,241,.16), transparent 60%),
-    radial-gradient(55% 45% at 12% 78%, rgba(139,92,246,.14), transparent 60%);
-}
-.spotlights-panel > * { position: relative; z-index: 1; }
 @media (max-width: 720px) {
-  .spotlights { padding: 48px 16px; }
-  .spotlights-panel { padding: 44px 24px; border-radius: 22px; }
+  .spotlights { padding: 56px 16px; }
 }
+/* Light-theme overrides for the section chrome (text was built for dark). */
+.spotlights .section-title.light { color: #111827; }
+.spotlights .section-sub.light { color: #6b7280; }
+.spotlights .spot-head-eyebrow { color: #6366f1; }
+.spotlights .spot-title { color: #0f172a; }
+.spotlights .spot-desc { color: #4b5563; }
+.spotlights .spot-benefits li { color: #374151; }
+.spotlights .spot-tab { color: #475569; background: #fff; border-color: #e5e7eb; }
+.spotlights .spot-tab:hover { color: #111827; border-color: #cbd5e1; }
+.spotlights .spot-tab.is-active { color: #fff; background: #5b54e8; border-color: #5b54e8; }
+.spotlights .spot-tab .n { background: #eef2ff; color: #6366f1; }
+.spotlights .spot-tab.is-active .n { background: rgba(255,255,255,.25); color: #fff; }
+/* Keep the mock cards as solid dark "screenshots" so their contents stay legible. */
+.spotlights .spot-card { background: #0d1130; border-color: rgba(255,255,255,.1); }
 
 /* ===== Spotlights carousel: show one tool at a time via tabs ===== */
 .spot-tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 8px 0 38px; }

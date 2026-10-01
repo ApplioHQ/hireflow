@@ -1261,8 +1261,6 @@ section[id] { scroll-margin-top: 80px; }
 .spotlights .spot-tab.is-active { color: #fff; background: #5b54e8; border-color: #5b54e8; }
 .spotlights .spot-tab .n { background: #eef2ff; color: #6366f1; }
 .spotlights .spot-tab.is-active .n { background: rgba(255,255,255,.25); color: #fff; }
-/* Keep the mock cards as solid dark "screenshots" so their contents stay legible. */
-.spotlights .spot-card { background: #0d1130; border-color: rgba(255,255,255,.1); }
 
 /* ===== Spotlights carousel: show one tool at a time via tabs ===== */
 .spot-tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 8px 0 38px; }
@@ -1481,6 +1479,39 @@ section[id] { scroll-margin-top: 80px; }
   .sm-bar-fill { transition:none; }
   .spot-mock:hover .spot-card { transform:none; }
 }
+
+/* ===== Light mock cards to match the light spotlights section, and sized to
+   fill the column (centered, a touch larger) instead of floating in dead space. ===== */
+.spotlights .spot-mock { justify-content: center; }
+.spotlights .spot-mock::after { display: none; }
+.spotlights .spot-card {
+  background: #ffffff; border: 1px solid #e7e9f3; max-width: 520px; color: #1f2937;
+  box-shadow: 0 26px 64px rgba(20,30,70,.13), 0 2px 8px rgba(20,30,70,.06);
+}
+.spotlights .spot-mock:hover .spot-card { box-shadow: 0 32px 72px rgba(20,30,70,.18), 0 2px 8px rgba(20,30,70,.08); }
+.spotlights .spot-card-bg { background: #e8ebf6; opacity: .6; }
+.spotlights .sm-chrome span { background: #d4d7e0; }
+.spotlights .sm-chrome span:first-child { background: #f87171; }
+.spotlights .sm-chrome span:nth-child(2) { background: #f4b740; }
+.spotlights .sm-chrome span:nth-child(3) { background: #34c759; }
+.spotlights .sm-label { color: #6b7280; }
+.spotlights .sm-jd { color: #374151; background: #f4f5f9; border-color: #e5e7eb; }
+.spotlights .sm-arrow { color: #5b54e8; }
+.spotlights .sm-bullets li { color: #374151; }
+.spotlights .sm-bullets strong { color: #111827; }
+.spotlights .sm-ring svg circle:first-child { stroke: #e9ebf2; }
+.spotlights .sm-ring-num { color: #16a34a; }
+.spotlights .sm-ring-num span { color: #6b7280; }
+.spotlights .sm-tag { color: #16a34a; }
+.spotlights .sm-chip.miss { background: #f9fafb; color: #9ca3af; border: 1px dashed #d1d5db; }
+.spotlights .sm-chips .sm-chip.ok { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+.spotlights .sm-chips .sm-chip.ok.lit { background: rgba(34,197,94,.12); color: #15803d; border-color: rgba(34,197,94,.32); }
+.spotlights .sm-score { color: #111827; }
+.spotlights .sm-score span { color: #6b7280; }
+.spotlights .sm-meter-name { color: #6b7280; }
+.spotlights .sm-bar { background: #e9ebf2; }
+.spotlights .sm-rec { background: #eef2ff; border-color: #dfe3ff; color: #4b5563; }
+.spotlights .sm-rec-ico { color: #6366f1; }
 
 /* ============ HERO STATS STRIP (inside .hero) ============
    Lives inside the hero so #hero-waves and .hero-bg naturally extend

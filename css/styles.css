@@ -1703,3 +1703,11 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
     scroll-behavior: auto !important;
   }
 }
+
+/* ===== Mobile tap targets (HubSpot/Lighthouse): keep grouped links & small
+   buttons comfortably tappable (~44px) without changing desktop layout. ===== */
+@media (max-width: 768px) {
+  .btn-sm { min-height: 42px; }
+  .btn-xs { min-height: 34px; }
+  .topbar-nav a { padding: 11px 12px; }
+}

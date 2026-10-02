@@ -26,7 +26,8 @@
     + '.app-footer-seo-links a:not(:last-child)::after{content:"·";margin:0 8px;color:var(--border);} '
     + '.app-footer-seo-links a:hover{color:var(--accent);} '
     + '.app-footer-bot{max-width:1180px;margin:26px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;} '
-    + '.app-footer-bot a{display:inline;} ';
+    + '.app-footer-bot a{display:inline;} '
+    + '@media(max-width:768px){.app-footer a{padding:10px 0;}.app-footer-seo-links a{padding:9px 0;}.app-footer-seo-links{gap:2px 14px;}} ';
   var style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);

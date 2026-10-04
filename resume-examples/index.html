@@ -119,6 +119,14 @@
 .ex-count {
   font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap;
 }
+.ex-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+@media (max-width: 600px) {
+  .ex-filter-bar { flex-direction: column; align-items: stretch; }
+  .ex-search-wrap { max-width: none; }
+  .ex-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+  .ex-chips::-webkit-scrollbar { display: none; }
+  .ex-count { display: none; }
+}
 .ex-cat-title {
   font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin: 0 0 14px;
   padding-top: 20px; display: flex; align-items: center; gap: 10px;
@@ -197,13 +205,15 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input class="ex-search" type="text" id="ex-search" placeholder="Search roles..." autocomplete="off">
     </div>
-    <a class="ex-chip active" data-cat="all" href="#all">All</a>
-    <a class="ex-chip" data-cat="tech" href="#tech">Tech</a>
-    <a class="ex-chip" data-cat="business" href="#business">Business</a>
-    <a class="ex-chip" data-cat="healthcare" href="#healthcare">Healthcare</a>
-    <a class="ex-chip" data-cat="sales" href="#sales">Sales & Creative</a>
-    <a class="ex-chip" data-cat="service" href="#service">Service & Trades</a>
-    <a class="ex-chip" data-cat="students" href="#students">Students</a>
+    <div class="ex-chips">
+      <a class="ex-chip active" data-cat="all" href="#all">All</a>
+      <a class="ex-chip" data-cat="tech" href="#tech">Tech</a>
+      <a class="ex-chip" data-cat="business" href="#business">Business</a>
+      <a class="ex-chip" data-cat="healthcare" href="#healthcare">Healthcare</a>
+      <a class="ex-chip" data-cat="sales" href="#sales">Sales & Creative</a>
+      <a class="ex-chip" data-cat="service" href="#service">Service & Trades</a>
+      <a class="ex-chip" data-cat="students" href="#students">Students</a>
+    </div>
     <span class="ex-count" id="ex-count">138 examples</span>
   </div>
 

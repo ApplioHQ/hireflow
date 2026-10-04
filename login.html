@@ -8,6 +8,11 @@
 <meta name="description" content="Sign in to Applio to build, tailor, and export your AI-optimized resume. New here? Create a free account, no credit card required.">
 <link rel="canonical" href="https://appliohq.com/login">
 <link rel="icon" href="logo.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Applio">
 <link rel="stylesheet" href="css/styles.css">
 <style>
   /* Signup reassurance / value props */
@@ -121,7 +126,7 @@
           <label for="si-email">Email or username</label>
           <!-- type=text (not email): accounts are looked up by identifier and some
                (e.g. ADMIN) aren't email addresses, so don't force '@' on sign-in. -->
-          <input id="si-email" type="text" name="email" placeholder="you@example.com" autocomplete="username" required>
+          <input id="si-email" type="email" name="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" autocomplete="username" required>
         </div>
         <div class="form-field">
           <label for="si-pw">Password</label>
@@ -161,7 +166,7 @@
         </div>
         <div class="form-field">
           <label for="su-email">Email</label>
-          <input id="su-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          <input id="su-email" type="email" name="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" autocomplete="email" required>
         </div>
         <div class="form-field">
           <label for="su-pw">Password</label>

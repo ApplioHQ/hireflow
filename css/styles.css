@@ -147,7 +147,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 /* ===== Landing ===== */
 .landing-body { background: var(--bg-0); }
 .landing-grid {
-  display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100vh;
+  display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100vh; min-height: 100dvh;
 }
 .hero-left {
   background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
@@ -195,7 +195,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* ===== Auth ===== */
 .auth-body {
-  display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh;
   background: radial-gradient(circle at 50% 0%, #1e1b4b, var(--bg-0) 70%);
   padding: 24px;
 }
@@ -225,8 +225,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .auth-msg.success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; display: block; }
 
 /* ===== App shell ===== */
-.app-body { background: var(--bg-0); height: 100vh; overflow: hidden; }
-.app-body-scroll { background: var(--bg-0); min-height: 100vh; }
+.app-body { background: var(--bg-0); height: 100vh; height: 100dvh; overflow: hidden; }
+.app-body-scroll { background: var(--bg-0); min-height: 100vh; min-height: 100dvh; }
 .app-topbar {
   grid-column: 1 / -1; height: 56px; background: var(--bg-1);
   border-bottom: 1px solid var(--border); display: flex; align-items: center;
@@ -267,7 +267,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   .exp-act, .exp-act > span:not(.ico) { transition: none; }
 }
 
-.app-shell-inner { display: grid; grid-template-columns: 220px 1fr 340px; height: calc(100vh - 56px); }
+.app-shell-inner { display: grid; grid-template-columns: 220px 1fr 340px; height: calc(100vh - 56px); height: calc(100dvh - 56px); }
 
 .sidebar {
   background: var(--bg-1); border-right: 1px solid var(--border);
@@ -972,7 +972,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .mobile-fab { display: inline-flex; }
 
   /* Stack layout vertically, full width */
-  .app-shell-inner { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 56px); }
+  .app-shell-inner { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 56px); min-height: calc(100dvh - 56px); }
 
   /* Sidebar becomes a slide-in drawer */
   .sidebar {
@@ -983,7 +983,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .sidebar.mob-open { transform: translateX(0); }
 
   /* Main area takes full width */
-  .main-area { padding: 16px; min-height: calc(100vh - 56px - 80px); }
+  .main-area { padding: 16px; min-height: calc(100vh - 56px - 80px); min-height: calc(100dvh - 56px - 80px); }
 
   /* Right panel becomes a slide-in drawer from the right */
   .right-panel {
@@ -1710,4 +1710,16 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .btn-sm { min-height: 42px; }
   .btn-xs { min-height: 34px; }
   .topbar-nav a { padding: 11px 12px; }
+}
+
+/* ===== Mobile optimizations ===== */
+/* Remove the 300ms tap delay and prevent double-tap zoom on interactive controls. */
+a, button, .btn, [role="button"], input, select, textarea, label, summary { touch-action: manipulation; }
+@media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom on focus: form controls must be >= 16px. */
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  select, textarea, .ats-console textarea { font-size: 16px; }
+  /* Comfortable tap targets for collapsible headers and inline chips. */
+  summary { min-height: 44px; }
+  .gd-chip, .ex-chip { min-height: 32px; display: inline-flex; align-items: center; }
 }

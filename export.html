@@ -367,24 +367,52 @@ function _closePrintTip() {
   const o = document.getElementById('print-tip-overlay');
   if (o) o.remove();
 }
+// Is this a phone/tablet? Mobile browsers show a very different print sheet
+// (no Margins/Scale controls), so we give platform-specific steps instead.
+function _isMobileExport() {
+  try {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 1 && !window.matchMedia('(pointer:fine)').matches);
+  } catch (_) { return false; }
+}
+function _printTipRow(n, html) {
+  return '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">' + n + '</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;">' + html + '</span></li>';
+}
 function _showPrintTip() {
   _closePrintTip();
+  const mobile = _isMobileExport();
+  const ios = (function(){ try { return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1); } catch(_) { return false; } })();
+  const intro = mobile
+    ? 'Your phone’s print screen opens next. Here’s how to save the file:'
+    : 'Your browser’s print box opens next. To keep the layout aligned exactly like the preview, set:';
+  let list;
+  if (mobile && ios) {
+    list = _printTipRow(1, 'Tap <b>Share</b> (the box-with-arrow icon) if you don’t see a save option.')
+         + _printTipRow(2, 'Choose <b>Save to Files</b> — that saves the PDF to your phone.')
+         + _printTipRow(3, 'Tip: for the cleanest layout, export on a laptop when you can.');
+  } else if (mobile) {
+    list = _printTipRow(1, 'For the printer/destination, pick <b>Save as PDF</b>.')
+         + _printTipRow(2, 'If you see <b>Paper size</b>, set it to <b>Letter</b> or <b>A4</b>, then save.')
+         + _printTipRow(3, 'Tip: for the cleanest layout, export on a laptop when you can.');
+  } else {
+    list = _printTipRow(1, '<b>Destination:</b> Save as PDF')
+         + _printTipRow(2, '<b>Margins:</b> None')
+         + _printTipRow(3, '<b>Scale:</b> 100% (not “Fit to page”)');
+  }
   const o = document.createElement('div');
   o.id = 'print-tip-overlay';
   o.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(6,8,20,.72);display:flex;align-items:center;justify-content:center;padding:20px;';
   o.innerHTML =
     '<div style="width:420px;max-width:100%;background:var(--bg-1);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5);">' +
-      '<div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">One quick setting for a perfect PDF</div>' +
-      '<div style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px;">Your browser’s print box opens next. To keep the layout aligned exactly like the preview, set:</div>' +
+      '<div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;">' + (mobile ? 'Saving your PDF' : 'One quick setting for a perfect PDF') + '</div>' +
+      '<div style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px;">' + intro + '</div>' +
       '<ul style="list-style:none;padding:0;margin:0 0 18px;display:flex;flex-direction:column;gap:11px;">' +
-        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">1</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Destination:</b> Save as PDF</span></li>' +
-        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">2</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Margins:</b> None</span></li>' +
-        '<li style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">3</span><span style="font-size:13.5px;color:var(--text);line-height:1.5;"><b>Scale:</b> 100% (not “Fit to page”)</span></li>' +
+        list +
       '</ul>' +
       '<label style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);cursor:pointer;margin-bottom:16px;"><input type="checkbox" id="print-tip-dontshow" style="width:15px;height:15px;accent-color:#6366f1;cursor:pointer;">Don’t show this again</label>' +
       '<div style="display:flex;gap:10px;">' +
         '<button class="btn btn-secondary" id="print-tip-cancel" style="flex:1;">Cancel</button>' +
-        '<button class="btn btn-primary" id="print-tip-go" style="flex:2;">Continue to print</button>' +
+        '<button class="btn btn-primary" id="print-tip-go" style="flex:2;">' + (mobile ? 'Open save screen' : 'Continue to print') + '</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(o);

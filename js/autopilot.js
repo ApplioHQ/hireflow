@@ -237,7 +237,12 @@
       r.personal = r.personal || {}; r.personal.summary = el.textContent; r.updatedAt = Date.now();
       try { localStorage.setItem('hf_resume', JSON.stringify(r)); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
       applyBtn.textContent = '✓ Applied'; applyBtn.disabled = true;
-      if (window.toast) toast('Summary applied to your resume', { type: 'success' });
+      // Point the user to the finish line: the editor is where they export the PDF.
+      if (!document.getElementById('ap-apply-next')) {
+        applyBtn.insertAdjacentHTML('afterend',
+          ' <a class="btn btn-primary btn-sm" id="ap-apply-next" href="editor" style="text-decoration:none;">Open editor to export →</a>');
+      }
+      if (window.toast) toast('Applied. Open the editor to export your tailored resume.', { type: 'success' });
     });
 
     var copyBtn = document.getElementById('ap-copy-cover');

@@ -302,6 +302,7 @@ async function openBillingPortal() {
     buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">📥 View user feedback</button>`);
   }
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); openFeedbackModal({context:'account_menu'})">Send Feedback</button>`);
+  buttons.push(`<a class="btn btn-ghost" href="mailto:support@appliohq.com?subject=Applio%20support" style="text-align:center;text-decoration:none;" onclick="closeAccountModal()">Contact support</a>`);
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); signOutFromMenu()">Sign out</button>`);
 
   bd.innerHTML = `

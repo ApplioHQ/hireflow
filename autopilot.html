@@ -20,6 +20,10 @@
   .ap-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
   .ap-hero .ap-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 4px 10px; border-radius: var(--r-full); }
   .ap-hero p { color: var(--muted); font-size: 15px; margin-top: 6px; max-width: 620px; line-height: 1.55; }
+  .ap-steps { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; max-width: 680px; }
+  .ap-steps li { display: flex; gap: 11px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; color: var(--text); }
+  .ap-steps .ap-step-n { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .ap-steps a { color: var(--accent); font-weight: 600; }
 
   .ap-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
   .ap-field { margin-bottom: 14px; }
@@ -124,8 +128,13 @@
 
 <main class="ap-wrap">
   <div class="ap-hero">
-    <h1>Application Autopilot <span class="ap-badge">Premium</span></h1>
-    <p>Paste a job description and Applio builds your whole application in one shot: a fit verdict, a tailored resume, a cover letter, and the keywords you're missing. <strong>Free fit check for everyone</strong>the tailored resume and cover letter are Premium.</p>
+    <h1>Application Autopilot</h1>
+    <p>Paste a job description and Applio builds your whole application in one shot: a fit verdict, a tailored resume, a cover letter, and the keywords you're missing. It's free, and it tailors the resume you've already saved.</p>
+    <ol class="ap-steps">
+      <li><span class="ap-step-n">1</span><span><strong>Paste the job description</strong> below and hit Run. (Build or import your resume in the Editor first so Autopilot has something to tailor.)</span></li>
+      <li><span class="ap-step-n">2</span><span><strong>Review your results:</strong> fit score, tailored summary and bullets, cover letter, and missing keywords.</span></li>
+      <li><span class="ap-step-n">3</span><span><strong>Apply &amp; export:</strong> click <em>Apply to my resume</em>, then open the <a href="editor">Editor</a> and hit <strong>Export</strong> to download your tailored PDF.</span></li>
+    </ol>
   </div>
 
   <div class="ap-panel">

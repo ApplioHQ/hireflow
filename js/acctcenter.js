@@ -18,6 +18,7 @@
     admin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
     card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
     out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
   };
   var ctx = (location.pathname.split('/').pop() || 'app').replace('.html', '') || 'app';
@@ -37,6 +38,7 @@
     + '<button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); if(typeof openBillingPortal===\'function\')openBillingPortal();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.card + '</span>Manage / cancel subscription</span></button>'
     + '<div class="acct-sep"></div>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="if(typeof openFeedbackModal===\'function\')openFeedbackModal({context:\'' + ctx + '\'}); closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.chat + '</span>Feedback</span></button>'
+    + '<a class="acct-row acct-row-btn" role="menuitem" href="mailto:support@appliohq.com?subject=Applio%20support" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.mail + '</span>Contact support</span></a>'
     + '<button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.out + '</span>Sign out</span></button>'
     + '</div></div>');
 

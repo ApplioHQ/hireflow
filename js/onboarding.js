@@ -1,12 +1,17 @@
 /* onboarding.js, mandatory first-run flow for new users.
    Full-screen, immersive. Seven screens: welcome, 3 questions, import/build,
-   paste job description, match results. Triggers only when localStorage has no
-   `hf_onboarded` and the user is signed in. */
+   paste job description, match results. Triggers ONLY on first-time account
+   creation: the auth flow sets a one-shot `hf_onboard_new` flag when the server
+   reports isNew (signup or a brand-new Google account). Returning users logging
+   back in never see it, even on a fresh browser / cleared storage, because login
+   sets `hf_onboarded` instead. The flag is consumed on trigger so it fires once. */
 (function () {
   'use strict';
   try {
-    if (localStorage.getItem('hf_onboarded')) return;
     if (!localStorage.getItem('hf_token')) return;
+    if (localStorage.getItem('hf_onboarded')) return;
+    if (localStorage.getItem('hf_onboard_new') !== '1') return;  // signup-only
+    localStorage.removeItem('hf_onboard_new');                   // one-shot
   } catch (e) { return; }
 
   var API = (window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL) || '';

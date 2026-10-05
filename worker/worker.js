@@ -616,7 +616,7 @@ async function signup(req, env) {
   await _recordIpAccount(req, env, cleanEmail);
   try { await applySignupConsent(env, cleanEmail, consent); } catch (_) {}
   const token = await signToken({ email: cleanEmail, exp: Math.floor(Date.now()/1000)+86400*30 }, env.JWT_SECRET);
-  return { token, email: cleanEmail, promoEarlyBird: gotPromo };
+  return { token, email: cleanEmail, promoEarlyBird: gotPromo, isNew: true };
 }
 // Google Sign-In: the browser sends the Google ID token (JWT). We verify it with
 // Google (signature + expiry), confirm it was issued for OUR client id, then
@@ -636,6 +636,7 @@ async function googleAuth(req, env) {
   const email = (p.email || "").toLowerCase();
   if (!email) throw err(401, "Google sign-in failed");
   let user = await getUser(env, email);
+  const isNew = !user;
   let gotPromo = false;
   if (!user) {
     await _assertIpMayCreateAccount(req, env);   // one account per IP (unless disabled)
@@ -648,7 +649,7 @@ async function googleAuth(req, env) {
   }
   await touchActivity(env, user, req);
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
-  return { token, email, promoEarlyBird: gotPromo };
+  return { token, email, promoEarlyBird: gotPromo, isNew };
 }
 async function login(req, env) {
   const { email, password } = await req.json();
@@ -866,6 +867,7 @@ async function adminAnalytics(req, env) {
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
   const attribution = {};
+  const onbCategory = {};   // signup "What best describes you?" selection
   const channels = {};
   const geoCountry = {}, geoCity = {};
   const usersByFeature = {};   // distinct users who have used each AI feature at least once
@@ -873,6 +875,7 @@ async function adminAnalytics(req, env) {
   for (const u of records) {
     total++;
     if (u.attribution) attribution[u.attribution] = (attribution[u.attribution] || 0) + 1;
+    if (u.category) onbCategory[u.category] = (onbCategory[u.category] || 0) + 1;
     if (u.firstTouch && u.firstTouch.ch) channels[u.firstTouch.ch] = (channels[u.firstTouch.ch] || 0) + 1;
     if (u.geo && u.geo.country) {
       geoCountry[u.geo.country] = (geoCountry[u.geo.country] || 0) + 1;
@@ -1023,6 +1026,43 @@ async function adminAnalytics(req, env) {
     }
   }
 
+  // ---- Onboarding selections ----------------------------------------------
+  // What users pick during the first-run flow. `category` + `attribution` come
+  // from the signup form (aggregated above); stage/challenge/heardFrom come from
+  // the 3-question onboarding overlay, stored under onboarding:<email>.
+  const onbStage = {}, onbChallenge = {}, onbHeardFrom = {};
+  let onbAnswered = 0;
+  {
+    const okeys = [];
+    let ocursor;
+    do {
+      const page = await env.HIREFLOW_KV.list({ prefix: "onboarding:", cursor: ocursor });
+      for (const k of page.keys) okeys.push(k.name);
+      ocursor = page.list_complete ? undefined : page.cursor;
+    } while (ocursor);
+    const OB = 60;
+    for (let i = 0; i < okeys.length; i += OB) {
+      const raws = await Promise.all(okeys.slice(i, i + OB).map(name => env.HIREFLOW_KV.get(name)));
+      for (const raw of raws) {
+        if (!raw) continue;
+        let r; try { r = JSON.parse(raw); } catch { continue; }
+        onbAnswered++;
+        if (r.stage)     onbStage[r.stage]         = (onbStage[r.stage] || 0) + 1;
+        if (r.challenge) onbChallenge[r.challenge] = (onbChallenge[r.challenge] || 0) + 1;
+        if (r.heardFrom) onbHeardFrom[r.heardFrom] = (onbHeardFrom[r.heardFrom] || 0) + 1;
+      }
+    }
+  }
+  const onboarding = {
+    totalUsers: total,
+    answered: onbAnswered,
+    category: onbCategory,
+    attribution,
+    stage: onbStage,
+    challenge: onbChallenge,
+    heardFrom: onbHeardFrom,
+  };
+
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
@@ -1041,7 +1081,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, attribution, channels, geoCountry, geoCity,
+    signupsByDay, attribution, onboarding, channels, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,

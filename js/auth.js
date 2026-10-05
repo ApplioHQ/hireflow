@@ -64,6 +64,9 @@ document.getElementById('form-signin').addEventListener('submit', async (e) => {
     _switchAccountIfNeeded(data.email);
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
+    // Returning user: never run the first-run onboarding flow again. Mark it done so a
+    // fresh browser / cleared storage doesn't re-trigger it (onboarding is signup-only).
+    try { localStorage.setItem('hf_onboarded', '1'); localStorage.removeItem('hf_onboard_new'); } catch (e) {}
     // Admin / super-admin → admin console; regular users → the Career Home dashboard.
     // A pending import (from the ATS checker funnel) must land in the editor, which
     // is where that import gets consumed.
@@ -101,6 +104,9 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     localStorage.setItem('hf_token', data.token);
     localStorage.setItem('hf_email', data.email);
     localStorage.setItem('hf_welcome', '1'); // first-time welcome screen
+    // Fresh account → run the first-run onboarding flow exactly once (consumed by
+    // js/onboarding.js on the editor). Only set on genuine account creation.
+    if (data.isNew) { try { localStorage.setItem('hf_onboard_new', '1'); localStorage.removeItem('hf_onboarded'); } catch (e) {} }
     // Send attribution: first-touch data (captured silently) + self-reported source
     const source = f.get('source');
     let attrPayload = { source: source || undefined };

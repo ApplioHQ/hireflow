@@ -81,6 +81,7 @@
   .hbar-track { flex: 1; height: 22px; background: var(--bg-2); border-radius: 4px; overflow: hidden; position: relative; }
   .hbar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
   .hbar-val { font-size: 11px; font-weight: 600; min-width: 30px; text-align: right; }
+  .onb-col-hd { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border, rgba(255,255,255,.08)); }
 
   /* ===== User segments ===== */
   .seg-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
@@ -237,6 +238,23 @@
         <h2>Users by Country</h2>
       </div>
       <div class="section-bd" id="geo-bars"></div>
+    </div>
+  </div>
+
+  <!-- ===== Onboarding selections ===== -->
+  <div class="section-card" style="margin-bottom:20px;">
+    <div class="section-hd">
+      <h2>Onboarding Selections</h2>
+      <span class="section-sub" id="onb-sub">What users pick when they sign up</span>
+    </div>
+    <div class="section-bd">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px 28px;">
+        <div><div class="onb-col-hd">What best describes you?</div><div id="onb-category-bars"></div></div>
+        <div><div class="onb-col-hd">Where did you hear about us?</div><div id="onb-source-bars"></div></div>
+        <div><div class="onb-col-hd">Job-search stage</div><div id="onb-stage-bars"></div></div>
+        <div><div class="onb-col-hd">Biggest challenge</div><div id="onb-challenge-bars"></div></div>
+        <div><div class="onb-col-hd">How they heard about Applio</div><div id="onb-heard-bars"></div></div>
+      </div>
     </div>
   </div>
 
@@ -438,6 +456,7 @@ async function loadAnalytics() {
     renderChannelBars(d.channels || {});
     renderAttributionBars(d.attribution || {});
     renderGeoBars(d.geoCountry || {});
+    renderOnboarding(d.onboarding || {});
     renderRetention(d);
     renderRevenue(d);
     renderExports(d);
@@ -570,6 +589,29 @@ function _renderHBars(containerId, data, color) {
 function renderChannelBars(data) { _renderHBars('channel-bars', data, '#10b981'); }
 function renderAttributionBars(data) { _renderHBars('attribution-bars', data, '#8b5cf6'); }
 function renderGeoBars(data) { _renderHBars('geo-bars', data, '#06b6d4'); }
+
+// ─── Onboarding selections ───
+var _ONB_CATEGORY_LABELS = {
+  'student': 'Student', 'internship': 'Internship seeker', 'no-experience': 'No experience yet',
+  'software-engineer': 'Software engineer', 'finance': 'Finance', 'project-manager': 'Project manager',
+  'nurse': 'Nurse / healthcare', 'teacher': 'Teacher / educator', 'career-changer': 'Career changer', 'other': 'Other'
+};
+// Map raw category slugs to friendly labels before charting; everything else charts as-is.
+function _labelMap(data, map) {
+  var out = {};
+  Object.keys(data || {}).forEach(function (k) { out[map[k] || k] = (out[map[k] || k] || 0) + data[k]; });
+  return out;
+}
+function renderOnboarding(o) {
+  o = o || {};
+  var sub = document.getElementById('onb-sub');
+  if (sub) sub.textContent = (o.answered || 0) + ' of ' + (o.totalUsers || 0) + ' completed the question flow';
+  _renderHBars('onb-category-bars', _labelMap(o.category, _ONB_CATEGORY_LABELS), '#6366f1');
+  _renderHBars('onb-source-bars', o.attribution || {}, '#8b5cf6');
+  _renderHBars('onb-stage-bars', o.stage || {}, '#f59e0b');
+  _renderHBars('onb-challenge-bars', o.challenge || {}, '#ef4444');
+  _renderHBars('onb-heard-bars', o.heardFrom || {}, '#10b981');
+}
 
 // ─── Retention ───
 function renderRetention(d) {

@@ -2643,10 +2643,17 @@ function _paginate(doc) {
   const units = HFPaginate.breakUnits(flow, PAGE_PX);
   const step = PAGE_PX + SHEET_GAP;
   const measured = HFPaginate.measure(units, col);
-  const dec = HFPaginate.decide(measured, PAGE_PX);
+  // Google-Docs-style page margin: keep content off every page's bottom edge and
+  // start continuation pages a margin below the top edge (so page 2+ never begins
+  // flush against the sheet). The spacer that pushes a break unit onto its sheet
+  // therefore lands it at (sheetTop + MARGIN), not at the bare sheet top.
+  // Fit-to-one-page deliberately crams to the full sheet, so don't reserve margin
+  // there (it would force a second page and defeat the feature).
+  const MARGIN = (resume && resume.customize && resume.customize.fitOnePage) ? 0 : HFPaginate.pageMargin(flow, col);
+  const dec = HFPaginate.decide(measured, PAGE_PX, MARGIN);
   let accGap = 0;
   for (const b of dec.breaks) {
-    const spH = Math.max(0, Math.round(b.page * step - (b.top + accGap)));
+    const spH = Math.max(0, Math.round(b.page * step + MARGIN - (b.top + accGap)));
     const sp = doc.createElement('div');
     sp.className = 'hf-pagebreak';
     sp.style.cssText = 'height:' + spH + 'px;';

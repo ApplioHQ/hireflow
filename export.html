@@ -235,11 +235,13 @@ function _expPaginate(doc) {
   const flow = HFPaginate.flowRoot(col), units = HFPaginate.breakUnits(flow, pageH), step = pageH + EXP_GAP;
   // Shared decision (same code the editor preview uses) → identical breaks = true WYSIWYG.
   const measured = HFPaginate.measure(units, col);
-  const dec = HFPaginate.decide(measured, pageH);
-  // Push each break unit to the top of ITS sheet (b.page accounts for oversized blocks).
+  const MARGIN = resume.customize?.fitOnePage ? 0 : HFPaginate.pageMargin(flow, col);
+  const dec = HFPaginate.decide(measured, pageH, MARGIN);
+  // Push each break unit to its sheet, a MARGIN below the top edge (Google-Docs-style
+  // page margin, matching the editor preview and the printed PDF).
   let accGap = 0;
   for (const b of dec.breaks) {
-    const spH = Math.max(0, Math.round(b.page * step - (b.top + accGap)));
+    const spH = Math.max(0, Math.round(b.page * step + MARGIN - (b.top + accGap)));
     const sp = doc.createElement('div'); sp.className = 'hf-pagebreak';
     sp.style.cssText = 'height:' + spH + 'px;';
     (b.el.parentNode || flow).insertBefore(sp, b.el);
@@ -297,10 +299,18 @@ function _renderClean() {
     const pageH = _expPageH();
     const flow = HFPaginate.flowRoot(doc.body);
     const units = HFPaginate.breakUnits(flow, pageH);
-    const dec = HFPaginate.decide(HFPaginate.measure(units, flow), pageH);
+    const MARGIN = resume.customize?.fitOnePage ? 0 : HFPaginate.pageMargin(flow, doc.body);
+    // Measure from the PHYSICAL page top (doc.body) so the header band is counted,
+    // matching the on-screen preview exactly and keeping page 1 from overflowing.
+    const dec = HFPaginate.decide(HFPaginate.measure(units, doc.body), pageH, MARGIN);
     dec.breaks.forEach(b => {
       b.el.style.breakBefore = 'page';
       b.el.style.pageBreakBefore = 'always';
+      // Google-Docs-style top margin on continuation pages: with @page margin:0 the
+      // break element would otherwise print flush against the top edge.
+      const pt = parseFloat(doc.defaultView.getComputedStyle(b.el).paddingTop) || 0;
+      b.el.style.paddingTop = (pt + MARGIN) + 'px';
+      b.el.dataset.hfBreakPad = '1';
     });
   } catch (_) {}
   return doc;

@@ -1409,34 +1409,68 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
 
   // THE decision. Given continuously-measured units, return the ordered set of
   // units that begin a new page (each with the sheet index it lands on + its
-  // continuous top), plus the total page count. Faithful port of the editor loop.
-  function decide(measured, pageH) {
+  // continuous top), plus the total page count.
+  //
+  // `opts.margin` is the Google-Docs-style vertical page margin (px): content on
+  // EVERY page is kept `margin` away from the bottom edge, and content pushed to a
+  // continuation page starts `margin` below that page's top edge (callers apply the
+  // offset when they lay out sheets / print break markers). Page 1's top is left to
+  // the template (its header band bleeds to the edge, or its own top padding is the
+  // margin) so we never double it.
+  //
+  // IMPORTANT: units are measured from the SHEET TOP (y=0), i.e. the header/top
+  // padding is already baked into the first unit's `top`. Page 0 is therefore
+  // budgeted from y=0 (not from the first unit), which is what keeps content from
+  // overflowing the first sheet. `pageStartY` is the continuous Y where the current
+  // page's live area begins: 0 for page 0, the break unit's top for later pages.
+  function decide(measured, pageH, opts) {
+    var margin = 0;
+    if (typeof opts === 'number') margin = opts;
+    else if (opts && typeof opts.margin === 'number') margin = opts.margin;
+    margin = Math.max(0, margin);
     var breaks = [];
     if (!measured.length) return { breaks: breaks, pages: 1 };
-    var page = 0, pageStartY = measured[0].top, forceBreakNext = false, prev = null;
+    var page = 0, pageStartY = 0, forceBreakNext = false, prev = null;
+    // Page 0: header bleeds to the top, so reserve the bottom margin only.
+    // Continuation pages reserve both a top and a bottom margin.
+    var avail = pageH - margin;
     for (var i = 0; i < measured.length; i++) {
       if (page >= MAX_SHEETS - 1) break;
       var m = measured[i];
       if (m.h < 1) { prev = m; continue; }   // skip phantom units (no height)
       if (forceBreakNext) {
         forceBreakNext = false;
-        if (m.top - pageStartY > 1) { breaks.push({ el: m.el, page: page + 1, top: m.top }); pageStartY = m.top; page++; }
+        if (m.top - pageStartY > 1) { breaks.push({ el: m.el, page: page + 1, top: m.top }); pageStartY = m.top; page++; avail = pageH - 2 * margin; }
       }
-      if ((m.top + m.h - pageStartY > pageH + TAIL) && (m.top - pageStartY > 1)) {
+      if ((m.top + m.h - pageStartY > avail + TAIL) && (m.top - pageStartY > 1)) {
         // Orphan control: carry a preceding section heading to the next page.
         var targetEl = m.el, targetTop = m.top;
         if (prev && isHeading(prev.el) && (prev.top - pageStartY > 1)) { targetEl = prev.el; targetTop = prev.top; }
         breaks.push({ el: targetEl, page: page + 1, top: targetTop });
-        pageStartY = targetTop; page++;
+        pageStartY = targetTop; page++; avail = pageH - 2 * margin;
       }
       // Atomic block taller than a page: reserve the extra sheets it spans.
-      if (m.h > pageH + TAIL) {
-        page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((m.h - TAIL) / pageH) - 1);
+      if (m.h > avail + TAIL) {
+        page += Math.min(MAX_SHEETS - 1 - page, Math.ceil((m.h - TAIL) / avail) - 1);
         forceBreakNext = true;
       }
       prev = m;
     }
     return { breaks: breaks, pages: Math.min(MAX_SHEETS, page + 1) };
+  }
+
+  // The vertical page margin (px) for a rendered doc: match the resume's own top
+  // padding so every continuation page breathes exactly like page 1, clamped to a
+  // sane range. `flow` is the paginated flow root; `col` is its page wrapper (used
+  // as a fallback when the flow root itself carries no padding, e.g. templates whose
+  // padding lives on the outer container). Shared so preview + PDF use one value.
+  function pageMargin(flow, col) {
+    var win = (flow.ownerDocument && flow.ownerDocument.defaultView) || window;
+    var pt = parseFloat(win.getComputedStyle(flow).paddingTop) || 0;
+    if (pt < 20 && col && col.firstElementChild) {
+      pt = parseFloat(win.getComputedStyle(col.firstElementChild).paddingTop) || 0;
+    }
+    return Math.max(28, Math.min(96, Math.round(pt || 40)));
   }
 
   // Convenience: reset any prior pagination artifacts a surface left behind.
@@ -1449,7 +1483,7 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
 
   window.HFPaginate = {
     DIMS: DIMS, GAP: GAP, PAD: PAD, MAX_SHEETS: MAX_SHEETS, TAIL: TAIL,
-    dims: dims, isHeading: isHeading, flowRoot: flowRoot,
+    dims: dims, isHeading: isHeading, flowRoot: flowRoot, pageMargin: pageMargin,
     breakUnits: breakUnits, contentEls: contentEls, measure: measure, decide: decide, reset: reset,
   };
 })();

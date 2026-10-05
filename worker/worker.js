@@ -1495,6 +1495,10 @@ function formEncode(obj, prefix) {
 }
 
 async function createCheckout(req, env) {
+  // Applio is completely free: billing is permanently closed. No checkout
+  // session can be created. (Kept as a guarded stub so the route can't charge.)
+  throw err(410, "Applio is completely free — there is nothing to purchase.");
+  /* unreachable below, retained for reference */
   const payload = await authenticate(req, env);
   const { plan } = await req.json();
   if (plan !== "premium" && plan !== "lifetime") throw err(400, "Invalid plan");
@@ -1587,6 +1591,10 @@ async function syncWithStripe(req, env) {
 }
 
 async function createPortal(req, env) {
+  // Billing is permanently closed; no portal sessions. Manage any legacy
+  // subscriptions from the Stripe dashboard instead.
+  throw err(410, "Billing is closed. Applio is completely free.");
+  /* unreachable below, retained for reference */
   const payload = await authenticate(req, env);
   const user = await getUser(env, payload.email);
   if (!user || !user.stripeCustomerId) throw err(400, "No billing customer found");

@@ -218,21 +218,9 @@ function downloadsLeft() {
 }
 
 async function startCheckout(plan) {
-  const token = localStorage.getItem('hf_token');
-  if (!token) { location.href = 'login'; return; }
-  try {
-    const r = await fetch(API_BASE + '/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ plan })
-    });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Failed to start checkout');
-    location.href = data.url;
-  } catch (e) {
-    if (window.toast) toast("We couldn't start checkout. Please try again in a moment.", { type: 'error' });
-    else console.error(e);
-  }
+  // Applio is completely free — there is nothing to purchase. This is a no-op
+  // so no checkout can ever be initiated from the client.
+  if (window.toast) toast("Applio is completely free — every feature is already unlocked.", { type: 'info' });
 }
 
 // Open Stripe Customer Portal directly (for the Manage Billing button)
@@ -516,8 +504,11 @@ if (document.readyState === 'loading') {
   _applioPageBoot();
 }
 
-// ============ Upgrade modal ============
+// ============ Upgrade modal (disabled: Applio is completely free) ============
 function showUpgradeModal(reason, context) {
+  // Applio is completely free — never prompt to upgrade or show buy buttons.
+  return;
+  /* eslint-disable no-unreachable */
   if (document.getElementById('upgrade-modal-bd')) return;
   const reasons = {
     ai: { title: 'AI features are Premium', body: 'Tailoring, ATS scoring, AI Improve, interview prep and resume analysis are part of Premium. Upgrade to unlock everything.' },

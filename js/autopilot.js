@@ -182,12 +182,12 @@
     var body = '';
     if (t.summary) {
       body += '<div style="font-weight:700;font-size:13px;margin-bottom:6px;">Tailored summary</div>'
-        + '<div class="ap-diff"><div class="ap-diff-after" id="ap-new-summary">' + esc(t.summary) + '</div></div>'
-        + '<div class="ap-actions" style="margin-bottom:16px;"><button class="btn btn-secondary btn-sm" id="ap-apply-summary">Apply to my resume</button></div>';
+        + '<div class="ap-diff"><div class="ap-diff-after" id="ap-new-summary">' + esc(t.summary) + '</div></div>';
     }
-    if (t.bulletSuggestions && t.bulletSuggestions.length) {
-      body += '<div style="font-weight:700;font-size:13px;margin:6px 0 8px;">Bullet rewrites</div>';
-      body += t.bulletSuggestions.map(function (b) {
+    var bullets = (t.bulletSuggestions || []).filter(function (b) { return b && b.after; });
+    if (bullets.length) {
+      body += '<div style="font-weight:700;font-size:13px;margin:14px 0 8px;">Bullet rewrites</div>';
+      body += bullets.map(function (b) {
         return '<div class="ap-diff">' + (b.before ? '<div class="ap-diff-before">' + esc(b.before) + '</div>' : '') + '<div class="ap-diff-after">' + esc(b.after) + '</div></div>';
       }).join('');
     }
@@ -195,7 +195,61 @@
       body += '<div style="font-weight:700;font-size:13px;margin:14px 0 8px;">What to emphasize</div><ul class="ap-list">'
         + t.emphasize.map(function (e) { return '<li><span style="color:var(--accent);">→</span><span>' + esc(e) + '</span></li>'; }).join('') + '</ul>';
     }
+    // One button applies BOTH the summary and the bullet rewrites to the saved
+    // resume, so the user doesn't have to redo the experience bullets by hand.
+    if (t.summary || bullets.length) {
+      var what = (t.summary && bullets.length) ? 'summary + bullets'
+               : (t.summary ? 'summary' : 'bullets');
+      body += '<div class="ap-actions" style="margin-top:16px;"><button class="btn btn-primary btn-sm" id="ap-apply-tailor">Apply ' + what + ' to my resume</button></div>'
+        + '<div class="ap-card-sub" style="margin-top:6px;">Bullets are matched to your existing experience and replaced in place. Review them in the editor before exporting.</div>';
+    }
     return '<div class="ap-card"><h2>Tailored resume</h2><div class="ap-card-sub">Grounded only in your real experience, nothing invented.</div>' + body + '</div>';
+  }
+
+  // ---------- apply tailored content to the saved resume ----------
+  // Fuzzy-match helpers: the AI returns each original bullet "close to as written",
+  // so we match on token overlap and only replace on a confident match, never
+  // guessing which bullet a rewrite belongs to.
+  function _normLine(s) {
+    return String(s == null ? '' : s).toLowerCase()
+      .replace(/^\s*[•\-\*•▪›→◦●·]\s*/, '')
+      .replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function _toks(s) { return _normLine(s).split(' ').filter(function (w) { return w.length > 2; }); }
+  function _jaccard(a, b) {
+    var ta = _toks(a), tb = _toks(b); if (!ta.length || !tb.length) return 0;
+    var sa = {}; ta.forEach(function (w) { sa[w] = 1; });
+    var sb = {}, inter = 0; tb.forEach(function (w) { if (!sb[w]) { sb[w] = 1; if (sa[w]) inter++; } });
+    var uni = Object.keys(sa).length + Object.keys(sb).length - inter;
+    return uni ? inter / uni : 0;
+  }
+  // Replace each matched experience bullet line with its rewrite. Returns the count
+  // applied. Never adds new bullets and never touches a line twice.
+  function _applyTailoredBullets(resume, suggestions) {
+    if (!resume || !Array.isArray(resume.experience) || !Array.isArray(suggestions)) return 0;
+    var used = {}, applied = 0;
+    suggestions.forEach(function (sug) {
+      if (!sug || !sug.after) return;
+      var probe = (sug.before && sug.before.trim()) ? sug.before : sug.after;
+      var best = null, bestScore = 0;
+      resume.experience.forEach(function (exp, ei) {
+        String(exp.description || '').split('\n').forEach(function (line, li) {
+          var key = ei + ':' + li;
+          if (used[key] || !line.trim()) return;
+          var sc = _jaccard(probe, line);
+          if (sc > bestScore) { bestScore = sc; best = { ei: ei, li: li, key: key }; }
+        });
+      });
+      if (best && bestScore >= 0.45) {
+        var exp = resume.experience[best.ei];
+        var lines = String(exp.description || '').split('\n');
+        var marker = (lines[best.li].match(/^\s*[•\-\*•▪›→◦●·]\s*/) || [''])[0];
+        lines[best.li] = marker + sug.after;
+        exp.description = lines.join('\n');
+        used[best.key] = true; applied++;
+      }
+    });
+    return applied;
   }
 
   function coverCard(text) {
@@ -230,19 +284,30 @@
 
   // ---------- actions ----------
   function wireActions(d) {
-    var applyBtn = document.getElementById('ap-apply-summary');
+    var applyBtn = document.getElementById('ap-apply-tailor');
     if (applyBtn) applyBtn.addEventListener('click', function () {
       var r = readResume(); if (!r) return;
-      var el = document.getElementById('ap-new-summary'); if (!el) return;
-      r.personal = r.personal || {}; r.personal.summary = el.textContent; r.updatedAt = Date.now();
+      var changed = [];
+      // Summary (use the possibly-edited text in the panel).
+      var el = document.getElementById('ap-new-summary');
+      if (el && el.textContent.trim()) { r.personal = r.personal || {}; r.personal.summary = el.textContent.trim(); changed.push('summary'); }
+      // Bullets: replace matched experience lines in place.
+      var sug = (d.tailor && d.tailor.bulletSuggestions) || [];
+      var n = _applyTailoredBullets(r, sug);
+      if (n) changed.push(n + ' bullet' + (n === 1 ? '' : 's'));
+      if (!changed.length) { if (window.toast) toast('Nothing matched to apply, edit in the editor instead.', { type: 'warn' }); return; }
+      r.updatedAt = Date.now();
       try { localStorage.setItem('hf_resume', JSON.stringify(r)); } catch (e) { if (window.toast) toast('Could not save', { type: 'error' }); return; }
       applyBtn.textContent = '✓ Applied'; applyBtn.disabled = true;
+      // Note any bullets that didn't confidently match so the user can place them manually.
+      var unmatched = sug.length - n;
       // Point the user to the finish line: the editor is where they export the PDF.
       if (!document.getElementById('ap-apply-next')) {
         applyBtn.insertAdjacentHTML('afterend',
           ' <a class="btn btn-primary btn-sm" id="ap-apply-next" href="editor" style="text-decoration:none;">Open editor to export →</a>');
       }
-      if (window.toast) toast('Applied. Open the editor to export your tailored resume.', { type: 'success' });
+      var msg = 'Applied ' + changed.join(' + ') + '.' + (unmatched > 0 ? ' ' + unmatched + ' rewrite' + (unmatched === 1 ? '' : 's') + " didn't auto-match, add " + (unmatched === 1 ? 'it' : 'them') + ' in the editor.' : ' Open the editor to export.');
+      if (window.toast) toast(msg, { type: unmatched > 0 ? 'warn' : 'success' });
     });
 
     var copyBtn = document.getElementById('ap-copy-cover');

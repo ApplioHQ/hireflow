@@ -1653,6 +1653,25 @@ function _renderTailorStructured(r) {
   const bullets = Array.isArray(r.bulletSuggestions) ? r.bulletSuggestions : [];
   const emph = Array.isArray(r.emphasize) ? r.emphasize : [];
   let html = '';
+  // ATS score lift from this tailoring: before -> projected after (client-side).
+  const imp = resume.tailor && resume.tailor.ats;
+  if (imp && typeof imp.before === 'number' && typeof imp.after === 'number') {
+    const delta = imp.after - imp.before;
+    const up = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+    const arrow = '<svg class="ti-arrow" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>';
+    html += `<div class="tailor-block tailor-improve">
+        <div class="ti-head">${up} ATS match ${delta > 0 ? 'improved' : 'score'}</div>
+        <div class="ti-scores">
+          <div class="ti-score"><span class="ti-num ti-before">${imp.before}</span><span class="ti-lbl">before</span></div>
+          ${arrow}
+          <div class="ti-score"><span class="ti-num ti-after">${imp.after}</span><span class="ti-lbl">after</span></div>
+          ${delta > 0 ? `<span class="ti-delta">+${delta} pts</span>` : ''}
+        </div>
+        <div class="ti-note">${delta > 0
+          ? 'Projected ATS match for this job with the rewrites below applied. Your summary was already updated, add the bullet rewrites to lock in the full lift.'
+          : 'Your resume already matches this job strongly.'}</div>
+      </div>`;
+  }
   // Headline Job Match Score, the single number recruiters/candidates care about:
   // what share of the job's keywords the resume already covers. Rises as the user
   // adds the missing ones, so it doubles as a live target.
@@ -3767,6 +3786,57 @@ async function aiSuggestSkills() {
   finally { aiLoadingDone(); }
 }
 
+// ---- ATS before/after for the Tailor flow (client-side, via js/ats-engine.js) ----
+// Flatten a resume object to the plain text the ATS engine scores.
+function _resumeToText(r) {
+  if (!r || typeof r !== 'object') return '';
+  const p = r.personal || {}, out = [];
+  out.push([p.fullName, p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean).join(' '));
+  if (p.summary) out.push('Summary\n' + p.summary);
+  if ((r.experience || []).length) { out.push('Experience'); r.experience.forEach(e => { out.push([e.title, e.company, e.location].filter(Boolean).join(' ')); if (e.description) out.push(e.description); }); }
+  if ((r.projects || []).length) { out.push('Projects'); r.projects.forEach(e => { out.push([e.name, e.tech].filter(Boolean).join(' ')); if (e.description) out.push(e.description); }); }
+  if ((r.education || []).length) { out.push('Education'); r.education.forEach(e => out.push([e.degree, e.field, e.school, e.description].filter(Boolean).join(' '))); }
+  const cats = (r.skills && r.skills.categories) || [];
+  if (cats.length) { out.push('Skills'); cats.forEach(c => { if ((c.items || []).length) out.push((c.label ? c.label + ': ' : '') + c.items.join(', ')); }); }
+  return out.filter(Boolean).join('\n');
+}
+// Fuzzy-apply the tailored bullet rewrites to a CLONE (for the projected score only;
+// matches each rewrite's `before` to an existing experience line by word overlap).
+function _applyTailorBulletsClone(r, suggestions) {
+  if (!r || !Array.isArray(r.experience) || !Array.isArray(suggestions)) return;
+  const nrm = s => String(s == null ? '' : s).toLowerCase().replace(/^\s*[•\-*•▪›→◦●·]\s*/, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const toks = s => nrm(s).split(' ').filter(w => w.length > 2);
+  const jac = (a, b) => { const ta = toks(a), tb = toks(b); if (!ta.length || !tb.length) return 0; const sa = {}; ta.forEach(w => sa[w] = 1); let inter = 0, sb = {}; tb.forEach(w => { if (!sb[w]) { sb[w] = 1; if (sa[w]) inter++; } }); const uni = Object.keys(sa).length + Object.keys(sb).length - inter; return uni ? inter / uni : 0; };
+  const used = {};
+  suggestions.forEach(sug => {
+    if (!sug || !sug.after) return;
+    const probe = (sug.before && sug.before.trim()) ? sug.before : sug.after;
+    let best = null, bestScore = 0;
+    r.experience.forEach((exp, ei) => String(exp.description || '').split('\n').forEach((line, li) => {
+      const key = ei + ':' + li; if (used[key] || !line.trim()) return;
+      const sc = jac(probe, line); if (sc > bestScore) { bestScore = sc; best = { ei, li, key }; }
+    }));
+    if (best && bestScore >= 0.45) {
+      const exp = r.experience[best.ei], lines = String(exp.description || '').split('\n');
+      const marker = (lines[best.li].match(/^\s*[•\-*•▪›→◦●·]\s*/) || [''])[0];
+      lines[best.li] = marker + sug.after; exp.description = lines.join('\n'); used[best.key] = true;
+    }
+  });
+}
+// before -> projected-after ATS score for the tailoring just produced.
+function _tailorAtsImprovement(beforeResume, r, jd) {
+  if (!window.AtsEngine || !jd || String(jd).trim().length < 20) return null;
+  try {
+    const after = JSON.parse(JSON.stringify(beforeResume));
+    if (r && r.summary && r.summary.trim()) { after.personal = after.personal || {}; after.personal.summary = r.summary.trim(); }
+    _applyTailorBulletsClone(after, (r && r.bulletSuggestions) || []);
+    const b = AtsEngine.score(_resumeToText(beforeResume), jd).score;
+    const a = AtsEngine.score(_resumeToText(after), jd).score;
+    if (typeof b !== 'number' || typeof a !== 'number') return null;
+    return { before: b, after: Math.max(a, b) };
+  } catch (e) { return null; }
+}
+
 async function aiTailor() {
   const jd = (resume.tailor.jobDescription || '').trim();
   if (jd.length < 30) {
@@ -3774,11 +3844,15 @@ async function aiTailor() {
     const ta = document.querySelector('[data-bind="tailor.jobDescription"]'); if (ta) ta.focus();
     return;
   }
+  // Snapshot the resume BEFORE tailoring so we can show the ATS score lift afterward.
+  const _beforeSnap = JSON.parse(JSON.stringify(resume));
   aiLoading('Tailoring your resume to the job description…');
   try {
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
     // Prefer the structured result (keyword chips + before→after bullet diffs).
     resume.tailor.result = (r && (r.bulletSuggestions || r.matchedKeywords || r.emphasize)) ? r : null;
+    // Before -> projected-after ATS match, shown at the top of the result.
+    resume.tailor.ats = resume.tailor.result ? _tailorAtsImprovement(_beforeSnap, r, jd) : null;
     resume.tailor.tailoredSummary = r.text || '';   // legacy fallback text
     const summaryChanged = r.summary && r.summary !== resume.personal.summary;
     if (summaryChanged) {

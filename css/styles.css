@@ -1090,6 +1090,20 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .tm-pct small { font-size: 12px; font-weight: 700; margin-left: 1px; }
 .tm-verdict { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
 .tm-sub { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+
+/* Before -> after ATS improvement card (top of the Tailor result) */
+.tailor-improve { background: linear-gradient(135deg, rgba(34,197,94,.13), rgba(16,185,129,.05)); border: 1px solid rgba(34,197,94,.34); border-left: 3px solid #22c55e; }
+.ti-head { display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#22c55e; margin-bottom:13px; }
+.ti-head svg { width:15px; height:15px; }
+.ti-scores { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.ti-score { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.ti-num { font-size:30px; font-weight:800; line-height:1; letter-spacing:-.5px; }
+.ti-before { color: var(--muted); }
+.ti-after { color:#22c55e; }
+.ti-lbl { font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700; }
+.ti-arrow { flex:0 0 auto; color: var(--muted); }
+.ti-delta { font-size:14px; font-weight:800; color:#16a34a; background: rgba(34,197,94,.16); border-radius:999px; padding:5px 12px; }
+.ti-note { font-size:12px; color: var(--muted); margin-top:12px; line-height:1.5; }
 .tm-sub b { color: var(--text); }
 .tailor-bad  { border-left: 3px solid #ef4444; }
 .tailor-card { border-left: 3px solid var(--accent); }

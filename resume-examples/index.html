@@ -89,89 +89,66 @@
 <link rel="stylesheet" href="/css/resume-examples.css">
 <script src="/js/theme.js"></script>
 <style>
-.ex-filter-bar {
-  position: sticky; top: 0; z-index: 20;
-  background: var(--bg); border-bottom: 1px solid var(--border);
-  padding: 12px 0; margin: 0 -20px; padding-left: 20px; padding-right: 20px;
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-}
-.ex-search {
-  flex: 1 1 200px; min-width: 180px; max-width: 320px;
-  padding: 9px 14px 9px 36px; border: 1px solid var(--border);
-  border-radius: 999px; background: var(--bg-1); color: var(--text);
-  font-size: 13.5px; outline: none; transition: border-color .15s;
-}
-.ex-search:focus { border-color: var(--accent); }
-.ex-search-wrap { position: relative; flex: 1 1 200px; min-width: 180px; max-width: 320px; }
-.ex-search-wrap svg {
-  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-  width: 16px; height: 16px; color: var(--muted); pointer-events: none;
-}
-.ex-chip {
-  display: inline-block; padding: 7px 14px; border: 1px solid var(--border);
-  border-radius: 999px; background: var(--bg-1); color: var(--text);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: all .15s; white-space: nowrap; text-decoration: none;
-}
-.ex-chip:hover, .ex-chip.active {
-  background: rgba(99,102,241,.1); border-color: var(--accent); color: var(--accent);
-}
-.ex-count {
-  font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap;
-}
-.ex-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-@media (max-width: 600px) {
-  .ex-filter-bar { flex-direction: column; align-items: stretch; }
-  .ex-search-wrap { max-width: none; }
-  .ex-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
-  .ex-chips::-webkit-scrollbar { display: none; }
-  .ex-count { display: none; }
-}
-.ex-cat-title {
-  font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin: 0 0 14px;
-  padding-top: 20px; display: flex; align-items: center; gap: 10px;
-  scroll-margin-top: 70px;
-}
-.ex-cat-title::before {
-  content: ''; display: inline-block; width: 4px; height: 20px;
-  border-radius: 2px; background: var(--accent); flex-shrink: 0;
-}
-.ex-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 10px; margin-bottom: 32px;
-}
-.ex-grid a {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; border: 1px solid var(--border);
-  border-radius: var(--r-lg); background: var(--bg-1);
-  transition: border-color .15s, transform .15s, box-shadow .15s;
-  text-decoration: none;
-}
-.ex-grid a:hover {
-  border-color: var(--accent); transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99,102,241,.12);
-}
-.ex-grid .ex-icon {
-  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; background: rgba(99,102,241,.08);
-}
-.ex-grid .ex-info { min-width: 0; }
-.ex-grid .ex-name {
-  font-weight: 700; font-size: 14px; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ex-grid .ex-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.ex-grid a.ex-hidden { display: none; }
-.ex-cat-group.ex-hidden { display: none; }
-.ex-empty {
-  text-align: center; padding: 48px 20px; color: var(--muted); font-size: 15px;
-  display: none;
-}
-.ex-empty.visible { display: block; }
-@media (max-width: 600px) {
+/* ===== Resume Examples index — revamped, page-scoped ===== */
+.gd-hero { background: radial-gradient(130% 120% at 50% -20%, #20286180 0%, #10163a 45%, #0a0e27 100%), linear-gradient(180deg,#0a0e27,#0a0e27); padding: 46px 24px 118px; }
+.gd-hero-inner { max-width: 1120px; }
+.gd-hero h1 { font-size: clamp(32px, 5vw, 48px); margin: 0 0 14px; }
+.ex-subtitle { color: rgba(255,255,255,.72); font-size: clamp(15px,1.5vw,18px); line-height: 1.6; max-width: 660px; margin: 0 0 22px; }
+.ex-hero-stats { display: flex; flex-wrap: wrap; gap: 9px; }
+.ex-stat { display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13); color:#fff; font-size:12.5px; font-weight:600; }
+.ex-stat svg { width:14px; height:14px; color:#a5b4fc; }
+
+/* Wider content, pulled up over the hero */
+.gd-wrap { max-width: 1120px; padding: 0 24px 90px; }
+.ex-intro { margin: -82px 0 0; position: relative; z-index: 2; padding: 20px 24px; border-radius: 16px; background: var(--bg-1); border: 1px solid var(--border); box-shadow: 0 18px 44px rgba(0,0,0,.30); color: var(--text); font-size: 15px; line-height: 1.65; display:flex; gap:15px; align-items:flex-start; }
+.ex-intro-ico { flex:0 0 auto; width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.ex-intro-ico svg { width:21px; height:21px; }
+
+/* Sticky filter bar */
+.ex-filter-bar { position: sticky; top: 0; z-index: 20; margin: 26px -24px 0; padding: 12px 24px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  background: color-mix(in srgb, var(--bg-0) 86%, transparent); backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--border); }
+.ex-search-wrap { position: relative; flex: 1 1 220px; min-width: 190px; max-width: 340px; }
+.ex-search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:var(--muted); pointer-events:none; }
+.ex-search { width:100%; padding:11px 16px 11px 40px; border:1px solid var(--border); border-radius:999px; background:var(--bg-1); color:var(--text); font-size:14px; outline:none; transition:border-color .15s, box-shadow .15s; }
+.ex-search:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.ex-chips { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+.ex-chip { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:var(--bg-1); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; text-decoration:none; }
+.ex-chip:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.ex-chip.active { background: var(--accent); border-color: var(--accent); color:#fff; box-shadow: 0 3px 10px color-mix(in srgb, var(--accent) 40%, transparent); }
+.ex-chip-n { font-size:11px; font-weight:800; min-width:18px; text-align:center; padding:1px 6px; border-radius:999px; background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--muted); }
+.ex-chip.active .ex-chip-n { background: rgba(255,255,255,.22); color:#fff; }
+.ex-count { font-size:12.5px; color:var(--muted); margin-left:auto; white-space:nowrap; font-weight:600; }
+
+/* Category sections */
+.ex-cat-group { margin-top: 38px; }
+.ex-cat-head { display:flex; align-items:center; gap:12px; margin:0 0 16px; scroll-margin-top: 74px; }
+.ex-cat-emoji { flex:0 0 auto; width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:21px; background: color-mix(in srgb, var(--accent) 13%, transparent); }
+.ex-cat-title { font-size:20px; font-weight:800; letter-spacing:-.4px; margin:0; color:var(--text); }
+.ex-cat-count { font-size:12px; font-weight:700; color:var(--muted); background:var(--bg-2); border:1px solid var(--border); border-radius:999px; padding:3px 11px; }
+
+/* Role cards */
+.ex-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap:12px; margin-bottom:6px; }
+.ex-grid a { position:relative; display:flex; align-items:center; gap:13px; padding:15px 42px 15px 15px; border:1px solid var(--border); border-radius:15px; background:var(--bg-1); text-decoration:none; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.ex-grid a:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,.18); }
+.ex-grid a::after { content:'\2192'; position:absolute; right:16px; top:50%; transform: translateY(-50%) translateX(-5px); color:var(--accent); font-weight:800; opacity:0; transition: opacity .15s, transform .15s; }
+.ex-grid a:hover::after { opacity:1; transform: translateY(-50%) translateX(0); }
+.ex-grid .ex-icon { flex:0 0 auto; width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:21px; background: color-mix(in srgb, var(--accent) 9%, var(--bg-2)); }
+.ex-grid .ex-info { min-width:0; }
+.ex-grid .ex-name { font-weight:700; font-size:14.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ex-grid .ex-sub { font-size:12px; color:var(--muted); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ex-grid a.ex-hidden, .ex-cat-group.ex-hidden { display:none; }
+.ex-empty { text-align:center; padding:56px 20px; color:var(--muted); font-size:15px; display:none; }
+.ex-empty.visible { display:block; }
+
+@media (max-width: 640px) {
+  .gd-hero { padding: 36px 18px 104px; }
+  .gd-wrap { padding: 0 16px 70px; }
+  .ex-filter-bar { margin: 20px -16px 0; padding: 10px 16px; flex-direction: column; align-items: stretch; }
+  .ex-search-wrap { max-width:none; }
+  .ex-chips { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; margin:0 -16px; padding:2px 16px; }
+  .ex-chips::-webkit-scrollbar { display:none; }
+  .ex-count { display:none; }
   .ex-grid { grid-template-columns: 1fr; }
-  .ex-filter-bar { margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
 }
 </style>
 </head>
@@ -194,11 +171,21 @@
   <div class="gd-hero-inner">
     <nav class="gd-crumb"><a href="/">Home</a> <span>›</span> Resume Examples</nav>
     <h1>Resume Examples by Job Title</h1>
-    <div class="gd-meta">138 examples · Updated 2026-09-22</div>
+    <p class="ex-subtitle">Real, ATS-ready examples for 138 roles — each with an adaptable summary, the skills and keywords that matter, and quantified bullet points. Pick your role and build yours free.</p>
+    <div class="ex-hero-stats">
+      <span class="ex-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>138 examples</span>
+      <span class="ex-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>6 categories</span>
+      <span class="ex-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>ATS-tested</span>
+      <span class="ex-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.1L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.9z"/></svg>100% free</span>
+    </div>
+    <div class="gd-meta" style="margin-top:16px;">Updated 2026-09-22</div>
   </div>
 </div>
 <main class="gd-wrap">
-  <div class="gd-answer">Pick your role to see a full resume example: a summary you can adapt, the skills and keywords that matter, and quantified bullet points that pass ATS. Every example works with Applio's free builder.</div>
+  <div class="ex-intro">
+    <span class="ex-intro-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+    <div>Pick your role to see a full resume example: a summary you can adapt, the skills and keywords that matter, and quantified bullet points that pass ATS. Every example works with Applio's free builder.</div>
+  </div>
 
   <div class="ex-filter-bar" id="filter-bar">
     <div class="ex-search-wrap">
@@ -473,6 +460,34 @@
   var countEl = document.getElementById('ex-count');
   var emptyEl = document.getElementById('ex-empty');
   var activeCat = 'all';
+
+  // --- Enhance: category emoji headers + live counts on chips and section heads ---
+  var CAT_EMOJI = { students:'🎓', tech:'💻', business:'💼', healthcare:'🩺', sales:'📣', service:'🛠️' };
+  var totalAll = 0;
+  groups.forEach(function (g) {
+    var cat = g.getAttribute('data-cat');
+    var n = g.querySelectorAll('.ex-grid a').length;
+    totalAll += n;
+    var title = g.querySelector('.ex-cat-title');
+    if (title && !g.querySelector('.ex-cat-head')) {
+      var head = document.createElement('div');
+      head.className = 'ex-cat-head';
+      var emoji = document.createElement('span');
+      emoji.className = 'ex-cat-emoji'; emoji.textContent = CAT_EMOJI[cat] || '📄';
+      var count = document.createElement('span');
+      count.className = 'ex-cat-count'; count.textContent = n + ' example' + (n !== 1 ? 's' : '');
+      title.parentNode.insertBefore(head, title);
+      head.appendChild(emoji); head.appendChild(title); head.appendChild(count);
+    }
+  });
+  chips.forEach(function (chip) {
+    var cat = chip.getAttribute('data-cat');
+    var n = cat === 'all' ? totalAll : (document.querySelector('.ex-cat-group[data-cat="' + cat + '"]') || { querySelectorAll: function () { return []; } }).querySelectorAll('.ex-grid a').length;
+    if (!chip.querySelector('.ex-chip-n')) {
+      var b = document.createElement('span'); b.className = 'ex-chip-n'; b.textContent = n;
+      chip.appendChild(b);
+    }
+  });
 
   function update() {
     var q = search.value.trim().toLowerCase();

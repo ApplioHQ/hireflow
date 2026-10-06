@@ -516,6 +516,19 @@ async function loadAnalytics() {
   }
 }
 
+// Canonical export numbers, both from the export tracking beacon (NOT the stale
+// user.downloadsUsed, which stopped counting once the product became free):
+//  - total export actions (pdf + google docs + print)
+//  - distinct users who have exported (live per-user feature counts)
+function _totalExports(d) {
+  var f = d.featureUsage || {};
+  return (f.download_pdf || 0) + (f.export_gdoc || 0) + (f.export_print || 0);
+}
+function _usersExported(d) {
+  var u = d.usersByNonAiFeature || {};
+  return Math.max(u.download_pdf || 0, u.export_gdoc || 0, u.export_print || 0, d.everDownloaded || 0);
+}
+
 function renderHeroCards(d) {
   var trend = d.signupTrend || 0;
   _setHero('hc-visitors', (d.visitors || 0).toLocaleString(), (d.visitorsToday || 0) + ' today · ' + (d.pageViews || 0).toLocaleString() + ' views', null);
@@ -528,8 +541,8 @@ function renderHeroCards(d) {
     (d.activated || 0) + ' of ' + (d.total || 0) + ' reached value', null);
   _setHero('hc-wau', (d.wau || 0).toLocaleString(),
     (d.activeToday || 0) + ' today · ' + (d.stickiness || 0) + '% sticky', null);
-  _setHero('hc-exports', (d.totalDownloads || 0).toLocaleString(),
-    (d.everDownloaded || 0) + ' of ' + (d.total || 0) + ' users exported', null);
+  _setHero('hc-exports', _totalExports(d).toLocaleString(),
+    _usersExported(d) + ' of ' + (d.total || 0) + ' users exported', null);
 }
 
 function _setHero(id, val, sub, trendClass) {
@@ -687,16 +700,18 @@ function renderExports(d) {
   var pdf = fu.download_pdf || 0;
   var gdoc = fu.export_gdoc || 0;
   var print = fu.export_print || 0;
-  var total = pdf + gdoc + print;
+  var total = _totalExports(d);
+  var usersExported = _usersExported(d);
   var pdf7 = fl7.download_pdf || 0;
   var gdoc7 = fl7.export_gdoc || 0;
+  var avgPerExporter = usersExported ? Math.round((total / usersExported) * 10) / 10 : 0;
   el.innerHTML =
-    _miniStat('Total Exports', total, (d.everDownloaded || 0) + ' users have exported')
+    _miniStat('Total Exports', total, usersExported + ' users have exported')
     + _miniStat('PDF Downloads', pdf, pdf7 ? pdf7 + ' last 7 days' : 'all time')
     + _miniStat('Google Docs', gdoc, gdoc7 ? gdoc7 + ' last 7 days' : 'all time')
     + _miniStat('Print', print, 'all time')
-    + _miniStat('Avg per User', d.avgDownloads || 0, (d.totalDownloads || 0) + ' total downloads')
-    + _miniStat('Ever Exported', d.everDownloaded || 0, d.total ? Math.round((d.everDownloaded / d.total) * 1000) / 10 + '% of users' : '');
+    + _miniStat('Avg per Exporter', avgPerExporter, total + ' total exports')
+    + _miniStat('Ever Exported', usersExported, d.total ? Math.round((usersExported / d.total) * 1000) / 10 + '% of users' : '');
 }
 
 // ─── AI / Feature bars ───

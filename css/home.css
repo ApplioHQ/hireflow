@@ -469,7 +469,7 @@
 
 /* ===== Footer ===== */
 /* ===== Ask AI (GEO) ===== */
-.askai { padding: 72px 40px; background: #f7f7fb; border-top: 1px solid #ececf3; }
+.askai { padding: 72px 40px; background: #fff; color: #111827; }
 .askai-inner { max-width: 760px; margin: 0 auto; text-align: center; }
 .askai .kicker { margin-bottom: 14px; }
 .askai .section-title { margin: 0 0 12px; color: #0f1222; }

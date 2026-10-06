@@ -798,7 +798,13 @@
   color: rgba(255,255,255,.6); transition: background .15s, color .15s;
 }
 .footer-social a:hover { background: rgba(255,255,255,.15); color: #fff; }
-.home-footer .gps-wrap { margin-top: 18px; min-height: 40px; }
+.home-footer .gps-cta { display: flex; align-items: center; gap: 13px; width: fit-content; max-width: 330px; margin-top: 18px; padding: 11px 13px; border-radius: 20px; background: #eceafd; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+.home-footer .gps-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.home-footer .gps-cta-logo { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.home-footer .gps-cta-logo svg { width: 27px; height: 27px; }
+.home-footer .gps-cta-text { flex: 1; font-size: 14.5px; font-weight: 800; line-height: 1.2; color: #2d2a45; letter-spacing: -.1px; }
+.home-footer .gps-cta-arrow { flex: 0 0 auto; width: 33px; height: 33px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.1); color: #2d2a45; }
+.home-footer .gps-cta-arrow svg { width: 15px; height: 15px; }
 .footer-status { display: flex; align-items: center; gap: 6px; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
 

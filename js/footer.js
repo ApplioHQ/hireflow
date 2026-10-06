@@ -14,7 +14,13 @@
     + '.app-footer-brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;color:var(--text);} '
     + '.app-footer-brand img{width:26px;height:26px;border-radius:7px;} '
     + '.app-footer-tag{margin-top:10px;line-height:1.55;max-width:280px;} '
-    + '.app-footer .gps-wrap{margin-top:16px;min-height:40px;} '
+    + '.app-footer .gps-cta{display:flex;align-items:center;gap:11px;width:-moz-fit-content;width:fit-content;max-width:300px;margin-top:16px;padding:10px 12px;border-radius:18px;background:#eceafd;text-decoration:none;transition:transform .15s,box-shadow .15s;} '
+    + '.app-footer .gps-cta:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(60,50,120,.3);} '
+    + '.app-footer .gps-cta-logo{flex:0 0 auto;width:42px;height:42px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.1);} '
+    + '.app-footer .gps-cta-logo svg{width:25px;height:25px;} '
+    + '.app-footer .gps-cta-text{flex:1;font-size:13.5px;font-weight:800;line-height:1.22;color:#2d2a45;letter-spacing:-.1px;} '
+    + '.app-footer .gps-cta-arrow{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.1);color:#2d2a45;} '
+    + '.app-footer .gps-cta-arrow svg{width:14px;height:14px;} '
     + '.app-footer-col-wide{grid-column:1 / -1;} '
     + '@media(min-width:901px){.app-footer-col-brand{grid-row:span 1;}} '
     + '.app-footer h4{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text);margin:2px 0 12px;} '
@@ -38,7 +44,11 @@
     +   '<div class="app-footer-col-brand">'
     +     '<div class="app-footer-brand"><img src="/logo.jpeg" alt="Applio AI resume builder logo"> Applio</div>'
     +     '<div class="app-footer-tag">The free AI resume builder and ATS checker. Build an ATS-friendly resume, tailor it to any job description, generate a cover letter, and land more interviews.</div>'
-    +     '<div class="gps-wrap"><div google-add-preferred-source-btn data-theme="light"></div></div>'
+    +     '<a class="gps-cta" href="https://www.google.com/preferences/source?q=appliohq.com" target="_blank" rel="noopener" aria-label="Add Applio as a preferred source on Google">'
+    +       '<span class="gps-cta-logo"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg></span>'
+    +       '<span class="gps-cta-text">Add as a preferred source on Google</span>'
+    +       '<span class="gps-cta-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>'
+    +     '</a>'
     +   '</div>'
     +   '<div><h4>Resume Builder</h4>'
     +     '<a href="/resume-builder">AI Resume Builder</a>'
@@ -126,13 +136,4 @@
   footer.className = 'app-footer';
   footer.innerHTML = html;
   document.body.appendChild(footer);
-
-  // Google Preferred Sources library. Loaded after the button <div> is in the DOM
-  // so the library finds and renders it on init. Injected once per page.
-  if (!document.querySelector('script[src*="swg/js/v1/publisher.js"]')) {
-    var gps = document.createElement('script');
-    gps.async = true;
-    gps.src = 'https://news.google.com/swg/js/v1/publisher.js';
-    document.head.appendChild(gps);
-  }
 })();

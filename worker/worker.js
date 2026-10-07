@@ -2851,7 +2851,10 @@ async function jobSearch(req, env) {
   if (location.trim()) params.set("where", location.trim().slice(0, 200));
 
   const apiUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`;
-  const r = await fetch(apiUrl, { cf: { cacheTtl: 3600, cacheEverything: true } });
+  // Cache only successful responses (never error responses), so a fix to the
+  // Adzuna credentials takes effect immediately instead of being masked for an
+  // hour by a cached failure.
+  const r = await fetch(apiUrl, { cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 3600, "300-599": 0 } } });
   if (!r.ok) {
     // Surface the real upstream cause in logs so credential/limit issues are
     // diagnosable (401/403 = bad or expired Adzuna keys, 429 = rate limited).

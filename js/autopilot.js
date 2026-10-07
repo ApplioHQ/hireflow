@@ -113,11 +113,57 @@
   var VC = { apply: '#22c55e', stretch: '#f59e0b', skip: '#ef4444' };
   function ringColor(v) { return VC[v] || 'var(--accent)'; }
 
+  // ---------- ATS match: before -> projected-after (client-side, via ats-engine.js) ----------
+  function _resumeToText(r) {
+    if (!r || typeof r !== 'object') return '';
+    var p = r.personal || {}, out = [];
+    out.push([p.fullName, p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean).join(' '));
+    if (p.summary) out.push('Summary\n' + p.summary);
+    if ((r.experience || []).length) { out.push('Experience'); r.experience.forEach(function (e) { out.push([e.title, e.company, e.location].filter(Boolean).join(' ')); if (e.description) out.push(e.description); }); }
+    if ((r.projects || []).length) { out.push('Projects'); r.projects.forEach(function (e) { out.push([e.name, e.tech].filter(Boolean).join(' ')); if (e.description) out.push(e.description); }); }
+    if ((r.education || []).length) { out.push('Education'); r.education.forEach(function (e) { out.push([e.degree, e.field, e.school, e.description].filter(Boolean).join(' ')); }); }
+    var cats = (r.skills && r.skills.categories) || [];
+    if (cats.length) { out.push('Skills'); cats.forEach(function (c) { if ((c.items || []).length) out.push((c.label ? c.label + ': ' : '') + c.items.join(', ')); }); }
+    return out.filter(Boolean).join('\n');
+  }
+  function _atsImprove(resume, d, jd) {
+    if (!window.AtsEngine || !resume || !jd || jd.length < 20 || !d.tailor) return null;
+    try {
+      var after = JSON.parse(JSON.stringify(resume));
+      if (d.tailor.summary && d.tailor.summary.trim()) { after.personal = after.personal || {}; after.personal.summary = d.tailor.summary.trim(); }
+      _applyTailoredBullets(after, d.tailor.bulletSuggestions || []);
+      var b = AtsEngine.score(_resumeToText(resume), jd).score;
+      var a = AtsEngine.score(_resumeToText(after), jd).score;
+      if (typeof b !== 'number' || typeof a !== 'number') return null;
+      return { before: b, after: Math.max(a, b) };
+    } catch (e) { return null; }
+  }
+  function improveCard(imp) {
+    if (!imp || typeof imp.before !== 'number' || typeof imp.after !== 'number') return '';
+    var delta = imp.after - imp.before;
+    var up = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+    var arrow = '<svg class="ti-arrow" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>';
+    return '<div class="tailor-block tailor-improve" style="margin-bottom:16px;">'
+      + '<div class="ti-head">' + up + ' ATS match ' + (delta > 0 ? 'improved' : 'score') + '</div>'
+      + '<div class="ti-scores">'
+      +   '<div class="ti-score"><span class="ti-num ti-before">' + imp.before + '</span><span class="ti-lbl">before</span></div>'
+      +   arrow
+      +   '<div class="ti-score"><span class="ti-num ti-after">' + imp.after + '</span><span class="ti-lbl">after</span></div>'
+      +   (delta > 0 ? '<span class="ti-delta">+' + delta + ' pts</span>' : '')
+      + '</div>'
+      + '<div class="ti-note">' + (delta > 0
+        ? 'Projected ATS match for this job once you apply the changes below. Hit “Apply to my resume”, then export from the editor.'
+        : 'Your resume already matches this job strongly.') + '</div>'
+      + '</div>';
+  }
+
   function render(d) {
     var parts = [];
     if (d._free) parts.push(freeBanner());
     parts.push(verdictCard(d));
     if ((d.missingKeywords && d.missingKeywords.length) || (d.matchedKeywords && d.matchedKeywords.length)) parts.push(keywordsCard(d));
+    var _imp = d._free ? null : _atsImprove(readResume(), d, (els.jd.value || '').trim());
+    if (_imp) parts.push(improveCard(_imp));
     if (d._free) {
       parts.push(lockedCard('Tailored resume', 'Applio rewrites your summary and bullets to match this job, grounded in your real experience.'));
       parts.push(lockedCard('Cover letter', 'A ready-to-send cover letter written for this exact role and company.'));

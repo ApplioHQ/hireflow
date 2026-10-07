@@ -2848,9 +2848,10 @@ async function jobSearchJSearch(env, { query, location, page }) {
   const q = (location ? `${query} in ${location}` : query).slice(0, 200);
   const params = new URLSearchParams({ query: q, page: String(page), num_pages: "1", date_posted: "month" });
   if (country) params.set("country", country);
-  const apiUrl = `https://jsearch.p.rapidapi.com/search?${params.toString()}`;
+  // JSearch v5's search endpoint is /search-v2 (/search 404s).
+  const apiUrl = `https://jsearch.p.rapidapi.com/search-v2?${params.toString()}`;
   const r = await fetch(apiUrl, {
-    headers: { "X-RapidAPI-Key": env.JSEARCH_KEY, "X-RapidAPI-Host": "jsearch.p.rapidapi.com" },
+    headers: { "x-rapidapi-key": env.JSEARCH_KEY, "x-rapidapi-host": "jsearch.p.rapidapi.com" },
     cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 1800, "300-599": 0 } },
   });
   if (!r.ok) {
@@ -2861,21 +2862,23 @@ async function jobSearchJSearch(env, { query, location, page }) {
     throw err(502, "Job search failed. Try again.");
   }
   const data = await r.json().catch(() => null);
-  if (!data || !Array.isArray(data.data)) throw err(502, "Invalid response from job search.");
-  const _emp = { FULLTIME: "Full time", PARTTIME: "Part time", CONTRACTOR: "Contract", INTERN: "Internship" };
-  const results = data.data.map(j => ({
+  // v5 shape: { status, data: { jobs: [...] } }
+  const jobs = (data && data.data && Array.isArray(data.data.jobs)) ? data.data.jobs
+    : (data && Array.isArray(data.data)) ? data.data : null;
+  if (!jobs) throw err(502, "Invalid response from job search.");
+  const results = jobs.map(j => ({
     title: j.job_title || "",
     company: j.employer_name || "",
-    location: [j.job_city, j.job_state, j.job_country].filter(Boolean).join(", ") || (j.job_is_remote ? "Remote" : ""),
+    location: j.job_location || [j.job_city, j.job_state, j.job_country].filter(Boolean).join(", ") || (j.job_is_remote ? "Remote" : ""),
     description: (j.job_description || "").slice(0, 300),
-    url: j.job_apply_link || j.job_google_link || "",
+    url: j.job_apply_link || (j.apply_options && j.apply_options[0] && j.apply_options[0].apply_link) || j.job_google_link || "",
     salary_min: j.job_min_salary || null,
     salary_max: j.job_max_salary || null,
     currency: j.job_salary_currency || "USD",
     created: j.job_posted_at_datetime_utc || "",
     category: j.job_is_remote ? "Remote" : "",
     contract_type: "",
-    contract_time: _emp[(j.job_employment_type || "").toUpperCase()] || "",
+    contract_time: j.job_employment_type || "",
   }));
   return {
     results,

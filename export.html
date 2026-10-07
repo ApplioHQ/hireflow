@@ -456,6 +456,43 @@ async function tryExport(fmt) {
   setTimeout(showInterviewWinPrompt, 2000);
 }
 
+// ============ Referral ask (fired only at peak-delight moments) ============
+// Shown after a win (interview/offer logged) or a thumbs-up, never cold, and at
+// most once per 45 days so it never nags.
+function _refCanAsk() {
+  try { var t = parseInt(localStorage.getItem('hf_ref_asked') || '0', 10); return !t || (Date.now() - t) > 45 * 864e5; } catch (_) { return true; }
+}
+function _refMarkAsked() { try { localStorage.setItem('hf_ref_asked', String(Date.now())); } catch (_) {} }
+// Render the referral share inside an existing slide-in prompt `el`. `dismiss` is
+// that prompt's own dismiss fn. Returns true if it took over the prompt.
+function showReferralAsk(el, dismiss, intro) {
+  if (!el || !TOKEN || !_refCanAsk()) return false;
+  _refMarkAsked();
+  el.innerHTML = '<div style="text-align:center;padding:6px 0;"><div style="font-weight:700;margin-bottom:6px;">' + intro + '</div><div style="color:var(--muted);font-size:12.5px;">Getting your invite link…</div></div>';
+  fetch(window.HIREFLOW_CONFIG.API_URL + '/referral/code', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN } })
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (d) {
+      var link = 'https://appliohq.com/?ref=' + d.code;
+      el.innerHTML = '<div style="position:relative;">'
+        + '<button data-ref-x aria-label="Dismiss" style="position:absolute;top:-2px;right:0;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">×</button>'
+        + '<div style="font-weight:700;margin-bottom:4px;padding-right:18px;">' + intro + '</div>'
+        + '<div style="color:var(--muted);font-size:12.5px;margin-bottom:12px;">Know someone else job hunting? Send them Applio, it’s free.</div>'
+        + '<div style="display:flex;gap:6px;">'
+        +   '<input readonly value="' + link + '" onclick="this.select()" style="flex:1;min-width:0;padding:8px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;">'
+        +   '<button data-ref-copy class="btn btn-primary btn-sm" style="white-space:nowrap;">Copy</button>'
+        + '</div>'
+        + (navigator.share ? '<button data-ref-share class="btn btn-secondary btn-sm btn-block" style="margin-top:8px;">Share…</button>' : '')
+        + '</div>';
+      var x = el.querySelector('[data-ref-x]'); if (x) x.onclick = dismiss;
+      var cp = el.querySelector('[data-ref-copy]');
+      if (cp) cp.onclick = function () { navigator.clipboard.writeText(link).then(function () { cp.textContent = 'Copied!'; setTimeout(function () { cp.textContent = 'Copy'; }, 2000); }).catch(function () {}); };
+      var sh = el.querySelector('[data-ref-share]');
+      if (sh) sh.onclick = function () { navigator.share({ title: 'Applio', text: 'Free AI resume builder that helped me tailor my resume and land interviews:', url: link }).catch(function () {}); };
+    })
+    .catch(function () { el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">Thanks! 🙌</div>'; });
+  return true;
+}
+
 // ============ Post-export feedback prompt (Feature 1) ============
 let _fbPrompt = null, _fbTimer = null;
 function showExportFeedbackPrompt() {
@@ -490,7 +527,9 @@ function showExportFeedbackPrompt() {
     el.querySelector('[data-fb-close]').onclick = dismiss;
     el.querySelector('[data-fb="up"]').onclick = () => {
       sendFeedback({ rating: 'up', message: '', context: 'export', page: 'export' });
-      thanks();
+      // Peak delight: roll a happy user into a referral ask (capped to 1/45 days).
+      if (showReferralAsk(el, dismiss, 'Glad it helped! 🙌')) { clearTimeout(_fbTimer); _fbTimer = setTimeout(dismiss, 25000); }
+      else thanks();
     };
     el.querySelector('[data-fb="down"]').onclick = renderDown;
   }
@@ -597,6 +636,10 @@ function showInterviewWinPrompt() {
   function dismiss() { el.style.opacity='0'; el.style.transform='translateY(16px)'; setTimeout(()=>{el.remove(); if(_iwPrompt===el)_iwPrompt=null;},250); }
   function record(outcome) {
     fetch(window.HIREFLOW_CONFIG.API_URL + '/interview-win', { method:'POST', headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}, body:JSON.stringify({outcome}) }).catch(()=>{});
+    // A logged interview/offer is the highest-delight moment in the product: roll it
+    // straight into a referral ask (capped to 1/45 days so it never nags).
+    var win = (outcome === 'interview' || outcome === 'offer');
+    if (win && showReferralAsk(el, dismiss, outcome === 'offer' ? 'Congrats on the offer! 🎉' : 'Congrats on the interview! 🎉')) { setTimeout(dismiss, 25000); return; }
     el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">' + (outcome==='no'?'No worries, keep going! 💪':'That\'s awesome! 🎉') + '</div>';
     setTimeout(dismiss, 2500);
   }

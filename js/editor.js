@@ -167,8 +167,6 @@ function hydrate() {
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : (isPaid() ? planLabel() + ' plan' : 'Free plan');
-  // Manage / cancel subscription is only for real paying (Stripe) users, not admins.
-  const mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = (isPaid() && !_admin) ? '' : 'none';
   // Admin Console: only admins/super-admins (moved here from the topbar button).
   const adRow = document.getElementById('acct-admin-console');
   if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';
@@ -2135,26 +2133,12 @@ function renderDashboard() {
     </div>`;
 }
 
-// Manage-subscription card: real billing controls for paid users (reuses the
-// existing billing-portal modal, which includes cancel), upgrade nudge for free.
+// Account status card. Applio is 100% free, so there's no subscription to
+// manage, just a confirmation that everything is unlocked.
 function _renderSubCard() {
-  const u = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
-  if (!isPaid()) {
-    return `<div class="dash-card dash-sub-card">
-      <div><strong>Free plan</strong><div class="dash-sub-meta">Unlock AI tailoring, ATS scoring, unlimited exports and more.</div></div>
-      <a class="btn btn-primary btn-sm" href="pricing">${ICON('sparkle', 'ico ico-sm')} <span>Upgrade</span></a>
-    </div>`;
-  }
-  const plan = (u && u.plan) || 'premium';
-  const renews = u && u.currentPeriodEnd
-    ? new Date(u.currentPeriodEnd * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : null;
-  const meta = plan === 'lifetime'
-    ? 'Lifetime access, no recurring charges. Manage billing or view invoices anytime.'
-    : (renews ? 'Renews ' + renews + ' · cancel or update billing anytime.' : 'Active subscription · cancel or update billing anytime.');
   return `<div class="dash-card dash-sub-card">
-    <div><strong>${ICON('crown', 'ico ico-sm')} ${planLabel()} plan</strong><div class="dash-sub-meta">${meta}</div></div>
-    <button class="btn btn-secondary btn-sm" onclick="openBillingPortal()">Manage subscription</button>
+    <div><strong>${ICON('check', 'ico ico-sm')} Everything's free</strong><div class="dash-sub-meta">Every Applio feature is unlocked, no plan, payment, or subscription needed.</div></div>
+    <a class="btn btn-ghost btn-sm" href="mailto:support@appliohq.com?subject=Applio%20support">Contact support</a>
   </div>`;
 }
 
@@ -3202,7 +3186,7 @@ async function openReferralPanel() {
     '<button class="modal-close" onclick="document.getElementById(\'referral-bd\').remove()">&times;</button>' +
     '<div class="ref-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" width="40" height="40"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>' +
     '<h3 class="ref-title">Refer a Friend</h3>' +
-    '<p class="ref-sub">Share your link. When a friend signs up, you <strong>both</strong> get 7 days of free Premium.</p>' +
+    '<p class="ref-sub">Share your link and help a friend build a resume that gets interviews. Applio is <strong>100% free</strong> for both of you.</p>' +
     '<div class="ref-link-row" id="ref-link-row"><span class="ref-loading">Generating your link…</span></div>' +
     '<div class="ref-stats" id="ref-stats"></div>' +
     '<div class="ref-tp-nudge"><a href="https://www.trustpilot.com/evaluate/appliohq.com" target="_blank" rel="noopener" class="ref-tp-link">' +

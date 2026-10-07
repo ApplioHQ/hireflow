@@ -2852,7 +2852,15 @@ async function jobSearch(req, env) {
 
   const apiUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`;
   const r = await fetch(apiUrl, { cf: { cacheTtl: 3600, cacheEverything: true } });
-  if (!r.ok) throw err(502, "Job search failed. Try again.");
+  if (!r.ok) {
+    // Surface the real upstream cause in logs so credential/limit issues are
+    // diagnosable (401/403 = bad or expired Adzuna keys, 429 = rate limited).
+    const body = await r.text().catch(() => "");
+    console.warn("Adzuna job-search failed:", r.status, body.slice(0, 300));
+    if (r.status === 401 || r.status === 403) throw err(503, "Job search is temporarily unavailable.");
+    if (r.status === 429) throw err(503, "Job search is busy right now. Please try again in a minute.");
+    throw err(502, "Job search failed. Try again.");
+  }
 
   const data = await r.json().catch(() => null);
   if (!data) throw err(502, "Invalid response from job search.");

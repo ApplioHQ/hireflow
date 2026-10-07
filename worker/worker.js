@@ -2827,44 +2827,88 @@ async function adzunaSalary(env, { role, location }) {
   } catch (_) { return null; }
 }
 
+// Job search. Prefers JSearch (RapidAPI, aggregates Google for Jobs → LinkedIn /
+// Indeed / Glassdoor / ZipRecruiter) when its key is set; falls back to Adzuna.
 async function jobSearch(req, env) {
   const url = new URL(req.url);
-  const query = url.searchParams.get("q") || "";
-  const location = url.searchParams.get("location") || "";
+  const query = (url.searchParams.get("q") || "").trim();
+  const location = (url.searchParams.get("location") || "").trim();
   const page = Math.max(1, Math.min(10, parseInt(url.searchParams.get("page")) || 1));
+  if (!query) throw err(400, "Search query is required.");
 
-  if (!query.trim()) throw err(400, "Search query is required.");
+  if (env.JSEARCH_KEY) return await jobSearchJSearch(env, { query, location, page });
+  if (env.ADZUNA_APP_ID && env.ADZUNA_APP_KEY) return await jobSearchAdzuna(env, { query, location, page });
+  throw err(503, "Job search is temporarily unavailable.");
+}
 
+// JSearch (RapidAPI). Location is folded into the query string; country is a
+// 2-letter hint. No total-count field, so pagination grows one page at a time.
+async function jobSearchJSearch(env, { query, location, page }) {
+  const country = inferAdzunaCountry(location);
+  const q = (location ? `${query} in ${location}` : query).slice(0, 200);
+  const params = new URLSearchParams({ query: q, page: String(page), num_pages: "1", date_posted: "month" });
+  if (country) params.set("country", country);
+  const apiUrl = `https://jsearch.p.rapidapi.com/search?${params.toString()}`;
+  const r = await fetch(apiUrl, {
+    headers: { "X-RapidAPI-Key": env.JSEARCH_KEY, "X-RapidAPI-Host": "jsearch.p.rapidapi.com" },
+    cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 1800, "300-599": 0 } },
+  });
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    console.warn("JSearch job-search failed:", r.status, body.slice(0, 300));
+    if (r.status === 401 || r.status === 403) throw err(503, "Job search is temporarily unavailable.");
+    if (r.status === 429) throw err(503, "Job search is busy right now. Please try again in a minute.");
+    throw err(502, "Job search failed. Try again.");
+  }
+  const data = await r.json().catch(() => null);
+  if (!data || !Array.isArray(data.data)) throw err(502, "Invalid response from job search.");
+  const _emp = { FULLTIME: "Full time", PARTTIME: "Part time", CONTRACTOR: "Contract", INTERN: "Internship" };
+  const results = data.data.map(j => ({
+    title: j.job_title || "",
+    company: j.employer_name || "",
+    location: [j.job_city, j.job_state, j.job_country].filter(Boolean).join(", ") || (j.job_is_remote ? "Remote" : ""),
+    description: (j.job_description || "").slice(0, 300),
+    url: j.job_apply_link || j.job_google_link || "",
+    salary_min: j.job_min_salary || null,
+    salary_max: j.job_max_salary || null,
+    currency: j.job_salary_currency || "USD",
+    created: j.job_posted_at_datetime_utc || "",
+    category: j.job_is_remote ? "Remote" : "",
+    contract_type: "",
+    contract_time: _emp[(j.job_employment_type || "").toUpperCase()] || "",
+  }));
+  return {
+    results,
+    total: results.length,
+    page,
+    pages: results.length >= 10 ? Math.min(10, page + 1) : page,   // JSearch gives no total; allow "next" while pages are full
+    country: (country || "us").toUpperCase(),
+  };
+}
+
+async function jobSearchAdzuna(env, { query, location, page }) {
   const appId = env.ADZUNA_APP_ID, appKey = env.ADZUNA_APP_KEY;
-  if (!appId || !appKey) throw err(503, "Job search is temporarily unavailable.");
-
   const country = inferAdzunaCountry(location);
   const params = new URLSearchParams({
     app_id: appId,
     app_key: appKey,
     results_per_page: "20",
-    page: String(page),
-    what: query.trim().slice(0, 200),
+    what: query.slice(0, 200),
     content_type: "application/json",
     sort_by: "relevance",
   });
-  if (location.trim()) params.set("where", location.trim().slice(0, 200));
+  if (location) params.set("where", location.slice(0, 200));
 
   const apiUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`;
-  // Cache only successful responses (never error responses), so a fix to the
-  // Adzuna credentials takes effect immediately instead of being masked for an
-  // hour by a cached failure.
+  // Cache only successful responses so a credentials fix takes effect immediately.
   const r = await fetch(apiUrl, { cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 3600, "300-599": 0 } } });
   if (!r.ok) {
-    // Surface the real upstream cause in logs so credential/limit issues are
-    // diagnosable (401/403 = bad or expired Adzuna keys, 429 = rate limited).
     const body = await r.text().catch(() => "");
     console.warn("Adzuna job-search failed:", r.status, body.slice(0, 300));
     if (r.status === 401 || r.status === 403) throw err(503, "Job search is temporarily unavailable.");
     if (r.status === 429) throw err(503, "Job search is busy right now. Please try again in a minute.");
     throw err(502, "Job search failed. Try again.");
   }
-
   const data = await r.json().catch(() => null);
   if (!data) throw err(502, "Invalid response from job search.");
 

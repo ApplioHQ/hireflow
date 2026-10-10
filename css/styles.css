@@ -122,6 +122,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   font-size: var(--fs-base); font-weight: 600; cursor: pointer;
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease);
   border: 1px solid transparent;
+  /* Buttons always paint their own label color. Without this, a button nested
+     under any gradient-clipped text (.section-title shine, .accent, hero titles)
+     inherits -webkit-text-fill-color:transparent and the label vanishes. */
+  -webkit-text-fill-color: currentColor;
 }
 .btn:active { transform: translateY(0) scale(.985); }
 .btn:focus-visible { outline: none; box-shadow: var(--ring); }

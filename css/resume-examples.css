@@ -59,8 +59,8 @@
   border-radius: 50%; background: var(--accent); margin-right: 10px;
   vertical-align: 2px; flex-shrink: 0;
 }
-.gd-section a { color: var(--accent); }
-.gd-section a:hover { text-decoration: underline; }
+.gd-section a:not(.btn) { color: var(--accent); }
+.gd-section a:not(.btn):hover { text-decoration: underline; }
 
 /* Resume example block */
 .gd-example {

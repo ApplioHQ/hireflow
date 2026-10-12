@@ -456,6 +456,55 @@ async function tryExport(fmt) {
   setTimeout(showInterviewWinPrompt, 2000);
 }
 
+// ============ Testimonial ask (fired right after a reported win) ============
+// The peak-delight moment is right after someone logs an interview/offer, so we
+// ask for one quick line. Capped to once per 120 days. `next` runs on submit or
+// skip (we chain into the referral ask). Returns true if it took over `el`.
+function _tstCanAsk() {
+  try { var t = parseInt(localStorage.getItem('hf_tst_asked') || '0', 10); return !t || (Date.now() - t) > 120 * 864e5; } catch (_) { return true; }
+}
+function _tstMarkAsked() { try { localStorage.setItem('hf_tst_asked', String(Date.now())); } catch (_) {} }
+function showTestimonialAsk(el, outcome, next) {
+  if (!el || !TOKEN || !_tstCanAsk()) return false;
+  _tstMarkAsked();
+  var intro = outcome === 'offer' ? 'Amazing, congrats on the offer! 🎉' : 'Congrats on the interview! 🎉';
+  var ib = 'width:100%;box-sizing:border-box;padding:8px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12.5px;';
+  el.innerHTML = '<div style="position:relative;">'
+    + '<button data-tst-x aria-label="Dismiss" style="position:absolute;top:-2px;right:0;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">×</button>'
+    + '<div style="font-weight:700;margin-bottom:4px;padding-right:18px;">' + intro + '</div>'
+    + '<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px;">Mind sharing one line about how Applio helped? It would mean a lot.</div>'
+    + '<textarea data-tst-text rows="3" placeholder="Applio helped me…" style="' + ib + 'resize:vertical;margin-bottom:8px;"></textarea>'
+    + '<div style="display:flex;gap:6px;margin-bottom:8px;">'
+    +   '<input data-tst-name placeholder="First name (optional)" style="' + ib + '">'
+    +   '<input data-tst-role placeholder="Role (optional)" style="' + ib + '">'
+    + '</div>'
+    + '<label style="display:flex;gap:7px;align-items:flex-start;color:var(--muted);font-size:11.5px;margin-bottom:10px;cursor:pointer;">'
+    +   '<input data-tst-consent type="checkbox" checked style="margin-top:1px;flex-shrink:0;">'
+    +   '<span>Applio can feature this with my first name and role</span>'
+    + '</label>'
+    + '<div style="display:flex;gap:6px;">'
+    +   '<button data-tst-skip class="btn btn-secondary btn-sm" style="flex:0 0 auto;">Skip</button>'
+    +   '<button data-tst-send class="btn btn-primary btn-sm" style="flex:1;">Share</button>'
+    + '</div></div>';
+  var x = el.querySelector('[data-tst-x]'); if (x) x.onclick = function () { el.remove(); };
+  var skip = el.querySelector('[data-tst-skip]'); if (skip) skip.onclick = function () { next(); };
+  var send = el.querySelector('[data-tst-send]');
+  if (send) send.onclick = function () {
+    var text = (el.querySelector('[data-tst-text]').value || '').trim();
+    if (!text) { next(); return; }
+    var body = {
+      text: text,
+      name: (el.querySelector('[data-tst-name]').value || '').trim(),
+      role: (el.querySelector('[data-tst-role]').value || '').trim(),
+      consent: el.querySelector('[data-tst-consent]').checked,
+      outcome: outcome
+    };
+    fetch(window.HIREFLOW_CONFIG.API_URL + '/testimonial', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify(body) }).catch(function () {});
+    next();
+  };
+  return true;
+}
+
 // ============ Referral ask (fired only at peak-delight moments) ============
 // Shown after a win (interview/offer logged) or a thumbs-up, never cold, and at
 // most once per 45 days so it never nags.
@@ -624,7 +673,7 @@ async function exportToGdoc() {
 }
 
 // ============ Interview success tracker (post-export) ============
-let _iwPrompt = null;
+let _iwPrompt = null, _iwAutoDismiss = null;
 function showInterviewWinPrompt() {
   if (_iwPrompt) return;
   if (!CURRENT_USER || !TOKEN) return;
@@ -635,11 +684,19 @@ function showInterviewWinPrompt() {
   el.style.cssText = 'position:fixed;left:20px;bottom:20px;z-index:9997;width:310px;max-width:calc(100vw - 40px);background:var(--bg-1);color:var(--text);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:16px;font-size:13px;opacity:0;transform:translateY(16px);transition:opacity .25s ease, transform .25s ease;';
   function dismiss() { el.style.opacity='0'; el.style.transform='translateY(16px)'; setTimeout(()=>{el.remove(); if(_iwPrompt===el)_iwPrompt=null;},250); }
   function record(outcome) {
+    clearTimeout(_iwAutoDismiss);   // user engaged, stop the idle auto-close
     fetch(window.HIREFLOW_CONFIG.API_URL + '/interview-win', { method:'POST', headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'}, body:JSON.stringify({outcome}) }).catch(()=>{});
-    // A logged interview/offer is the highest-delight moment in the product: roll it
-    // straight into a referral ask (capped to 1/45 days so it never nags).
     var win = (outcome === 'interview' || outcome === 'offer');
-    if (win && showReferralAsk(el, dismiss, outcome === 'offer' ? 'Congrats on the offer! 🎉' : 'Congrats on the interview! 🎉')) { setTimeout(dismiss, 25000); return; }
+    // A logged interview/offer is the highest-delight moment in the product. Ask for
+    // a short testimonial first, then roll into the referral ask (both self-capped so
+    // they never nag). Fall through to a plain thank-you if neither fires.
+    function thenReferral() {
+      if (showReferralAsk(el, dismiss, outcome === 'offer' ? 'Congrats on the offer! 🎉' : 'Congrats on the interview! 🎉')) { setTimeout(dismiss, 25000); return; }
+      el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">Thanks for sharing! 🎉</div>';
+      setTimeout(dismiss, 2600);
+    }
+    if (win && showTestimonialAsk(el, outcome, thenReferral)) return;
+    if (win) { thenReferral(); return; }
     el.innerHTML = '<div style="text-align:center;font-weight:600;padding:6px 0;">' + (outcome==='no'?'No worries, keep going! 💪':'That\'s awesome! 🎉') + '</div>';
     setTimeout(dismiss, 2500);
   }
@@ -656,7 +713,7 @@ function showInterviewWinPrompt() {
   el.querySelectorAll('[data-iw]').forEach(function(b){ b.onclick=function(){ record(b.dataset.iw); }; });
   document.body.appendChild(el);
   setTimeout(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 3000);
-  setTimeout(dismiss, 20000);
+  _iwAutoDismiss = setTimeout(dismiss, 20000);
 }
 
 // File-format selection: pick a format up top, the big button downloads it.

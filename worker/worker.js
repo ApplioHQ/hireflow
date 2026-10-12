@@ -163,6 +163,7 @@ export default {
       if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
       if (path === "/interview-win" && req.method === "POST") return json(await recordInterviewWin(req, env), 200, cors);
       if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
+      if (path === "/testimonial" && req.method === "POST") return json(await recordTestimonial(req, env), 200, cors);
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
       if (path === "/job-search" && req.method === "GET") return json(await jobSearch(req, env), 200, cors);
@@ -576,6 +577,31 @@ async function getInterviewWins(req, env) {
   };
 }
 
+// A short testimonial the user gives right after reporting an interview/offer.
+// Stored on the user record (one latest per user) so the admin dashboard can
+// show them. `consent` records whether the user allowed us to feature it.
+async function recordTestimonial(req, env) {
+  const user = await authUser(req, env);
+  const b = await req.json().catch(() => ({}));
+  const text = (b.text || "").toString().trim().slice(0, 1000);
+  if (!text) return { ok: false };
+  user.testimonial = {
+    text,
+    name: (b.name || "").toString().trim().slice(0, 80),
+    role: (b.role || "").toString().trim().slice(0, 100),
+    consent: !!b.consent,
+    outcome: (["interview", "offer"].includes(b.outcome) ? b.outcome : ""),
+    ts: Math.floor(Date.now() / 1000),
+  };
+  await putUser(env, user);
+  try {
+    const key = "stats:testimonials";
+    const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10);
+    await env.HIREFLOW_KV.put(key, String(cur + 1));
+  } catch {}
+  return { ok: true };
+}
+
 // Send a Trustpilot review invite after a positive win is logged.
 // Fire-and-forget: called inside recordInterviewWin, errors are swallowed.
 async function _sendWinReviewEmail(env, email) {
@@ -850,6 +876,9 @@ async function adminAnalytics(req, env) {
   let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
   let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
   let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
+  // Self-reported outcomes (logged at export): interviews and offers.
+  let interviewUsers = 0, interviewEvents = 0, offerEvents = 0, winsLast30 = 0;
+  const testimonials = [];   // user-written testimonials for the admin to review
   // Retention / repeat usage (the metrics investors flagged as missing).
   let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
   let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
@@ -934,7 +963,35 @@ async function adminAnalytics(req, env) {
     }
     // Dormant: joined more than 7 days ago and never downloaded anything.
     if (created && now - created > 7 * DAY && dl === 0) dormant++;
+
+    // Interview / offer outcomes the user self-reported at export. `interviewWins`
+    // is [{outcome:'interview'|'offer'|'no', ts}]; count real wins only.
+    if (Array.isArray(u.interviewWins) && u.interviewWins.length) {
+      let hasWin = false;
+      for (const w of u.interviewWins) {
+        if (w.outcome === "interview") { interviewEvents++; hasWin = true; }
+        else if (w.outcome === "offer") { offerEvents++; hasWin = true; }
+        else continue;
+        if (w.ts && (now / 1000 - Number(w.ts)) <= 30 * 86400) winsLast30++;
+      }
+      if (hasWin) interviewUsers++;
+    }
+
+    // Testimonials the user submitted after a win.
+    if (u.testimonial && u.testimonial.text) {
+      testimonials.push({
+        text: u.testimonial.text,
+        name: u.testimonial.name || "",
+        role: u.testimonial.role || "",
+        outcome: u.testimonial.outcome || "",
+        consent: !!u.testimonial.consent,
+        ts: Number(u.testimonial.ts) || 0,
+      });
+    }
   }
+  // Newest first, cap the payload.
+  testimonials.sort((a, b) => b.ts - a.ts);
+  if (testimonials.length > 100) testimonials.length = 100;
 
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
@@ -1053,6 +1110,41 @@ async function adminAnalytics(req, env) {
       }
     }
   }
+  // ---- Job tracker usage --------------------------------------------------
+  // Jobs live under their own KV key (jobs:<email>), not on the user record, so
+  // count distinct users with at least one saved job plus the total jobs tracked.
+  let jobTrackerUsers = 0, jobTrackerJobsTotal = 0;
+  {
+    const jkeys = [];
+    let jcursor;
+    do {
+      const page = await env.HIREFLOW_KV.list({ prefix: "jobs:", cursor: jcursor });
+      for (const k of page.keys) jkeys.push(k.name);
+      jcursor = page.list_complete ? undefined : page.cursor;
+    } while (jcursor);
+    const JB = 60;
+    for (let i = 0; i < jkeys.length; i += JB) {
+      const raws = await Promise.all(jkeys.slice(i, i + JB).map(name => env.HIREFLOW_KV.get(name)));
+      for (const raw of raws) {
+        if (!raw) continue;
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        const arr = Array.isArray(d.jobs) ? d.jobs : [];
+        if (arr.length) { jobTrackerUsers++; jobTrackerJobsTotal += arr.length; }
+      }
+    }
+  }
+  const outcomes = {
+    interviewUsers, interviewEvents, offerEvents,
+    winsTotal: interviewEvents + offerEvents, winsLast30,
+    winGlobalCounter: await num("stats:interview_wins"),
+    jobTrackerUsers, jobTrackerJobsTotal,
+    jobTrackerOpens: featureUsage.job_tracker_open || 0,
+    jobTrackerSaves: featureUsage.job_tracker_save || 0,
+    interviewPrepUsers: usersByNonAiFeature.interview_prep_open || 0,
+    testimonialCount: testimonials.length,
+    testimonials,
+  };
+
   const onboarding = {
     totalUsers: total,
     answered: onbAnswered,
@@ -1085,6 +1177,7 @@ async function adminAnalytics(req, env) {
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,
+    outcomes,
   };
 }
 

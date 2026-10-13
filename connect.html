@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Applio to Claude &amp; ChatGPT (MCP) | Applio</title>
+<meta name="description" content="Add Applio to Claude or ChatGPT as an MCP connector. Search jobs, score your resume against any job, extract keywords, and tailor your resume, right inside your AI chat. Free.">
+<link rel="canonical" href="https://appliohq.com/connect">
+<link rel="icon" href="/logo.ico">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#6366f1">
+<meta property="og:title" content="Connect Applio to Claude &amp; ChatGPT">
+<meta property="og:description" content="Add Applio as an MCP connector: job search, ATS scoring, and resume tailoring inside your AI chat. Free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://appliohq.com/connect">
+<meta property="og:image" content="https://appliohq.com/logo.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/config.js"></script>
+<script src="/js/theme.js"></script>
+<style>
+  .cn-wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 90px; }
+  .cn-crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+  .cn-crumb a { color: var(--muted); } .cn-crumb a:hover { color: var(--accent); }
+  .cn-hero h1 { font-size: clamp(28px,5vw,40px); font-weight: 800; letter-spacing:-.6px; line-height:1.12; }
+  .cn-lede { color: var(--muted); font-size: 16px; line-height: 1.6; margin: 12px 0 8px; max-width: 640px; }
+  .cn-badge { display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.28); padding:5px 12px; border-radius:999px; margin-bottom:14px; }
+  .cn-url { display:flex; gap:8px; margin:22px 0; }
+  .cn-url input { flex:1; min-width:0; padding:13px 15px; background:var(--bg-2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .cn-sec { margin-top: 40px; }
+  .cn-sec h2 { font-size: 22px; font-weight: 800; letter-spacing:-.3px; margin-bottom: 14px; }
+  .cn-sec p, .cn-sec li { color: var(--text); line-height: 1.7; font-size: 15px; }
+  .cn-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:680px){ .cn-grid { grid-template-columns:1fr; } }
+  .cn-card { border:1px solid var(--border); border-radius:14px; background:var(--bg-1); padding:20px 22px; box-shadow:var(--sh-1); }
+  .cn-card h3 { font-size:16px; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .cn-card ol { margin:0; padding-left:20px; } .cn-card li { margin-bottom:9px; font-size:14px; color:var(--text); line-height:1.55; }
+  .cn-tools { display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; list-style:none; padding:0; }
+  @media (max-width:680px){ .cn-tools { grid-template-columns:1fr; } }
+  .cn-tools li { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--text); }
+  .cn-tools code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; padding:1px 6px; color:var(--accent); flex-shrink:0; }
+  .cn-tok { margin-top:14px; padding:16px 18px; border:1px solid var(--border); border-radius:12px; background:var(--bg-2); }
+  .cn-tok code { word-break:break-all; font-size:12px; }
+  .cn-note { color:var(--muted); font-size:13px; line-height:1.6; }
+  .cn-final { margin-top:48px; text-align:center; padding:34px 20px; border:1px solid var(--border); border-radius:16px; background:linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-1)); box-shadow:var(--sh-1); }
+  .cn-final h2 { font-size:22px; font-weight:800; } .cn-final p { color:var(--muted); margin:8px 0 16px; }
+</style>
+</head>
+<body class="app-body-scroll">
+<header class="app-topbar">
+  <a href="/" class="brand"><img src="/logo.jpeg" class="brand-logo" alt="Applio"><span>Applio</span></a>
+  <nav class="topbar-nav">
+    <a href="/resume-templates">Templates</a>
+    <a href="/resume-examples">Examples</a>
+    <a href="/ats-checker">ATS Checker</a>
+    <a href="/salary">Salary</a>
+    <a href="/pricing">Pricing</a>
+  </nav>
+  <div class="topbar-right">
+    <a class="btn btn-ghost btn-sm" href="/login">Sign in</a>
+    <a class="btn btn-primary btn-sm" href="/login?mode=signup">Build resume free</a>
+  </div>
+</header>
+
+<main class="cn-wrap">
+  <nav class="cn-crumb"><a href="/">Home</a> › Connect</nav>
+  <div class="cn-hero">
+    <span class="cn-badge">Model Context Protocol</span>
+    <h1>Use Applio inside Claude &amp; ChatGPT</h1>
+    <p class="cn-lede">Add Applio as a connector and your AI can search live jobs, score your resume against any posting, pull the keywords that matter, and tailor your resume, without leaving the chat. Free to add.</p>
+  </div>
+
+  <div class="cn-sec">
+    <h2>Your connector URL</h2>
+    <p class="cn-note">Paste this into Claude or ChatGPT when adding a custom connector.</p>
+    <div class="cn-url">
+      <input id="cn-url-input" readonly value="https://hireflow-api.pritamavuthu7.workers.dev/mcp" onclick="this.select()">
+      <button class="btn btn-primary" id="cn-url-copy" type="button">Copy</button>
+    </div>
+  </div>
+
+  <div class="cn-sec">
+    <h2>Add it in 30 seconds</h2>
+    <div class="cn-grid">
+      <div class="cn-card">
+        <h3>Claude</h3>
+        <ol>
+          <li>Open <strong>Settings → Connectors</strong> (on claude.ai or the desktop app).</li>
+          <li>Click <strong>Add custom connector</strong>.</li>
+          <li>Name it <strong>Applio</strong> and paste the URL above.</li>
+          <li>Save, then enable Applio in any chat from the tools menu.</li>
+        </ol>
+      </div>
+      <div class="cn-card">
+        <h3>ChatGPT</h3>
+        <ol>
+          <li>Open <strong>Settings → Connectors</strong> (requires a plan that supports custom MCP connectors; turn on developer mode if needed).</li>
+          <li>Click <strong>Add</strong> / <strong>New connector</strong>.</li>
+          <li>Paste the URL above and set authentication to <strong>None</strong>.</li>
+          <li>Save, then pick Applio's tools in a chat.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="cn-note" style="margin-top:14px;">Any MCP client works too (Claude Desktop, Cursor, and others), it is a standard Streamable-HTTP MCP server.</p>
+  </div>
+
+  <div class="cn-sec">
+    <h2>What your AI can do with Applio</h2>
+    <ul class="cn-tools">
+      <li><code>search_jobs</code><span>Find live openings by title and location, with salaries and apply links.</span></li>
+      <li><code>ats_score</code><span>Score a resume against a job description, with a breakdown and fixes.</span></li>
+      <li><code>extract_job_keywords</code><span>Pull the exact skills and terms a posting wants.</span></li>
+      <li><code>list_resume_templates</code><span>Recommend an ATS-friendly template for a role.</span></li>
+      <li><code>tailor_resume</code><span>Rewrite a resume to match a job. <em>Needs your account.</em></span></li>
+      <li><code>generate_cover_letter</code><span>Draft a tailored cover letter. <em>Needs your account.</em></span></li>
+      <li><code>improve_bullets</code><span>Make bullet points stronger and quantified. <em>Needs your account.</em></span></li>
+      <li><code>interview_prep</code><span>Likely questions and talking points for a role. <em>Needs your account.</em></span></li>
+    </ul>
+    <p class="cn-note" style="margin-top:14px;">The first four work with no sign-in. The AI tools need your free Applio account so they can use your resume and AI credits.</p>
+  </div>
+
+  <div class="cn-sec" id="cn-account">
+    <h2>Unlock the AI tools (optional)</h2>
+    <p>To let the AI tools tailor your resume and write cover letters, add your personal Applio token to the connector. Use this ready-made URL instead of the plain one above (it carries your token):</p>
+    <div class="cn-tok" id="cn-tok-box">
+      <p class="cn-note" id="cn-tok-msg">Checking your account…</p>
+    </div>
+    <p class="cn-note" style="margin-top:12px;">Keep this URL private, anyone with it can use your Applio AI credits. If a client lets you set an <code>Authorization</code> header instead, use <code>Bearer &lt;token&gt;</code> and the plain URL.</p>
+  </div>
+
+  <div class="cn-final">
+    <h2>No account yet?</h2>
+    <p>Applio is a free AI resume builder. Create an account to unlock the AI connector tools.</p>
+    <a class="btn btn-primary" href="/login?mode=signup">Build resume free</a>
+  </div>
+</main>
+
+<script src="/js/footer.js"></script>
+<script>
+(function () {
+  var MCP_URL = "https://hireflow-api.pritamavuthu7.workers.dev/mcp";
+  // Copy the plain connector URL.
+  var copyBtn = document.getElementById('cn-url-copy');
+  if (copyBtn) copyBtn.onclick = function () {
+    navigator.clipboard.writeText(MCP_URL).then(function () {
+      copyBtn.textContent = 'Copied!'; setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1800);
+    }).catch(function () {});
+  };
+  // Token helper: if the visitor is signed in (token in localStorage), build a
+  // ready-to-paste URL that carries their token for the AI tools.
+  var box = document.getElementById('cn-tok-box');
+  var msg = document.getElementById('cn-tok-msg');
+  var token = '';
+  try { token = localStorage.getItem('hf_token') || ''; } catch (e) {}
+  if (token) {
+    var tokUrl = MCP_URL + '?token=' + encodeURIComponent(token);
+    box.innerHTML =
+      '<div style="display:flex;gap:8px;align-items:center;">'
+      + '<input id="cn-tok-url" readonly value="' + tokUrl.replace(/"/g, '&quot;') + '" onclick="this.select()" style="flex:1;min-width:0;padding:11px 13px;background:var(--bg-1);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:ui-monospace,Menlo,monospace;">'
+      + '<button class="btn btn-primary btn-sm" id="cn-tok-copy" type="button" style="white-space:nowrap;">Copy</button>'
+      + '</div>';
+    var tc = document.getElementById('cn-tok-copy');
+    if (tc) tc.onclick = function () {
+      navigator.clipboard.writeText(tokUrl).then(function () { tc.textContent = 'Copied!'; setTimeout(function () { tc.textContent = 'Copy'; }, 1800); }).catch(function () {});
+    };
+  } else {
+    msg.innerHTML = 'You are not signed in. <a href="/login" style="color:var(--accent);">Sign in</a> and reload this page to get your personal connector URL for the AI tools.';
+  }
+})();
+</script>
+</body>
+</html>

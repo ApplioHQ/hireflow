@@ -472,16 +472,12 @@ function showTestimonialAsk(el, outcome, next) {
   el.innerHTML = '<div style="position:relative;">'
     + '<button data-tst-x aria-label="Dismiss" style="position:absolute;top:-2px;right:0;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">×</button>'
     + '<div style="font-weight:700;margin-bottom:4px;padding-right:18px;">' + intro + '</div>'
-    + '<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px;">Mind sharing one line about how Applio helped? It would mean a lot.</div>'
+    + '<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px;">Mind sharing one line about how Applio helped? We’ll only ever feature it with your permission.</div>'
     + '<textarea data-tst-text rows="3" placeholder="Applio helped me…" style="' + ib + 'resize:vertical;margin-bottom:8px;"></textarea>'
-    + '<div style="display:flex;gap:6px;margin-bottom:8px;">'
+    + '<div style="display:flex;gap:6px;margin-bottom:10px;">'
     +   '<input data-tst-name placeholder="First name (optional)" style="' + ib + '">'
     +   '<input data-tst-role placeholder="Role (optional)" style="' + ib + '">'
     + '</div>'
-    + '<label style="display:flex;gap:7px;align-items:flex-start;color:var(--muted);font-size:11.5px;margin-bottom:10px;cursor:pointer;">'
-    +   '<input data-tst-consent type="checkbox" checked style="margin-top:1px;flex-shrink:0;">'
-    +   '<span>Applio can feature this with my first name and role</span>'
-    + '</label>'
     + '<div style="display:flex;gap:6px;">'
     +   '<button data-tst-skip class="btn btn-secondary btn-sm" style="flex:0 0 auto;">Skip</button>'
     +   '<button data-tst-send class="btn btn-primary btn-sm" style="flex:1;">Share</button>'
@@ -492,15 +488,20 @@ function showTestimonialAsk(el, outcome, next) {
   if (send) send.onclick = function () {
     var text = (el.querySelector('[data-tst-text]').value || '').trim();
     if (!text) { next(); return; }
+    var name = (el.querySelector('[data-tst-name]').value || '').trim();
+    // Save as a PENDING submission (status 'submitted', not published). The user grants
+    // publication permission + picks channels later on the /testimonial page, so this
+    // never auto-publishes. Schema matches setTestimonial in the worker.
     var body = {
-      text: text,
-      name: (el.querySelector('[data-tst-name]').value || '').trim(),
-      role: (el.querySelector('[data-tst-role]').value || '').trim(),
-      consent: el.querySelector('[data-tst-consent]').checked,
-      outcome: outcome
+      action: 'revise',
+      quote: text,
+      attribution: name ? 'name' : 'anonymous',
+      name: name,
+      title: (el.querySelector('[data-tst-role]').value || '').trim()
     };
     fetch(window.HIREFLOW_CONFIG.API_URL + '/testimonial', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }, body: JSON.stringify(body) }).catch(function () {});
-    next();
+    el.innerHTML = '<div style="text-align:center;padding:8px 4px;"><div style="font-weight:700;margin-bottom:6px;">Thank you! 🙏</div><div style="color:var(--muted);font-size:12.5px;">Saved. You can review it or choose where to feature it anytime from <a href="/testimonial" style="color:var(--accent);">your testimonial settings</a>.</div></div>';
+    setTimeout(next, 2600);
   };
   return true;
 }

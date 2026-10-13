@@ -78,6 +78,11 @@ export default {
     const path = url.pathname;
     const cors = corsHeaders(env, req);
 
+    // Remote MCP server (Streamable HTTP). Public API for Claude/ChatGPT connectors:
+    // does its own permissive CORS + optional bearer auth, so it sits ahead of the
+    // generic OPTIONS/rate-limit/auth handling below.
+    if (path === "/mcp") return handleMcp(req, env);
+
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
 
     // --- Rate limiting ---
@@ -163,7 +168,6 @@ export default {
       if (path === "/referral/stats")            return json(await referralStats(req, env), 200, cors);
       if (path === "/interview-win" && req.method === "POST") return json(await recordInterviewWin(req, env), 200, cors);
       if (path === "/interview-wins")          return json(await getInterviewWins(req, env), 200, cors);
-      if (path === "/testimonial" && req.method === "POST") return json(await recordTestimonial(req, env), 200, cors);
       if (path === "/auth/gdrive/start")       return json(await gdriveStart(req, env), 200, cors);
       if (path === "/export-gdoc" && req.method === "POST") return json(await exportToGdoc(req, env), 200, cors);
       if (path === "/job-search" && req.method === "GET") return json(await jobSearch(req, env), 200, cors);
@@ -295,11 +299,25 @@ async function putUser(env, user) {
 // metrics the admin needs (repeat usage, not just signups). `days` is a bounded list of
 // distinct active UTC days (kept for the 7/30-day windows); `activeDayCount` is the total
 // distinct days ever active (>= 2 means they came back at least once); `lastSeen` is recency.
+// All analytics day-bucketing uses the founder's local timezone (not UTC) so the
+// admin dashboard dates line up with the wall clock. Without this, after ~8pm US
+// Eastern the UTC date rolls to "tomorrow" and charts show a date that hasn't
+// happened yet. Change ANALYTICS_TZ here if you relocate.
+const ANALYTICS_TZ = "America/New_York";
+let _tzDayFmt;
+function tzDay(ms) {
+  const d = new Date(ms == null ? Date.now() : ms);
+  try {
+    if (!_tzDayFmt) _tzDayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ANALYTICS_TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+    return _tzDayFmt.format(d);   // en-CA -> "YYYY-MM-DD"
+  } catch { return d.toISOString().slice(0, 10); }
+}
+
 // Pure mutation, no KV write, so callers that already persist the user fold it into their
 // existing write. Returns true when this is the user's first activity of the day.
 function _touchActivity(user) {
   const now = Date.now();
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = tzDay(now);
   user.days = Array.isArray(user.days) ? user.days : [];
   const newDay = user.days[user.days.length - 1] !== today && !user.days.includes(today);
   if (newDay) {
@@ -577,31 +595,6 @@ async function getInterviewWins(req, env) {
   };
 }
 
-// A short testimonial the user gives right after reporting an interview/offer.
-// Stored on the user record (one latest per user) so the admin dashboard can
-// show them. `consent` records whether the user allowed us to feature it.
-async function recordTestimonial(req, env) {
-  const user = await authUser(req, env);
-  const b = await req.json().catch(() => ({}));
-  const text = (b.text || "").toString().trim().slice(0, 1000);
-  if (!text) return { ok: false };
-  user.testimonial = {
-    text,
-    name: (b.name || "").toString().trim().slice(0, 80),
-    role: (b.role || "").toString().trim().slice(0, 100),
-    consent: !!b.consent,
-    outcome: (["interview", "offer"].includes(b.outcome) ? b.outcome : ""),
-    ts: Math.floor(Date.now() / 1000),
-  };
-  await putUser(env, user);
-  try {
-    const key = "stats:testimonials";
-    const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10);
-    await env.HIREFLOW_KV.put(key, String(cur + 1));
-  } catch {}
-  return { ok: true };
-}
-
 // Send a Trustpilot review invite after a positive win is logged.
 // Fire-and-forget: called inside recordInterviewWin, errors are swallowed.
 async function _sendWinReviewEmail(env, email) {
@@ -854,7 +847,7 @@ async function trackPageview(req, env) {
     }
   }
   const u = new URL(req.url);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tzDay();
   const bump = async (key) => {
     const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
     await env.HIREFLOW_KV.put(key, String(cur + 1));
@@ -878,12 +871,11 @@ async function adminAnalytics(req, env) {
   let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
   // Self-reported outcomes (logged at export): interviews and offers.
   let interviewUsers = 0, interviewEvents = 0, offerEvents = 0, winsLast30 = 0;
-  const testimonials = [];   // user-written testimonials for the admin to review
   // Retention / repeat usage (the metrics investors flagged as missing).
   let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
   let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
   let compedPremium = 0;       // early-bird comps: active Premium but NOT paying
-  const todayStr = new Date(now).toISOString().slice(0, 10);
+  const todayStr = tzDay(now);
   // Monthly prices (mirror the pricing page). MRR counts recurring Premium only; Lifetime
   // is one-time revenue, reported separately so the two aren't conflated.
   const PREMIUM_MO = 9.99, LIFETIME_ONCE = 39.99;
@@ -891,7 +883,7 @@ async function adminAnalytics(req, env) {
   // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
   const signupsByDay = {};
   for (let i = 29; i >= 0; i--) {
-    signupsByDay[new Date(now - i * DAY).toISOString().slice(0, 10)] = 0;
+    signupsByDay[tzDay(now - i * DAY)] = 0;
   }
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
@@ -943,7 +935,7 @@ async function adminAnalytics(req, env) {
     const days = Array.isArray(u.days) ? u.days : [];
     const seenInWindow = (w) => lastSeen && (now - lastSeen) <= w * DAY
       || days.some(d => { const t = Date.parse(d + "T00:00:00Z"); return t && (now - t) <= w * DAY; });
-    if (days.includes(todayStr) || (lastSeen && new Date(lastSeen).toISOString().slice(0, 10) === todayStr)) activeToday++;
+    if (days.includes(todayStr) || (lastSeen && tzDay(lastSeen) === todayStr)) activeToday++;
     if (seenInWindow(7)) wau++;
     if (seenInWindow(30)) mau++;
     // Returning = active on 2+ distinct days (came back at least once after signup day).
@@ -954,11 +946,11 @@ async function adminAnalytics(req, env) {
     const created = Number(u.createdAt) || 0;
     if (created) {
       const age = now - created;
-      if (new Date(created).toISOString().slice(0, 10) === todayStr) signupsToday++;
+      if (tzDay(created) === todayStr) signupsToday++;
       if (age <= 7 * DAY)  last7Signups++;
       else if (age <= 14 * DAY) prev7Signups++;
       if (age <= 30 * DAY) last30Signups++;
-      const day = new Date(created).toISOString().slice(0, 10);
+      const day = tzDay(created);
       if (day in signupsByDay) signupsByDay[day]++;
     }
     // Dormant: joined more than 7 days ago and never downloaded anything.
@@ -976,22 +968,7 @@ async function adminAnalytics(req, env) {
       }
       if (hasWin) interviewUsers++;
     }
-
-    // Testimonials the user submitted after a win.
-    if (u.testimonial && u.testimonial.text) {
-      testimonials.push({
-        text: u.testimonial.text,
-        name: u.testimonial.name || "",
-        role: u.testimonial.role || "",
-        outcome: u.testimonial.outcome || "",
-        consent: !!u.testimonial.consent,
-        ts: Number(u.testimonial.ts) || 0,
-      });
-    }
   }
-  // Newest first, cap the payload.
-  testimonials.sort((a, b) => b.ts - a.ts);
-  if (testimonials.length > 100) testimonials.length = 100;
 
   const paid = plans.premium + plans.lifetime;
   const conversionRate = total ? Math.round((paid / total) * 1000) / 10 : 0;
@@ -1020,7 +997,7 @@ async function adminAnalytics(req, env) {
   let pageViewsLast7 = 0;
   const pvByDay = {};
   for (let i = 6; i >= 0; i--) {
-    const day = new Date(now - i * DAY).toISOString().slice(0, 10);
+    const day = tzDay(now - i * DAY);
     const v = await num(`stats:pv:${day}`);
     pvByDay[day] = v; pageViewsLast7 += v;
   }
@@ -1030,7 +1007,7 @@ async function adminAnalytics(req, env) {
   const aiToday = await num(`stats:ai:${todayStr}`);
   let aiLast7 = 0;
   for (let i = 6; i >= 0; i--) {
-    aiLast7 += await num(`stats:ai:${new Date(now - i * DAY).toISOString().slice(0, 10)}`);
+    aiLast7 += await num(`stats:ai:${tzDay(now - i * DAY)}`);
   }
   const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
     "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse"];
@@ -1069,7 +1046,7 @@ async function adminAnalytics(req, env) {
   for (const f of ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"]) {
     let total7 = 0;
     for (let i = 6; i >= 0; i--) {
-      const day = new Date(now - i * DAY).toISOString().slice(0, 10);
+      const day = tzDay(now - i * DAY);
       total7 += await num(`stats:feature:${f}:${day}`);
     }
     if (total7) featureLast7[f] = total7;
@@ -1141,8 +1118,6 @@ async function adminAnalytics(req, env) {
     jobTrackerOpens: featureUsage.job_tracker_open || 0,
     jobTrackerSaves: featureUsage.job_tracker_save || 0,
     interviewPrepUsers: usersByNonAiFeature.interview_prep_open || 0,
-    testimonialCount: testimonials.length,
-    testimonials,
   };
 
   const onboarding = {
@@ -1966,7 +1941,7 @@ async function _bumpAiUsage(env, action) {
     };
     await bump("stats:ai:total");
     await bump(`stats:ai:action:${action}`);
-    await bump(`stats:ai:${new Date().toISOString().slice(0, 10)}`);
+    await bump(`stats:ai:${tzDay()}`);
   } catch (_) {}
 }
 
@@ -1975,7 +1950,7 @@ async function _bumpAiUsage(env, action) {
 // both site-wide volume and per-user breadth for every tracked action.
 async function _bumpFeature(env, name, email) {
   try {
-    const day = new Date().toISOString().slice(0, 10);
+    const day = tzDay();
     const bump = async (key) => {
       const cur = parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
       await env.HIREFLOW_KV.put(key, String(cur + 1));
@@ -4483,4 +4458,328 @@ function safeJSON(s) {
   v = tryParse(cand.replace(/,\s*([}\]])/g, "$1"));                       // repair trailing commas
   if (v !== undefined) return v;
   return null;
+}
+// ============================================================================
+// Remote MCP server (Streamable HTTP, JSON-RPC 2.0)
+// ----------------------------------------------------------------------------
+// Lets anyone add Applio to Claude, ChatGPT, or any MCP client as a connector,
+// just by pasting the URL (https://<worker>/mcp). Public tools (job search, ATS
+// scoring, keyword extraction, templates) need no auth. The account tools (tailor,
+// cover letter, interview prep, coach) activate when an Applio bearer token is
+// supplied, via the Authorization header or ?token= on the connector URL.
+// ============================================================================
+
+const MCP_CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
+  "Access-Control-Max-Age": "86400",
+};
+function mcpHttp(obj, status = 200) {
+  return new Response(obj == null ? null : JSON.stringify(obj), {
+    status, headers: { "Content-Type": "application/json", ...MCP_CORS },
+  });
+}
+function mcpResult(id, result) { return { jsonrpc: "2.0", id, result }; }
+function mcpErr(id, code, message) { return { jsonrpc: "2.0", id, error: { code, message } }; }
+
+// --- Self-contained ATS scorer (mirrors js/ats-engine.js so results match the
+//     public /ats-checker). Pure logic, no auth, no AI, no network. ---
+const _ATS = (function () {
+  const STOP = new Set("a an the and or but for nor of to in on at by with from as is are was were be been being this that these those you your our we they it its their will would can could should may might must do does did have has had not no if then than so into over under more most very who whom which what when where why how about after again all also any because before between both during each few here own same some too up out off down only just via per etc using use used uses including include includes work works working role roles team teams ability strong excellent good great new ideal candidate join help build builds building plus years year experience experienced required preferred responsibilities requirements skills".split(/\s+/));
+  const PHRASES = ["project management","machine learning","data analysis","customer service","product management","software development","web development","cloud computing","ci/cd","unit testing","data science","user experience","quality assurance","business development","social media","supply chain","financial analysis","problem solving","time management","public speaking","team leadership","stakeholder management","continuous integration","rest api","version control"];
+  const SKILLS = new Set("python java javascript typescript react angular vue node nodejs go golang rust ruby php swift kotlin scala sql nosql postgres postgresql mysql mongodb redis aws azure gcp kubernetes docker terraform linux git github graphql html css sass tailwind django flask spring express rails kafka spark hadoop tableau excel powerpoint salesforce sap jira figma photoshop seo marketing sales accounting finance leadership communication analytics agile scrum devops cybersecurity nursing teaching".split(/\s+/));
+  const VERBS = new Set("led managed built created developed designed launched delivered drove increased decreased reduced improved grew scaled owned shipped implemented architected automated optimized streamlined coordinated directed founded established mentored trained negotiated analyzed researched produced generated achieved exceeded won spearheaded oversaw migrated rebuilt refactored deployed".split(/\s+/));
+  const norm = s => String(s == null ? "" : s).toLowerCase();
+  function extractKeywords(jd) {
+    const text = norm(jd);
+    if (!text.trim()) return [];
+    const found = new Map();
+    for (const ph of PHRASES) if (text.includes(ph)) found.set(ph, true);
+    const words = text.match(/[a-z][a-z0-9+.#/]{1,}/g) || [];
+    const freq = new Map();
+    for (const raw of words) {
+      const w = raw.replace(/^[.\-/_]+|[.\-/_]+$/g, "");
+      if (w.length < 2 || STOP.has(w)) continue;
+      freq.set(w, (freq.get(w) || 0) + 1);
+      if (SKILLS.has(w)) found.set(w, true);
+    }
+    const ranked = [...freq.entries()].filter(([w]) => w.length >= 3).sort((a, b) => b[1] - a[1]);
+    for (const [w] of ranked) { if (found.size >= 24) break; if (!found.has(w)) found.set(w, true); }
+    return [...found.keys()].slice(0, 24);
+  }
+  function bulletLines(text) {
+    return String(text || "").split(/\n+/).map(l => l.replace(/^[\s•*\-▪◦·–, >]+/, "").trim()).filter(l => l.length > 0);
+  }
+  function score(resumeText, jd) {
+    const rt = norm(resumeText);
+    const hasJD = !!(jd && String(jd).trim().length >= 20);
+    const kws = hasJD ? extractKeywords(jd) : [];
+    const matched = [], missing = [];
+    for (const k of kws) {
+      const esc = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const present = k.includes(" ") ? rt.includes(k) : new RegExp("(^|[^a-z0-9])" + esc + "([^a-z0-9]|$)").test(rt);
+      (present ? matched : missing).push(k);
+    }
+    const kwScore = (hasJD && kws.length) ? Math.round(100 * matched.length / kws.length) : 50;
+    const lines = bulletLines(resumeText);
+    const hasEmail = /[\w.+-]+@[\w-]+\.[\w.-]+/.test(resumeText);
+    const hasPhone = /(\+?\d[\d\s().-]{7,}\d)/.test(resumeText);
+    const hasBullets = /(^|\n)\s*[•*\-▪◦·]/.test(resumeText) || lines.length >= 5;
+    const wordCount = (resumeText.match(/\b[\w']+\b/g) || []).length;
+    const lenOk = wordCount >= 150 && wordCount <= 1200;
+    const sectionHits = ["experience","education","skill","summary","project"].filter(s => rt.includes(s)).length;
+    const fmtChecks = [hasEmail, hasPhone, hasBullets, lenOk, sectionHits >= 2];
+    const fmtScore = Math.round(100 * fmtChecks.filter(Boolean).length / fmtChecks.length);
+    const quantified = lines.filter(l => /\d/.test(l)).length;
+    const actionStarts = lines.filter(l => VERBS.has((l.split(/\s+/)[0] || "").toLowerCase().replace(/[^a-z]/g, ""))).length;
+    const quantRatio = lines.length ? quantified / lines.length : 0;
+    const actionRatio = lines.length ? actionStarts / lines.length : 0;
+    const impactScore = Math.round(100 * (0.55 * Math.min(1, quantRatio / 0.4) + 0.45 * Math.min(1, actionRatio / 0.5)));
+    const hasSummary = /summary|objective|profile/.test(rt);
+    const hasExp = /experience|employment|work history/.test(rt);
+    const hasEdu = /education|university|college|degree|b\.s\.|b\.a\.|bachelor|master/.test(rt);
+    const hasSkills = /skills|technologies|proficienc|competenc/.test(rt);
+    const compChecks = [hasSummary, hasExp, hasEdu, hasSkills, wordCount >= 150];
+    const compScore = Math.round(100 * compChecks.filter(Boolean).length / compChecks.length);
+    const w = hasJD ? { kw: .40, fmt: .20, impact: .25, comp: .15 } : { kw: .10, fmt: .30, impact: .35, comp: .25 };
+    const overall = Math.max(0, Math.min(100, Math.round(kwScore * w.kw + fmtScore * w.fmt + impactScore * w.impact + compScore * w.comp)));
+    const wins = [], issues = [];
+    if (hasJD && matched.length) wins.push(`Matches ${matched.length} of ${kws.length} key terms from the job posting`);
+    if (quantRatio >= 0.4) wins.push(`${Math.round(quantRatio * 100)}% of lines include measurable results`);
+    if (actionRatio >= 0.5) wins.push(`Most lines start with a strong action verb`);
+    if (hasEmail && hasPhone) wins.push(`Contact details are clear and easy for an ATS to read`);
+    if (compScore >= 80) wins.push(`All the core resume sections are present`);
+    if (hasJD && missing.length) issues.push(`Add these terms from the posting where they truly apply: ${missing.slice(0, 8).join(", ")}`);
+    if (quantRatio < 0.4) issues.push(`Only ${Math.round(quantRatio * 100)}% of lines include numbers, add metrics like %, $, time saved, or scale`);
+    if (actionRatio < 0.5) issues.push(`Start more bullet points with strong action verbs (Led, Built, Improved...)`);
+    if (!hasEmail || !hasPhone) issues.push(`Add clear contact info, email and phone, near the top`);
+    if (!hasSummary) issues.push(`Add a short professional summary at the top`);
+    if (!lenOk) issues.push(wordCount < 150 ? `Your resume looks short, add more detail` : `Your resume is long, trim to your most relevant, recent experience`);
+    if (!wins.length) wins.push(`You have a solid base to build on`);
+    if (!issues.length) issues.push(`Looking strong, polish the wording and keep it concise`);
+    return { score: overall, hasJD, breakdown: { keywords: kwScore, formatting: fmtScore, impact: impactScore, completeness: compScore }, matchedKeywords: matched, missingKeywords: missing, wins: wins.slice(0, 4), issues: issues.slice(0, 5) };
+  }
+  return { score, extractKeywords };
+})();
+
+const MCP_TEMPLATES = [
+  ["classic", "Clean single-column, safe on every ATS. A great default."],
+  ["ats", "Maximum ATS-safety: standard headings, no columns or graphics."],
+  ["modern", "Contemporary look with subtle accents, still ATS-friendly."],
+  ["minimal", "Lots of whitespace, understated and elegant."],
+  ["professional", "Traditional corporate style for finance, law, consulting."],
+  ["executive", "Senior-level layout that leads with impact and leadership."],
+  ["creative", "More visual personality for design and marketing roles."],
+  ["deedy", "Compact technical template popular with engineers."],
+  ["twocolumn", "Two-column layout that fits more on one page."],
+  ["harvard", "Based on the classic Harvard resume format."],
+  ["stanford", "Academic-leaning, clean and formal."],
+  ["wharton", "Business-school style, strong for MBA and finance."],
+  ["faang", "Engineer-focused, tuned for big-tech applications."],
+  ["healthcare", "Structured for nurses and clinical roles."],
+  ["sales", "Results-forward layout that highlights numbers."],
+  ["timeline", "Visual timeline of your career progression."],
+];
+
+// Call an internal /ai/{action} handler with a synthetic authenticated request.
+async function _mcpCallAi(action, body, authHeader, env) {
+  const r = new Request("https://applio/ai/" + action, {
+    method: "POST",
+    headers: { "Authorization": authHeader, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await ai(r, env, action);
+  if (data == null) return "No result.";
+  if (typeof data === "string") return data;
+  // Prefer a human-readable field if the AI handler returned structured data.
+  return data.text || data.result || data.content || data.output || JSON.stringify(data, null, 2);
+}
+
+const _MCP_CONNECT = "https://appliohq.com/connect";
+
+const MCP_TOOLS = [
+  {
+    name: "search_jobs",
+    description: "Search live job listings by title/keywords and optional location. Returns real openings with company, location, salary when available, and an apply link. Powered by Applio's job search.",
+    inputSchema: { type: "object", properties: {
+      query: { type: "string", description: "Job title or keywords, e.g. 'product manager' or 'react developer'" },
+      location: { type: "string", description: "City, state, or country, e.g. 'New York' or 'Remote'" },
+      page: { type: "number", description: "Page number, 1-10 (default 1)" },
+    }, required: ["query"] },
+    run: async (a, { env }) => {
+      const params = new URLSearchParams({ q: String(a.query || "") });
+      if (a.location) params.set("location", String(a.location));
+      if (a.page) params.set("page", String(a.page));
+      const data = await jobSearch(new Request("https://applio/job-search?" + params.toString()), env);
+      const results = (data && data.results) || [];
+      if (!results.length) return "No jobs found for that search. Try broader keywords or a different location.";
+      const lines = [`Found ${data.total != null ? data.total : results.length} jobs (page ${data.page || 1}/${data.pages || 1}):`];
+      for (const j of results.slice(0, 10)) {
+        let l = `\n- ${j.title} at ${j.company || "Unknown"}${j.location ? ", " + j.location : ""}`;
+        if (j.salary_min && j.salary_max) l += ` | ${j.currency || "$"}${Number(j.salary_min).toLocaleString()}-${Number(j.salary_max).toLocaleString()}`;
+        if (j.url) l += `\n  Apply: ${j.url}`;
+        lines.push(l);
+      }
+      return lines.join("\n");
+    },
+  },
+  {
+    name: "ats_score",
+    description: "Score a resume against a job description for ATS (Applicant Tracking System) compatibility. Returns an overall score (0-100), a breakdown, matched vs missing keywords, and specific fixes. Runs Applio's resume checker. No account needed.",
+    inputSchema: { type: "object", properties: {
+      resume_text: { type: "string", description: "The full plain-text resume" },
+      job_description: { type: "string", description: "The job description to score against (optional but strongly recommended)" },
+    }, required: ["resume_text"] },
+    run: async (a) => {
+      const s = _ATS.score(String(a.resume_text || ""), String(a.job_description || ""));
+      const out = [`ATS score: ${s.score}/100`];
+      out.push(`Breakdown: keywords ${s.breakdown.keywords}, formatting ${s.breakdown.formatting}, impact ${s.breakdown.impact}, completeness ${s.breakdown.completeness}`);
+      if (s.hasJD) {
+        if (s.matchedKeywords.length) out.push(`Matched keywords: ${s.matchedKeywords.join(", ")}`);
+        if (s.missingKeywords.length) out.push(`Missing keywords: ${s.missingKeywords.join(", ")}`);
+      } else {
+        out.push("Tip: pass job_description for a keyword-match score tailored to the role.");
+      }
+      if (s.wins.length) out.push("What's working:\n- " + s.wins.join("\n- "));
+      if (s.issues.length) out.push("How to improve:\n- " + s.issues.join("\n- "));
+      out.push("Build or fix your resume free at https://appliohq.com");
+      return out.join("\n\n");
+    },
+  },
+  {
+    name: "extract_job_keywords",
+    description: "Extract the most important skills and keywords from a job description, the terms an ATS and recruiter look for. Use these to tailor a resume. No account needed.",
+    inputSchema: { type: "object", properties: {
+      job_description: { type: "string", description: "The job description text" },
+    }, required: ["job_description"] },
+    run: async (a) => {
+      const kws = _ATS.extractKeywords(String(a.job_description || ""));
+      if (!kws.length) return "Couldn't find clear keywords. Paste a longer job description.";
+      return "Key terms to mirror in the resume (where they truly apply):\n- " + kws.join("\n- ");
+    },
+  },
+  {
+    name: "list_resume_templates",
+    description: "List Applio's free, ATS-friendly resume templates with a short description of each, so you can recommend one for a role.",
+    inputSchema: { type: "object", properties: {} },
+    run: async () => {
+      return "Applio's free resume templates (all ATS-friendly, pick one at https://appliohq.com/resume-templates):\n" +
+        MCP_TEMPLATES.map(([id, d]) => `- ${id}: ${d}`).join("\n");
+    },
+  },
+  {
+    name: "tailor_resume",
+    description: "Tailor a resume to a specific job description, adjusting keywords, skills, and bullet emphasis to match the posting. Grounded in the candidate's real experience. Requires a connected Applio account.",
+    needsAuth: true,
+    inputSchema: { type: "object", properties: {
+      resume: { type: "string", description: "The full resume text" },
+      job_description: { type: "string", description: "The job description to tailor for" },
+    }, required: ["resume", "job_description"] },
+    run: (a, c) => _mcpCallAi("tailor", { resume: a.resume, jd: a.job_description }, c.authHeader, c.env),
+  },
+  {
+    name: "generate_cover_letter",
+    description: "Write a cover letter tailored to a job, grounded in the candidate's resume. Requires a connected Applio account.",
+    needsAuth: true,
+    inputSchema: { type: "object", properties: {
+      resume: { type: "string", description: "The candidate's resume text" },
+      job_description: { type: "string", description: "The job description" },
+      company: { type: "string", description: "Company name (optional)" },
+    }, required: ["resume", "job_description"] },
+    run: (a, c) => _mcpCallAi("letter", { resume: a.resume, jd: a.job_description, company: a.company || "" }, c.authHeader, c.env),
+  },
+  {
+    name: "improve_bullets",
+    description: "Rewrite resume bullet points to be stronger, more quantified, and ATS-friendly, without fabricating anything. Requires a connected Applio account.",
+    needsAuth: true,
+    inputSchema: { type: "object", properties: {
+      bullets: { type: "string", description: "Resume bullet points to improve, one per line" },
+      role: { type: "string", description: "Target job title for context (optional)" },
+    }, required: ["bullets"] },
+    run: (a, c) => _mcpCallAi("improve", { text: a.bullets, section: "experience", target: "experience", role: a.role || "" }, c.authHeader, c.env),
+  },
+  {
+    name: "interview_prep",
+    description: "Generate likely interview questions and talking points for a role, optionally personalized to a job description and resume. Requires a connected Applio account.",
+    needsAuth: true,
+    inputSchema: { type: "object", properties: {
+      role: { type: "string", description: "Job title being interviewed for" },
+      job_description: { type: "string", description: "The job description (optional)" },
+      resume: { type: "string", description: "Candidate resume for personalized questions (optional)" },
+    }, required: ["role"] },
+    run: (a, c) => _mcpCallAi("interview", { role: a.role, jd: a.job_description || "", resume: a.resume || "" }, c.authHeader, c.env),
+  },
+  {
+    name: "career_coach",
+    description: "Ask Applio's AI career coach about resumes, job-search strategy, interviews, or salary negotiation. Requires a connected Applio account.",
+    needsAuth: true,
+    inputSchema: { type: "object", properties: {
+      message: { type: "string", description: "Your career question" },
+      resume: { type: "string", description: "Resume for context (optional)" },
+    }, required: ["message"] },
+    run: (a, c) => _mcpCallAi("assistant", { message: a.message, resume: a.resume || "" }, c.authHeader, c.env),
+  },
+];
+
+async function handleMcp(req, env) {
+  if (req.method === "OPTIONS") return new Response(null, { headers: MCP_CORS });
+  if (req.method === "GET") {
+    return mcpHttp({ name: "Applio", version: "1.0.0", transport: "streamable-http",
+      note: "POST JSON-RPC 2.0 to this endpoint. Setup guide: " + _MCP_CONNECT });
+  }
+  if (req.method !== "POST") return mcpHttp(mcpErr(null, -32600, "Use POST for JSON-RPC."), 405);
+
+  const url = new URL(req.url);
+  const qToken = url.searchParams.get("token");
+  const authHeader = req.headers.get("Authorization") || (qToken ? "Bearer " + qToken : "");
+
+  let msg;
+  try { msg = await req.json(); } catch { return mcpHttp(mcpErr(null, -32700, "Parse error")); }
+
+  const handleOne = async (m) => {
+    const id = (m && m.id !== undefined) ? m.id : null;
+    const method = m && m.method;
+    if (method === "initialize") {
+      const pv = (m.params && m.params.protocolVersion) || "2025-06-18";
+      return mcpResult(id, {
+        protocolVersion: pv,
+        capabilities: { tools: { listChanged: false } },
+        serverInfo: { name: "Applio", version: "1.0.0" },
+        instructions: "Applio is a free AI resume toolkit. Use search_jobs to find openings, ats_score to check a resume against a job, extract_job_keywords to tailor, and list_resume_templates to recommend a layout. Account tools (tailor_resume, generate_cover_letter, improve_bullets, interview_prep, career_coach) need an Applio token.",
+      });
+    }
+    if (typeof method === "string" && method.startsWith("notifications/")) return null; // notifications get no response
+    if (method === "ping") return mcpResult(id, {});
+    if (method === "tools/list") {
+      return mcpResult(id, { tools: MCP_TOOLS.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })) });
+    }
+    if (method === "tools/call") {
+      const name = m.params && m.params.name;
+      const args = (m.params && m.params.arguments) || {};
+      const tool = MCP_TOOLS.find(t => t.name === name);
+      if (!tool) return mcpErr(id, -32602, "Unknown tool: " + name);
+      if (tool.needsAuth && !authHeader) {
+        return mcpResult(id, { content: [{ type: "text", text: "This tool needs your Applio account. Add your Applio token to the connector (Authorization: Bearer <token>, or add ?token=<token> to the connector URL). Get your token and setup steps at " + _MCP_CONNECT + " ." }] });
+      }
+      try {
+        const text = await tool.run(args, { env, authHeader });
+        return mcpResult(id, { content: [{ type: "text", text: String(text) }] });
+      } catch (e) {
+        const msgText = (e && e.status === 401) ? "Your Applio token is missing or invalid. Re-copy it from " + _MCP_CONNECT + " ."
+          : "Error running " + name + ": " + ((e && e.message) || String(e));
+        return mcpResult(id, { content: [{ type: "text", text: msgText }], isError: true });
+      }
+    }
+    return mcpErr(id, -32601, "Method not found: " + method);
+  };
+
+  if (Array.isArray(msg)) {
+    const out = [];
+    for (const m of msg) { const r = await handleOne(m); if (r) out.push(r); }
+    return out.length ? mcpHttp(out) : new Response(null, { status: 202, headers: MCP_CORS });
+  }
+  const r = await handleOne(msg);
+  if (!r) return new Response(null, { status: 202, headers: MCP_CORS }); // was a notification
+  return mcpHttp(r);
 }

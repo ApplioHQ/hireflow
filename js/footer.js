@@ -73,6 +73,7 @@
     +     '<a href="/tools/resume-skills-generator">Skills Generator</a>'
     +     '<a href="/tools/resume-proofreader">Resume Proofreader</a>'
     +     '<a href="/salary">Salary Calculator</a>'
+    +     '<a href="/connect">Connect to Claude &amp; ChatGPT</a>'
     +   '</div>'
     +   '<div><h4>Learn</h4>'
     +     '<a href="/guides">Resume Guides</a>'

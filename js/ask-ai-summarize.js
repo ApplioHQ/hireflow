@@ -29,7 +29,7 @@
     { id: 'chatgpt', name: 'ChatGPT', url: 'https://chatgpt.com/?q=' + q },
     { id: 'claude', name: 'Claude', url: 'https://claude.ai/new?q=' + q },
     { id: 'perplexity', name: 'Perplexity', url: 'https://www.perplexity.ai/search/?q=' + q },
-    { id: 'gemini', name: 'Gemini', url: 'https://gemini.google.com/app?q=' + q },
+    { id: 'gemini', name: 'Gemini', url: 'https://www.google.com/search?udm=50&aep=11&q=' + q },
     { id: 'grok', name: 'Grok', url: 'https://grok.com/?q=' + q }
   ];
 

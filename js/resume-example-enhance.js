@@ -88,4 +88,54 @@
     });
     wrap.appendChild(btn);
   });
+
+  /* 5) Two-column hero: move the live resume preview up beside the title + CTAs.
+     Runs before the per-page iframe-fit script, so the preview fits its new,
+     narrower column on first render. Falls back to single column if anything
+     is missing. */
+  (function buildTwoColHero() {
+    var heroInner = document.querySelector('.gd-hero .gd-hero-inner');
+    if (!heroInner || heroInner.classList.contains('rx-hero2')) return;
+    var rpSection = document.querySelector('.gd-answer .rp-section') || document.querySelector('.rp-section');
+    if (!rpSection) return;
+    var frameOuter = rpSection.querySelector('.rp-frame-outer');
+    if (!frameOuter) return;
+
+    var ctaRow = rpSection.querySelector('.rp-cta-row');
+    var primaryHref = 'editor', primaryText = 'Use this template free';
+    var ep = ctaRow && ctaRow.querySelector('a');
+    if (ep) { primaryHref = ep.getAttribute('href') || primaryHref; primaryText = ep.textContent.trim() || primaryText; }
+
+    var left = document.createElement('div'); left.className = 'rx-hero-left';
+    var right = document.createElement('div'); right.className = 'rx-hero-right';
+
+    // Move the existing hero contents (crumb, h1, meta, fact chips) into the left column.
+    while (heroInner.firstChild) left.appendChild(heroInner.firstChild);
+
+    // CTAs on the left (secondary styled for the dark hero).
+    var cta = document.createElement('div');
+    cta.className = 'rx-hero-cta';
+    cta.innerHTML = '<a class="btn btn-primary" href="' + primaryHref + '">' + (primaryText || 'Use this template free') + '</a>'
+      + '<a class="btn" href="/ats-checker" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.28);color:#fff;">Check your ATS score</a>';
+    var facts = left.querySelector('.rx-facts');
+    if (facts) left.insertBefore(cta, facts); else left.appendChild(cta);
+
+    // Right column: the preview, minus its old heading + cta row, with a peek fade + label.
+    var rpH2 = rpSection.querySelector('h2'); if (rpH2) rpH2.remove();
+    if (ctaRow) ctaRow.remove();
+    var fade = document.createElement('div'); fade.className = 'rx-fade';
+    frameOuter.appendChild(fade);
+    var label = document.createElement('span'); label.className = 'rx-live'; label.textContent = 'Live preview';
+    right.appendChild(frameOuter);
+    right.appendChild(label);
+    rpSection.parentNode && rpSection.remove();
+
+    heroInner.classList.add('rx-hero2');
+    heroInner.appendChild(left);
+    heroInner.appendChild(right);
+
+    // Nudge the per-page fit() in case it measured before the move settled.
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 120);
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 500);
+  })();
 })();

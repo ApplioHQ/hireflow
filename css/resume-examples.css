@@ -213,3 +213,17 @@ html.light-mode .rx-fact { color:var(--muted); background:var(--bg-2); border-co
 .rx-copy-inline { gap:6px; font-size:12px; font-weight:600; padding:5px 11px; margin-left:auto; }
 .rx-sec-head { display:flex; align-items:center; gap:12px; }
 .rx-sec-head h2 { margin-bottom:0 !important; }
+
+/* ===== Two-column hero (built by resume-example-enhance.js) ===== */
+.gd-hero-inner.rx-hero2 { max-width: 1060px; display: grid; grid-template-columns: 1.08fr 1fr; gap: 40px; align-items: center; }
+.rx-hero-left { min-width: 0; }
+.rx-hero-right { position: relative; min-width: 0; }
+.rx-hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 16px; }
+.rx-hero-cta .btn { font-size: 14px; }
+.rx-hero2 .rp-frame-outer { max-width: none; max-height: 430px; }
+.rx-hero2 .rp-frame-outer .rx-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; background: linear-gradient(180deg, rgba(21,27,61,0), #151b3d); pointer-events: none; z-index: 2; }
+.rx-live { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 600; color: #fff; background: rgba(0,0,0,.5); border-radius: 999px; padding: 3px 10px; z-index: 3; }
+@media (max-width: 860px) {
+  .gd-hero-inner.rx-hero2 { grid-template-columns: 1fr; gap: 24px; max-width: 760px; }
+  .rx-hero2 .rp-frame-outer { max-height: 360px; margin: 0 auto; }
+}

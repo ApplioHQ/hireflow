@@ -3941,6 +3941,32 @@ async function aiATS() {
 // True if a string looks like a (possibly fenced) JSON object rather than prose.
 function _looksLikeJSON(s) { return typeof s === 'string' && /^\s*(```)?\s*(json)?\s*\{/i.test(s); }
 
+// Turn the deterministic engine's issues into a ranked fix list with estimated
+// point gains (gap in each dimension x its AtsEngine weight), biggest gain first.
+function _atsBuildFixes(eng) {
+  if (!eng) return [];
+  const bd = eng.breakdown || {}, hasJD = eng.hasJD;
+  const w = hasJD ? { kw: .40, fmt: .20, imp: .25, comp: .15 } : { kw: .10, fmt: .30, imp: .35, comp: .25 };
+  const pool = {
+    kw: Math.max(0, Math.round((90 - (bd.keywords || 0)) * w.kw)),
+    fmt: Math.max(0, Math.round((95 - (bd.formatting || 0)) * w.fmt)),
+    imp: Math.max(0, Math.round((88 - (bd.impact || 0)) * w.imp)),
+    comp: Math.max(0, Math.round((95 - (bd.completeness || 0)) * w.comp)),
+  };
+  return (eng.issues || []).map(txt => {
+    const t = txt.toLowerCase(); let dim = 'comp';
+    if (/term|keyword|posting/.test(t)) dim = 'kw';
+    else if (/number|metric|%|\$/.test(t)) dim = 'imp';
+    else if (/action verb/.test(t)) dim = 'imp';
+    else if (/contact|email|phone/.test(t)) dim = 'fmt';
+    else if (/summary|objective|profile/.test(t)) dim = 'comp';
+    let gain = (pool[dim] && pool[dim] > 0) ? pool[dim] : 1;
+    pool[dim] = Math.max(0, (pool[dim] || 0) - gain);
+    gain = Math.max(1, gain);
+    return { txt, gain };
+  }).sort((a, b) => b.gain - a.gain);
+}
+
 function _renderATSResult(r) {
   // Recover structured fields if the backend handed back raw/blob text (e.g. an
   // un-deployed worker, or the model wrapped output in a ```json fence). This
@@ -3962,15 +3988,37 @@ function _renderATSResult(r) {
   // Only show feedback if it's actual prose, never a raw JSON blob.
   const feedbackText = (typeof data.feedback === 'string' && !_looksLikeJSON(data.feedback)) ? data.feedback : '';
 
-  const bar = (lbl, v) => {
+  // Enrich with the deterministic engine (loaded in the editor) for matched/missing
+  // keyword chips, a ranked fix list with estimated point gains, and a projected score.
+  const jdText = (document.getElementById('ats-jd') || {}).value || '';
+  let eng = null;
+  try { if (window.AtsEngine && jdText.trim().length >= 20) eng = AtsEngine.score(_resumeToText(resume), jdText); } catch {}
+  const fixes = _atsBuildFixes(eng);
+  const totalGain = fixes.reduce((s, f) => s + f.gain, 0);
+  const projected = Math.min(96, score + totalGain);
+  const shownGain = projected - score;   // keep "+N pts" consistent with the capped projection
+  const matched = (eng && Array.isArray(eng.matchedKeywords)) ? eng.matchedKeywords : [];
+  const missChips = (missing && missing.length) ? missing : ((eng && eng.missingKeywords) ? eng.missingKeywords : []);
+
+  const scoreC = v => v >= 70 ? '#22c55e' : v >= 50 ? '#f59e0b' : '#ef4444';
+  const tile = (lbl, v) => {
     const val = Number.isFinite(+v) ? Math.max(0, Math.min(100, +v)) : null;
     if (val == null) return '';
-    const c = val >= 70 ? '#22c55e' : val >= 50 ? '#f59e0b' : '#ef4444';
-    return `<div class="ats-bd-row">
-        <div class="ats-bd-head"><span>${esc(lbl)}</span><span style="color:${c};font-weight:700;">${val}</span></div>
-        <div class="ats-bd-track"><div class="ats-bd-fill" style="width:${val}%;background:${c};"></div></div>
+    const c = scoreC(val);
+    return `<div class="ats-bd-tile">
+        <div class="ats-bd-tile-top"><span>${esc(lbl)}</span><span style="color:${c};font-weight:800;">${val}</span></div>
+        <div class="ats-bd-meter"><div class="ats-bd-meter-fill" style="width:${val}%;background:${c};"></div></div>
       </div>`;
   };
+  const chip = (txt, cls) => `<span class="ats-chip ${cls}">${esc(txt)}</span>`;
+  const dotC = g => g >= 8 ? '#ef4444' : g >= 4 ? '#f59e0b' : '#94a3b8';
+  const fixHtml = fixes.map(f => `<div class="ats-fix"><span class="ats-fix-dot" style="color:${dotC(f.gain)};">●</span><span class="ats-fix-txt">${esc(f.txt)}</span><span class="ats-fix-pts">+${f.gain} pts</span></div>`).join('');
+  const upSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>';
+  const okSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>';
+  const warnSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  const projHtml = (shownGain > 0 && fixes.length)
+    ? `<div class="ats-proj">${upSvg} Reaches <strong style="margin:0 2px;">${projected}</strong> after the ${fixes.length} fix${fixes.length === 1 ? '' : 'es'} below · <strong style="margin-left:2px;">+${shownGain} pts</strong></div>`
+    : '';
 
   document.getElementById('ats-result').innerHTML = `
     <div class="ats-result-card">
@@ -3990,18 +4038,20 @@ function _renderATSResult(r) {
         </div>
         <div class="ats-score-text">
           <div class="ats-verdict" style="color:${color};">${label}</div>
-          ${feedbackText ? `<div class="ats-feedback-text ai-body" style="margin-top:6px;">${_renderAiBody(feedbackText)}</div>` : ''}
+          ${projHtml}
+          ${feedbackText ? `<div class="ats-feedback-text ai-body" style="margin-top:8px;">${_renderAiBody(feedbackText)}</div>` : ''}
         </div>
       </div>
-      ${bd ? `<div class="ats-breakdown">
-        ${bar('Keywords', bd.keywords)}
-        ${bar('Experience', bd.experience)}
-        ${bar('Formatting', bd.formatting)}
-        ${bar('Completeness', bd.completeness)}
+      ${bd ? `<div class="ats-bd-grid">
+        ${tile('Keywords', bd.keywords)}
+        ${tile('Experience', bd.experience)}
+        ${tile('Formatting', bd.formatting)}
+        ${tile('Completeness', bd.completeness)}
       </div>` : ''}
-      ${wins.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✓ What's working</div><ul class="ai-rec-list" id="ats-wins"></ul></div>` : ''}
-      ${missing.length ? `<div class="ats-kw-section"><div class="ats-kw-title">✕ Missing keywords</div><div class="ats-kw-list" id="ats-kw-missing"></div></div>` : ''}
-      ${_atsNextSteps(score, missing.length)}
+      ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#4ade80;text-transform:none;font-size:13px;letter-spacing:0;">${okSvg} Matched keywords <span style="color:var(--muted);font-weight:600;">(${matched.length})</span></div><div class="ats-chips">${matched.map(k => chip(k, 'ats-chip-ok')).join('')}</div></div>` : ''}
+      ${missChips.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#fbbf24;text-transform:none;font-size:13px;letter-spacing:0;">${warnSvg} Missing from your resume <span style="color:var(--muted);font-weight:600;">(${missChips.length})</span></div><div class="ats-chips">${missChips.map(k => chip(k, 'ats-chip-miss')).join('')}</div></div>` : ''}
+      ${fixes.length ? `<div class="ats-fix-section"><div class="ats-fix-title">Do these next, biggest gain first</div>${fixHtml}</div>` : ''}
+      ${_atsNextSteps(score, missChips.length)}
     </div>`;
 
   // Animate ring + counter
@@ -4020,23 +4070,6 @@ function _renderATSResult(r) {
     }
   });
 
-  // "What's working" cards
-  const winsEl = document.getElementById('ats-wins');
-  if (winsEl) wins.forEach(w => {
-    const li = document.createElement('li');
-    li.className = 'ai-rec';
-    li.innerHTML = `<span class="ai-rec-ico">${ICON('check','ico ico-sm')}</span><span>${esc(_deName(w))}</span>`;
-    winsEl.appendChild(li);
-  });
-
-  // Staggered missing-keyword pills
-  const mEl = document.getElementById('ats-kw-missing');
-  if (mEl) missing.forEach((kw, i) => setTimeout(() => {
-    const pill = document.createElement('span');
-    pill.className = 'ats-kw-pill ats-kw-missing';
-    pill.textContent = kw;
-    mEl.appendChild(pill);
-  }, 500 + i * 70));
 }
 
 // Tolerantly pull a JSON object out of an AI string (handles ```json fences,

@@ -283,10 +283,11 @@
       // Prioritized fixes + projected score after applying them.
       var fixes = buildFixes(r);
       var totalGain = fixes.reduce(function (s, f) { return s + f.gain; }, 0);
-      var projected = Math.min(97, r.score + totalGain);
-      var proj = (totalGain > 0 && fixes.length)
+      var projected = Math.min(96, r.score + totalGain);
+      var shownGain = projected - r.score;
+      var proj = (shownGain > 0 && fixes.length)
         ? '<div class="ac-proj"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
-          + 'Reaches <strong style="margin:0 2px;">' + projected + '</strong> after the ' + fixes.length + ' fix' + (fixes.length === 1 ? '' : 'es') + ' below · <strong style="margin-left:2px;">+' + totalGain + ' pts</strong></div>'
+          + 'Reaches <strong style="margin:0 2px;">' + projected + '</strong> after the ' + fixes.length + ' fix' + (fixes.length === 1 ? '' : 'es') + ' below · <strong style="margin-left:2px;">+' + shownGain + ' pts</strong></div>'
         : '';
 
       // Breakdown tiles

@@ -156,7 +156,50 @@
     card.appendChild(cta);
   });
 
-  /* 8) Two-column hero: move the live resume preview up beside the title + CTAs.
+  /* 8) Wider layout: wrap the article in a two-column grid with a sticky sidebar
+     (table of contents, build CTA, salary link, related roles). Fills the dead
+     space and adds internal links. */
+  (function buildSidebar() {
+    var wrap = document.querySelector('main.gd-wrap');
+    if (!wrap || wrap.classList.contains('rx-wide')) return;
+    var art = wrap.querySelector('article');
+    if (!art) return;
+
+    var h1 = document.querySelector('.gd-hero h1') || document.querySelector('h1');
+    var role = h1 ? h1.textContent.replace(/\s*resume example.*$/i, '').trim() : '';
+    var roleLc = role ? role.toLowerCase() : 'resume';
+
+    var toc = secs.map(function (h) {
+      var sec = h.closest('.gd-section') || h.closest('.gd-faq');
+      if (!sec) return null;
+      if (!sec.id) sec.id = 'rx-' + slug(h.textContent).slice(0, 40);
+      var label = h.textContent.replace(/\s*resume\s*/i, ' ').replace(/\bexamples?\b/i, '').trim() || h.textContent.trim();
+      return { id: sec.id, label: label.length > 26 ? label.slice(0, 24) + '…' : label };
+    }).filter(Boolean);
+
+    var rel = [];
+    document.querySelectorAll('.gd-rel a[href*="/resume-examples/"]').forEach(function (a) {
+      if (rel.length < 4) rel.push({ href: a.getAttribute('href'), text: a.textContent.replace(/\s*resume example.*$/i, '').trim() });
+    });
+
+    var side = document.createElement('aside');
+    side.className = 'rx-side';
+    side.innerHTML =
+      (toc.length >= 3 ? '<div class="rx-side-card rx-toc-card"><div class="rx-side-label">On this page</div><nav class="rx-toc" aria-label="On this page">' + toc.map(function (t) { return '<a href="#' + t.id + '">' + t.label + '</a>'; }).join('') + '</nav></div>' : '')
+      + '<div class="rx-side-card rx-side-cta"><div class="rx-side-cta-h">Build your ' + roleLc + ' resume free</div><a class="btn btn-primary" href="/login?mode=signup">Use this template free</a></div>'
+      + '<div class="rx-side-card"><div class="rx-side-label">Salary</div><a class="rx-side-link" href="/salary">See ' + roleLc + ' salaries &rarr;</a></div>'
+      + (rel.length ? '<div class="rx-side-card"><div class="rx-side-label">Related roles</div><div class="rx-rel-links">' + rel.map(function (r) { return '<a href="' + r.href + '">' + r.text + ' &rarr;</a>'; }).join('') + '</div></div>' : '');
+
+    var layout = document.createElement('div'); layout.className = 'rx-layout';
+    var main = document.createElement('div'); main.className = 'rx-main';
+    art.parentNode.insertBefore(layout, art);
+    main.appendChild(art);
+    layout.appendChild(main);
+    layout.appendChild(side);
+    wrap.classList.add('rx-wide');
+  })();
+
+  /* 9) Two-column hero: move the live resume preview up beside the title + CTAs.
      Runs before the per-page iframe-fit script, so the preview fits its new,
      narrower column on first render. Falls back to single column if anything
      is missing. */

@@ -133,6 +133,18 @@
       return;
     }
     var html = '';
+    // Match-percent ring header: how much of the expected skill set you already show.
+    var have = relevant.length, miss = missing.length, total = have + miss;
+    var pct = total ? Math.round(100 * have / total) : 0;
+    var pc = pct >= 75 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    var C = 2 * Math.PI * 42, off = (C * (1 - pct / 100)).toFixed(1);
+    html += '<div class="sg-matchhead">'
+      + '<div class="sg-ring"><svg viewBox="0 0 100 100" width="94" height="94" role="img" aria-label="Skill match ' + pct + ' percent">'
+      + '<circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8"/>'
+      + '<circle cx="50" cy="50" r="42" fill="none" stroke="' + pc + '" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1s ease;"/>'
+      + '</svg><div class="sg-ring-mid"><span style="color:' + pc + ';">' + pct + '%</span><span class="sg-ring-sub">match</span></div></div>'
+      + '<div class="sg-matchtext"><div class="sg-matchh">You match ' + have + ' of ' + total + ' core skills</div>'
+      + '<div class="sg-sub">Close the ' + miss + ' gap' + (miss === 1 ? '' : 's') + ' below to be a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div></div></div>';
     if (relevant.length) {
       html += '<div class="sg-block"><h2>Skills you already show</h2>'
         + '<div class="sg-sub">' + (isJD ? 'On your resume and asked for in this posting, lead with these.' : 'These are on your resume and fit a ' + esc(role) + ', keep them front and center.') + '</div>'
@@ -148,7 +160,7 @@
       }).join('')
       + '<div class="sg-addbar"><span class="sg-addhint" id="sg-addhint">Check the ones you genuinely have, then add them, recruiters and ATS filters only catch what\'s written. Never add a skill you can\'t back up in an interview.</span>'
       + '<button class="btn btn-primary btn-sm" id="sg-add" disabled>Add to my resume</button></div></div>';
-    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong>the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
+    html += '<div class="sg-cta">Skills you don\'t check are your <strong>learning shortlist</strong>, the fastest way to become a stronger ' + (isJD ? 'candidate for this job' : esc(role) + ' candidate') + '.</div>';
     out.innerHTML = html;
     wireAdd();
   }

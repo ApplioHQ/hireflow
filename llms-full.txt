@@ -41,7 +41,7 @@ An Applicant Tracking System (ATS) is software employers use to collect, parse, 
 - Optimize the top third of the resume for a fast scan: clear target title, a 2-3 sentence summary, and your strongest quantified result high on the page.
 
 ## Privacy and security
-- Passwords are hashed with PBKDF2-SHA256, never stored in plain text.
+- Passwords are securely hashed, never stored in plain text.
 - Resume data is encrypted in transit and at rest.
 - Payments are handled by Stripe.
 

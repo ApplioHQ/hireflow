@@ -292,7 +292,23 @@ async function openBillingPortal() {
     `<div class="acct-row"><span class="acct-label">Access</span><span class="acct-value"><span class="pill success">Everything free</span></span></div>`,
   ];
 
+  // Profile header (avatar photo or initial + name/headline), read from the cached profile.
+  let _pf = {};
+  try { _pf = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (e) { _pf = {}; }
+  const _init = ((u.email || 'A').trim().charAt(0) || 'A').toUpperCase();
+  const _av = _pf.avatar
+    ? `<img src="${_pf.avatar}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    : _planEsc(_init);
+  const profileHeader =
+    `<div style="display:flex;align-items:center;gap:13px;margin-bottom:16px;">`
+    + `<div style="width:48px;height:48px;border-radius:50%;flex:none;overflow:hidden;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">${_av}</div>`
+    + `<div style="min-width:0;">`
+    + `<div style="font-weight:700;font-size:15px;">${_planEsc(_pf.displayName || (u.email || '').split('@')[0] || 'Your account')}</div>`
+    + (_pf.headline ? `<div style="font-size:12.5px;color:var(--muted);">${_planEsc(_pf.headline)}</div>` : '')
+    + `</div></div>`;
+
   const buttons = [];
+  buttons.push(`<button class="btn btn-secondary" onclick="closeAccountModal(); location.href='profile'">Edit profile</button>`);
   // Admin/super-admin: Admin Console (moved here from the topbar).
   if (isAdmin()) {
     buttons.push(`<button class="btn btn-secondary" style="background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(139,92,246,.18));border:1px solid rgba(239,68,68,.35);color:#fca5a5;font-weight:600;" onclick="location.href='admin'">⚡ Admin Console</button>`);
@@ -309,6 +325,7 @@ async function openBillingPortal() {
     <div class="app-dialog" style="max-width: 440px;">
       <button class="modal-close" onclick="closeAccountModal()" style="position:absolute;top:14px;right:14px;color:var(--muted);font-size:18px;">×</button>
       <h3 class="app-dialog-title" style="margin-bottom:14px;">Your Account</h3>
+      ${profileHeader}
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">${rows.join('')}</div>
       <div style="display:flex; flex-direction:column; gap:8px;">${buttons.join('')}</div>
     </div>`;

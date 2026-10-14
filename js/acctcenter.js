@@ -19,7 +19,8 @@
     card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
-    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
+    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
   };
   var ctx = (location.pathname.split('/').pop() || 'app').replace('.html', '') || 'app';
   right.insertAdjacentHTML('beforeend',
@@ -36,6 +37,7 @@
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>'
     + '<button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href=\'admin\';"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.admin + '</span>Admin Console</span></button>'
     + '<div class="acct-sep"></div>'
+    + '<a class="acct-row acct-row-btn" role="menuitem" href="profile" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.user + '</span>Edit profile</span></a>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="if(typeof openFeedbackModal===\'function\')openFeedbackModal({context:\'' + ctx + '\'}); closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.chat + '</span>Feedback</span></button>'
     + '<a class="acct-row acct-row-btn" role="menuitem" href="mailto:support@appliohq.com?subject=Applio%20support" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.mail + '</span>Contact support</span></a>'
     + '<button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.out + '</span>Sign out</span></button>'
@@ -69,7 +71,12 @@
   function hydrate() {
     var email = (window.CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
     var initials = email ? email.trim().charAt(0).toUpperCase() : 'A';
-    ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = initials; });
+    var avatar = ''; try { avatar = (JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}).avatar || ''; } catch (e) {}
+    ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
+      var el = document.getElementById(id); if (!el) return;
+      if (avatar) { el.innerHTML = '<img src="' + avatar + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'; el.style.overflow = 'hidden'; }
+      else { el.textContent = initials; }
+    });
     var em = document.getElementById('acct-email'); if (em) em.textContent = email || 'Account';
     var admin = (typeof isAdmin === 'function' && isAdmin());
     var paid = (typeof isPaid === 'function' && isPaid());

@@ -1,0 +1,91 @@
+/* resume-example-enhance.js, progressive UI upgrades shared by every resume-example
+   page (no per-file content changes). Adds quick-fact chips to the hero, a section
+   nav, one-tap copy on summary examples, and a "copy all" on the bullet list.
+   Pure DOM enhancement with guards, so a page missing a piece just skips it. */
+(function () {
+  'use strict';
+  var article = document.querySelector('.gd-wrap article');
+  if (!article) return;
+
+  function svg(paths, cls) {
+    return '<svg class="' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+  }
+  var ICO_COPY = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+  var ICO_CHECK = '<polyline points="20 6 9 17 4 12"/>';
+  var ICO_COIN = '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h3.5a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3H14"/>';
+  var ICO_DL = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>';
+
+  function copyText(btn, text) {
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () {
+      var old = btn.innerHTML;
+      btn.innerHTML = svg(ICO_CHECK);
+      setTimeout(function () { btn.innerHTML = old; }, 1500);
+    }).catch(function () {});
+  }
+
+  /* 1) Quick-fact chips in the hero */
+  var heroInner = document.querySelector('.gd-hero .gd-hero-inner') || document.querySelector('.gd-hero');
+  if (heroInner && !heroInner.querySelector('.rx-facts')) {
+    var facts = document.createElement('div');
+    facts.className = 'rx-facts';
+    facts.innerHTML =
+      '<span class="rx-fact">' + svg(ICO_CHECK) + ' ATS-friendly</span>'
+      + '<span class="rx-fact">' + svg(ICO_COIN) + ' Free, no sign-up</span>'
+      + '<span class="rx-fact">' + svg(ICO_DL) + ' PDF export</span>';
+    heroInner.appendChild(facts);
+  }
+
+  /* 2) Section nav from the example page's section headings */
+  var slug = function (s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+  var secs = Array.prototype.slice.call(article.querySelectorAll('.gd-section > h2, .gd-faq > h2'));
+  if (secs.length >= 3 && !article.querySelector('.rx-nav')) {
+    var nav = document.createElement('nav');
+    nav.className = 'rx-nav';
+    nav.setAttribute('aria-label', 'On this page');
+    secs.forEach(function (h) {
+      var sec = h.parentElement;
+      if (!sec.id) sec.id = 'rx-' + slug(h.textContent).slice(0, 40);
+      var label = h.textContent.replace(/\s*resume\s*/i, ' ').replace(/\bexamples?\b/i, '').trim() || h.textContent.trim();
+      var a = document.createElement('a');
+      a.href = '#' + sec.id;
+      a.textContent = label.length > 22 ? label.slice(0, 20) + '…' : label;
+      nav.appendChild(a);
+    });
+    article.insertBefore(nav, article.firstChild);
+  }
+
+  /* 3) Copy button on each summary example block */
+  article.querySelectorAll('.gd-example').forEach(function (ex) {
+    if (ex.querySelector('.rx-copy')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rx-copy rx-copy-abs';
+    btn.setAttribute('aria-label', 'Copy this example');
+    btn.innerHTML = svg(ICO_COPY);
+    btn.addEventListener('click', function () { copyText(btn, ex.textContent.trim()); });
+    ex.appendChild(btn);
+  });
+
+  /* 4) "Copy all" on the bullet-point section */
+  secs.forEach(function (h) {
+    if (!/bullet/i.test(h.textContent)) return;
+    var sec = h.parentElement;
+    var ul = sec.querySelector('ul');
+    if (!ul || sec.querySelector('.rx-copy')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'rx-sec-head';
+    h.parentNode.insertBefore(wrap, h);
+    wrap.appendChild(h);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rx-copy rx-copy-inline';
+    btn.innerHTML = svg(ICO_COPY) + '<span>Copy all</span>';
+    btn.addEventListener('click', function () {
+      var text = Array.prototype.map.call(ul.querySelectorAll('li'), function (li) { return '• ' + li.textContent.trim(); }).join('\n');
+      copyText(btn, text);
+      btn.querySelector('span') && (btn.querySelector('span').textContent = 'Copied');
+      setTimeout(function () { var s = btn.querySelector('span'); if (s) s.textContent = 'Copy all'; }, 1500);
+    });
+    wrap.appendChild(btn);
+  });
+})();

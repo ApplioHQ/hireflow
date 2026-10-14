@@ -1242,8 +1242,9 @@ async function saveProfile(req, env) {
   const body = await req.json().catch(() => ({}));
   const profile = body && typeof body.profile === "object" && body.profile ? body.profile : {};
   // Guard against runaway size (the win journal is capped client-side, but be safe).
+  // Headroom allows a small base64 avatar (resized to ~256px client-side).
   const str = JSON.stringify(profile);
-  if (str.length > 60000) throw err(413, "Profile too large");
+  if (str.length > 250000) throw err(413, "Profile too large");
   await env.HIREFLOW_KV.put(`profile:${payload.email.toLowerCase()}`, str);
   return { ok: true };
 }

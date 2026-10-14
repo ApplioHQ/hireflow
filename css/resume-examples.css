@@ -196,3 +196,20 @@
   .gd-example { padding: 20px 18px; }
   .gd-final { padding: 32px 20px; }
 }
+
+/* ===== Example-page UI enhancements (rx-*) injected by resume-example-enhance.js ===== */
+.rx-facts { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.rx-fact { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:rgba(255,255,255,.78); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); padding:5px 11px; border-radius:999px; }
+html.light-mode .rx-fact { color:var(--muted); background:var(--bg-2); border-color:var(--border); }
+.rx-fact svg { width:14px; height:14px; flex:none; }
+.rx-nav { display:flex; gap:6px; flex-wrap:wrap; padding:12px 0; margin:4px 0 8px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.rx-nav a { font-size:12.5px; font-weight:600; color:var(--muted); padding:6px 13px; border-radius:999px; text-decoration:none; transition:background .15s, color .15s; }
+.rx-nav a:hover { color:var(--text); background:var(--bg-2); }
+.gd-example { position:relative; }
+.rx-copy { border:1px solid var(--border); background:var(--bg-1); border-radius:8px; color:var(--muted); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s; }
+.rx-copy:hover { color:var(--accent); border-color:var(--accent); }
+.rx-copy svg { width:14px; height:14px; }
+.rx-copy-abs { position:absolute; top:8px; right:8px; width:28px; height:28px; }
+.rx-copy-inline { gap:6px; font-size:12px; font-weight:600; padding:5px 11px; margin-left:auto; }
+.rx-sec-head { display:flex; align-items:center; gap:12px; }
+.rx-sec-head h2 { margin-bottom:0 !important; }

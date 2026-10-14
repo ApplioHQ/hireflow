@@ -66,9 +66,26 @@
   .auth-aside .brand { color:#fff; position:absolute; top:28px; left:34px; z-index:1; }
   .auth-aside-title { font-size:26px; font-weight:800; line-height:1.2; letter-spacing:-.5px; margin:0 0 14px; }
   .auth-aside-sub { font-size:14px; color:rgba(255,255,255,.7); line-height:1.5; margin:0 0 20px; }
-  .auth-trust { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .auth-trust { list-style:none; margin:20px 0 0; padding:18px 0 0; border-top:1px solid rgba(255,255,255,.12); display:flex; flex-direction:column; gap:10px; }
   .auth-trust li { display:flex; align-items:flex-start; gap:9px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.85); }
   .auth-trust li svg { flex:none; margin-top:1px; color:#a7f3d0; }
+  /* Featured testimonial in the trust panel */
+  .auth-quote-stars { color:#fbbf24; font-size:15px; letter-spacing:3px; margin-bottom:12px; }
+  .auth-quote { font-size:15.5px; line-height:1.55; color:#fff; font-weight:500; margin:0 0 18px; letter-spacing:-.1px; }
+  .auth-quote-author { display:flex; align-items:center; gap:11px; }
+  .auth-quote-avatar { width:38px; height:38px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg,#6366f1,#8b5cf6); }
+  .auth-quote-author strong { display:block; font-size:13.5px; color:#fff; }
+  .auth-quote-author span { font-size:12px; color:rgba(255,255,255,.65); }
+
+  /* Animated aurora orbs drifting behind the trust panel */
+  .auth-orb { position:absolute; border-radius:50%; filter:blur(55px); opacity:.5; pointer-events:none; mix-blend-mode:screen; will-change:transform; z-index:0; }
+  .auth-orb-1 { width:280px; height:280px; background:radial-gradient(circle,#6366f1,transparent 70%); top:-60px; left:-50px; animation:auth-orb1 19s ease-in-out infinite; }
+  .auth-orb-2 { width:320px; height:320px; background:radial-gradient(circle,#8b5cf6,transparent 70%); bottom:-80px; right:-60px; animation:auth-orb2 23s ease-in-out infinite; }
+  .auth-orb-3 { width:220px; height:220px; background:radial-gradient(circle,#4f46e5,transparent 70%); top:42%; left:34%; animation:auth-orb3 27s ease-in-out infinite; }
+  @keyframes auth-orb1 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(70px,90px) scale(1.15);} }
+  @keyframes auth-orb2 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-80px,-55px) scale(1.12);} }
+  @keyframes auth-orb3 { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(45px,-45px) scale(1.2);} 66%{transform:translate(-35px,55px) scale(.9);} }
+  @media (prefers-reduced-motion: reduce) { .auth-orb { animation:none !important; } }
   /* inside the split the card drops its own frame + centers the form vertically */
   .auth-split .auth-card { flex:1; max-width:none; border:0; border-radius:0; box-shadow:none;
     padding:44px 40px; display:flex; flex-direction:column; justify-content:center; }
@@ -93,17 +110,23 @@
     <!-- Trust / credibility panel (hidden on small screens) -->
     <aside class="auth-aside">
       <div class="auth-aside-bg"></div>
+      <div class="auth-orb auth-orb-1"></div>
+      <div class="auth-orb auth-orb-2"></div>
+      <div class="auth-orb auth-orb-3"></div>
       <div class="auth-aside-pattern"></div>
       <div class="brand">
         <img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio">
         <span>Applio</span>
       </div>
       <div class="auth-aside-content">
-        <h2 class="auth-aside-title">Trusted by 100+ professionals in finance, software, and more.</h2>
-        <p class="auth-aside-sub">Free ATS-optimized resumes that actually land interviews.</p>
+        <div class="auth-quote-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote class="auth-quote">"Applio came at the most difficult time of my life. I'd just been let go, and I needed resumes that could actually pass the ATS for higher-paying remote roles. The free versions of Claude and ChatGPT never gave me enough to do that. Applio did, and the nervousness of finding a job left me. A diamond in the rough."</blockquote>
+        <div class="auth-quote-author">
+          <div class="auth-quote-avatar">J</div>
+          <div><strong>Jude</strong><span>Recently laid off, job seeker</span></div>
+        </div>
         <ul class="auth-trust">
           <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free forever, no credit card required</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 25 recruiter-tested templates</li>
           <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Data encrypted, never sold</li>
         </ul>
       </div>

@@ -89,7 +89,74 @@
     wrap.appendChild(btn);
   });
 
-  /* 5) Two-column hero: move the live resume preview up beside the title + CTAs.
+  /* 5) Skills "copy all" */
+  secs.forEach(function (h) {
+    if (!/skill/i.test(h.textContent)) return;
+    var sec = h.parentElement;
+    var chips = sec.querySelector('.gd-chips');
+    if (!chips || sec.querySelector('.rx-copy')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'rx-sec-head';
+    h.parentNode.insertBefore(wrap, h);
+    wrap.appendChild(h);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rx-copy rx-copy-inline';
+    btn.innerHTML = svg(ICO_COPY) + '<span>Copy all</span>';
+    btn.addEventListener('click', function () {
+      var text = Array.prototype.map.call(chips.querySelectorAll('.gd-chip'), function (c) { return c.textContent.trim(); }).join(', ');
+      copyText(btn, text);
+      var s = btn.querySelector('span'); if (s) { s.textContent = 'Copied'; setTimeout(function () { s.textContent = 'Copy all'; }, 1500); }
+    });
+    wrap.appendChild(btn);
+  });
+
+  /* 6) Bullet cards: highlight metrics + copy each bullet */
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  var METRIC = /(\$\s?\d[\d.,]*\+?[KMB]?|\d[\d.,]*\s?%|\b\d[\d.,]*\+|\b\d[\d.,]*x\b|\b\d[\d.,]*[KMB]\b)/g;
+  function highlight(text) { return esc(text).replace(METRIC, '<span class="rx-hl">$1</span>'); }
+  secs.forEach(function (h) {
+    if (!/bullet/i.test(h.textContent)) return;
+    var bsec = h.closest('.gd-section') || h.parentElement;
+    bsec.querySelectorAll('ul > li').forEach(function (li) {
+      if (li.classList.contains('rx-bul')) return;
+      var txt = li.textContent.trim();
+      var span = document.createElement('span');
+      span.className = 'rx-bul-txt';
+      span.innerHTML = highlight(txt);
+      li.innerHTML = '';
+      li.appendChild(span);
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rx-copy rx-bul-copy';
+      b.setAttribute('aria-label', 'Copy this bullet');
+      b.innerHTML = svg(ICO_COPY);
+      b.addEventListener('click', function () { copyText(b, txt); });
+      li.appendChild(b);
+      li.classList.add('rx-bul');
+    });
+  });
+
+  /* 7) Best-template section -> card with a clear CTA */
+  secs.forEach(function (h) {
+    if (!/template/i.test(h.textContent)) return;
+    var sec = h.closest('.gd-section') || h.parentElement;
+    var p = sec.querySelector('p');
+    if (!p || sec.querySelector('.rx-tpl-card')) return;
+    var a = sec.querySelector('a[href*="editor"], a[href*="login"], a[href*="mode=signup"]');
+    var href = (a && a.getAttribute('href')) || '/login?mode=signup';
+    var card = document.createElement('div');
+    card.className = 'rx-tpl-card';
+    p.parentNode.insertBefore(card, p);
+    card.appendChild(p);
+    var cta = document.createElement('a');
+    cta.className = 'btn btn-primary';
+    cta.href = href;
+    cta.textContent = 'Use this template free';
+    card.appendChild(cta);
+  });
+
+  /* 8) Two-column hero: move the live resume preview up beside the title + CTAs.
      Runs before the per-page iframe-fit script, so the preview fits its new,
      narrower column on first render. Falls back to single column if anything
      is missing. */

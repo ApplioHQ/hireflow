@@ -119,13 +119,22 @@
         <button type="button" class="cl-tone" data-tone="confident">Confident</button>
         <button type="button" class="cl-tone" data-tone="warm">Warm</button>
       </div>
+      <label>Length</label>
+      <div class="cl-tones" id="cl-lengths">
+        <button type="button" class="cl-tone" data-length="short">Short</button>
+        <button type="button" class="cl-tone active" data-length="standard">Standard</button>
+        <button type="button" class="cl-tone" data-length="detailed">Detailed</button>
+      </div>
       <button class="btn btn-primary cl-gen" id="cl-gen"></button>
     </div>
 
     <!-- Output -->
     <div class="section-card cl-out-card" id="cl-out">
       <div class="cl-out-head">
-        <h3>Your cover letter</h3>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <h3>Your cover letter</h3>
+          <span id="cl-grounded" style="display:none;font-size:11.5px;font-weight:600;color:#4ade80;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.3);padding:3px 9px;border-radius:999px;white-space:nowrap;">✓ Grounded in your resume</span>
+        </div>
         <div class="cl-out-actions" id="cl-actions" style="display:none;">
           <button class="btn btn-secondary btn-sm" id="cl-copy"></button>
           <button class="btn btn-secondary btn-sm" id="cl-download"></button>
@@ -147,6 +156,7 @@ const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
 const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
 let tone = 'professional';
+let length = 'standard';
 let lastLetter = '';
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
@@ -217,6 +227,7 @@ function _writingState(){
 function _renderLetter(text){
   lastLetter = text;
   document.getElementById('cl-actions').style.display = 'flex';
+  var g = document.getElementById('cl-grounded'); if (g) g.style.display = '';
   document.getElementById('cl-body').innerHTML =
     '<div class="cl-paper" id="cl-paper" contenteditable="true" spellcheck="true">' + esc(text) + '</div>';
 }
@@ -236,7 +247,7 @@ async function generate(){
     const r = await fetch(API + '/ai/cover-letter', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-      body: JSON.stringify({ role, company, jobDescription: jd, tone, highlights, resume: _resume() })
+      body: JSON.stringify({ role, company, jobDescription: jd, tone, length, highlights, resume: _resume() })
     });
     if (r.status === 402) { _gate(); return; }
     if (!r.ok) throw new Error('AI failed');
@@ -254,7 +265,13 @@ async function generate(){
 document.getElementById('cl-tones').addEventListener('click', function(e){
   const b = e.target.closest('.cl-tone'); if (!b) return;
   tone = b.getAttribute('data-tone');
-  document.querySelectorAll('.cl-tone').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('#cl-tones .cl-tone').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+});
+document.getElementById('cl-lengths').addEventListener('click', function(e){
+  const b = e.target.closest('.cl-tone'); if (!b) return;
+  length = b.getAttribute('data-length');
+  document.querySelectorAll('#cl-lengths .cl-tone').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
 });
 

@@ -3906,7 +3906,7 @@ Rules:
 }
 
 // ============ Cover letter generator ============
-async function aiCoverLetter(env, { role, company, jobDescription, tone, highlights, resume }) {
+async function aiCoverLetter(env, { role, company, jobDescription, tone, highlights, resume, length }) {
   const toneMap = {
     professional: "polished and professional",
     enthusiastic: "warm and enthusiastic, while staying professional",
@@ -3914,13 +3914,19 @@ async function aiCoverLetter(env, { role, company, jobDescription, tone, highlig
     warm:         "warm, personable, and genuine",
   };
   const toneDesc = toneMap[tone] || toneMap.professional;
+  const lengthMap = {
+    short:    "180-240 words, 3 tight paragraphs",
+    standard: "250-350 words, 3-4 short paragraphs",
+    detailed: "360-450 words, 4-5 paragraphs",
+  };
+  const lengthDesc = lengthMap[length] || lengthMap.standard;
   const name = (resume && (resume.name || (resume.personal && resume.personal.name))) || "";
 
   const sys = GROUNDING + "\n\n" + `You are an expert cover-letter writer. Write a complete, ready-to-send cover letter for the candidate, grounded ONLY in their real resume, never invent employers, titles, degrees, or metrics that aren't supported by the resume.
 
 Requirements:
 - Tone: ${toneDesc}.
-- Length: 250-350 words, 3-4 short paragraphs.
+- Length: ${lengthDesc}.
 - Structure: (1) a specific hook that connects the candidate to THIS role/company, (2) 1-2 paragraphs of evidence, concrete achievements and skills from the resume that map to the job's needs, with real numbers where the resume has them, (3) a confident closing with a call to action.
 - Address it to "Dear Hiring Manager," unless a name is clearly provided.
 - Sign off with "Sincerely," followed by the candidate's name${name ? ` (${name})` : ""}.

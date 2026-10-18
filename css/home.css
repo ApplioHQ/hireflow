@@ -7,12 +7,29 @@
 }
 
 /* ===== Nav ===== */
-.home-nav {
-  position: sticky; top: 0; z-index: 50;
+.home-nav { position: sticky; top: 0; z-index: 50; padding: 0; }
+/* Inner bar carries all visuals. Its layout height never changes, so the page
+   below never reflows, the float on scroll is a transform (no jump on re-attach). */
+.home-nav-in {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 40px; backdrop-filter: blur(12px);
-  background: rgba(7,9,26,.75);
-  border-bottom: 1px solid rgba(255,255,255,.05);
+  padding: 14px 40px; width: 100%; max-width: 100%; margin: 0 auto; box-sizing: border-box;
+  background: rgba(7,9,26,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid transparent; border-bottom-color: rgba(255,255,255,.05); border-radius: 0; box-shadow: none;
+  transition: transform .42s cubic-bezier(.22,.9,.26,1), max-width .42s cubic-bezier(.22,.9,.26,1),
+              border-radius .42s cubic-bezier(.22,.9,.26,1), background .3s ease,
+              box-shadow .42s ease, border-color .3s ease;
+  will-change: transform, max-width, border-radius;
+}
+.home-nav-solid .home-nav-in {
+  transform: translateY(12px);
+  max-width: 1160px; border-radius: 18px;
+  background: rgba(10,12,30,.74);
+  border-color: rgba(255,255,255,.08); border-bottom-color: rgba(255,255,255,.08);
+  box-shadow: 0 16px 44px rgba(0,0,0,.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-nav-in { transition: background .2s ease, box-shadow .2s ease; }
+  .home-nav-solid .home-nav-in { transform: none; }
 }
 .home-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
 .home-brand img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
@@ -508,13 +525,7 @@
 }
 
 /* ===== Nav scroll solidify ===== */
-.home-nav-solid {
-  background: rgba(7,9,26,.97) !important;
-  box-shadow: 0 2px 20px rgba(0,0,0,.4);
-  /* Nav is near-opaque once scrolled, so the backdrop blur is invisible but would
-     still recompute every scroll frame. Drop it while scrolling to cut paint cost. */
-  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
-}
+/* Scrolled state styling lives on .home-nav-solid .home-nav-in (the floating bar). */
 
 /* ===== Scroll-triggered fade-in ===== */
 .fade-ready {
@@ -545,7 +556,10 @@
   .sol-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr; gap: 20px; }
   .home-nav-links { display: none; }
-  .home-nav { padding: 14px 20px; }
+  .home-nav-in { padding: 14px 20px; }
+  /* On phones keep the bar full-width and flat (no floating pill) so the
+     dropdown menu stays aligned to the edges; just swap in the glass styling. */
+  .home-nav-solid .home-nav-in { max-width: 100%; transform: none; border-radius: 0; }
   .section-light, .final-cta { padding: 64px 20px; }
   /* Stacked steps: drop the horizontal connector that juts off-screen,
      add a clean vertical connector under each step icon instead */
@@ -843,7 +857,6 @@
   }
   .nav-dd-menu::before { display: none; }
   .nav-dd-menu a { padding: 10px 8px; font-size: 15px; border-radius: 0; }
-  .home-nav { position: relative; }
   .nav-actions .btn-ghost { display: none; }
   .testimonial-grid { grid-template-columns: 1fr; }
   .ba-card { grid-template-columns: 1fr; }

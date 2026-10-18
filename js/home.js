@@ -130,7 +130,9 @@ window.addEventListener('resize', rafThrottle(_recalcScrollMetrics), { passive: 
 window.addEventListener('load', _recalcScrollMetrics);
 window.addEventListener('scroll', rafThrottle(() => {
   const y = window.scrollY;
-  homeNav && homeNav.classList.toggle('home-nav-solid', y > 60);
+  // Hysteresis: detach early, re-attach only back near the very top, so the
+  // state never flickers when the scroll hovers at the threshold.
+  if (homeNav) { if (y > 20) homeNav.classList.add('home-nav-solid'); else if (y < 6) homeNav.classList.remove('home-nav-solid'); }
   if (bttEl) bttEl.classList.toggle('visible', y > 500);
   // Sticky mini-CTA: show after the hero, hide near the footer/final CTA
   if (stickyEl) {

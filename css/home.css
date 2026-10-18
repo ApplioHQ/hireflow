@@ -3,7 +3,14 @@
   background: #0a0e27;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
-  overflow-x: hidden;
+  /* clip (not hidden) still contains horizontal overflow but does NOT make the
+     body a scroll container, which would break the sticky header. */
+  overflow-x: clip;
+  /* Override the global `html, body { height: 100% }` so the body grows to the
+     full page height. Otherwise the body's box is only one viewport tall and the
+     sticky header can only stay pinned within that first screen, then scrolls off. */
+  height: auto;
+  min-height: 100%;
 }
 
 /* ===== Nav ===== */

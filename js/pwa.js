@@ -93,16 +93,16 @@
   }
 
   // ---- iOS Safari hint ----
-  function isIosSafari() {
+  function isIos() {
     var ua = navigator.userAgent;
-    var iOS = /iPad|iPhone|iPod/.test(ua) ||
+    return /iPad|iPhone|iPod/.test(ua) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
-    var webkit = /WebKit/.test(ua);
-    var otherBrowser = /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua); // Chrome/Firefox/Edge/Opera on iOS can't install
-    return iOS && webkit && !otherBrowser;
   }
+  function isIosChrome() { return /CriOS/.test(navigator.userAgent); }
 
-  if (isIosSafari() && !lsGet(LS_IOS)) {
+  // Show on ANY iOS browser: every one adds to the home screen via its Share
+  // menu, so don't exclude Chrome/Firefox/etc. Keeps showing until dismissed.
+  if (isIos() && !lsGet(LS_IOS)) {
     window.addEventListener('load', function () {
       setTimeout(showIosHint, 2600);
     });
@@ -117,14 +117,14 @@
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>' +
         '</div>' +
         '<div style="flex:1;color:rgba(255,255,255,.88);font-size:13px;line-height:1.5">' +
-          'Install Applio: tap <b style="color:#fff">Share</b>, then <b style="color:#fff">Add to Home Screen</b>' +
+          'Install Applio: tap ' + (isIosChrome() ? 'the <b style="color:#fff">Share</b> icon in the address bar' : '<b style="color:#fff">Share</b>') + ', then <b style="color:#fff">Add to Home Screen</b>' +
         '</div>' +
         '<button data-x aria-label="Dismiss" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;line-height:1;cursor:pointer;padding:4px">&times;</button>' +
       '</div>';
     document.body.appendChild(el);
     reveal(el);
+    /* Only suppress on an explicit dismiss, so a missed hint returns next visit.
+       It also stops on its own once installed (isStandalone guard above). */
     el.querySelector('[data-x]').addEventListener('click', function () { lsSet(LS_IOS, '1'); hide(el); });
-    /* Remember it was seen so it does not reappear on every visit. */
-    lsSet(LS_IOS, '1');
   }
 })();

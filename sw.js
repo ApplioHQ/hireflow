@@ -5,7 +5,7 @@
    - Images / fonts / icons: cache-first with background refresh (they rarely change).
    - Everything falls back to cache, then to a branded offline page, when offline.
    Bump CACHE_VERSION whenever this file changes to retire old caches. */
-const CACHE_VERSION = 'applio-v1';
+const CACHE_VERSION = 'applio-v2';
 const OFFLINE_URL = '/offline.html';
 
 /* Minimal set needed to render something useful with no network. */
@@ -14,6 +14,8 @@ const PRECACHE = [
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
+  '/icon-maskable-192.png',
+  '/icon-maskable-512.png',
   '/apple-touch-icon.png'
 ];
 

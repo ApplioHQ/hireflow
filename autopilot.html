@@ -86,6 +86,13 @@
   .ap-locked-preview { position: relative; margin: 6px 0 14px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--border); }
   .ap-locked-preview .ap-blur { filter: blur(5px); opacity: .5; padding: 12px 14px; font-size: 13px; line-height: 1.6; color: var(--muted); pointer-events: none; user-select: none; }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5b54e8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -182,5 +189,6 @@
 <script src="js/autopilot.js"></script>
   <script src="js/appnav.js"></script>
 <script src="/js/appshell.js"></script>
+<script src="/js/pwa.js" defer></script>
 </body>
 </html>

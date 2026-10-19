@@ -25,6 +25,13 @@
   .demo-err { color: #f87171; font-size: 13.5px; margin-top: 14px; }
   .demo-card .btn { margin-top: 18px; }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5b54e8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <div class="demo-wrap">
@@ -65,5 +72,6 @@
     .catch(function () { fail('Network error, please try again.'); });
 })();
 </script>
+<script src="/js/pwa.js" defer></script>
 </body>
 </html>

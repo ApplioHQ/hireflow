@@ -25,6 +25,13 @@
     border-radius:20px; padding:2px 9px; }
   @media (max-width:640px){ .fb-stats { grid-template-columns:repeat(2,1fr); } }
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5b54e8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -177,5 +184,6 @@ load();
 </script>
   <script src="js/appnav.js"></script>
   <script src="js/acctcenter.js"></script>
+<script src="/js/pwa.js" defer></script>
 </body>
 </html>

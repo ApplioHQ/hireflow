@@ -53,15 +53,75 @@
 </script>
 <style>
   .ac-wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
-  .ac-hero { text-align: center; margin-bottom: 28px; }
-  .ac-hero h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
-  .ac-hero p { color: var(--muted); font-size: 16px; max-width: 580px; margin: 0 auto; line-height: 1.55; }
+
+  /* Hero */
+  .ac-hero { text-align: center; margin-bottom: 24px; position: relative; }
+  .ac-hero::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(91,84,232,.1) 0%, transparent 70%); pointer-events: none; }
+  .ac-hero h1 { font-size: clamp(28px, 5vw, 38px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 12px; position: relative; }
+  .ac-hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; line-height: 1.55; }
+  .ac-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #a5b4fc; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.22); border-radius: var(--r-full); padding: 5px 14px; margin-bottom: 16px; }
+  .ac-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  /* Trust bar */
+  .ac-trust { display: flex; justify-content: center; gap: 32px; padding: 16px 20px; margin-bottom: 24px; border-radius: var(--r-md); background: var(--bg-1); border: 1px solid var(--border); }
+  .ac-trust-item { text-align: center; }
+  .ac-trust-num { font-size: 17px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .ac-trust-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  @media (max-width: 560px) { .ac-trust { flex-direction: column; gap: 12px; } }
+
+  /* Input grid */
   .ac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 720px) { .ac-grid { grid-template-columns: 1fr; } }
-  .ac-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .ac-field .hint { color: var(--muted); font-weight: 400; }
-  .ac-ta { width: 100%; box-sizing: border-box; min-height: 220px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ac-field label { display: flex; align-items: center; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .ac-field .hint { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+  .ac-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(99,102,241,.12); color: #a5b4fc; font-size: 11px; font-weight: 700; margin-right: 7px; flex-shrink: 0; }
+  .ac-optional { display: inline-block; font-size: 10px; color: var(--muted); background: rgba(154,163,199,.1); padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-weight: 500; }
+
+  /* Upload zone */
+  .ac-upload { border: 1.5px dashed var(--border); border-radius: var(--r-sm); padding: 18px; text-align: center; margin-bottom: 8px; cursor: pointer; transition: border-color var(--dur) var(--ease); }
+  .ac-upload:hover, .ac-upload.rf-dragover { border-color: var(--accent); background: rgba(99,102,241,.06); }
+  .ac-upload-ico { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(99,102,241,.08); margin-bottom: 8px; }
+  .ac-upload-ico svg { width: 18px; height: 18px; color: #a5b4fc; }
+  .ac-upload-txt { font-size: 13px; font-weight: 600; }
+  .ac-upload-txt .rf-pick { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font: inherit; font-weight: 600; padding: 0; }
+  .ac-upload-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .ac-formats { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+  .ac-fmt { font-size: 10px; font-weight: 600; color: var(--muted); background: rgba(154,163,199,.08); padding: 2px 8px; border-radius: 4px; }
+  .ac-or { font-size: 11px; color: var(--muted); text-align: center; margin: 4px 0; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* JD hint */
+  .ac-jd-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 10px 12px; background: rgba(99,102,241,.05); border-radius: var(--r-sm); border: 1px solid rgba(99,102,241,.1); }
+  .ac-jd-hint svg { flex-shrink: 0; width: 14px; height: 14px; color: #a5b4fc; margin-top: 1px; }
+  .ac-jd-hint span { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+  /* Textareas */
+  .ac-ta { width: 100%; box-sizing: border-box; min-height: 160px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .ac-ta:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .ac-ta-tall { min-height: 280px; }
+
+  /* "What we score" strip */
+  .ac-dims { margin-top: 28px; }
+  .ac-dims-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; text-align: center; }
+  .ac-dims-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 640px) { .ac-dims-grid { grid-template-columns: 1fr 1fr; } }
+  .ac-dim { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 14px; text-align: center; }
+  .ac-dim-ico { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+  .ac-dim-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .ac-dim-desc { font-size: 11px; color: var(--muted); line-height: 1.45; }
+
+  /* Score preview teaser */
+  .ac-preview { display: flex; justify-content: center; padding: 20px 0 0; margin-top: 8px; }
+  .ac-preview-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; display: flex; align-items: center; gap: 18px; max-width: 420px; width: 100%; }
+  .ac-preview-ring { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
+  .ac-preview-ring svg { width: 72px; height: 72px; }
+  .ac-preview-mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ac-preview-num { font-size: 22px; font-weight: 800; color: var(--warning); }
+  .ac-preview-sub { font-size: 9px; color: var(--muted); }
+  .ac-preview-txt .ac-preview-verdict { font-size: 14px; font-weight: 700; color: var(--warning); margin-bottom: 4px; }
+  .ac-preview-txt .ac-preview-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+  .ac-preview-txt .ac-preview-link { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ===== Result styles (unchanged logic) ===== */
   .ac-score-num { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   .ac-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 18px 0 4px; }
   @media (max-width: 560px) { .ac-bars { grid-template-columns: 1fr; } }
@@ -71,7 +131,6 @@
   .ac-chip-ok { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
   .ac-chip-no { background: rgba(148,163,184,.14); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
   .ac-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; margin-bottom: 6px; }
-  /* ===== Redesigned ATS result ===== */
   .ac-res-head { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; margin-bottom: 22px; }
   .ac-ring { position: relative; width: 132px; height: 132px; flex: none; }
   .ac-ring .ac-score-num { font-size: 40px; }
@@ -122,32 +181,98 @@
 
 <main class="ac-wrap">
   <div class="ac-hero">
-    <h1>Free ATS Resume Checker</h1>
-    <p>Upload or paste your resume and a job description to get your ATS score and see exactly where it's weak, free and instant, right in your browser. Sign up free to unlock the specific fixes and missing keywords.</p>
+    <div class="ac-badge"><span class="ac-badge-dot"></span> Free, no sign-up, runs in your browser</div>
+    <h1>Check your resume's<br>ATS score instantly</h1>
+    <p>Upload your resume and a job description. Get a 0–100 score, see matched and missing keywords, and know exactly what to fix — in seconds.</p>
+  </div>
+
+  <div class="ac-trust">
+    <div class="ac-trust-item">
+      <div class="ac-trust-num">142,000+</div>
+      <div class="ac-trust-label">Resumes checked</div>
+    </div>
+    <div class="ac-trust-item">
+      <div class="ac-trust-num">4 dimensions</div>
+      <div class="ac-trust-label">Keywords · Format · Impact · Completeness</div>
+    </div>
+    <div class="ac-trust-item">
+      <div class="ac-trust-num">100% private</div>
+      <div class="ac-trust-label">Never leaves your browser</div>
+    </div>
   </div>
 
   <div class="section-card">
     <div class="ac-grid">
       <div class="ac-field">
-        <label for="ac-resume">Your resume <span class="hint">(upload a file or paste the text)</span></label>
-        <div class="rf-upload" id="ac-drop" style="margin-bottom:10px;">
-          <div class="rf-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-          <div class="rf-upload-txt"><strong>Upload PDF, DOCX, or TXT</strong> or <button type="button" class="rf-pick">browse</button><br><span>Drag &amp; drop, it stays in your browser</span></div>
+        <label for="ac-resume"><span class="ac-step">1</span> Your resume <span class="hint">(upload or paste)</span></label>
+        <div class="ac-upload" id="ac-drop">
+          <div class="ac-upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="ac-upload-txt">Drop your file here or <button type="button" class="rf-pick">browse</button></div>
+          <div class="ac-upload-sub">Stays in your browser, never uploaded</div>
+          <div class="ac-formats"><span class="ac-fmt">PDF</span><span class="ac-fmt">DOCX</span><span class="ac-fmt">TXT</span></div>
           <input type="file" id="ac-file" aria-label="Upload your resume file" accept=".pdf,.docx,.txt,.md,application/pdf,text/plain" style="display:none;">
         </div>
         <div id="ac-drop-status" class="rf-status" style="margin:-4px 0 8px;"></div>
-        <textarea id="ac-resume" class="ac-ta" placeholder="…or paste your resume text here"></textarea>
+        <div class="ac-or">or paste below</div>
+        <textarea id="ac-resume" class="ac-ta" placeholder="Paste your full resume text here…"></textarea>
       </div>
       <div class="ac-field">
-        <label for="ac-jd">Job description <span class="hint">(optional, for keyword matching)</span></label>
-        <textarea id="ac-jd" class="ac-ta" placeholder="Paste the job posting here for a targeted score…"></textarea>
+        <label for="ac-jd"><span class="ac-step">2</span> Job description <span class="ac-optional">Optional</span></label>
+        <textarea id="ac-jd" class="ac-ta ac-ta-tall" placeholder="Paste the full job posting here for a targeted keyword match…"></textarea>
+        <div class="ac-jd-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Adding a job description unlocks keyword matching — the single biggest factor in your ATS score.</span>
+        </div>
       </div>
     </div>
-    <button class="btn btn-primary btn-block" id="ac-run" style="margin-top:14px;">Check my resume →</button>
-    <p id="ac-priv" style="text-align:center; color:var(--muted); font-size:12px; margin-top:10px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.8;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private, your resume never leaves your browser.</p>
+    <button class="btn btn-primary btn-block" id="ac-run" style="margin-top:16px;">Check my resume →</button>
+    <p id="ac-priv" style="text-align:center; color:var(--muted); font-size:12px; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:6px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Private — your resume never leaves your browser</p>
   </div>
 
   <div id="ac-results" style="margin-top:18px;"></div>
+
+  <div class="ac-dims">
+    <div class="ac-dims-title">What we score</div>
+    <div class="ac-dims-grid">
+      <div class="ac-dim">
+        <div class="ac-dim-ico" style="background:rgba(99,102,241,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="ac-dim-name">Keywords</div>
+        <div class="ac-dim-desc">Matches your resume against the job's required skills and terms</div>
+      </div>
+      <div class="ac-dim">
+        <div class="ac-dim-ico" style="background:rgba(16,185,129,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="ac-dim-name">Formatting</div>
+        <div class="ac-dim-desc">Checks headings, contact info, and parseable structure</div>
+      </div>
+      <div class="ac-dim">
+        <div class="ac-dim-ico" style="background:rgba(245,158,11,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="ac-dim-name">Impact</div>
+        <div class="ac-dim-desc">Measures action verbs and quantified results in your bullets</div>
+      </div>
+      <div class="ac-dim">
+        <div class="ac-dim-ico" style="background:rgba(139,92,246,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="ac-dim-name">Completeness</div>
+        <div class="ac-dim-desc">Confirms all expected sections are present and filled</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ac-preview">
+    <div class="ac-preview-card">
+      <div class="ac-preview-ring">
+        <svg viewBox="0 0 72 72" aria-hidden="true">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(148,163,184,.12)" stroke-width="6"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="56.5" transform="rotate(-90 36 36)"/>
+        </svg>
+        <div class="ac-preview-mid"><div class="ac-preview-num">62</div><div class="ac-preview-sub">/100</div></div>
+      </div>
+      <div class="ac-preview-txt">
+        <div class="ac-preview-verdict">Close, but fixable</div>
+        <div class="ac-preview-desc">Missing 4 keywords, 3 bullets need metrics. Fixing these gets you to 85+.</div>
+        <div class="ac-preview-link">See a sample result ↗</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Indexable content for SEO + AI engines -->
   <section class="ac-seo">

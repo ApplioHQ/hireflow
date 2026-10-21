@@ -1831,3 +1831,23 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 .ai-bar-btn:hover { background: #26262b; color: #fff; }
 .ai-bar-primary { background: var(--accent); color: #fff; }
 .ai-bar-primary:hover { background: #8370ff; color: #fff; }
+
+/* ===== Applio Studio — document focus layout (mockup 1), desktop only ===== */
+@media (min-width: 901px) {
+  /* [slim sidebar][form][BIG document][copilot rail] */
+  .app-shell-inner.focus-mode { grid-template-columns: 70px 340px minmax(0, 1fr) 300px; }
+  /* The document column (right-panel) becomes the large canvas: drop the panel's
+     tint and side border, give the page room to breathe, declutter the chrome. */
+  .focus-mode .right-panel { background: var(--bg-0); border-left: 1px solid var(--border); padding: 24px 28px; }
+  .focus-mode .right-panel .preview-panel > h4,
+  .focus-mode .right-panel .preview-controls,
+  .focus-mode .right-panel #resume-health,
+  .focus-mode .right-panel #page-fit-indicator,
+  .focus-mode .right-panel .preview-panel > button,          /* "Full preview" btn */
+  .focus-mode .right-panel .preview-panel > div:last-child { display: none !important; }  /* export/history (inline display) */
+  .focus-mode #preview { max-width: 900px; margin: 0 auto; }
+  /* The relocated copilot rail column */
+  .focus-rail { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
+  .focus-rail #copilot-rail { margin-bottom: 0; }
+}
+@media (max-width: 900px) { .focus-rail { display: none; } }

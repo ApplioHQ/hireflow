@@ -16,17 +16,16 @@
 (function () {
   'use strict';
 
-  /* ───────── the Applio spark mark (violet tile + white 4-point spark) ───────── */
-  var SPARK = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.6c.5 3.9 1.3 6.2 2.8 7.7 1.5 1.5 3.8 2.3 7.7 2.8 -3.9.5-6.2 1.3-7.7 2.8 -1.5 1.5-2.3 3.8-2.8 7.7 -.5-3.9-1.3-6.2-2.8-7.7 -1.5-1.5-3.8-2.3-7.7-2.8 3.9-.5 6.2-1.3 7.7-2.8 1.5-1.5 2.3-3.8 2.8-7.7z" fill="#fff"/></svg>';
-  function markHTML(px) { px = px || 34; return '<span class="applio-mark" style="width:' + px + 'px;height:' + px + 'px;">' + SPARK + '</span>'; }
+  /* ───────── the real Applio logo mark (the "A" brand logo, rounded tile) ───────── */
+  var LOGO = 'logo.jpeg';
+  function setLogo(src) { if (src) LOGO = src; }
+  function markHTML(px) { px = px || 34; return '<img class="applio-mark" src="' + LOGO + '" alt="Applio" style="width:' + px + 'px;height:' + px + 'px;">'; }
 
   var COPY = { labels: ['Thinking', 'Searching', 'Analyzing', 'Composing'], done: 'Done' };
 
   /* ───────── styles (self-contained, injected once) ───────── */
   var STYLE = [
-    '.applio-mark{display:inline-grid;place-items:center;border-radius:28%;flex:0 0 auto;',
-      'background:linear-gradient(150deg,#8a73f8,#6d4dfc 55%,#5a3df0);box-shadow:0 8px 22px rgba(109,77,252,.5),inset 0 1px 0 rgba(255,255,255,.3);}',
-    '.applio-mark svg{width:62%;height:62%;}',
+    '.applio-mark{display:block;border-radius:28%;object-fit:cover;flex:0 0 auto;box-shadow:0 4px 14px rgba(0,0,0,.35);}',
 
     '.mo-root{position:relative;width:100%;display:grid;place-items:center;--oCenter:0;--speed:1;}',
     '.mo-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(58% 54% at 50% 46%,rgba(109,77,252,calc(.16*var(--oCenter))),transparent 70%);}',
@@ -88,7 +87,7 @@
     '.mo-a-body strong{font-weight:700;}',
     '.mo-w{display:inline-block;opacity:0;will-change:opacity,transform,filter;}',
 
-    '.mo-status{position:absolute;left:50%;bottom:-6px;transform:translate(-50%,var(--sTy,6px));white-space:nowrap;opacity:var(--sOp,0);}',
+    '.mo-status{position:absolute;left:50%;top:calc(50% + 92px);transform:translate(-50%,var(--sTy,6px));white-space:nowrap;opacity:var(--sOp,0);}',
     '.mo-lab{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--muted,#9a9aa2);}',
     '.mo-lab.mo-out{position:absolute;left:50%;transform:translateX(-50%);animation:mo-out .28s ease forwards;}',
     '.mo-lab.mo-in{animation:mo-in .28s ease;}',
@@ -251,9 +250,9 @@
     Tk('orb.k', 1, 0, 120, 640, E.vortex), Tk('orb.vortex', 0, 1.6, 120, 640, E.vortex),
     Tk('oGreen', 0, 1, 260, 700, E.spring), Tk('gs', 0.55, 1, 260, 700, E.spring),
     Tk('pulse', 0, 1, 320, 760, E.out), Tk('oHalo', 0, 0.35, 380, 700, E.out), Tk('orb.alpha', 1, 0, 500, 800, E.out) ];
-  function unfoldTracks(g, tw) { return [
+  function unfoldTracks(g, tw, cardH) { return [
     Tk('w', ORB_D, 124, 0, 90, E.in), Tk('h', ORB_D, 124, 0, 90, E.in),
-    Tk('w', 124, g.cw, 90, 700, E.card), Tk('h', 124, CARD_H, 90, 700, E.out), Tk('r', ORB_D / 2, 18, 90, 700, E.io),
+    Tk('w', 124, g.cw, 90, 700, E.card), Tk('h', 124, cardH, 90, 700, E.out), Tk('r', ORB_D / 2, 18, 90, 700, E.io),
     Tk('oGreen', 1, 0, 200, 560, E.out), Tk('oCard', 0, 1, 200, 560, E.out), Tk('oHalo', 0.35, 0, 300, 700, E.out),
     Tk('hOp', 0, 1, 520, 840, E.out), Tk('dotS', 0, 1, 520, 840, E.spring), Tk('wp', 0, 1, 600, 600 + tw, E.lin) ]; }
   var FADE = ['oGlow', 'oAur', 'oPill', 'oBall', 'oGreen', 'oCard', 'oRing', 'oInput', 'oHalo', 'sOp', 'orb.alpha'];
@@ -443,10 +442,21 @@
       if (labelState.cur !== COPY.labels[i]) { labelState = { cur: COPY.labels[i], prev: labelState.cur }; renderStatus(); } loop(); }); })(); }
 
     function setPhase(p) { phase = p; moRoot.setAttribute('data-phase', p);
-      if (p === 'answered') { actor.setAttribute('data-answered', '');
-        answer.scrollTop = 0; var maxH = Math.round((window.innerHeight || 700) * 0.52);
-        actor.style.setProperty('--h', Math.max(132, Math.min(answer.scrollHeight, maxH)) + 'px'); }
+      if (p === 'answered') { actor.setAttribute('data-answered', ''); answer.scrollTop = 0; }
       else actor.removeAttribute('data-answered'); }
+
+    // Measure the answer's natural height at the card width, so the unfold grows
+    // straight to the right size instead of hitting a fixed height and then snapping.
+    function measureCardH(text) {
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;width:' + (geo.cw - 36) + 'px;';
+      probe.innerHTML = '<div style="height:26px;margin-bottom:11px;"></div>' +
+        '<div style="font-size:14.5px;line-height:1.65;">' + mdFull(text) + '</div>';
+      document.body.appendChild(probe);
+      var h = probe.getBoundingClientRect().height; probe.remove();
+      var maxH = Math.round((window.innerHeight || 700) * 0.52);
+      return Math.max(132, Math.min(Math.ceil(h) + 32, maxH));
+    }
 
     function run(text, sig) {
       var go = function (tracks) { return play(tracks, sig).then(function () { if (sig.aborted) throw ABORT; }); };
@@ -469,7 +479,7 @@
           return go(RESOLVE).then(function () { setPhase('condense'); return go(CONDENSE); })
             .then(function () { setPhase('unfold'); wDur = 320; wStagger = n > 1 ? Math.min(45, 280 / (n - 1)) : 0;
               ask.innerHTML = '<b>You asked:</b> ' + esc(lastQ); setAnswer(ansText);
-              return go(unfoldTracks(geo, (n - 1) * wStagger + wDur)); })
+              return go(unfoldTracks(geo, (n - 1) * wStagger + wDur, measureCardH(ansText))); })
             .then(function () { setPhase('answered'); live.textContent = 'Answer ready.';
               try { answer.focus({ preventScroll: true }); } catch (e) {}
               history.push({ role: 'user', content: lastQ }); history.push({ role: 'assistant', content: ansText });
@@ -534,5 +544,5 @@
     };
   }
 
-  window.ApplioAI = { mount: mount, markHTML: markHTML };
+  window.ApplioAI = { mount: mount, markHTML: markHTML, setLogo: setLogo };
 })();

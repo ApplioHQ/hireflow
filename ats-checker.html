@@ -56,10 +56,10 @@
 
   /* Hero */
   .ac-hero { text-align: center; margin-bottom: 24px; position: relative; }
-  .ac-hero::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(124,108,245,.1) 0%, transparent 70%); pointer-events: none; }
+  .ac-hero::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(109,77,252,.1) 0%, transparent 70%); pointer-events: none; }
   .ac-hero h1 { font-size: clamp(28px, 5vw, 38px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 12px; position: relative; }
   .ac-hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; line-height: 1.55; }
-  .ac-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #c3bafa; background: rgba(124,108,245,.1); border: 1px solid rgba(124,108,245,.22); border-radius: var(--r-full); padding: 5px 14px; margin-bottom: 16px; }
+  .ac-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #c2b8fd; background: rgba(109,77,252,.1); border: 1px solid rgba(109,77,252,.22); border-radius: var(--r-full); padding: 5px 14px; margin-bottom: 16px; }
   .ac-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
   /* Trust bar */
@@ -74,14 +74,14 @@
   @media (max-width: 720px) { .ac-grid { grid-template-columns: 1fr; } }
   .ac-field label { display: flex; align-items: center; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
   .ac-field .hint { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
-  .ac-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(124,108,245,.12); color: #c3bafa; font-size: 11px; font-weight: 700; margin-right: 7px; flex-shrink: 0; }
+  .ac-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(109,77,252,.12); color: #c2b8fd; font-size: 11px; font-weight: 700; margin-right: 7px; flex-shrink: 0; }
   .ac-optional { display: inline-block; font-size: 10px; color: var(--muted); background: rgba(154,163,199,.1); padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-weight: 500; }
 
   /* Upload zone */
   .ac-upload { border: 1.5px dashed var(--border); border-radius: var(--r-sm); padding: 18px; text-align: center; margin-bottom: 8px; cursor: pointer; transition: border-color var(--dur) var(--ease); }
-  .ac-upload:hover, .ac-upload.rf-dragover { border-color: var(--accent); background: rgba(124,108,245,.06); }
-  .ac-upload-ico { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(124,108,245,.08); margin-bottom: 8px; }
-  .ac-upload-ico svg { width: 18px; height: 18px; color: #c3bafa; }
+  .ac-upload:hover, .ac-upload.rf-dragover { border-color: var(--accent); background: rgba(109,77,252,.06); }
+  .ac-upload-ico { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(109,77,252,.08); margin-bottom: 8px; }
+  .ac-upload-ico svg { width: 18px; height: 18px; color: #c2b8fd; }
   .ac-upload-txt { font-size: 13px; font-weight: 600; }
   .ac-upload-txt .rf-pick { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font: inherit; font-weight: 600; padding: 0; }
   .ac-upload-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
@@ -90,8 +90,8 @@
   .ac-or { font-size: 11px; color: var(--muted); text-align: center; margin: 4px 0; text-transform: uppercase; letter-spacing: .08em; }
 
   /* JD hint */
-  .ac-jd-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 10px 12px; background: rgba(124,108,245,.05); border-radius: var(--r-sm); border: 1px solid rgba(124,108,245,.1); }
-  .ac-jd-hint svg { flex-shrink: 0; width: 14px; height: 14px; color: #c3bafa; margin-top: 1px; }
+  .ac-jd-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 10px 12px; background: rgba(109,77,252,.05); border-radius: var(--r-sm); border: 1px solid rgba(109,77,252,.1); }
+  .ac-jd-hint svg { flex-shrink: 0; width: 14px; height: 14px; color: #c2b8fd; margin-top: 1px; }
   .ac-jd-hint span { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
 
   /* Textareas */
@@ -149,7 +149,7 @@
   .ac-fix { display: flex; align-items: center; gap: 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }
   .ac-fix-txt { flex: 1; font-size: 13.5px; line-height: 1.45; color: var(--text); }
   .ac-dot { font-size: 12px; flex-shrink: 0; line-height: 1; }
-  .ac-pts { font-size: 12px; font-weight: 800; background: rgba(124,108,245,.16); color: #c3bafa; padding: 3px 9px; border-radius: 8px; white-space: nowrap; }
+  .ac-pts { font-size: 12px; font-weight: 800; background: rgba(109,77,252,.16); color: #c2b8fd; padding: 3px 9px; border-radius: 8px; white-space: nowrap; }
   .ac-gate { position: relative; border-radius: 12px; overflow: hidden; }
   .ac-gate-inner { filter: blur(6px); pointer-events: none; user-select: none; opacity: .9; }
   .ac-gate-over { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 18px; background: linear-gradient(180deg, rgba(17,18,34,.55), rgba(17,18,34,.82)); }
@@ -235,7 +235,7 @@
     <div class="ac-dims-title">What we score</div>
     <div class="ac-dims-grid">
       <div class="ac-dim">
-        <div class="ac-dim-ico" style="background:rgba(124,108,245,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c3bafa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="ac-dim-ico" style="background:rgba(109,77,252,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c2b8fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
         <div class="ac-dim-name">Keywords</div>
         <div class="ac-dim-desc">Matches your resume against the job's required skills and terms</div>
       </div>

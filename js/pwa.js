@@ -78,7 +78,7 @@
         '</div>' +
         '<button data-x aria-label="Dismiss" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;line-height:1;cursor:pointer;padding:4px">&times;</button>' +
       '</div>' +
-      '<button data-go style="width:100%;margin-top:12px;background:#7c6cf5;color:#fff;border:none;border-radius:11px;padding:11px;font-size:14px;font-weight:500;cursor:pointer">Add to home screen</button>';
+      '<button data-go style="width:100%;margin-top:12px;background:#6d4dfc;color:#fff;border:none;border-radius:11px;padding:11px;font-size:14px;font-weight:500;cursor:pointer">Add to home screen</button>';
 
     document.body.appendChild(el);
     reveal(el);
@@ -113,7 +113,7 @@
     var el = cardShell();
     el.innerHTML =
       '<div style="display:flex;gap:11px;align-items:flex-start">' +
-        '<div style="width:32px;height:32px;border-radius:9px;background:#7c6cf5;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' +
+        '<div style="width:32px;height:32px;border-radius:9px;background:#6d4dfc;display:flex;align-items:center;justify-content:center;flex:0 0 auto">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>' +
         '</div>' +
         '<div style="flex:1;color:rgba(255,255,255,.88);font-size:13px;line-height:1.5">' +

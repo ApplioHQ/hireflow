@@ -167,7 +167,7 @@ const float HIGH_ABAMP  = 0.06;
 const float RESOLVED    = 1.0;
 const float UNRES_SCALE = 0.14;
 vec3 spectral4(int s){
-    // Brand palette ramp: indigo (#4f46e5) -> violet (#8b5cf6) -> lavender.
+    // Brand palette ramp: indigo (#6d4dfc) -> violet (#8a73f8) -> lavender.
     float x = float(s) / 3.0;
     vec3 a = vec3(0.310, 0.275, 0.898);
     vec3 b = vec3(0.545, 0.361, 0.965);
@@ -435,7 +435,7 @@ window.aiLoading = function (message) {
   const track = document.createElement('div');
   track.style.cssText = 'width:200px;height:4px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden;margin-top:2px;';
   const fill = document.createElement('div');
-  fill.style.cssText = 'height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width .25s linear;';
+  fill.style.cssText = 'height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#6d4dfc,#8a73f8);transition:width .25s linear;';
   track.appendChild(fill);
   el.appendChild(track);
   const t0 = performance.now();

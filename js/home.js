@@ -288,7 +288,7 @@ document.querySelectorAll('.faq details').forEach(detail => {
         const dist = Math.hypot(d.x - b.x, d.y - b.y);
         if (dist < 110) {
           ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(99,102,241,${.14 * (1 - dist / 110)})`;
+          ctx.strokeStyle = `rgba(109,77,252,${.14 * (1 - dist / 110)})`;
           ctx.lineWidth = .6; ctx.stroke();
         }
       }

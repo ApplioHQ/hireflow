@@ -334,7 +334,7 @@ function orderedBody(r, opts) {
 // var(--app-margin, 1) for outer page padding.
 
 function tModern(r, accent) {
-  const c = accent || '#4f46e5';
+  const c = accent || '#6d4dfc';
   const p = r.personal;
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
@@ -804,7 +804,7 @@ function tIvory(r, accent) {
 // Timeline, single column where every entry is a milestone on a continuous
 // vertical rail (dots on the line). Distinctive but ATS-safe (real text, one column).
 function tTimeline(r, accent) {
-  const c = accent || '#4f46e5';
+  const c = accent || '#6d4dfc';
   const p = r.personal;
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean).map(esc).join(' &middot; ');
@@ -1241,7 +1241,7 @@ function renderTemplate(templateId, resume, mini, accent, marginsKey) {
   const data = withFallback(resume, mini, marginsKey);
   // Accent is interpolated into template <style> blocks; force it to a valid hex so
   // tampered stored/cloud JSON can't inject CSS (or break out of the <style>).
-  const safeAccent = /^#[0-9a-fA-F]{3,8}$/.test(accent || "") ? accent : "#4f46e5";
+  const safeAccent = /^#[0-9a-fA-F]{3,8}$/.test(accent || "") ? accent : "#6d4dfc";
   return SHARED_TEMPLATE_CSS + fn(data, safeAccent);
 }
 

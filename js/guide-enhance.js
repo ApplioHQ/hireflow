@@ -24,7 +24,7 @@
       + '.gx-toc{display:flex;flex-direction:column;}'
       + '.gx-toc a{font-size:13px;color:var(--muted);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid var(--border);transition:color .15s,border-color .15s;line-height:1.35;}'
       + '.gx-toc a:hover{color:var(--text);border-color:var(--accent);}'
-      + '.gx-cta{background:linear-gradient(180deg,rgba(99,102,241,.1),var(--bg-1));text-align:center;}'
+      + '.gx-cta{background:linear-gradient(180deg,rgba(109,77,252,.1),var(--bg-1));text-align:center;}'
       + '.gx-cta-h{font-weight:700;font-size:14px;margin-bottom:4px;line-height:1.3;}'
       + '.gx-cta-s{font-size:12px;color:var(--muted);margin-bottom:11px;}'
       + '.gx-cta .btn{width:100%;}'

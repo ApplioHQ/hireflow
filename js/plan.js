@@ -109,7 +109,7 @@ function renderOfflineScreen() {
   document.body.innerHTML = `
     <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; background:#07091a; color:#e6e9f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;">
       <svg viewBox="0 0 120 100" width="180" height="150" style="margin-bottom:32px; image-rendering:pixelated;" xmlns="http://www.w3.org/2000/svg">
-        <g fill="#6366f1">
+        <g fill="#6d4dfc">
           <rect x="40" y="20" width="40" height="30"/>
           <rect x="35" y="25" width="5" height="20"/>
           <rect x="80" y="25" width="5" height="20"/>
@@ -136,7 +136,7 @@ function renderOfflineScreen() {
           <rect x="63" y="34" width="3" height="3"/>
           <rect x="69" y="34" width="3" height="3"/>
         </g>
-        <rect x="58" y="2" width="4" height="8" fill="#6366f1"/>
+        <rect x="58" y="2" width="4" height="8" fill="#6d4dfc"/>
         <rect x="55" y="0" width="10" height="3" fill="#ef4444"/>
       </svg>
       <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Applio is offline</h1>
@@ -300,7 +300,7 @@ async function openBillingPortal() {
     : _planEsc(_init);
   const profileHeader =
     `<div style="display:flex;align-items:center;gap:13px;margin-bottom:16px;">`
-    + `<div style="width:48px;height:48px;border-radius:50%;flex:none;overflow:hidden;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">${_av}</div>`
+    + `<div style="width:48px;height:48px;border-radius:50%;flex:none;overflow:hidden;background:linear-gradient(135deg,#6d4dfc,#8a73f8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">${_av}</div>`
     + `<div style="min-width:0;">`
     + `<div style="font-weight:700;font-size:15px;">${_planEsc(_pf.displayName || (u.email || '').split('@')[0] || 'Your account')}</div>`
     + (_pf.headline ? `<div style="font-size:12.5px;color:var(--muted);">${_planEsc(_pf.headline)}</div>` : '')
@@ -410,7 +410,7 @@ function openFeedbackModal(opts = {}) {
       const v = b.dataset.rating === 'null' ? null : b.dataset.rating;
       const on = v === bd._rating;
       b.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
-      b.style.background = on ? 'rgba(99,102,241,.15)' : 'var(--bg-2)';
+      b.style.background = on ? 'rgba(109,77,252,.15)' : 'var(--bg-2)';
     });
   };
   bd.querySelectorAll('.fb-rate').forEach(b => {
@@ -585,7 +585,7 @@ function promptSignup(action) {
   bd.innerHTML =
     '<div class="modal" style="max-width:440px; text-align:center;">' +
       '<button class="modal-close" onclick="closeSignupPrompt()">×</button>' +
-      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
+      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(109,77,252,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
       '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
       '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Sign up free to ' + (action || 'continue') + ', no credit card, takes 20 seconds.</p>' +
       '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +

@@ -204,7 +204,7 @@
     var count = function (s) { return jobs.filter(function (j) { return j.status === s; }).length; };
     var tiles = [
       { label: 'Saved', n: count('Saved'), c: '#64748b' },
-      { label: 'Applied', n: count('Applied'), c: '#6366f1' },
+      { label: 'Applied', n: count('Applied'), c: '#6d4dfc' },
       { label: 'Interviewing', n: count('Interviewing'), c: '#f59e0b' },
       { label: 'Offers', n: count('Offer'), c: '#22c55e' },
       { label: 'This week', n: jobs.filter(function (j) { return daysSince(j.addedAt) < 7; }).length, c: 'var(--accent)' }

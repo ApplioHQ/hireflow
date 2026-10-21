@@ -65,7 +65,7 @@
       + '#attr-opts button:hover{border-color:var(--accent);background:var(--bg-3);}'
       + '#attr-consent{display:flex;flex-direction:column;gap:9px;}'
       + '#attr-consent button{font:inherit;font-size:14px;font-weight:600;padding:12px 15px;border-radius:var(--r-sm);cursor:pointer;transition:transform .12s,box-shadow .12s,background .15s,border-color .15s;}'
-      + '#attr-consent .attr-yes{background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.3);}'
+      + '#attr-consent .attr-yes{background:var(--accent);border:1px solid var(--accent);color:#fff;box-shadow:0 4px 14px rgba(109,77,252,.3);}'
       + '#attr-consent .attr-yes:hover{transform:translateY(-1px);}'
       + '#attr-consent .attr-no{background:var(--bg-2);border:1px solid var(--border);color:var(--text);}'
       + '#attr-consent .attr-no:hover{border-color:var(--accent);}'

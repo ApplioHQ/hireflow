@@ -23,7 +23,7 @@ const IS_ANON = !TOKEN;
 const DEFAULT_RESUME = {
   template: 'modern',
   customize: {
-    accent: '#4f46e5', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal', lineHeight: 'normal', bullet: 'dot', headingCase: 'uppercase', paperSize: 'Letter',
+    accent: '#6d4dfc', font: 'Inter', spacing: 'medium', textSize: 'm', margins: 'Normal', lineHeight: 'normal', bullet: 'dot', headingCase: 'uppercase', paperSize: 'Letter',
     sections: { education:true, experience:true, skills:true, projects:true, certifications:true, awards:true, volunteer:false, publications:false, leadership:true },
     sectionOrder: ['experience','education','skills','projects','certifications','awards','leadership','volunteer','publications']
   },
@@ -324,6 +324,8 @@ function _resumeHealth() {
   const score = Math.max(0, Math.min(100, Math.round(100 * (0.45 * checksPct + 0.30 * compPct + 0.25 * bulletPct))));
   return { score, passed: g.passed, total: g.total, issues: g.issues };
 }
+// Expose for the Copilot rail so it shows the SAME score + issues as this panel.
+window._resumeHealth = _resumeHealth;
 
 let _healthAnim = 0;
 function _renderHealthPanel() {
@@ -384,6 +386,7 @@ function _renderFirstActionBanner() {
 function _refreshCompletion() {
   _renderFirstActionBanner();
   _renderHealthPanel();
+  if (window.renderCopilotRail) window.renderCopilotRail();
   document.querySelectorAll('.sidebar-item').forEach(function (el) {
     var sec = el.dataset.section;
     if (!sec) return;
@@ -545,19 +548,19 @@ const TEMPLATE_THUMBS = {
   </svg>`,
   modern: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>
-    <rect x="0" y="0" width="85" height="28" fill="#4f46e5"/>
+    <rect x="0" y="0" width="85" height="28" fill="#6d4dfc"/>
     <rect x="8" y="7" width="40" height="5" rx="2" fill="rgba(255,255,255,.9)"/>
     <rect x="8" y="15" width="28" height="3" rx="1" fill="rgba(255,255,255,.5)"/>
-    <rect x="8" y="35" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="35" width="20" height="2.5" rx="1" fill="#6d4dfc"/>
     <rect x="8" y="41" width="65" height="1.5" rx=".5" fill="#e5e7eb"/>
     <rect x="8" y="45" width="55" height="1.5" rx=".5" fill="#e5e7eb"/>
     <rect x="8" y="49" width="60" height="1.5" rx=".5" fill="#e5e7eb"/>
-    <rect x="8" y="58" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="58" width="20" height="2.5" rx="1" fill="#6d4dfc"/>
     <rect x="8" y="64" width="50" height="1.5" rx=".5" fill="#d1d5db"/>
     <rect x="8" y="68" width="65" height="1.5" rx=".5" fill="#e5e7eb"/>
     <rect x="8" y="72" width="60" height="1.5" rx=".5" fill="#e5e7eb"/>
     <rect x="8" y="76" width="55" height="1.5" rx=".5" fill="#e5e7eb"/>
-    <rect x="8" y="85" width="20" height="2.5" rx="1" fill="#4f46e5"/>
+    <rect x="8" y="85" width="20" height="2.5" rx="1" fill="#6d4dfc"/>
     <rect x="8" y="91" width="18" height="4" rx="2" fill="#e0e7ff"/>
     <rect x="28" y="91" width="22" height="4" rx="2" fill="#e0e7ff"/>
     <rect x="52" y="91" width="16" height="4" rx="2" fill="#e0e7ff"/>
@@ -585,23 +588,23 @@ const TEMPLATE_THUMBS = {
   creative: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>
     <rect x="0" y="0" width="28" height="110" fill="#0f172a"/>
-    <rect x="6" y="10" width="16" height="16" rx="8" fill="#8b5cf6"/>
+    <rect x="6" y="10" width="16" height="16" rx="8" fill="#8a73f8"/>
     <rect x="6" y="30" width="16" height="2" rx="1" fill="rgba(255,255,255,.8)"/>
     <rect x="6" y="35" width="12" height="1.5" rx=".5" fill="rgba(255,255,255,.4)"/>
-    <rect x="6" y="50" width="10" height="1.5" rx=".5" fill="#8b5cf6"/>
+    <rect x="6" y="50" width="10" height="1.5" rx=".5" fill="#8a73f8"/>
     <rect x="6" y="55" width="16" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
     <rect x="6" y="58" width="14" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
     <rect x="6" y="61" width="16" height="1" rx=".5" fill="rgba(255,255,255,.3)"/>
-    <rect x="6" y="72" width="10" height="1.5" rx=".5" fill="#8b5cf6"/>
+    <rect x="6" y="72" width="10" height="1.5" rx=".5" fill="#8a73f8"/>
     <rect x="6" y="77" width="12" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
     <rect x="6" y="82" width="16" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
     <rect x="6" y="87" width="14" height="3" rx="1" fill="rgba(139,92,246,.3)"/>
     <rect x="35" y="10" width="40" height="4" rx="1" fill="#1f2937"/>
     <rect x="35" y="18" width="30" height="2" rx="1" fill="#6b7280"/>
-    <rect x="35" y="30" width="16" height="2" rx="1" fill="#8b5cf6"/>
+    <rect x="35" y="30" width="16" height="2" rx="1" fill="#8a73f8"/>
     <rect x="35" y="36" width="42" height="1.5" rx=".5" fill="#9ca3af"/>
     <rect x="35" y="40" width="38" height="1.5" rx=".5" fill="#9ca3af"/>
-    <rect x="35" y="50" width="16" height="2" rx="1" fill="#8b5cf6"/>
+    <rect x="35" y="50" width="16" height="2" rx="1" fill="#8a73f8"/>
     <rect x="35" y="56" width="42" height="1.5" rx=".5" fill="#9ca3af"/>
     <rect x="35" y="60" width="36" height="1.5" rx=".5" fill="#9ca3af"/>
   </svg>`,
@@ -726,27 +729,27 @@ const TEMPLATE_THUMBS = {
     <rect width="85" height="110" fill="#fff"/>
     <rect x="0" y="0" width="28" height="110" fill="#f1f3f5"/>
     <rect x="5" y="9" width="18" height="3.4" rx=".5" fill="#111"/>
-    <rect x="5" y="15" width="14" height="1.6" rx=".5" fill="#4f46e5"/>
-    <rect x="5" y="24" width="11" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="15" width="14" height="1.6" rx=".5" fill="#6d4dfc"/>
+    <rect x="5" y="24" width="11" height="1.5" rx=".5" fill="#6d4dfc"/>
     <rect x="5" y="28" width="20" height="1.2" rx=".3" fill="#9aa0a6"/><rect x="5" y="31" width="17" height="1.2" rx=".3" fill="#9aa0a6"/><rect x="5" y="34" width="19" height="1.2" rx=".3" fill="#9aa0a6"/>
-    <rect x="5" y="42" width="9" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="42" width="9" height="1.5" rx=".5" fill="#6d4dfc"/>
     <rect x="5" y="46" width="20" height="1.2" rx=".3" fill="#bbb"/><rect x="5" y="49" width="18" height="1.2" rx=".3" fill="#bbb"/>
-    <rect x="5" y="57" width="13" height="1.5" rx=".5" fill="#4f46e5"/>
+    <rect x="5" y="57" width="13" height="1.5" rx=".5" fill="#6d4dfc"/>
     <rect x="5" y="61" width="19" height="1.2" rx=".3" fill="#bbb"/><rect x="5" y="64" width="15" height="1.2" rx=".3" fill="#bbb"/>
-    <rect x="34" y="10" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="13.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="10" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="13.4" width="43" height="1" fill="#6d4dfc"/>
     <rect x="34" y="18" width="42" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="22" width="38" height="1.4" rx=".3" fill="#cfcfcf"/>
-    <rect x="34" y="31" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="34.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="31" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="34.4" width="43" height="1" fill="#6d4dfc"/>
     <rect x="34" y="39" width="30" height="1.6" rx=".5" fill="#444"/><rect x="34" y="43" width="42" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="47" width="38" height="1.4" rx=".3" fill="#cfcfcf"/>
     <rect x="34" y="55" width="30" height="1.6" rx=".5" fill="#444"/><rect x="34" y="59" width="41" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="34" y="63" width="36" height="1.4" rx=".3" fill="#cfcfcf"/>
-    <rect x="34" y="72" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="75.4" width="43" height="1" fill="#4f46e5"/>
+    <rect x="34" y="72" width="20" height="2" rx=".5" fill="#111"/><rect x="34" y="75.4" width="43" height="1" fill="#6d4dfc"/>
     <rect x="34" y="80" width="40" height="1.4" rx=".3" fill="#cfcfcf"/>
   </svg>`,
   cascade: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
     <rect width="85" height="110" fill="#fff"/>
     <rect x="0" y="0" width="85" height="26" fill="#f3f4f6"/>
-    <rect x="0" y="24.4" width="85" height="1.6" fill="#4f46e5"/>
+    <rect x="0" y="24.4" width="85" height="1.6" fill="#6d4dfc"/>
     <rect x="8" y="7" width="38" height="5" rx="1" fill="#111"/>
-    <rect x="8" y="15" width="24" height="1.9" rx=".5" fill="#4f46e5"/>
+    <rect x="8" y="15" width="24" height="1.9" rx=".5" fill="#6d4dfc"/>
     <rect x="8" y="20" width="52" height="1.5" rx=".3" fill="#9aa0a6"/>
     <rect x="8" y="34" width="26" height="2" rx=".5" fill="#111"/><rect x="8" y="37.4" width="69" height=".9" fill="#d1d5db"/>
     <rect x="8" y="42" width="63" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="8" y="46" width="57" height="1.4" rx=".3" fill="#cfcfcf"/>
@@ -776,15 +779,15 @@ const TEMPLATE_THUMBS = {
     <rect x="8" y="9" width="42" height="5.5" rx="1" fill="#111"/>
     <rect x="8" y="18" width="52" height="1.5" rx=".5" fill="#9aa0a6"/>
     <rect x="14" y="27" width="1.2" height="77" fill="#c7d2fe"/>
-    <rect x="20" y="27" width="20" height="2" rx=".5" fill="#4f46e5"/>
+    <rect x="20" y="27" width="20" height="2" rx=".5" fill="#6d4dfc"/>
     <rect x="20" y="31" width="55" height="1.4" rx=".3" fill="#cfcfcf"/><rect x="20" y="35" width="48" height="1.4" rx=".3" fill="#cfcfcf"/>
-    <rect x="20" y="43" width="24" height="2" rx=".5" fill="#4f46e5"/>
-    <circle cx="14.6" cy="49.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <rect x="20" y="43" width="24" height="2" rx=".5" fill="#6d4dfc"/>
+    <circle cx="14.6" cy="49.6" r="2.1" fill="#fff" stroke="#6d4dfc" stroke-width="1.3"/>
     <rect x="20" y="48" width="30" height="1.6" rx=".5" fill="#333"/><rect x="20" y="52" width="52" height="1.3" rx=".3" fill="#cfcfcf"/><rect x="20" y="56" width="46" height="1.3" rx=".3" fill="#cfcfcf"/>
-    <circle cx="14.6" cy="64.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <circle cx="14.6" cy="64.6" r="2.1" fill="#fff" stroke="#6d4dfc" stroke-width="1.3"/>
     <rect x="20" y="63" width="30" height="1.6" rx=".5" fill="#333"/><rect x="20" y="67" width="50" height="1.3" rx=".3" fill="#cfcfcf"/>
-    <rect x="20" y="76" width="22" height="2" rx=".5" fill="#4f46e5"/>
-    <circle cx="14.6" cy="82.6" r="2.1" fill="#fff" stroke="#4f46e5" stroke-width="1.3"/>
+    <rect x="20" y="76" width="22" height="2" rx=".5" fill="#6d4dfc"/>
+    <circle cx="14.6" cy="82.6" r="2.1" fill="#fff" stroke="#6d4dfc" stroke-width="1.3"/>
     <rect x="20" y="81" width="28" height="1.6" rx=".5" fill="#333"/><rect x="20" y="85" width="44" height="1.3" rx=".3" fill="#cfcfcf"/>
   </svg>`,
   twocolumn: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
@@ -2018,7 +2021,7 @@ function _analysisEmptyState() {
           <circle cx="60" cy="60" r="50" fill="none" stroke="url(#anGrad)" stroke-width="9"
             stroke-linecap="round" stroke-dasharray="70 244" transform="rotate(-90 60 60)" opacity=".85"/>
           <defs><linearGradient id="anGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#6366f1"/>
+            <stop offset="0" stop-color="#8a73f8"/><stop offset="1" stop-color="#6d4dfc"/>
           </linearGradient></defs>
           <text x="60" y="58" text-anchor="middle" font-size="30" font-weight="800" fill="var(--muted)">?</text>
           <text x="60" y="80" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
@@ -2140,7 +2143,7 @@ function countFilled() {
   return { done, total: 5, score: done/5 };
 }
 
-const SWATCHES = ['#4f46e5','#2563eb','#0ea5e9','#0f766e','#059669','#65a30d','#ca8a04','#ea580c','#dc2626','#db2777','#9333ea','#1f2937'];
+const SWATCHES = ['#6d4dfc','#2563eb','#0ea5e9','#0f766e','#059669','#65a30d','#ca8a04','#ea580c','#dc2626','#db2777','#9333ea','#1f2937'];
 const FONT_OPTGROUPS = [['Sans-serif', ['Inter','Arial','Calibri','Helvetica','Tahoma','Verdana']], ['Serif', ['Georgia','Cambria','Garamond','Times','Palatino']]];
 const FONTS = FONT_OPTGROUPS.reduce((a,g)=>a.concat(g[1]), []);
 const TEXT_SIZES = [['xs','Extra small'],['s','Small'],['m','Medium'],['l','Large'],['xl','Extra large']];
@@ -2159,7 +2162,7 @@ function renderCustomize() {
         <div class="swatch-grid" style="margin-top:8px;">
           ${SWATCHES.map((s,i)=>`<div class="swatch ${(c.accent||'').toLowerCase()===s?'selected':''}" style="background:${s};" role="button" tabindex="0" aria-label="Accent color ${i+1}${(c.accent||'').toLowerCase()===s?', selected':''}" onclick="setCustom('accent','${s}')"></div>`).join('')}
           <label class="swatch swatch-custom" title="Pick any color" style="background:${SWATCHES.includes((c.accent||'').toLowerCase())?'conic-gradient(from 0deg,#ef4444,#eab308,#22c55e,#3b82f6,#a855f7,#ef4444)':c.accent};">
-            <input type="color" value="${/^#[0-9a-fA-F]{6}$/.test(c.accent||'')?c.accent:'#4f46e5'}" oninput="setCustom('accent', this.value)" style="opacity:0;width:100%;height:100%;cursor:pointer;">
+            <input type="color" value="${/^#[0-9a-fA-F]{6}$/.test(c.accent||'')?c.accent:'#6d4dfc'}" oninput="setCustom('accent', this.value)" style="opacity:0;width:100%;height:100%;cursor:pointer;">
           </label>
         </div>
       </div>
@@ -2200,15 +2203,15 @@ function renderCustomize() {
       <div class="form-field" style="margin-top:12px;">
         <label>Paper size</label>
         <div style="display:flex;gap:8px;margin-top:6px;">
-          <button type="button" onclick="setCustom('paperSize','Letter')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${(c.paperSize||'Letter')==='Letter'?'transparent':'var(--border)'};background:${(c.paperSize||'Letter')==='Letter'?'var(--accent,#4f46e5)':'transparent'};color:${(c.paperSize||'Letter')==='Letter'?'#fff':'var(--text)'};font-weight:600;">US Letter <span style="opacity:.7;font-weight:400;font-size:11px;">8.5×11″</span></button>
-          <button type="button" onclick="setCustom('paperSize','A4')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.paperSize==='A4'?'transparent':'var(--border)'};background:${c.paperSize==='A4'?'var(--accent,#4f46e5)':'transparent'};color:${c.paperSize==='A4'?'#fff':'var(--text)'};font-weight:600;">A4 <span style="opacity:.7;font-weight:400;font-size:11px;">210×297mm</span></button>
+          <button type="button" onclick="setCustom('paperSize','Letter')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${(c.paperSize||'Letter')==='Letter'?'transparent':'var(--border)'};background:${(c.paperSize||'Letter')==='Letter'?'var(--accent,#6d4dfc)':'transparent'};color:${(c.paperSize||'Letter')==='Letter'?'#fff':'var(--text)'};font-weight:600;">US Letter <span style="opacity:.7;font-weight:400;font-size:11px;">8.5×11″</span></button>
+          <button type="button" onclick="setCustom('paperSize','A4')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.paperSize==='A4'?'transparent':'var(--border)'};background:${c.paperSize==='A4'?'var(--accent,#6d4dfc)':'transparent'};color:${c.paperSize==='A4'?'#fff':'var(--text)'};font-weight:600;">A4 <span style="opacity:.7;font-weight:400;font-size:11px;">210×297mm</span></button>
         </div>
       </div>
       <div class="form-field" style="margin-top:12px;">
         <label>Heading capitalization</label>
         <div style="display:flex;gap:8px;margin-top:6px;">
-          <button type="button" onclick="setCustom('headingCase','uppercase')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid ${(c.headingCase||'uppercase')==='uppercase'?'transparent':'var(--border)'};background:${(c.headingCase||'uppercase')==='uppercase'?'var(--accent,#4f46e5)':'transparent'};color:${(c.headingCase||'uppercase')==='uppercase'?'#fff':'var(--text)'};font-weight:600;">Uppercase</button>
-          <button type="button" onclick="setCustom('headingCase','normal')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.headingCase==='normal'?'transparent':'var(--border)'};background:${c.headingCase==='normal'?'var(--accent,#4f46e5)':'transparent'};color:${c.headingCase==='normal'?'#fff':'var(--text)'};font-weight:600;">Normal case</button>
+          <button type="button" onclick="setCustom('headingCase','uppercase')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid ${(c.headingCase||'uppercase')==='uppercase'?'transparent':'var(--border)'};background:${(c.headingCase||'uppercase')==='uppercase'?'var(--accent,#6d4dfc)':'transparent'};color:${(c.headingCase||'uppercase')==='uppercase'?'#fff':'var(--text)'};font-weight:600;">Uppercase</button>
+          <button type="button" onclick="setCustom('headingCase','normal')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.headingCase==='normal'?'transparent':'var(--border)'};background:${c.headingCase==='normal'?'var(--accent,#6d4dfc)':'transparent'};color:${c.headingCase==='normal'?'#fff':'var(--text)'};font-weight:600;">Normal case</button>
         </div>
       </div>
       <div style="margin-top:18px;">
@@ -2434,12 +2437,12 @@ function _injectPreviewChrome(doc) {
     // highlights the WHOLE section (heading + its entries) and floats an "Edit …"
     // pill on the heading. Clicking anywhere in the section jumps to edit it.
     '.hf-edit{cursor:pointer;}' +
-    '.hf-sec-hover{background:rgba(99,102,241,.07)!important;border-radius:3px;transition:background .16s ease;}' +
+    '.hf-sec-hover{background:rgba(109,77,252,.07)!important;border-radius:3px;transition:background .16s ease;}' +
     '.hf-sec-head{position:relative;}' +
-    '.hf-sec-head.hf-sec-hover{box-shadow:inset 3px 0 0 rgba(99,102,241,.6);}' +
+    '.hf-sec-head.hf-sec-hover{box-shadow:inset 3px 0 0 rgba(109,77,252,.6);}' +
     '.hf-sec-head.hf-sec-hover::after{content:attr(data-hf-label);position:absolute;top:50%;right:2px;transform:translateY(-50%);' +
-      'background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font:700 9px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;' +
-      'letter-spacing:.02em;text-transform:none;padding:4px 10px;border-radius:999px;box-shadow:0 3px 12px rgba(99,102,241,.5);white-space:nowrap;pointer-events:none;z-index:5;}' +
+      'background:linear-gradient(135deg,#6d4dfc,#8a73f8);color:#fff;font:700 9px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;' +
+      'letter-spacing:.02em;text-transform:none;padding:4px 10px;border-radius:999px;box-shadow:0 3px 12px rgba(109,77,252,.5);white-space:nowrap;pointer-events:none;z-index:5;}' +
     '.hf-pagebreak{pointer-events:none;}';
   doc.head.appendChild(st);
 }
@@ -2858,7 +2861,7 @@ function _buildFullOverlay() {
     '#full-preview-overlay .fp-fit1{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#c7cbe0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 13px;cursor:pointer;transition:background .12s,color .12s,border-color .12s,box-shadow .12s;white-space:nowrap;}' +
     '#full-preview-overlay .fp-fit1:hover{background:rgba(255,255,255,.13);}' +
     '#full-preview-overlay .fp-fit1 .dot{width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;box-sizing:border-box;transition:background .12s;}' +
-    '#full-preview-overlay .fp-fit1.on{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.35);}' +
+    '#full-preview-overlay .fp-fit1.on{background:linear-gradient(135deg,#6d4dfc,#8a73f8);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(109,77,252,.35);}' +
     '#full-preview-overlay .fp-fit1.on .dot{background:#fff;}' +
     '#full-preview-overlay .fp-zoom{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:3px;}' +
     '#full-preview-overlay .fp-zbtn{width:32px;height:30px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#fff;border-radius:8px;cursor:pointer;font-size:17px;line-height:1;transition:background .12s;}' +
@@ -2868,8 +2871,8 @@ function _buildFullOverlay() {
     '#full-preview-overlay .fp-fitbtn{border:0;background:transparent;color:#c7cbe0;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .12s,color .12s;}' +
     '#full-preview-overlay .fp-fitbtn:hover{background:rgba(255,255,255,.12);color:#fff;}' +
     '#full-preview-overlay .fp-fitbtn.on{background:rgba(255,255,255,.16);color:#fff;}' +
-    '#full-preview-overlay .fp-export{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:0 6px 18px rgba(99,102,241,.35);transition:transform .12s,box-shadow .12s;}' +
-    '#full-preview-overlay .fp-export:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.45);}' +
+    '#full-preview-overlay .fp-export{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#6d4dfc,#8a73f8);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:0 6px 18px rgba(109,77,252,.35);transition:transform .12s,box-shadow .12s;}' +
+    '#full-preview-overlay .fp-export:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(109,77,252,.45);}' +
     '#full-preview-overlay .fp-close{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 13px;font-size:13px;cursor:pointer;transition:background .12s;}' +
     '#full-preview-overlay .fp-close:hover{background:rgba(255,255,255,.16);}' +
     '#full-preview-overlay .fp-close kbd{font:600 10px ui-monospace,monospace;background:rgba(255,255,255,.14);border-radius:4px;padding:1px 5px;}' +
@@ -3018,6 +3021,8 @@ function _bindPreviewClicks(doc) {
   // Header / name block edits contact info.
   const header = doc.querySelector('[class*="header"], [class*="name"]');
   if (header) bind(header, 'personal', 'Edit Contact Info', true);
+  // Let the inline bullet-AI toolbar tag individual bullets for this render.
+  if (window.inlineAI && typeof window.inlineAI.tag === 'function') window.inlineAI.tag(doc);
 }
 
 // ============ Helpers ============
@@ -3400,11 +3405,11 @@ async function aiStream(endpoint, body, onChunk) {
         animation:aiStreamIn .2s ease both;position:relative;
       ">
         <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#9aa3c7;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#5b54e8;display:inline-block;"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#6d4dfc;display:inline-block;"></span>
           AI is writing...
         </div>
         <div id="ai-stream-text" style="font-size:14px;line-height:1.7;color:#e6e9f5;white-space:pre-wrap;word-break:break-word;"></div>
-        <span id="ai-stream-cursor" style="display:inline-block;width:2px;height:1em;background:#5b54e8;vertical-align:text-bottom;margin-left:2px;animation:aiCursorBlink .8s step-start infinite;"></span>
+        <span id="ai-stream-cursor" style="display:inline-block;width:2px;height:1em;background:#6d4dfc;vertical-align:text-bottom;margin-left:2px;animation:aiCursorBlink .8s step-start infinite;"></span>
       </div>`;
   };
 
@@ -3741,6 +3746,63 @@ async function aiImprove(target, idx = 0) {
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
+
+// Map a rendered bullet index (Nth non-empty line) back to its raw line in the
+// description, so we edit exactly the clicked bullet and nothing else.
+function _bulletRawIndex(desc, bulletIdx) {
+  const rawLines = String(desc || '').split('\n');
+  let count = -1;
+  for (let i = 0; i < rawLines.length; i++) {
+    const stripped = rawLines[i].replace(/^\s*[•\-*–▪◦·]\s*/, '').trim();
+    if (stripped) { count++; if (count === bulletIdx) return i; }
+  }
+  return -1;
+}
+
+// Inline per-bullet AI: improve/quantify/shorten/rewrite a SINGLE bullet, then
+// write just that line back. Reuses the proven aiStream + suggestion flow.
+async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
+  const item = (resume[section] || [])[entryIdx];
+  if (!item) return;
+  const field = ('description' in item) ? 'description' : ('abstract' in item) ? 'abstract' : null;
+  if (!field) return;
+  const desc = item[field] || '';
+  const rawIdx = _bulletRawIndex(desc, bulletIdx);
+  if (rawIdx < 0) return;
+  const rawLines = desc.split('\n');
+  const marker = (rawLines[rawIdx].match(/^\s*[•\-*–▪◦·]\s*/) || [''])[0];
+  const bulletText = rawLines[rawIdx].slice(marker.length).trim();
+  if (!bulletText) return toast('Add some text to this bullet first.', { type: 'warn' });
+  const INSTR = {
+    improve: 'Make this one bullet stronger and more specific. Return a single bullet line.',
+    quantify: 'Rewrite this one bullet to include a concrete metric or number (keep it truthful). Return a single bullet line.',
+    shorten: 'Make this one bullet more concise without losing impact. Return a single bullet line.',
+    rewrite: 'Rewrite this one bullet more impactfully with a strong action verb. Return a single bullet line.'
+  };
+  aiLoading('Improving this bullet…');
+  try {
+    const context = {
+      role: item.title || item.role || item.name || '',
+      company: item.company || item.org || item.issuer || item.venue || '',
+      section, mode, instruction: INSTR[mode] || INSTR.improve
+    };
+    const suggestion = (await aiStream('improve', { target: section, text: bulletText, context })) || '';
+    if (!suggestion.trim()) throw new Error('AI returned an empty response. Please try again.');
+    // Collapse to a single bullet line.
+    const newText = (suggestion.split('\n')
+      .map(s => s.replace(/^\s*[•\-*–▪◦·]\s*/, '').trim())
+      .filter(Boolean)[0]) || suggestion.trim();
+    const apply = (t) => {
+      const lines = (resume[section][entryIdx][field] || '').split('\n');
+      lines[rawIdx] = marker + t;
+      resume[section][entryIdx][field] = lines.join('\n');
+      save(); renderMain();
+    };
+    showAiSuggestion({ title: 'Improved bullet', text: newText, original: bulletText, apply });
+  } catch (e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+window.aiImproveBullet = aiImproveBullet;
 
 async function aiSuggestSkills() {
   aiLoading('Generating skills from your experience…');
@@ -4271,7 +4333,7 @@ function _promptSignup(action) {
   bd.innerHTML =
     '<div class="modal" style="max-width:440px; text-align:center;">' +
       '<button class="modal-close" onclick="document.getElementById(\'signup-prompt-bd\').remove()">×</button>' +
-      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(99,102,241,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
+      '<div style="width:58px;height:58px;border-radius:16px;margin:6px auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 12px 34px rgba(109,77,252,.45);overflow:hidden;"><img src="logo.jpeg" alt="Applio" style="width:100%;height:100%;object-fit:cover;"></div>' +
       '<h3 style="margin-bottom:8px;">Create your free account</h3>' +
       '<p style="color:var(--muted); font-size:14px; margin-bottom:20px; line-height:1.6;">Your resume is saved and waiting. Sign up free to ' + (action || 'continue') + ', no credit card, takes 20 seconds.</p>' +
       '<a href="login?mode=signup" class="btn btn-primary btn-block">Sign up free &rarr;</a>' +

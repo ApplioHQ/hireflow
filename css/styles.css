@@ -1758,3 +1758,96 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   summary { min-height: 44px; }
   .gd-chip, .ex-chip { min-height: 32px; display: inline-flex; align-items: center; }
 }
+
+/* ===== Applio Studio — Copilot rail (Phase 1) ===== */
+.right-panel #copilot-rail { margin-bottom: 14px; }
+.cr-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.cr-score { display: flex; align-items: center; gap: 12px; }
+.cr-score-t { font-size: 13px; font-weight: 600; color: var(--text); }
+.cr-score-s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cr-chips { display: flex; flex-direction: column; gap: 6px; }
+.cr-chip { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; background: var(--bg-1); border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; color: var(--text); font-size: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+.cr-chip:hover { border-color: var(--accent); background: var(--bg-3); }
+.cr-chip .cr-chip-ic { color: var(--warning); display: inline-flex; width: 15px; height: 15px; flex: 0 0 auto; }
+.cr-chip .cr-chip-ic svg { width: 15px; height: 15px; }
+.cr-chip > span:nth-child(2) { flex: 1; }
+.cr-chip .cr-chip-arrow { color: var(--muted); display: inline-flex; width: 14px; flex: 0 0 auto; }
+.cr-chip .cr-chip-arrow svg { width: 14px; height: 14px; }
+.cr-copilot { background: color-mix(in srgb, var(--accent) 12%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 11px; padding: 11px; }
+.cr-copilot-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 5px; }
+.cr-copilot-head svg { width: 14px; height: 14px; }
+.cr-copilot-body { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 9px; }
+.cr-copilot-go { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: background .15s; }
+.cr-copilot-go:hover { background: #8370ff; }
+.cr-chip .cr-chip-ic.cr-warn { color: var(--warning); }
+.cr-chip .cr-chip-ic.cr-info { color: var(--muted); }
+
+/* ===== Applio Studio — slim icon sidebar (mockup 1), desktop only ===== */
+@media (min-width: 901px) {
+  .app-shell-inner.app-slim { grid-template-columns: 70px 1fr 340px; }
+  .app-slim .sidebar { padding: 12px 0; overflow: visible; }
+
+  /* Condense the top chrome: drop section headers + progress, icon-only copilot banner */
+  .app-slim .sidebar-section { display: none; }
+  .app-slim .sidebar-progress { display: none; }
+  .app-slim .banner-gradient { justify-content: center; gap: 0; padding: 10px 0; margin: 0 12px 10px; }
+  .app-slim .banner-gradient #copilot-label span { display: none; }
+  .app-slim .banner-gradient .kbd { display: none; }
+
+  /* Icon-only buttons */
+  .app-slim .sidebar-item {
+    position: relative; justify-content: center; gap: 0;
+    width: 46px; height: 44px; margin: 3px auto; padding: 0;
+    border-left: 0; border-radius: 12px;
+  }
+  .app-slim .sidebar-item:hover { background: var(--bg-3); }
+  .app-slim .sidebar-item.active { border-left: 0; background: var(--accent); color: #fff; }
+  .app-slim .sidebar-item.active:hover { background: var(--accent); }
+  .app-slim .sidebar-item.active .ico { opacity: 1; }
+  .app-slim .sidebar-item svg { width: 19px; height: 19px; }
+
+  /* The unclassed label span becomes a hover flyout tooltip */
+  .app-slim .sidebar-item > span:not([class]) {
+    position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+    background: var(--bg-3); color: var(--text); font-size: 12px; font-weight: 500; white-space: nowrap;
+    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--sh-2);
+    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .12s ease; z-index: 70;
+  }
+  .app-slim .sidebar-item:hover > span:not([class]) { opacity: 1; visibility: visible; }
+
+  /* Completion indicator as a small corner badge on the icon */
+  .app-slim .sidebar-item .s-check,
+  .app-slim .sidebar-item .s-dot { position: absolute; top: 6px; right: 7px; margin: 0; }
+  .app-slim .sidebar-item.active .s-check { color: #fff; }
+  .app-slim .sidebar-item .sidebar-pro-badge {
+    position: absolute; top: 4px; right: 4px; margin: 0; font-size: 8px; padding: 1px 4px; line-height: 1.2;
+  }
+  .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
+}
+
+/* ===== Applio Studio — inline bullet AI toolbar (mockup 1) ===== */
+.ai-bar { position: fixed; z-index: 2147483000; display: inline-flex; align-items: center; gap: 2px; background: #18181b; border: 1px solid #2a2a30; border-radius: 10px; padding: 3px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.ai-bar-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; color: #d4d4da; border: none; border-radius: 7px; padding: 6px 11px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.ai-bar-btn:hover { background: #26262b; color: #fff; }
+.ai-bar-primary { background: var(--accent); color: #fff; }
+.ai-bar-primary:hover { background: #8370ff; color: #fff; }
+
+/* ===== Applio Studio — document focus layout (mockup 1), desktop only ===== */
+@media (min-width: 901px) {
+  /* [slim sidebar][form][BIG document][copilot rail] */
+  .app-shell-inner.focus-mode { grid-template-columns: 70px 340px minmax(0, 1fr) 300px; }
+  /* The document column (right-panel) becomes the large canvas: drop the panel's
+     tint and side border, give the page room to breathe, declutter the chrome. */
+  .focus-mode .right-panel { background: var(--bg-0); border-left: 1px solid var(--border); padding: 24px 28px; }
+  .focus-mode .right-panel .preview-panel > h4,
+  .focus-mode .right-panel .preview-controls,
+  .focus-mode .right-panel #resume-health,
+  .focus-mode .right-panel #page-fit-indicator,
+  .focus-mode .right-panel .preview-panel > button,          /* "Full preview" btn */
+  .focus-mode .right-panel .preview-panel > div:last-child { display: none !important; }  /* export/history (inline display) */
+  .focus-mode #preview { max-width: 900px; margin: 0 auto; }
+  /* The relocated copilot rail column */
+  .focus-rail { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
+  .focus-rail #copilot-rail { margin-bottom: 0; }
+}
+@media (max-width: 900px) { .focus-rail { display: none; } }

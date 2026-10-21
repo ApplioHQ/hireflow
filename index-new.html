@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Applio">
-<meta name="theme-color" content="#5b54e8">
+<meta name="theme-color" content="#111113">
 <meta property="og:title" content="Applio, Free AI Resume Builder That Gets You Interviews">
 <meta property="og:description" content="The only resume builder that's actually 100% free. AI tailors your resume to any job, scores it against the ATS, and fixes what's missing. Unlimited, no credit card.">
 <meta property="og:type" content="website">
@@ -70,8 +70,8 @@
   .lp-nav-cta a { text-decoration: none; }
   .lp-signin { color: var(--muted); font-size: 14.5px; font-weight: 600; }
   .lp-signin:hover { color: var(--text); }
-  .btn-primary-lp { display: inline-flex; align-items: center; gap: 7px; background: var(--accent); color: #fff; font-weight: 700; font-size: 14.5px; padding: 10px 18px; border-radius: var(--r-full); box-shadow: 0 6px 20px rgba(91,84,232,.35); transition: transform .15s, box-shadow .15s, background .15s; border: 0; cursor: pointer; }
-  .btn-primary-lp:hover { background: var(--accent-deep); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(91,84,232,.45); }
+  .btn-primary-lp { display: inline-flex; align-items: center; gap: 7px; background: var(--accent); color: #fff; font-weight: 700; font-size: 14.5px; padding: 10px 18px; border-radius: var(--r-full); box-shadow: 0 6px 20px rgba(124,108,245,.35); transition: transform .15s, box-shadow .15s, background .15s; border: 0; cursor: pointer; }
+  .btn-primary-lp:hover { background: var(--accent-deep); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(124,108,245,.45); }
   .btn-ghost-lp { display: inline-flex; align-items: center; gap: 7px; background: transparent; color: var(--text); font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: var(--r-full); border: 1px solid var(--border); text-decoration: none; transition: border-color .15s, background .15s; }
   .btn-ghost-lp:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
   .lp-hamburger { display: none; background: none; border: 0; color: var(--text); cursor: pointer; margin-left: auto; }
@@ -82,7 +82,7 @@
   /* Hero */
   .lp-hero { position: relative; overflow: hidden; padding: 66px 0 40px; }
   .lp-hero::before { content: ''; position: absolute; inset: 0; background:
-      radial-gradient(1000px 460px at 22% -8%, rgba(91,84,232,.24), transparent 60%),
+      radial-gradient(1000px 460px at 22% -8%, rgba(124,108,245,.24), transparent 60%),
       radial-gradient(760px 400px at 92% 8%, rgba(139,92,246,.16), transparent 62%);
     pointer-events: none; }
   .lp-hero-in { position: relative; display: grid; grid-template-columns: 1.06fr .94fr; gap: 48px; align-items: center; }
@@ -103,13 +103,13 @@
   .lp-hero-visual { position: relative; }
   .lp-resume { background: #fff; border-radius: 14px; padding: 26px 26px 30px; box-shadow: 0 30px 70px rgba(4,6,20,.6), 0 4px 14px rgba(0,0,0,.3); transform: rotate(-1.4deg); }
   .lp-resume-name { font-family: var(--font-display, 'Sora', sans-serif); font-size: 21px; font-weight: 800; color: #111827; }
-  .lp-resume-role { font-size: 12.5px; color: #6366f1; font-weight: 600; margin-top: 2px; }
+  .lp-resume-role { font-size: 12.5px; color: #7c6cf5; font-weight: 600; margin-top: 2px; }
   .lp-resume-rule { height: 1px; background: #e5e7eb; margin: 14px 0; }
   .lp-resume-h { font-size: 10px; font-weight: 800; letter-spacing: .08em; color: #9ca3af; text-transform: uppercase; margin-bottom: 8px; }
   .lp-resume-line { height: 7px; border-radius: 4px; background: #e9ebf1; margin-bottom: 7px; }
   .lp-resume-line.w1 { width: 100%; } .lp-resume-line.w2 { width: 88%; } .lp-resume-line.w3 { width: 72%; } .lp-resume-line.w4 { width: 94%; }
   .lp-resume-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .lp-resume-chip { font-size: 10.5px; font-weight: 600; color: #4338ca; background: #eef2ff; border-radius: 999px; padding: 4px 9px; }
+  .lp-resume-chip { font-size: 10.5px; font-weight: 600; color: #4338ca; background: #f1effe; border-radius: 999px; padding: 4px 9px; }
   .lp-float-score { position: absolute; top: -18px; right: -14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; box-shadow: 0 16px 40px rgba(4,6,20,.55); display: flex; align-items: center; gap: 12px; }
   .lp-ring { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--success) calc(92% * 3.6deg * 1), color-mix(in srgb, var(--success) 16%, transparent) 0); }
   .lp-ring i { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 15px; color: var(--success); }
@@ -237,7 +237,7 @@
 
   /* Final CTA */
   .lp-final { text-align: center; padding: 84px 24px; position: relative; overflow: hidden; }
-  .lp-final::before { content: ''; position: absolute; inset: 0; background: radial-gradient(700px 340px at 50% 0%, rgba(91,84,232,.28), transparent 62%); pointer-events: none; }
+  .lp-final::before { content: ''; position: absolute; inset: 0; background: radial-gradient(700px 340px at 50% 0%, rgba(124,108,245,.28), transparent 62%); pointer-events: none; }
   .lp-final h2 { position: relative; font-size: clamp(30px, 4.4vw, 48px); font-weight: 800; line-height: 1.06; color: var(--text); max-width: 720px; margin: 0 auto; text-wrap: balance; }
   .lp-final p { position: relative; color: var(--muted); font-size: 17px; margin: 16px auto 0; max-width: 500px; }
   .lp-final .lp-hero-ctas { position: relative; justify-content: center; margin-top: 30px; }
@@ -502,12 +502,12 @@
       </div>
       <div class="lp-spot-media rv">
         <span class="lp-mchip">Cover letter</span>
-        <div class="lp-resume-line w1" style="background:#2a2f55;"></div>
-        <div class="lp-resume-line w4" style="background:#2a2f55;"></div>
-        <div class="lp-resume-line w2" style="background:#2a2f55;"></div>
-        <div class="lp-resume-line w3" style="background:#2a2f55;"></div>
-        <div class="lp-resume-line w1" style="background:#2a2f55;"></div>
-        <div class="lp-resume-line w2" style="background:#2a2f55;"></div>
+        <div class="lp-resume-line w1" style="background:#33333a;"></div>
+        <div class="lp-resume-line w4" style="background:#33333a;"></div>
+        <div class="lp-resume-line w2" style="background:#33333a;"></div>
+        <div class="lp-resume-line w3" style="background:#33333a;"></div>
+        <div class="lp-resume-line w1" style="background:#33333a;"></div>
+        <div class="lp-resume-line w2" style="background:#33333a;"></div>
       </div>
     </div>
   </div>

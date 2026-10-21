@@ -34,7 +34,7 @@
   50%      { background-position: 100% 50%; }
 }
 .magic-aurora--applio {
-  background-image: linear-gradient(135deg, #a5b4fc 0%, #5b54e8 30%, #38bdf8 55%, #a5b4fc 100%);
+  background-image: linear-gradient(135deg, #c3bafa 0%, #7c6cf5 30%, #38bdf8 55%, #c3bafa 100%);
 }
 
 /* 2. Border beam, parent must be position:relative + overflow:hidden */
@@ -51,7 +51,7 @@
   animation: magic-beam-spin 6s linear infinite;
 }
 .magic-border-beam--applio {
-  background: conic-gradient(from 0deg, transparent 0deg, transparent 300deg, #5b54e8 340deg, #a5b4fc 360deg);
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 300deg, #7c6cf5 340deg, #c3bafa 360deg);
 }
 @keyframes magic-beam-spin { to { transform: rotate(360deg); } }
 
@@ -80,7 +80,7 @@
   z-index: -1;
   padding: 1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(91,84,232,.35));
+  background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(124,108,245,.35));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
@@ -143,7 +143,7 @@
   position: absolute;
   inset: -20% -10%;
   z-index: -1;
-  background: radial-gradient(60% 60% at 50% 50%, rgba(91,84,232,.35), transparent 70%);
+  background: radial-gradient(60% 60% at 50% 50%, rgba(124,108,245,.35), transparent 70%);
   filter: blur(28px);
   pointer-events: none;
 }
@@ -151,13 +151,13 @@
 /* 10. Pulsing ring for primary CTAs */
 .magic-pulse { animation: magic-cta-pulse 2.8s ease-in-out infinite; }
 @keyframes magic-cta-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(91,84,232,.45); }
-  50%      { box-shadow: 0 0 0 14px rgba(91,84,232,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,108,245,.45); }
+  50%      { box-shadow: 0 0 0 14px rgba(124,108,245,0); }
 }
 
 /* 11. Sweeping shine across text */
 .magic-shine-text {
-  background: linear-gradient(110deg, var(--shine-base, #a5b4fc) 45%, rgba(255,255,255,.95) 55%, var(--shine-base, #a5b4fc) 65%);
+  background: linear-gradient(110deg, var(--shine-base, #c3bafa) 45%, rgba(255,255,255,.95) 55%, var(--shine-base, #c3bafa) 65%);
   background-size: 200% 100%;
   background-clip: text;
   -webkit-background-clip: text;
@@ -171,8 +171,8 @@
 .magic-bento { transition: transform .28s cubic-bezier(.2,.9,.3,1.2), border-color .18s, box-shadow .28s; }
 .magic-bento:hover {
   transform: translateY(-3px);
-  border-color: var(--accent, #5b54e8);
-  box-shadow: 0 10px 30px -12px rgba(91,84,232,.35);
+  border-color: var(--accent, #7c6cf5);
+  box-shadow: 0 10px 30px -12px rgba(124,108,245,.35);
 }
 
 /* Reduced-motion guard */
@@ -186,5 +186,5 @@
   .magic-pulse,
   .magic-shine-text { animation: none !important; }
   .magic-aurora { background-position: 25% 50%; }
-  .magic-shine-text { background-position: 50% 0; color: var(--shine-base, #a5b4fc); -webkit-text-fill-color: currentColor; }
+  .magic-shine-text { background-position: 50% 0; color: var(--shine-base, #c3bafa); -webkit-text-fill-color: currentColor; }
 }

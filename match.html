@@ -24,7 +24,7 @@
   .bm-tag { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:var(--r-full); }
   .bm-row { border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; margin-bottom:12px; background:var(--bg-2); box-shadow:var(--sh-1), var(--hi); transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .bm-row:hover { transform:translateY(-1px); box-shadow:var(--sh-2), var(--hi); }
-  .bm-row.best { border-color:transparent; background:linear-gradient(180deg, rgba(99,102,241,.08), var(--bg-2)) padding-box, var(--gradient) border-box; box-shadow:var(--sh-2), 0 0 30px rgba(99,102,241,.12); }
+  .bm-row.best { border-color:transparent; background:linear-gradient(180deg, rgba(124,108,245,.08), var(--bg-2)) padding-box, var(--gradient) border-box; box-shadow:var(--sh-2), 0 0 30px rgba(124,108,245,.12); }
   .bm-row-head { display:flex; align-items:center; gap:12px; padding:14px 16px; }
   .bm-rank { font-size:13px; font-weight:800; color:var(--muted); min-width:22px; text-align:center; }
   .bm-score { font-size:26px; font-weight:800; min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
@@ -52,13 +52,13 @@
   .bm-sample-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
   .bm-sample { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:12px; box-shadow:var(--sh-2), var(--hi); }
   .bm-sample-row { display:flex; align-items:center; gap:14px; padding:12px; border-radius:var(--r-md); }
-  .bm-sample-row.best { background:linear-gradient(135deg, rgba(99,102,241,.10), rgba(139,92,246,.05)); border:1px solid rgba(99,102,241,.3); }
+  .bm-sample-row.best { background:linear-gradient(135deg, rgba(124,108,245,.10), rgba(139,92,246,.05)); border:1px solid rgba(124,108,245,.3); }
   .bm-sample-rank { width:30px; text-align:center; font-weight:800; font-size:15px; color:var(--muted); flex-shrink:0; }
   .bm-sample-main { flex:1; min-width:0; }
   .bm-sample-name { font-size:13.5px; font-weight:600; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
   .bm-sample-badge { font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#6ee7b7; background:rgba(16,185,129,.16); border:1px solid rgba(16,185,129,.3); border-radius:var(--r-full); padding:2px 8px; }
   .bm-sample-track { height:7px; border-radius:999px; background:var(--bg-2); overflow:hidden; }
-  .bm-sample-track > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#6366f1,#8b5cf6); }
+  .bm-sample-track > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#7c6cf5,#9a8cf7); }
   .bm-sample-score { font-size:22px; font-weight:800; min-width:40px; text-align:right; font-variant-numeric:tabular-nums; }
   .bm-how { display:grid; grid-template-columns:1fr; gap:12px; margin-top:16px; }
   .bm-step { display:flex; gap:12px; align-items:flex-start; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:16px; box-shadow:var(--sh-1), var(--hi); }
@@ -69,7 +69,7 @@
   .bm-step-d { font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:4px; }
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#5b54e8">
+<meta name="theme-color" content="#111113">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -151,7 +151,7 @@
 
     <div class="bm-how">
       <div class="bm-step">
-        <div class="bm-step-ico" style="background:linear-gradient(135deg,#4338ca,#6366f1);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></div>
+        <div class="bm-step-ico" style="background:linear-gradient(135deg,#4338ca,#7c6cf5);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></div>
         <div><div class="bm-step-t"><span class="bm-step-n">1</span> Paste the job</div><div class="bm-step-d">Drop in the full job description you're targeting.</div></div>
       </div>
       <div class="bm-step">
@@ -159,7 +159,7 @@
         <div><div class="bm-step-t"><span class="bm-step-n">2</span> Add your resumes</div><div class="bm-step-d">Compare two or more versions, or use your saved resume.</div></div>
       </div>
       <div class="bm-step">
-        <div class="bm-step-ico" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+        <div class="bm-step-ico" style="background:linear-gradient(135deg,#7c3aed,#9a8cf7);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
         <div><div class="bm-step-t"><span class="bm-step-n">3</span> See the winner</div><div class="bm-step-d">Ranked scores with keyword, experience &amp; formatting breakdowns.</div></div>
       </div>
     </div>
@@ -291,7 +291,7 @@ function _renderResults(scored, paywalled, attempted){
   let html = '';
   if (ok.length) {
     const best = ok[0];
-    html += `<div class="section-card" style="border:1px solid var(--accent); background:linear-gradient(135deg, rgba(99,102,241,.10), rgba(139,92,246,.06));">
+    html += `<div class="section-card" style="border:1px solid var(--accent); background:linear-gradient(135deg, rgba(124,108,245,.10), rgba(139,92,246,.06));">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="font-size:34px;">${ICON('trophy','ico').replace('class="ico"','style="width:34px;height:34px;color:var(--accent);"')}</div>
         <div>

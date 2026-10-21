@@ -47,7 +47,7 @@
   @media (max-width:640px){ .jt-stats { grid-template-columns:repeat(3,1fr); } }
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#5b54e8">
+<meta name="theme-color" content="#111113">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -157,7 +157,7 @@ let _lastId = 0;
 function _uid() { const n = Date.now(); _lastId = n > _lastId ? n : _lastId + 1; return _lastId; }
 
 const STATUSES = ['Saved','Applied','Interviewing','Offer','Rejected'];
-const STATUS_COLOR = { Saved:'#64748b', Applied:'#6366f1', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };
+const STATUS_COLOR = { Saved:'#64748b', Applied:'#7c6cf5', Interviewing:'#f59e0b', Offer:'#22c55e', Rejected:'#ef4444' };
 
 // Nudge to follow up on active applications that have gone quiet. Pure client-side:
 // uses statusAt (when the status last changed) and falls back to addedAt for older

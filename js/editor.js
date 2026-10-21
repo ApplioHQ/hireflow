@@ -155,8 +155,9 @@ function hydrate() {
     planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     if (obadge) obadge.innerHTML = '';
   } else {
-    planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing" style="text-decoration:none;">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-    if (obadge) obadge.innerHTML = ` <span class="sidebar-pro-badge">Pro</span>`;
+    // Applio is completely free: no upgrade CTA, no "Pro" badge.
+    planPill.innerHTML = '';
+    if (obadge) obadge.innerHTML = '';
   }
 
   // Account center identity (avatar initials, email, plan label)
@@ -166,7 +167,7 @@ function hydrate() {
     const el = document.getElementById(id); if (el) el.textContent = initials;
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
-  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : (isPaid() ? planLabel() + ' plan' : 'Free plan');
+  const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : 'Everything free';
   // Admin Console: only admins/super-admins (moved here from the topbar button).
   const adRow = document.getElementById('acct-admin-console');
   if (adRow) adRow.style.display = (typeof isAdmin === 'function' && isAdmin()) ? '' : 'none';
@@ -1732,22 +1733,9 @@ function _renderTailorResult(text) {
   }).join('') + '</div>';
 }
 
-// Subtle upgrade banner shown above the action button inside a Pro section.
-function freeAiBanner(feature) {
-  if (isPaid()) return '';
-  const ctx = feature === 'analysis' ? 'analysis' : feature;
-  const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);  // server-tracked count
-  if (left > 0) {
-    return `<div class="free-ai-banner" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>This feature has <b>${left} free AI ${left === 1 ? 'use' : 'uses'}</b> left.</span></div>`;
-  }
-  return `<div class="free-ai-banner used" data-feat="${feature}">${ICON('sparkle','ico ico-sm')}<span>You've used your free trials for this feature, <a href="#" onclick="showUpgradeModal('ai','${ctx}');return false;">upgrade to run it again</a>.</span></div>`;
-}
-// Small "N free uses remaining" label shown beneath each AI button.
-function freeAiLabel(feature) {
-  if (isPaid()) return '';
-  const left = trialsLeft(feature === 'analysis' ? 'analyze' : feature);
-  return `<div class="free-ai-label" data-feat="${feature}">${left > 0 ? `${left} free ${left === 1 ? 'use' : 'uses'} remaining` : 'Free trials used'}</div>`;
-}
+// Trial banners are retired: every AI feature is free and unlimited for everyone.
+function freeAiBanner(feature) { return ''; }
+function freeAiLabel(feature) { return ''; }
 // Re-render the inline trial banners/labels in place so they always reflect the
 // LIVE per-feature count. Without this they show the count from when the section
 // first rendered, e.g. a stale "2 free uses remaining" even after both are used,

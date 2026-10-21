@@ -51,12 +51,7 @@
     var resume = readResume();
     if (!resume || !Object.keys(resume).length) { refreshResumeNote(); if (window.toast) toast('Build your resume first', { type: 'warn' }); return; }
 
-    // Free users get a real fit check computed client-side (no AI, no cost): the fit
-    // verdict + matched/missing keywords. The tailored resume + cover letter stay Premium.
-    var admin = (typeof isAdmin === 'function' && isAdmin());
-    var paid = (typeof isPaid === 'function' && isPaid());
-    if (!paid && !admin) { runFree(jd, resume); els.results.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-
+    // Applio is completely free: everyone gets the full AI-tailored resume + cover letter.
     setLoading(true);
     // Skeleton in the results area while the tailored resume + cover letter
     // generate; feels like content is on its way instead of a blank pane.
@@ -390,11 +385,11 @@
     var initials = email ? email.trim().charAt(0).toUpperCase() : 'A';
     ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = initials; });
     var emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = email || 'Account';
-    var admin = (typeof isAdmin === 'function' && isAdmin()), paid = (typeof isPaid === 'function' && isPaid());
-    var plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = admin ? 'Admin · full access' : (paid ? ((typeof planLabel === 'function' ? planLabel() : 'Premium') + ' plan') : 'Free plan');
-    var mg = document.getElementById('acct-manage-sub'); if (mg) mg.style.display = (paid && !admin) ? '' : 'none';
+    var admin = (typeof isAdmin === 'function' && isAdmin());
+    var plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = admin ? 'Admin · full access' : 'Everything free';
+    var mg = document.getElementById('acct-manage-sub'); if (mg) mg.style.display = 'none';
     var pill = document.getElementById('plan-pill');
-    if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : (paid ? '<span class="pill success">' + (typeof planLabel === 'function' ? planLabel() : 'Premium') + '</span>' : '<a class="btn btn-primary btn-xs" href="pricing">Upgrade</a>');
+    if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '';
   }
 
   // ---------- boot ----------

@@ -169,8 +169,11 @@ function redirectIfAdmin() {
   return false;
 }
 
+// Applio is 100% free: every feature is unlocked and unlimited for everyone.
+// isPaid() is kept (false for all) only so the now-dormant billing UI stays hidden;
+// isFree() returns false so nothing is gated behind a "free vs paid" split.
 function isPaid() { return CURRENT_USER && CURRENT_USER.isPaid; }
-function isFree() { return !isPaid(); }
+function isFree() { return false; }
 
 // ---- Free AI trials (free users get N free uses per premium feature) ----
 const FREE_AI_TRIALS = 2;
@@ -180,9 +183,9 @@ const FEATURE_TRIAL_LIMITS = { parse: 1, assistant: 0, autopilot: 0, skills: 1 }
 function _trialLimit() { return (CURRENT_USER && CURRENT_USER.freeAiTrials) || FREE_AI_TRIALS; }
 function _featureLimit(feature) { return FEATURE_TRIAL_LIMITS[feature] != null ? FEATURE_TRIAL_LIMITS[feature] : _trialLimit(); }
 function trialsUsed(feature) { return (CURRENT_USER && CURRENT_USER.aiTrials && CURRENT_USER.aiTrials[feature]) || 0; }
-function trialsLeft(feature) { return isPaid() ? Infinity : Math.max(0, _featureLimit(feature) - trialsUsed(feature)); }
-// Can the user still use this AI feature (paid, or has trials left)?
-function canUseAi(feature) { return isPaid() || trialsLeft(feature) > 0; }
+function trialsLeft(feature) { return Infinity; }        // every feature is free + unlimited
+// Can the user still use this AI feature? Always yes — everything is free.
+function canUseAi(feature) { return true; }
 
 // ---- Free AI uses (client-side soft limit in localStorage) ----
 // Each premium AI feature gets 1 free try before the paywall. This is a soft,
@@ -196,8 +199,8 @@ function getFreeAiUses() {
     return Object.assign({}, FREE_AI_DEFAULTS, raw);
   } catch (e) { return Object.assign({}, FREE_AI_DEFAULTS); }
 }
-function freeAiUsesLeft(feature) { return isPaid() ? Infinity : Math.max(0, 1 - (getFreeAiUses()[feature] || 0)); }
-function hasFreeAiUse(feature) { return freeAiUsesLeft(feature) > 0; }
+function freeAiUsesLeft(feature) { return Infinity; }     // unlimited for everyone
+function hasFreeAiUse(feature) { return true; }
 function consumeFreeAiUse(feature) {
   const uses = getFreeAiUses();
   uses[feature] = (uses[feature] || 0) + 1;
@@ -211,11 +214,7 @@ function planLabel() {
   if (CURRENT_USER.plan === 'premium') return 'Premium';
   return 'Free';
 }
-function downloadsLeft() {
-  if (!CURRENT_USER) return 0;
-  if (isPaid()) return Infinity;
-  return Math.max(0, (CURRENT_USER.downloadLimit || 10) - (CURRENT_USER.downloadsUsed || 0));
-}
+function downloadsLeft() { return Infinity; }   // unlimited downloads, no watermark, for everyone
 
 async function startCheckout(plan) {
   // Applio is completely free — there is nothing to purchase. This is a no-op

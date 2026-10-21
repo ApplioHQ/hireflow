@@ -446,17 +446,12 @@
     ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = initials; });
     var emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
     var admin = (typeof isAdmin === 'function' && isAdmin());
-    var paid = (typeof isPaid === 'function' && isPaid());
     var plEl = document.getElementById('acct-plan-label');
-    if (plEl) plEl.textContent = admin ? 'Admin · full access' : (paid ? ((typeof planLabel === 'function' ? planLabel() : 'Premium') + ' plan') : 'Free plan');
-    var mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = (paid && !admin) ? '' : 'none';
+    if (plEl) plEl.textContent = admin ? 'Admin · full access' : 'Everything free';
+    var mgRow = document.getElementById('acct-manage-sub'); if (mgRow) mgRow.style.display = 'none';
     var adRow = document.getElementById('acct-admin-console'); if (adRow) adRow.style.display = admin ? '' : 'none';
     var pill = document.getElementById('plan-pill');
-    if (pill) {
-      if (admin) pill.innerHTML = '<span class="pill success">Admin</span>';
-      else if (paid) pill.innerHTML = '<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">' + (typeof planLabel === 'function' ? planLabel() : 'Premium') + '</button>';
-      else pill.innerHTML = '<a class="btn btn-primary btn-xs" href="pricing">Upgrade</a>';
-    }
+    if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '';
   }
 
   // ---------- boot ----------

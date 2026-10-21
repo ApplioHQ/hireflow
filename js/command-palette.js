@@ -12,7 +12,7 @@
     '.cmdk{width:100%;max-width:460px;background:var(--bg-2);border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden;font-family:inherit;}',
     '.cmdk-search{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--border);}',
     '.cmdk-search svg{width:16px;height:16px;color:var(--muted);flex:0 0 auto;}',
-    '.cmdk-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;}',
+    '.cmdk-search input{flex:1;min-width:0;background:transparent!important;border:0!important;outline:none!important;box-shadow:none!important;color:var(--text);font-size:14px;padding:0!important;margin:0;height:auto;line-height:1.4;}',
     '.cmdk-esc{color:var(--muted);font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 7px;}',
     '.cmdk-list{max-height:48vh;overflow:auto;padding:7px;}',
     '.cmdk-group{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 9px 5px;}',
@@ -70,7 +70,12 @@
       { group: 'Actions', icon: 'clock', label: 'Version history', run: function () { call(function () { openModal('version'); }); } },
       { group: 'Actions', icon: 'settings', label: 'Toggle light / dark', run: function () { call(function () { toggleTheme(); }); } }
     ];
-    return cmds.concat(actions);
+    // Keep each group contiguous so its header renders exactly once, in a
+    // sensible order, even though the DOM interleaves section types.
+    var ORDER = ['Go to section', 'AI tools', 'Actions'];
+    var all = cmds.concat(actions);
+    all.sort(function (a, b) { return ORDER.indexOf(a.group) - ORDER.indexOf(b.group); });
+    return all;
   }
 
   var state = { open: false, all: [], view: [], sel: 0, q: '' };

@@ -109,10 +109,39 @@
   .ca-thread:hover::-webkit-scrollbar-thumb, .ca-input:hover::-webkit-scrollbar-thumb { background: rgba(148,163,184,.5); background-clip: padding-box; }
   .ca-thread::-webkit-scrollbar-thumb:hover, .ca-input::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,.7); background-clip: padding-box; }
 
+  /* ===== PromptInputBox-style composer ===== */
+  .ca-composer { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 10px 10px 14px; margin-bottom: 18px; border: 1px solid var(--border); border-radius: 22px; background: var(--bg-2); box-shadow: 0 10px 34px rgba(0,0,0,.14); transition: box-shadow .2s, border-color .2s; }
+  .ca-composer:focus-within { border-color: transparent; box-shadow: 0 14px 40px rgba(109,77,252,.22), inset 0 0 0 1.5px var(--accent); }
+  .ca-comp-top { display: flex; align-items: flex-start; gap: 8px; }
+  .ca-spark { width: 20px; height: 20px; color: var(--accent); flex: 0 0 auto; margin-top: 9px; }
+  .ca-comp-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+  .ca-comp-tools { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .ca-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .15s ease; }
+  .ca-pill svg { width: 15px; height: 15px; }
+  .ca-pill:hover { color: var(--text); }
+  .ca-pill.on { color: var(--accent); background: rgba(109,77,252,.13); border-color: rgba(109,77,252,.5); }
+  .ca-send { flex: 0 0 auto; height: 36px; width: 36px; border-radius: 50%; border: 0; background: var(--bg-3); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .18s ease; }
+  .ca-send svg { width: 17px; height: 17px; }
+  .ca-send.ready { background: linear-gradient(135deg, var(--accent), #8a73f8); color: #fff; box-shadow: 0 6px 18px rgba(109,77,252,.42); }
+  .ca-send.ready:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(109,77,252,.5); }
+  .ca-send.recording { background: #ef4444; color: #fff; }
+  .ca-send:disabled { opacity: .5; cursor: default; box-shadow: none; }
+
+  /* ===== Orb "thinking" bubble ===== */
+  .ca-think-msg .ca-think { display: flex; align-items: center; gap: 8px; padding: 2px 10px 2px 2px !important;
+    background: transparent !important; border: 0 !important; box-shadow: none !important; }
+  .ca-think canvas { flex: 0 0 auto; }
+  .ca-think-label { font-size: 13.5px; font-weight: 600; color: var(--muted);
+    background: linear-gradient(90deg, var(--muted), var(--text), var(--muted)); background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: caShimmer 2.2s linear infinite; }
+  @keyframes caShimmer { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+
   /* ===== Respect reduced-motion ===== */
   @media (prefers-reduced-motion: reduce) {
     .ca-aurora i, .ca-in, .ca-chip, .ca-hero-badge, .ca-hero-badge::before, .ca-hero-badge::after,
-    .ca-avatar-live::after, .ca-typing span, .ca-live::before, .ca-typing-caret p:last-child::after { animation: none !important; }
+    .ca-avatar-live::after, .ca-typing span, .ca-live::before, .ca-typing-caret p:last-child::after,
+    .ca-think-label { animation: none !important; }
     .ca-thread { scroll-behavior: auto; }
   }
 </style>
@@ -164,10 +193,32 @@
     <button class="ca-chip" onclick="askChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Prep me for a behavioral interview</span></button>
   </div>
 
-  <div class="ca-input-row">
-    <textarea class="ca-input" id="ca-input" rows="1" placeholder="Ask your career coach anything…" oninput="autogrow(this)" onkeydown="onKey(event)"></textarea>
-    <button class="ca-send" id="ca-send" onclick="send()" aria-label="Send" title="Send"></button>
-  </div>
+  <form class="ca-composer" id="ca-composer" onsubmit="return false;">
+    <div class="ca-comp-top">
+      <svg class="ca-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10 3.5l1.7 4.8 4.8 1.7-4.8 1.7L10 16.5l-1.7-4.8L3.5 10l4.8-1.7L10 3.5z"/>
+        <path d="M18 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z"/>
+      </svg>
+      <textarea class="ca-input" id="ca-input" rows="1" placeholder="Ask your career coach anything…" oninput="autogrow(this);refreshSend()" onkeydown="onKey(event)"></textarea>
+    </div>
+    <div class="ca-comp-bar">
+      <div class="ca-comp-tools">
+        <button type="button" class="ca-pill" data-steer="tailor" title="Tailor to a role">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l2 2 4-4"/></svg>
+          <span>Tailor</span>
+        </button>
+        <button type="button" class="ca-pill" data-steer="interview" title="Interview prep">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>
+          <span>Interview</span>
+        </button>
+        <button type="button" class="ca-pill" data-steer="rewrite" title="Rewrite stronger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          <span>Rewrite</span>
+        </button>
+      </div>
+      <button type="button" class="ca-send" id="ca-send" onclick="onSendBtn()" aria-label="Send" title="Send"></button>
+    </div>
+  </form>
 </div>
 
 <script src="js/config.js"></script>
@@ -175,6 +226,7 @@
 <script src="js/notify.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/health-badge.js"></script>
+<script src="js/applio-orb.js"></script>
 <script>
 const API = window.HIREFLOW_CONFIG.API_URL;
 const TOKEN = localStorage.getItem('hf_token');
@@ -269,12 +321,6 @@ function render(){
     else bubble.innerHTML = _bubbleInner(m);
   }
   renderedCount = messages.length;
-  if (busy) {
-    const t = document.createElement('div');
-    t.className = 'ca-msg assistant ca-typing-msg ca-in';
-    t.innerHTML = '<div class="ca-avatar ca-avatar-live">' + AV + '</div><div class="ca-bubble ca-typing"><span></span><span></span><span></span></div>';
-    thread.appendChild(t);
-  }
   thread.scrollTop = thread.scrollHeight;
 }
 
@@ -315,16 +361,90 @@ function _showPremiumGate(){
   if (row) row.style.display = 'none';
 }
 
+// ── Composer send button: mic ↔ send ↔ stop, driven by input + state ──
+const _SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recording = false, _recog = null;
+const CA_IC = {
+  mic:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5.5 11.5 12 5l6.5 6.5"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>'
+};
+function refreshSend(){
+  const b = document.getElementById('ca-send'); if (!b) return;
+  if (busy) { b.className = 'ca-send'; b.disabled = true; b.innerHTML = CA_IC.stop; return; }
+  const hasText = (document.getElementById('ca-input').value || '').trim().length > 0;
+  b.disabled = false;
+  if (recording) { b.className = 'ca-send recording'; b.innerHTML = CA_IC.stop; b.title = 'Stop recording'; }
+  else if (hasText) { b.className = 'ca-send ready'; b.innerHTML = CA_IC.send; b.title = 'Send'; }
+  else { b.className = 'ca-send'; b.innerHTML = _SR ? CA_IC.mic : CA_IC.send; b.disabled = !_SR; b.title = _SR ? 'Record a voice message' : 'Type a message'; }
+}
+function onSendBtn(){
+  if (busy) return;
+  if (recording) { _stopRec(); return; }
+  const hasText = (document.getElementById('ca-input').value || '').trim().length > 0;
+  if (hasText) send(); else if (_SR) _startRec();
+}
+
+// ── Steering pills: prefix a short directive onto the next message ──
+let _steer = null;
+const _STEER_TEXT = { tailor: 'Tailor my resume for this: ', interview: 'Help me prep for an interview: ', rewrite: 'Rewrite this stronger: ' };
+function _applySteer(text){ return _steer && _STEER_TEXT[_steer] ? _STEER_TEXT[_steer] + text : text; }
+function _clearSteer(){ _steer = null; document.querySelectorAll('.ca-pill.on').forEach(p => p.classList.remove('on'));
+  const i = document.getElementById('ca-input'); if (i) i.placeholder = 'Ask your career coach anything…'; }
+
+// ── Voice dictation (Web Speech API, client-side, graceful fallback) ──
+function _startRec(){
+  if (!_SR || recording) return;
+  _recog = new _SR(); _recog.continuous = true; _recog.interimResults = true; _recog.lang = navigator.language || 'en-US';
+  const input = document.getElementById('ca-input');
+  const base = input.value ? input.value.replace(/\s+$/, '') + ' ' : '';
+  let finalT = '';
+  _recog.onresult = (ev) => { let interim = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) { const t = ev.results[i][0].transcript; if (ev.results[i].isFinal) finalT += t + ' '; else interim += t; }
+    input.value = base + finalT + interim; autogrow(input); };
+  _recog.onerror = (ev) => { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Microphone blocked. Allow mic access, or type instead.', { type: 'warn' }); _stopRec(); };
+  _recog.onend = () => { if (recording) { try { _recog.start(); } catch(e){ _stopRec(); } } };
+  try { _recog.start(); } catch(e){ toast('Could not start the mic.', { type: 'warn' }); return; }
+  recording = true; refreshSend();
+}
+function _stopRec(){ recording = false; try { _recog && _recog.stop(); } catch(e){} _recog = null; refreshSend();
+  const i = document.getElementById('ca-input'); if (i) i.focus(); }
+
+// ── The dotted violet orb "thinking" indicator (ApplioOrb) ──
+let _orb = null;
+function _mountThinking(){
+  const thread = document.getElementById('ca-thread');
+  const el = document.createElement('div');
+  el.className = 'ca-msg assistant ca-in ca-think-msg';
+  el.innerHTML = '<div class="ca-bubble ca-think"><canvas class="ca-orb-canvas"></canvas><span class="ca-think-label">Thinking</span></div>';
+  thread.appendChild(el); thread.scrollTop = thread.scrollHeight;
+  const label = el.querySelector('.ca-think-label');
+  try {
+    _orb = ApplioOrb.create(el.querySelector('canvas'), { size: 100, reduced: _reduced() });
+    const LBL = ['Thinking', 'Analyzing', 'Searching', 'Composing'];
+    _orb.think((i) => { label.textContent = LBL[i % LBL.length]; });
+  } catch (e) { _orb = null; }
+  return { el: el, label: label };
+}
+function _resolveThinking(think, cb){
+  const finish = () => { try { _orb && _orb.destroy(); } catch(e){} _orb = null; if (think && think.el) think.el.remove(); cb(); };
+  if (!_orb) { finish(); return; }
+  if (think && think.label) think.label.textContent = 'Done';
+  _orb.resolve(finish);
+}
+
 async function send(){
   if (IS_ANON) { promptSignup('chat with your AI career coach'); return; }
   if (_isFreeUser()) { _showPremiumGate(); return; }
   const input = document.getElementById('ca-input');
   const text = (input.value || '').trim();
   if (!text || busy) return;
-  messages.push({ role: 'user', content: text });
-  input.value = ''; autogrow(input);
-  busy = true; _save(); render();
-  document.getElementById('ca-send').disabled = true;
+  if (recording) _stopRec();
+  messages.push({ role: 'user', content: _applySteer(text) });
+  input.value = ''; autogrow(input); _clearSteer();
+  busy = true; _save(); render(); refreshSend();
+  const think = _mountThinking();
+  let reply;
   try {
     const r = await fetch(API + '/ai/assistant', {
       method: 'POST',
@@ -332,30 +452,42 @@ async function send(){
       body: JSON.stringify({ messages: messages, resume: _resume() })
     });
     if (r.status === 402) {
-      busy = false; render();
-      if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', 'assistant');
-      else toast('Career Coach is a Premium feature.', { type: 'warn' });
+      _resolveThinking(think, () => { busy = false; render(); refreshSend();
+        if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', 'assistant');
+        else toast('Career Coach is a Premium feature.', { type: 'warn' }); });
       return;
     }
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || ('Request failed (' + r.status + ')'));
-    messages.push({ role: 'assistant', content: data.reply || 'Sorry, I could not generate a response, please try again.', _reveal: true });
+    reply = { role: 'assistant', content: data.reply || 'Sorry, I could not generate a response, please try again.', _reveal: true };
     _showFreeRemaining(data.freeRemaining);
   } catch (e) {
     const m = (e && e.message) || '';
-    const friendly = /usage limit|limit reached|quota|neuron|429/i.test(m)
+    reply = { role: 'assistant', _reveal: true, content: /usage limit|limit reached|quota|neuron|429/i.test(m)
       ? 'The daily AI limit was reached. It resets shortly, please try again later.'
-      : 'The AI is busy right now, give it a few seconds and try again.';
-    messages.push({ role: 'assistant', content: friendly, _reveal: true });
-  } finally {
-    busy = false; _save(); render();
-    document.getElementById('ca-send').disabled = false;
-    document.getElementById('ca-input').focus();
+      : 'The AI is busy right now, give it a few seconds and try again.' };
   }
+  // Let the orb sweep + condense, THEN reveal the answer bubble.
+  _resolveThinking(think, () => {
+    busy = false; messages.push(reply); _save(); render(); refreshSend();
+    document.getElementById('ca-input').focus();
+  });
 }
 
 document.getElementById('ca-title').innerHTML = `${ICON('sparkle','ico ico-lg')} <span>Career Coach</span>`;
-document.getElementById('ca-send').innerHTML = ICON('arrowRight');
+refreshSend();
+// Steering pills toggle a directive that is prefixed to the next message.
+document.querySelectorAll('.ca-pill').forEach(p => p.addEventListener('click', () => {
+  const was = p.classList.contains('on');
+  document.querySelectorAll('.ca-pill').forEach(o => o.classList.remove('on'));
+  const input = document.getElementById('ca-input');
+  if (was) { _steer = null; input.placeholder = 'Ask your career coach anything…'; }
+  else {
+    p.classList.add('on'); _steer = p.getAttribute('data-steer');
+    const ph = { tailor: 'Paste a role, or ask me to tailor your resume…', interview: 'Ask for questions, or practice an answer…', rewrite: 'Paste a bullet or summary to rewrite…' };
+    input.placeholder = ph[_steer] || 'Ask your career coach anything…'; input.focus();
+  }
+}));
 render();
 (async () => {
   if (typeof loadCurrentUser === 'function') { await loadCurrentUser(); if (window.renderPlanPill) renderPlanPill(); }

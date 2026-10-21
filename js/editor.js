@@ -3033,6 +3033,8 @@ function _bindPreviewClicks(doc) {
   // Header / name block edits contact info.
   const header = doc.querySelector('[class*="header"], [class*="name"]');
   if (header) bind(header, 'personal', 'Edit Contact Info', true);
+  // Let the inline bullet-AI toolbar tag individual bullets for this render.
+  if (window.inlineAI && typeof window.inlineAI.tag === 'function') window.inlineAI.tag(doc);
 }
 
 // ============ Helpers ============
@@ -3756,6 +3758,63 @@ async function aiImprove(target, idx = 0) {
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
 }
+
+// Map a rendered bullet index (Nth non-empty line) back to its raw line in the
+// description, so we edit exactly the clicked bullet and nothing else.
+function _bulletRawIndex(desc, bulletIdx) {
+  const rawLines = String(desc || '').split('\n');
+  let count = -1;
+  for (let i = 0; i < rawLines.length; i++) {
+    const stripped = rawLines[i].replace(/^\s*[•\-*–▪◦·]\s*/, '').trim();
+    if (stripped) { count++; if (count === bulletIdx) return i; }
+  }
+  return -1;
+}
+
+// Inline per-bullet AI: improve/quantify/shorten/rewrite a SINGLE bullet, then
+// write just that line back. Reuses the proven aiStream + suggestion flow.
+async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
+  const item = (resume[section] || [])[entryIdx];
+  if (!item) return;
+  const field = ('description' in item) ? 'description' : ('abstract' in item) ? 'abstract' : null;
+  if (!field) return;
+  const desc = item[field] || '';
+  const rawIdx = _bulletRawIndex(desc, bulletIdx);
+  if (rawIdx < 0) return;
+  const rawLines = desc.split('\n');
+  const marker = (rawLines[rawIdx].match(/^\s*[•\-*–▪◦·]\s*/) || [''])[0];
+  const bulletText = rawLines[rawIdx].slice(marker.length).trim();
+  if (!bulletText) return toast('Add some text to this bullet first.', { type: 'warn' });
+  const INSTR = {
+    improve: 'Make this one bullet stronger and more specific. Return a single bullet line.',
+    quantify: 'Rewrite this one bullet to include a concrete metric or number (keep it truthful). Return a single bullet line.',
+    shorten: 'Make this one bullet more concise without losing impact. Return a single bullet line.',
+    rewrite: 'Rewrite this one bullet more impactfully with a strong action verb. Return a single bullet line.'
+  };
+  aiLoading('Improving this bullet…');
+  try {
+    const context = {
+      role: item.title || item.role || item.name || '',
+      company: item.company || item.org || item.issuer || item.venue || '',
+      section, mode, instruction: INSTR[mode] || INSTR.improve
+    };
+    const suggestion = (await aiStream('improve', { target: section, text: bulletText, context })) || '';
+    if (!suggestion.trim()) throw new Error('AI returned an empty response. Please try again.');
+    // Collapse to a single bullet line.
+    const newText = (suggestion.split('\n')
+      .map(s => s.replace(/^\s*[•\-*–▪◦·]\s*/, '').trim())
+      .filter(Boolean)[0]) || suggestion.trim();
+    const apply = (t) => {
+      const lines = (resume[section][entryIdx][field] || '').split('\n');
+      lines[rawIdx] = marker + t;
+      resume[section][entryIdx][field] = lines.join('\n');
+      save(); renderMain();
+    };
+    showAiSuggestion({ title: 'Improved bullet', text: newText, original: bulletText, apply });
+  } catch (e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
+  finally { aiLoadingDone(); }
+}
+window.aiImproveBullet = aiImproveBullet;
 
 async function aiSuggestSkills() {
   aiLoading('Generating skills from your experience…');

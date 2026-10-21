@@ -1824,3 +1824,10 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   }
   .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
 }
+
+/* ===== Applio Studio — inline bullet AI toolbar (mockup 1) ===== */
+.ai-bar { position: fixed; z-index: 2147483000; display: inline-flex; align-items: center; gap: 2px; background: #18181b; border: 1px solid #2a2a30; border-radius: 10px; padding: 3px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.ai-bar-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; color: #d4d4da; border: none; border-radius: 7px; padding: 6px 11px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.ai-bar-btn:hover { background: #26262b; color: #fff; }
+.ai-bar-primary { background: var(--accent); color: #fff; }
+.ai-bar-primary:hover { background: #8370ff; color: #fff; }

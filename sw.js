@@ -5,7 +5,7 @@
    - Images / fonts / icons: cache-first with background refresh (they rarely change).
    - Everything falls back to cache, then to a branded offline page, when offline.
    Bump CACHE_VERSION whenever this file changes to retire old caches. */
-const CACHE_VERSION = 'applio-v2';
+const CACHE_VERSION = 'applio-v3';
 const OFFLINE_URL = '/offline.html';
 
 /* Minimal set needed to render something useful with no network. */
@@ -45,7 +45,11 @@ function isCode(url) {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
   try {
-    const fresh = await fetch(request);
+    /* `no-cache` forces a conditional request to the server every time
+       (fast 304 when unchanged), so a revisit never gets served a stale
+       file out of the browser's HTTP cache. Without this, GitHub Pages'
+       10-minute max-age would mask fresh deploys until a hard refresh. */
+    const fresh = await fetch(request, { cache: 'no-cache' });
     if (fresh && fresh.ok) cache.put(request, fresh.clone());
     return fresh;
   } catch (err) {

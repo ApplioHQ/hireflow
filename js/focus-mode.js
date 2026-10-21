@@ -59,7 +59,8 @@
     btn.title = 'Toggle document focus mode';
     btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg><span>Focus</span>';
     btn.addEventListener('click', function () { setMode(!shell().classList.contains('focus-mode')); });
-    var anchor = right.querySelector('#cmdk-trigger') || right.querySelector('#acct-center');
+    // Place Focus just before ⌘K, both to the LEFT of import/save/export.
+    var anchor = right.querySelector('#cmdk-trigger') || right.querySelector('#btn-import') || right.querySelector('#acct-center');
     if (anchor) right.insertBefore(btn, anchor); else right.appendChild(btn);
     btn.classList.toggle('active', enabled());
   }

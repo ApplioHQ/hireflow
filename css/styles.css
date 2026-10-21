@@ -1784,44 +1784,37 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 
 /* ===== Applio Studio — slim icon sidebar (mockup 1), desktop only ===== */
 @media (min-width: 901px) {
-  .app-shell-inner.app-slim { grid-template-columns: 70px 1fr 340px; }
-  .app-slim .sidebar { padding: 12px 0; overflow: visible; }
+  .app-shell-inner.app-slim { grid-template-columns: 76px 1fr 340px; }
+  /* Scrollable (was overflow:visible, which trapped the lower sections off-screen). */
+  .app-slim .sidebar { padding: 10px 0; overflow-y: auto; overflow-x: hidden; }
 
-  /* Condense the top chrome: drop section headers + progress, icon-only copilot banner */
+  /* Drop the section headers, progress meter, and the collapsed copilot pill. */
   .app-slim .sidebar-section { display: none; }
   .app-slim .sidebar-progress { display: none; }
-  .app-slim .banner-gradient { justify-content: center; gap: 0; padding: 10px 0; margin: 0 12px 10px; }
-  .app-slim .banner-gradient #copilot-label span { display: none; }
-  .app-slim .banner-gradient .kbd { display: none; }
+  .app-slim .banner-gradient { display: none; }
 
-  /* Icon-only buttons */
+  /* Roomy icon buttons, centered, with more breathing room between them. */
   .app-slim .sidebar-item {
     position: relative; justify-content: center; gap: 0;
-    width: 46px; height: 44px; margin: 3px auto; padding: 0;
-    border-left: 0; border-radius: 12px;
+    width: 48px; height: 46px; margin: 5px auto; padding: 0;
+    border-left: 0; border-radius: 13px;
   }
   .app-slim .sidebar-item:hover { background: var(--bg-3); }
-  .app-slim .sidebar-item.active { border-left: 0; background: var(--accent); color: #fff; }
+  .app-slim .sidebar-item.active { border-left: 0; background: var(--accent); }
   .app-slim .sidebar-item.active:hover { background: var(--accent); }
-  .app-slim .sidebar-item.active .ico { opacity: 1; }
-  .app-slim .sidebar-item svg { width: 19px; height: 19px; }
+  .app-slim .sidebar-item svg { width: 20px; height: 20px; }
 
-  /* The unclassed label span becomes a hover flyout tooltip */
-  .app-slim .sidebar-item > span:not([class]) {
-    position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
-    background: var(--bg-3); color: var(--text); font-size: 12px; font-weight: 500; white-space: nowrap;
-    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--sh-2);
-    opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .12s ease; z-index: 70;
-  }
-  .app-slim .sidebar-item:hover > span:not([class]) { opacity: 1; visibility: visible; }
+  /* Completion shown by icon color (done = green), not a cramped corner badge:
+     muted when empty, green when complete, white on the active (violet) item. */
+  .app-slim .sidebar-item .ico { color: var(--muted); opacity: 1; }
+  .app-slim .sidebar-item.has-content .ico { color: var(--success); }
+  .app-slim .sidebar-item.active .ico { color: #fff; }
 
-  /* Completion indicator as a small corner badge on the icon */
+  /* Label text is now a native title tooltip; hide the inline label + badges. */
+  .app-slim .sidebar-item > span:not([class]) { display: none; }
   .app-slim .sidebar-item .s-check,
-  .app-slim .sidebar-item .s-dot { position: absolute; top: 6px; right: 7px; margin: 0; }
-  .app-slim .sidebar-item.active .s-check { color: #fff; }
-  .app-slim .sidebar-item .sidebar-pro-badge {
-    position: absolute; top: 4px; right: 4px; margin: 0; font-size: 8px; padding: 1px 4px; line-height: 1.2;
-  }
+  .app-slim .sidebar-item .s-dot,
+  .app-slim .sidebar-item .sidebar-pro-badge { display: none; }
   .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
 }
 

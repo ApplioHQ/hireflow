@@ -24,8 +24,9 @@
     '.cmdk-item.sel{background:var(--bg-3);}',
     '.cmdk-item.sel .cmdk-ic,.cmdk-item.sel .cmdk-label{color:var(--accent);}',
     '.cmdk-empty{padding:18px;text-align:center;color:var(--muted);font-size:12.5px;}',
-    '.cmdk-trigger{display:inline-flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:5px 9px;color:var(--muted);font-size:11px;cursor:pointer;}',
-    '.cmdk-trigger:hover{border-color:var(--accent);color:var(--text);}'
+    '.cmdk-trigger{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--border);border-radius:9px;padding:7px 12px;color:var(--text);font-size:12.5px;font-weight:500;line-height:1;cursor:pointer;height:34px;box-sizing:border-box;transition:background .14s,border-color .14s;}',
+    '.cmdk-trigger:hover{background:var(--bg-2);border-color:var(--border-strong);}',
+    '.cmdk-trigger.active{background:var(--bg-2);border-color:var(--accent);color:var(--text);}'
   ].join('');
 
   function injectStyle() {
@@ -178,6 +179,7 @@
   function mountTrigger() {
     var right = document.querySelector('.topbar-right');
     if (!right || document.getElementById('cmdk-trigger')) return;
+    injectStyle();   // ensure .cmdk-trigger is styled as soon as the button mounts
     var isMac = /Mac|iPhone|iPad/.test(navigator.platform);
     var b = document.createElement('button');
     b.id = 'cmdk-trigger'; b.className = 'cmdk-trigger'; b.type = 'button';
@@ -185,9 +187,9 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
       '<span>' + (isMac ? '⌘K' : 'Ctrl K') + '</span>';
     b.addEventListener('click', open);
-    // Sit at the right of the topbar, just left of the account menu.
-    var acct = right.querySelector('#acct-center');
-    if (acct) right.insertBefore(b, acct); else right.appendChild(b);
+    // Sit to the LEFT of the import/save/export actions.
+    var anchor = right.querySelector('#btn-import') || right.querySelector('#acct-center');
+    if (anchor) right.insertBefore(b, anchor); else right.appendChild(b);
   }
 
   if (document.readyState === 'loading') {

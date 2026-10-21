@@ -131,6 +131,7 @@ function hydrate() {
     if (done) el.classList.add('has-content');
     else el.classList.remove('has-content');
     el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>${indicator}`;
+    el.title = info.label;   // native tooltip for the slim icon rail
   });
   document.getElementById('btn-import').innerHTML = `${ICON('upload')} <span>Import</span>`;
   document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span>`;

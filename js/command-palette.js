@@ -185,7 +185,9 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
       '<span>' + (isMac ? '⌘K' : 'Ctrl K') + '</span>';
     b.addEventListener('click', open);
-    right.insertBefore(b, right.firstChild);
+    // Sit at the right of the topbar, just left of the account menu.
+    var acct = right.querySelector('#acct-center');
+    if (acct) right.insertBefore(b, acct); else right.appendChild(b);
   }
 
   if (document.readyState === 'loading') {

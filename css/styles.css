@@ -1758,3 +1758,24 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   summary { min-height: 44px; }
   .gd-chip, .ex-chip { min-height: 32px; display: inline-flex; align-items: center; }
 }
+
+/* ===== Applio Studio — Copilot rail (Phase 1) ===== */
+.right-panel #copilot-rail { margin-bottom: 14px; }
+.cr-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.cr-score { display: flex; align-items: center; gap: 12px; }
+.cr-score-t { font-size: 13px; font-weight: 600; color: var(--text); }
+.cr-score-s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cr-chips { display: flex; flex-direction: column; gap: 6px; }
+.cr-chip { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; background: var(--bg-1); border: 1px solid var(--border); border-radius: 9px; padding: 8px 10px; color: var(--text); font-size: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+.cr-chip:hover { border-color: var(--accent); background: var(--bg-3); }
+.cr-chip .cr-chip-ic { color: var(--warning); display: inline-flex; width: 15px; height: 15px; flex: 0 0 auto; }
+.cr-chip .cr-chip-ic svg { width: 15px; height: 15px; }
+.cr-chip > span:nth-child(2) { flex: 1; }
+.cr-chip .cr-chip-arrow { color: var(--muted); display: inline-flex; width: 14px; flex: 0 0 auto; }
+.cr-chip .cr-chip-arrow svg { width: 14px; height: 14px; }
+.cr-copilot { background: color-mix(in srgb, var(--accent) 12%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 11px; padding: 11px; }
+.cr-copilot-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 5px; }
+.cr-copilot-head svg { width: 14px; height: 14px; }
+.cr-copilot-body { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 9px; }
+.cr-copilot-go { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: background .15s; }
+.cr-copilot-go:hover { background: #8370ff; }

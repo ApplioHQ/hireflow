@@ -62,41 +62,73 @@
       '</svg>';
   }
 
+  function runAction(a) {
+    if (!a) return;
+    if (a.qf != null && typeof qfAction === 'function') { qfAction(a.qf); return; }
+    if (a.section) { goSection(a.section); return; }
+    if (a.href) { location.href = a.href; return; }
+  }
+
   function render() {
     var host = document.getElementById('copilot-rail');
-    if (!host || typeof window.calculateHealthScore !== 'function') return;
-    var d = window.calculateHealthScore();
-    var fixes = deriveFixes(d);
-    var nba = nextBestAction(d);
+    if (!host) return;
 
-    var sub = fixes.length
-      ? fixes.length + ' quick fix' + (fixes.length > 1 ? 'es' : '') + ' left'
-      : 'Looking strong — ready to export';
+    var score, sub, chips, nba, body;
 
-    var chips = fixes.slice(0, 3).map(function (f) {
-      return '<button class="cr-chip" data-go="' + f.section + '">' +
-        '<span class="cr-chip-ic">' + ic(f.icon) + '</span>' +
-        '<span>' + f.label + '</span>' +
-        '<span class="cr-chip-arrow">' + ic('arrowRight') + '</span>' +
-        '</button>';
-    }).join('');
+    // Prefer the editor's own health (same score + real issues as the panel we
+    // replace); fall back to the cross-page completeness score elsewhere.
+    if (typeof window._resumeHealth === 'function') {
+      var h = window._resumeHealth();
+      var issues = h.issues || [];
+      score = h.score;
+      sub = issues.length
+        ? issues.length + ' fix' + (issues.length > 1 ? 'es' : '') + ' to raise it'
+        : 'Every check passes — ready to export';
+      chips = issues.slice(0, 3).map(function (iss, i) {
+        var lvl = iss.level === 'warn' ? 'warn' : 'info';
+        return '<button class="cr-chip" data-qf="' + i + '">' +
+          '<span class="cr-chip-ic cr-' + lvl + '">' + ic('check') + '</span>' +
+          '<span>' + iss.title + '</span>' +
+          '<span class="cr-chip-arrow">' + ic('arrowRight') + '</span></button>';
+      }).join('');
+      body = issues.length ? 'Next: ' + issues[0].title : 'Your resume looks strong. Export it or tailor it to a job.';
+      nba = issues.length ? { qf: 0, label: 'Fix it' } : { section: 'tailor', label: 'Tailor to a job' };
+    } else if (typeof window.calculateHealthScore === 'function') {
+      var d = window.calculateHealthScore();
+      var fixes = deriveFixes(d);
+      score = d.score;
+      sub = fixes.length ? fixes.length + ' quick fix' + (fixes.length > 1 ? 'es' : '') + ' left' : 'Looking strong';
+      chips = fixes.slice(0, 3).map(function (f) {
+        return '<button class="cr-chip" data-go="' + f.section + '">' +
+          '<span class="cr-chip-ic cr-warn">' + ic(f.icon) + '</span>' +
+          '<span>' + f.label + '</span>' +
+          '<span class="cr-chip-arrow">' + ic('arrowRight') + '</span></button>';
+      }).join('');
+      body = 'Your best next move to get more callbacks.';
+      nba = nextBestAction(d);
+    } else { return; }
 
     host.innerHTML =
       '<div class="cr-card">' +
-        '<div class="cr-score">' + ring(d.score) +
+        '<div class="cr-score">' + ring(score) +
           '<div><div class="cr-score-t">Resume score</div><div class="cr-score-s">' + sub + '</div></div>' +
         '</div>' +
         (chips ? '<div class="cr-chips">' + chips + '</div>' : '') +
         '<div class="cr-copilot">' +
           '<div class="cr-copilot-head">' + ic('sparkle') + '<span>Copilot</span></div>' +
-          '<div class="cr-copilot-body">Your best next move to get more callbacks.</div>' +
-          '<button class="cr-copilot-go" data-go="' + nba.section + '">' + nba.label + '</button>' +
+          '<div class="cr-copilot-body">' + body + '</div>' +
+          '<button class="cr-copilot-go" data-nba="1">' + nba.label + '</button>' +
         '</div>' +
       '</div>';
 
     host.querySelectorAll('[data-go]').forEach(function (b) {
       b.addEventListener('click', function () { goSection(b.getAttribute('data-go')); });
     });
+    host.querySelectorAll('[data-qf]').forEach(function (b) {
+      b.addEventListener('click', function () { if (typeof qfAction === 'function') qfAction(+b.getAttribute('data-qf')); });
+    });
+    var go = host.querySelector('[data-nba]');
+    if (go) go.addEventListener('click', function () { runAction(nba); });
   }
   window.renderCopilotRail = render;
 
@@ -107,6 +139,10 @@
     var host = document.createElement('div');
     host.id = 'copilot-rail';
     rp.insertBefore(host, rp.firstChild);
+    // The editor's own #resume-health panel shows the same score + issues, so
+    // hide it to avoid two score cards (and two possibly-different numbers).
+    var old = document.getElementById('resume-health');
+    if (old) old.style.display = 'none';
     render();
   }
 

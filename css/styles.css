@@ -1779,3 +1779,5 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 .cr-copilot-body { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 9px; }
 .cr-copilot-go { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: background .15s; }
 .cr-copilot-go:hover { background: #8370ff; }
+.cr-chip .cr-chip-ic.cr-warn { color: var(--warning); }
+.cr-chip .cr-chip-ic.cr-info { color: var(--muted); }

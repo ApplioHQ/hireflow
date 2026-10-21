@@ -323,6 +323,8 @@ function _resumeHealth() {
   const score = Math.max(0, Math.min(100, Math.round(100 * (0.45 * checksPct + 0.30 * compPct + 0.25 * bulletPct))));
   return { score, passed: g.passed, total: g.total, issues: g.issues };
 }
+// Expose for the Copilot rail so it shows the SAME score + issues as this panel.
+window._resumeHealth = _resumeHealth;
 
 let _healthAnim = 0;
 function _renderHealthPanel() {
@@ -383,6 +385,7 @@ function _renderFirstActionBanner() {
 function _refreshCompletion() {
   _renderFirstActionBanner();
   _renderHealthPanel();
+  if (window.renderCopilotRail) window.renderCopilotRail();
   document.querySelectorAll('.sidebar-item').forEach(function (el) {
     var sec = el.dataset.section;
     if (!sec) return;

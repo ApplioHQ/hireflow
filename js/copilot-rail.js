@@ -132,18 +132,12 @@
   }
   window.renderCopilotRail = render;
 
-  // Mount the host as the first child of the right panel, then render.
+  // The score + fixes now live in the topbar health-badge popover, so the editor's
+  // right panel no longer carries a score card. Just keep the old inline health
+  // panel hidden (the topbar badge is the single source of the score).
   function mount() {
-    var rp = document.querySelector('.right-panel');
-    if (!rp || document.getElementById('copilot-rail')) return;
-    var host = document.createElement('div');
-    host.id = 'copilot-rail';
-    rp.insertBefore(host, rp.firstChild);
-    // The editor's own #resume-health panel shows the same score + issues, so
-    // hide it to avoid two score cards (and two possibly-different numbers).
     var old = document.getElementById('resume-health');
     if (old) old.style.display = 'none';
-    render();
   }
 
   // Keep the rail in sync: the editor calls renderHealthBadge() after every

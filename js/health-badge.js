@@ -109,9 +109,31 @@
     const d = calculateHealthScore();
     const badge = document.getElementById('health-badge');
     if (!badge) return;
+
+    // Editor-only: the real, actionable issues + one-tap fix. This is where the
+    // old right-panel Copilot card's content now lives.
+    let issues = [];
+    if (typeof window._resumeHealth === 'function') {
+      try { issues = (window._resumeHealth().issues) || []; } catch (e) {}
+    }
+    let fixesHtml = '';
+    if (issues.length) {
+      fixesHtml =
+        '<div style="border-top:1px solid var(--border);margin:12px -14px 0;padding:12px 14px 2px;">' +
+          '<div style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Fix to raise your score</div>' +
+          issues.slice(0, 4).map(function (iss, i) {
+            return '<button class="hp-fix" data-qf="' + i + '" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:var(--bg-1);border:1px solid var(--border);border-radius:9px;padding:8px 10px;margin-bottom:6px;color:var(--text);font-size:12px;cursor:pointer;">' +
+              '<span style="flex:1;">' + iss.title + '</span>' +
+              '<span style="color:var(--muted);">&rarr;</span>' +
+            '</button>';
+          }).join('') +
+          '<button class="hp-fix" data-qf="0" style="width:100%;margin-top:2px;background:var(--accent);border:0;border-radius:9px;padding:9px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;">Fix it</button>' +
+        '</div>';
+    }
+
     const pop = document.createElement('div');
     pop.id = 'health-popover';
-    pop.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;z-index:300;width:250px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);padding:14px;';
+    pop.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;z-index:300;width:260px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);padding:14px;';
     pop.innerHTML =
       `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
         <span style="font-size:22px;font-weight:800;color:${_color(d.score)};line-height:1;">${d.score}</span>
@@ -120,8 +142,20 @@
       _miniBar('Completeness', d.completeness) +
       _miniBar('Bullet Quality', d.bulletQuality, d.bulletQuality === null ? 'Add experience bullets to score this' : '') +
       _miniBar('ATS Match', d.ats, d.ats === null ? 'Not checked yet, run a check' : '') +
-      `<a href="editor#dashboard" style="display:block;text-align:center;margin-top:8px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;">View Dashboard →</a>`;
+      fixesHtml +
+      `<a href="editor#dashboard" style="display:block;text-align:center;margin-top:12px;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;">View Dashboard &rarr;</a>`;
     badge.appendChild(pop);
+
+    // Wire each fix to the editor's quick-fix action, then close the popover.
+    pop.querySelectorAll('.hp-fix').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var i = +b.getAttribute('data-qf');
+        _closePopover();
+        if (typeof qfAction === 'function') qfAction(i);
+      });
+    });
+
     setTimeout(() => document.addEventListener('click', _outside, true), 0);
   }
 

@@ -12,34 +12,17 @@
   function shell() { return document.querySelector('.app-shell-inner'); }
   function enabled() { try { return localStorage.getItem(KEY) !== '0'; } catch (e) { return true; } } // default on
 
-  function railCol() {
-    var rc = document.getElementById('focus-rail');
-    if (!rc) {
-      rc = document.createElement('aside');
-      rc.id = 'focus-rail';
-      rc.className = 'focus-rail';
-      shell().appendChild(rc);
-    }
-    return rc;
-  }
-
   function reflow() { setTimeout(function () { if (typeof window.renderPreview === 'function') window.renderPreview(); }, 80); }
 
   function on() {
     var s = shell(); if (!s) return;
     s.classList.add('focus-mode');
-    var rail = document.getElementById('copilot-rail');
-    if (rail) railCol().appendChild(rail);          // copilot rail -> its own column
-    else setTimeout(on, 120);                        // rail not mounted yet; retry once
     reflow();
   }
 
   function off() {
     var s = shell(); if (!s) return;
     s.classList.remove('focus-mode');
-    var rail = document.getElementById('copilot-rail');
-    var rp = document.querySelector('.right-panel');
-    if (rail && rp) rp.insertBefore(rail, rp.firstChild);   // copilot rail back to the panel
     reflow();
   }
 

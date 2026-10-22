@@ -1827,8 +1827,9 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 
 /* ===== Applio Studio — document focus layout (mockup 1), desktop only ===== */
 @media (min-width: 901px) {
-  /* [slim sidebar][form][BIG document][copilot rail] */
-  .app-shell-inner.focus-mode { grid-template-columns: 70px 340px minmax(0, 1fr) 300px; }
+  /* [slim sidebar][form][BIG document] — the resume score + fixes moved to the
+     topbar health badge, so the copilot column is gone and the document gets it. */
+  .app-shell-inner.focus-mode { grid-template-columns: 70px 340px minmax(0, 1fr); }
   /* The document column (right-panel) becomes the large canvas: drop the panel's
      tint and side border, give the page room to breathe, declutter the chrome. */
   .focus-mode .right-panel { background: var(--bg-0); border-left: 1px solid var(--border); padding: 24px 28px; }

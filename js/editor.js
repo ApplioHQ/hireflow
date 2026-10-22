@@ -1779,7 +1779,7 @@ function renderTailor() {
             oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
-        <button class="btn btn-indigo btn-block tailor-run-btn" onclick="aiTailor()">${ICON('sparkle')} <span>Tailor My Resume</span></button>
+        <button class="btn btn-primary btn-block tailor-run-btn" onclick="aiTailor()">${ICON('sparkle')} <span>Tailor My Resume</span></button>
         ${freeAiLabel('tailor')}
         <div id="tailor-result" style="margin-top:18px;">
         ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
@@ -1841,7 +1841,7 @@ function renderATS() {
             oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
         </div>
         ${freeAiBanner('ats')}
-        <button class="btn btn-emerald btn-block ats-scan-btn" onclick="aiATS()">${ICON('sparkle')} <span>Run ATS Scan</span></button>
+        <button class="btn btn-success btn-block ats-scan-btn" onclick="aiATS()">${ICON('sparkle')} <span>Run ATS Scan</span></button>
         ${freeAiLabel('ats')}
         <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
@@ -1878,7 +1878,7 @@ function renderAnalysis() {
           <p class="ai-card-sub">Detailed strengths, weaknesses, and actionable improvements.</p>
         </div>
         <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <button class="btn btn-violet btn-sm" onclick="aiAnalyze()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Analyze</button>
+          <button class="btn btn-soft btn-sm" onclick="aiAnalyze()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Analyze</button>
           ${freeAiLabel('analysis')}
         </div>
       </div>
@@ -1901,7 +1901,7 @@ function renderModernize() {
           <p class="ai-card-sub">Spot details that read as dated or reveal age unnecessarily, and get concrete fixes.</p>
         </div>
         <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <button class="btn btn-violet btn-sm" onclick="aiModernize()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Age-proof</button>
+          <button class="btn btn-soft btn-sm" onclick="aiModernize()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Age-proof</button>
           ${freeAiLabel('modernize')}
         </div>
       </div>
@@ -2034,7 +2034,7 @@ function _analysisEmptyState() {
         ${tile('an-pre-bad',  'arrowRight', 'Weaknesses', "Exactly what's holding it back")}
         ${tile('an-pre-fix',  'sparkle',    'Top Fixes',  'With example rewrites you can paste in')}
       </div>
-      <button class="btn btn-violet" onclick="aiAnalyze()" style="margin-top:4px;">${ICON('sparkle','ico ico-sm')} Analyze my resume</button>
+      <button class="btn btn-soft" onclick="aiAnalyze()" style="margin-top:4px;">${ICON('sparkle','ico ico-sm')} Analyze my resume</button>
     </div>`;
 }
 

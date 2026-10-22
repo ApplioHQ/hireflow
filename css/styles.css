@@ -784,7 +784,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   flex-shrink: 0; color: var(--muted); padding: 4px;
   border-radius: 6px; transition: all .15s;
 }
-.item-card-remove:hover { color: var(--danger); background: rgba(239,68,68,.1); }
+.item-card-remove:hover { color: var(--danger); background: var(--danger-soft); }
 
 /* ===== Skills tag input ===== */
 .tag-input-wrap {
@@ -840,17 +840,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   display: flex; align-items: center; justify-content: center;
 }
 /* Indigo, Tailor */
-.ai-card-indigo .ai-card-header { background: linear-gradient(135deg, rgba(109,77,252,.08) 0%, transparent 100%); }
-.ai-icon-indigo { background: rgba(109,77,252,.15); color: #818cf8; }
-.ai-card-indigo { border-top: 3px solid #6d4dfc !important; }
+.ai-card-indigo .ai-card-header { background: linear-gradient(135deg, var(--accent-ghost) 0%, transparent 100%); }
+.ai-icon-indigo { background: var(--accent-soft); color: #818cf8; }
+.ai-card-indigo { border-top: 3px solid var(--accent) !important; }
 /* Emerald, ATS */
-.ai-card-emerald .ai-card-header { background: linear-gradient(135deg, rgba(16,185,129,.08) 0%, transparent 100%); }
-.ai-icon-emerald { background: rgba(16,185,129,.15); color: #34d399; }
-.ai-card-emerald { border-top: 3px solid #10b981 !important; }
+.ai-card-emerald .ai-card-header { background: linear-gradient(135deg, var(--success-soft) 0%, transparent 100%); }
+.ai-icon-emerald { background: var(--success-soft); color: var(--success-text); }
+.ai-card-emerald { border-top: 3px solid var(--success) !important; }
 /* Violet, Analysis */
 .ai-card-violet .ai-card-header { background: linear-gradient(135deg, rgba(139,92,246,.08) 0%, transparent 100%); }
-.ai-icon-violet { background: rgba(139,92,246,.15); color: #a08ffb; }
-.ai-card-violet { border-top: 3px solid #8a73f8 !important; }
+.ai-icon-violet { background: rgba(139,92,246,.15); color: var(--accent-text); }
+.ai-card-violet { border-top: 3px solid var(--accent-2) !important; }
 
 /* ===== ATS Check: grander "scanner" layout ===== */
 .ats-shell { padding: 0 !important; overflow: hidden; }

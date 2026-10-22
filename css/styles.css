@@ -344,6 +344,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .sidebar-progress .sp-fill { height: 100%; border-radius: 999px; background: var(--gradient); transition: width .5s cubic-bezier(.3,.8,.3,1); }
 .sidebar-progress .sp-done { color: var(--success); }
 .sidebar-section { padding: 10px 16px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+/* "More sections" fold: keeps rare sections out of the way until needed */
+.sidebar-more { display: flex; align-items: center; gap: 8px; width: calc(100% - 16px); margin: 2px 8px; padding: 8px 10px; background: none; border: 0; border-radius: var(--r-md); color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; text-align: left; }
+.sidebar-more:hover { background: var(--bg-2); color: var(--text); }
+.sidebar-more-chev { flex: 0 0 auto; transition: transform var(--dur) var(--ease); }
+.sidebar-more[aria-expanded="true"] .sidebar-more-chev { transform: rotate(180deg); }
+.sidebar-more-count { margin-left: auto; font-size: 11px; color: var(--muted); }
+.sidebar-more-group { display: none; }
+.sidebar-more-group.open { display: block; }
 .sidebar-item {
   display: flex; align-items: center; gap: 10px; padding: 8px 16px;
   font-size: 13px; color: var(--muted); cursor: pointer; border-left: 2px solid transparent;
@@ -1849,6 +1857,11 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   .app-slim .sidebar-item .s-dot,
   .app-slim .sidebar-item .sidebar-pro-badge { display: none; }
   .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
+  /* The fold works in the slim rail too: a centered chevron icon stands in for the
+     "More sections" row, keeping the rail short until the rare sections are needed. */
+  .app-slim .sidebar-more { justify-content: center; width: 48px; height: 40px; margin: 3px auto; padding: 0; border-radius: 13px; }
+  .app-slim .sidebar-more span { display: none; }
+  .app-slim .sidebar-more-chev { width: 18px; height: 18px; }
 }
 
 /* ===== Applio Studio — inline bullet AI toolbar (mockup 1) ===== */

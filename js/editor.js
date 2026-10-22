@@ -397,6 +397,7 @@ function _refreshCompletion() {
     if (dot) { dot.style.background = done ? 'var(--accent)' : 'var(--border)'; }
   });
   _renderSidebarProgress();
+  _syncMoreSections();
 }
 
 // Overall resume-completion meter at the top of the sidebar, so users always know
@@ -416,6 +417,51 @@ function _renderSidebarProgress() {
     + '<span class="sp-count' + (allDone ? ' sp-done' : '') + '">' + (allDone ? '✓ ' : '') + done + '/' + total + '</span>'
     + '</div>'
     + '<div class="sp-track"><div class="sp-fill" style="width:' + pct + '%"></div></div>';
+}
+
+// "More sections" fold: the rarely-used resume sections (plus any custom ones)
+// stay tucked behind one toggle until the user needs them. The group auto-opens
+// when the active section lives inside it or when a returning user already has
+// content there, so nothing is ever hidden that someone is actually using.
+const _MORE_SECTIONS = ['certifications', 'awards', 'leadership', 'volunteer', 'publications'];
+function _isMoreSection(sec) {
+  return _MORE_SECTIONS.indexOf(sec) !== -1 || isCustomSection(sec);
+}
+function _setMoreOpen(open) {
+  const group = document.getElementById('sidebar-more-group');
+  const toggle = document.getElementById('sidebar-more-toggle');
+  if (!group || !toggle) return;
+  group.classList.toggle('open', open);
+  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function _syncMoreSections() {
+  const group = document.getElementById('sidebar-more-group');
+  if (!group) return;
+  // Count badge: how many of the tucked-away sections already have content.
+  let filled = 0;
+  group.querySelectorAll('.sidebar-item[data-section]').forEach(function (el) {
+    if (_sectionComplete(el.dataset.section)) filled++;
+  });
+  const countEl = document.getElementById('sidebar-more-count');
+  if (countEl) countEl.textContent = filled ? '(' + filled + ')' : '';
+  // Always reveal the group when the active section lives inside it.
+  if (_isMoreSection(currentSection)) _setMoreOpen(true);
+}
+function _wireMoreSections() {
+  const toggle = document.getElementById('sidebar-more-toggle');
+  if (toggle && !toggle._wired) {
+    toggle._wired = true;
+    toggle.addEventListener('click', function () {
+      const group = document.getElementById('sidebar-more-group');
+      _setMoreOpen(!(group && group.classList.contains('open')));
+    });
+  }
+  _syncMoreSections();
+  // One-time reveal for returning users who already filled a tucked-away section.
+  const group = document.getElementById('sidebar-more-group');
+  if (group && !group.classList.contains('open') && _MORE_SECTIONS.some(_sectionComplete)) {
+    _setMoreOpen(true);
+  }
 }
 
 // ============ Section: Templates ============
@@ -4852,6 +4898,7 @@ async function _hydrateFromCloud() {
   _ensureCustomSections();
   hydrate();
   renderCustomNav();
+  _wireMoreSections();
   renderMain();
   if (IS_ANON) _initAnonUI();
   // Only auto-open the ATS-funnel import for ALREADY-onboarded users; for brand-new

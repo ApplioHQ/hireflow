@@ -17,6 +17,17 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+  /* ---- Accent ramp (tokenizes the scattered #8370ff/#8a73f8/#c2b8fd/#818cf8 hexes) ---- */
+  --accent-hover: #8370ff;              /* the real :hover accent, was hardcoded */
+  --accent-text: #c2b8fd;               /* accent-coloured text on dark surfaces */
+  --on-accent: #ffffff;                 /* text/icon on a solid accent fill */
+  --accent-ghost: rgba(109,77,252,.08); /* faint hover / selected fill */
+  --accent-soft: rgba(109,77,252,.14);  /* soft tinted surface */
+  --accent-line: rgba(109,77,252,.35);  /* tinted border */
+  /* ---- Status tints (soft fill + readable text + border, per status) ---- */
+  --success-soft: rgba(16,185,129,.14); --success-text: #34d399; --success-line: rgba(16,185,129,.35);
+  --warning-soft: rgba(245,158,11,.14); --warning-text: #fbbf24; --warning-line: rgba(245,158,11,.35);
+  --danger-soft: rgba(239,68,68,.14);   --danger-text: #f87171;  --danger-line: rgba(239,68,68,.35);
   /* Reserved for hero moments only (banner, featured tier, hero CTA). Regular
      buttons use a restrained vertical sheen instead of this diagonal gradient. */
   --gradient: linear-gradient(135deg, #5a3ce8 0%, #8370ff 100%);
@@ -38,7 +49,8 @@
   --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 36px; --fs-4xl: 44px;
   /* Motion */
   --ease: cubic-bezier(.4, 0, .2, 1);
-  --dur: .16s;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);   /* decelerate, for entrances/reveals */
+  --dur: .16s; --dur-fast: .1s; --dur-slow: .3s;
   /* Focus ring */
   --ring: 0 0 0 3px rgba(109,77,252,.35);
 }
@@ -59,6 +71,11 @@ html.light-mode {
   --sh-3: 0 8px 24px rgba(20,30,70,.10), 0 24px 60px rgba(20,30,70,.10);
   --hi: inset 0 1px 0 rgba(255,255,255,.7);
   --ring: 0 0 0 3px rgba(109,77,252,.22);
+  /* Accent & status text need darker ink to stay legible on light surfaces */
+  --accent-text: #5a3ce8;
+  --accent-ghost: rgba(109,77,252,.06); --accent-soft: rgba(109,77,252,.1);
+  --success-text: #059669; --warning-text: #b45309; --danger-text: #dc2626;
+  --success-soft: rgba(16,185,129,.1); --warning-soft: rgba(245,158,11,.12); --danger-soft: rgba(239,68,68,.1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -129,8 +146,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .btn:active { transform: translateY(0) scale(.985); }
 .btn:focus-visible { outline: none; box-shadow: var(--ring); }
-.btn-primary { background: var(--accent); color: #fff; box-shadow: none; }
-.btn-primary:hover { background: #8370ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(109,77,252,.3); }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-line); }
 .btn-secondary { background: var(--bg-2); color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--bg-3); border-color: var(--accent); transform: translateY(-1px); }
 .btn-ghost { background: transparent; color: var(--muted); }

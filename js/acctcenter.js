@@ -8,9 +8,11 @@
   var right = document.querySelector('.app-topbar .topbar-right');
   if (!right || right.querySelector('.acct-center')) return;
 
-  // Keep the health badge; drop the old theme-toggle + sign-out buttons.
+  // Drop the old theme-toggle + sign-out buttons, but keep page badges/pills
+  // that live in the topbar (health badge, export's download pill).
+  var KEEP = { 'health-badge': 1, 'download-pill': 1 };
   Array.prototype.slice.call(right.children).forEach(function (el) {
-    if (el.id === 'health-badge') return;
+    if (KEEP[el.id]) return;
     el.remove();
   });
 
@@ -20,9 +22,16 @@
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
     out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    refer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
   };
   var ctx = (location.pathname.split('/').pop() || 'app').replace('.html', '') || 'app';
+  // Refer a Friend only exists where the referral panel is wired (the editor);
+  // render the row conditionally so it never appears dead on other pages.
+  var referRow = (typeof window.openReferralPanel === 'function')
+    ? '<button class="acct-row acct-row-btn" type="button" role="menuitem" id="acct-referral-btn" onclick="openReferralPanel(); closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.refer + '</span>Refer a Friend</span><span class="acct-row-val" id="acct-ref-count" style="display:none;"></span></button>'
+    : '';
   right.insertAdjacentHTML('beforeend',
     '<div class="acct-center" id="acct-center">'
     + '<button class="acct-trigger" id="acct-trigger" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Account center" title="Account">'
@@ -36,7 +45,11 @@
     + '<div class="acct-row acct-row-static"><span class="acct-row-label">Plan</span><span id="plan-pill"></span></div>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>'
     + '<button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href=\'admin\';"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.admin + '</span>Admin Console</span></button>'
+    // Dormant billing row: Applio is free, so hydrate() leaves this hidden unless isPaid().
+    + '<button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); if(typeof openBillingPortal===\'function\')openBillingPortal();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.card + '</span>Manage / cancel subscription</span></button>'
     + '<div class="acct-sep"></div>'
+    + referRow
+    + '<a class="acct-row acct-row-btn" role="menuitem" href="https://www.trustpilot.com/evaluate/appliohq.com" target="_blank" rel="noopener" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.star + '</span>Leave us a review</span></a>'
     + '<a class="acct-row acct-row-btn" role="menuitem" href="profile" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.user + '</span>Edit profile</span></a>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="if(typeof openFeedbackModal===\'function\')openFeedbackModal({context:\'' + ctx + '\'}); closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.chat + '</span>Feedback</span></button>'
     + '<a class="acct-row acct-row-btn" role="menuitem" href="mailto:support@appliohq.com?subject=Applio%20support" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.mail + '</span>Contact support</span></a>'
@@ -83,6 +96,8 @@
     // Applio is completely free: no plans, billing, or upgrade CTAs.
     var pl = document.getElementById('acct-plan-label'); if (pl) pl.textContent = admin ? 'Admin · full access' : 'Everything free';
     var ad = document.getElementById('acct-admin-console'); if (ad) ad.style.display = admin ? '' : 'none';
+    // Dormant billing row stays hidden while Applio is free (no paying users).
+    var ms = document.getElementById('acct-manage-sub'); if (ms) ms.style.display = paid ? '' : 'none';
     var pill = document.getElementById('plan-pill');
     if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '<span class="pill success">Free</span>';
   }

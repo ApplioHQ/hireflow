@@ -221,6 +221,18 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .form-field input:focus, .form-field textarea:focus, .form-field select:focus {
   outline: none; border-color: var(--accent); box-shadow: var(--ring);
 }
+/* Drop the native select chrome and draw a clean chevron so the arrow isn't a tiny,
+   cramped OS glyph. (The open dropdown list itself is OS-rendered and not stylable.) */
+.form-field select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  padding-right: 40px; cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239a9aa2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.form-field select:hover, .form-field select:focus {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%236d4dfc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+}
+.form-field select option { background: var(--bg-2); color: var(--text); }
 .auth-foot { margin-top: 18px; display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .auth-foot a { color: var(--accent); }
 .auth-foot a:hover { text-decoration: underline; }
@@ -315,8 +327,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   border-radius: var(--r-lg); padding: 22px; margin-bottom: 14px;
   box-shadow: var(--sh-1), var(--hi);
 }
-.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 12px; }
-.section-head h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+.section-head h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .section-head .ai-btn {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
   background: linear-gradient(135deg, rgba(139,92,246,.2), rgba(109,77,252,.2));
@@ -325,7 +337,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .section-head .ai-btn:hover { background: linear-gradient(135deg, rgba(139,92,246,.3), rgba(109,77,252,.3)); }
 /* Per-card AI Improve button (lives on every entry's Description field). */
-.ai-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+.ai-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; white-space: nowrap;
   background: linear-gradient(135deg, rgba(139,92,246,.2), rgba(109,77,252,.2));
   border: 1px solid rgba(139,92,246,.3); border-radius: 6px; font-size: 12px; color: #c4b5fd; cursor: pointer;
   transition: background var(--dur) var(--ease); }
@@ -1831,7 +1843,7 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 @media (min-width: 901px) {
   /* [slim sidebar][form][BIG document] — the resume score + fixes moved to the
      topbar health badge, so the copilot column is gone and the document gets it. */
-  .app-shell-inner.focus-mode { grid-template-columns: 70px 340px minmax(0, 1fr); }
+  .app-shell-inner.focus-mode { grid-template-columns: 76px 440px minmax(0, 1fr); }
   /* The document column (right-panel) becomes the large canvas: drop the panel's
      tint and side border, give the page room to breathe, declutter the chrome. */
   .focus-mode .right-panel { background: var(--bg-0); border-left: 1px solid var(--border); padding: 24px 28px; }

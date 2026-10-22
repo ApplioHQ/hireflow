@@ -33,14 +33,14 @@
   .pw-caps { font-size:11px; color:#f59e0b; margin:-8px 0 12px; display:none; }
   .pw-caps.on { display:block; }
 
-  /* ===== Split auth layout: trust panel + form ===== */
+  /* ===== Full-screen split auth layout: brand panel + form ===== */
+  .auth-body { padding:0 !important; background:var(--bg-0); align-items:stretch; }
   .auth-split {
-    width:100%; max-width:900px; min-height:560px; display:flex;
-    background:var(--bg-1); border:1px solid var(--border);
-    border-radius:20px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.5);
+    width:100%; max-width:none; min-height:100vh; display:flex;
+    background:var(--bg-1); overflow:hidden;
   }
   .auth-aside {
-    flex:0 0 45%; padding:0; color:#fff; position:relative; overflow:hidden;
+    flex:0 0 46%; max-width:720px; padding:44px 52px; color:#fff; position:relative; overflow:hidden;
     display:flex; flex-direction:column; justify-content:flex-start;
   }
   .auth-aside-bg {
@@ -59,18 +59,18 @@
       radial-gradient(circle at 50% 80%, #fff 0.5px, transparent 0.5px);
     background-size: 40px 40px, 60px 60px, 30px 30px;
   }
-  .auth-aside-content {
-    position:relative; z-index:1; padding:8px 34px 38px;
-  }
-  .auth-aside .brand { color:#fff; position:relative; z-index:1; padding:30px 34px 2px; }
-  .auth-aside-title { font-size:26px; font-weight:800; line-height:1.2; letter-spacing:-.5px; margin:0 0 14px; }
-  .auth-aside-sub { font-size:14px; color:rgba(255,255,255,.7); line-height:1.5; margin:0 0 20px; }
-  .auth-trust { list-style:none; margin:20px 0 0; padding:18px 0 0; border-top:1px solid rgba(255,255,255,.12); display:flex; flex-direction:column; gap:10px; }
-  .auth-trust li { display:flex; align-items:flex-start; gap:9px; font-size:12.5px; line-height:1.4; color:rgba(255,255,255,.85); }
-  .auth-trust li svg { flex:none; margin-top:1px; color:#a7f3d0; }
+  .auth-aside-content { position:relative; z-index:1; margin:auto 0; max-width:470px; }
+  .auth-aside .brand { color:#fff; position:relative; z-index:1; }
+  .auth-aside-title { font-size:40px; font-weight:800; line-height:1.1; letter-spacing:-.02em; margin:0 0 16px; }
+  .auth-aside-sub { font-size:16px; color:rgba(255,255,255,.72); line-height:1.55; margin:0 0 30px; max-width:40ch; }
+  /* trust moves to a quiet single row along the bottom */
+  .auth-trust { list-style:none; position:relative; z-index:1; margin:0; padding:0; border:0; display:flex; flex-wrap:wrap; gap:22px; }
+  .auth-trust li { display:flex; align-items:center; gap:8px; font-size:13px; line-height:1.4; color:rgba(255,255,255,.72); }
+  .auth-trust li svg { flex:none; color:#6ee7b7; }
   /* Featured testimonial in the trust panel */
-  .auth-quote-stars { color:#fbbf24; font-size:15px; letter-spacing:3px; margin-bottom:12px; }
-  .auth-quote { font-size:15.5px; line-height:1.55; color:#fff; font-weight:500; margin:0 0 18px; letter-spacing:-.1px; }
+  .auth-quote-block { border-left:2px solid rgba(255,255,255,.22); padding-left:18px; }
+  .auth-quote-stars { color:#fbbf24; font-size:14px; letter-spacing:3px; margin-bottom:10px; }
+  .auth-quote { font-size:15.5px; line-height:1.5; color:#fff; font-weight:500; margin:0 0 14px; letter-spacing:-.1px; }
   .auth-quote-author { display:flex; align-items:center; gap:11px; }
   .auth-quote-avatar { width:38px; height:38px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; background:linear-gradient(135deg,#6d4dfc,#8a73f8); }
   .auth-quote-author strong { display:block; font-size:13.5px; color:#fff; }
@@ -87,7 +87,8 @@
   @media (prefers-reduced-motion: reduce) { .auth-orb { animation:none !important; } }
   /* inside the split the card drops its own frame + centers the form vertically */
   .auth-split .auth-card { flex:1; max-width:none; border:0; border-radius:0; box-shadow:none;
-    padding:44px 40px; display:flex; flex-direction:column; justify-content:center; }
+    padding:48px; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  .auth-split .auth-card > div { width:100%; max-width:384px; }
   .auth-split .auth-card > .brand { display:none; }
   @media (max-width:820px) {
     .auth-split { flex-direction:column; max-width:440px; min-height:0; }
@@ -127,17 +128,20 @@
       <div class="auth-aside-content">
         <h1 class="auth-aside-title">Land more interviews, completely free.</h1>
         <p class="auth-aside-sub">Build an ATS-ready resume, tailor it to any job with AI, and track every application. No paywall, ever.</p>
-        <div class="auth-quote-stars" aria-label="5 out of 5 stars">★★★★★</div>
-        <blockquote class="auth-quote">"Applio came at the most difficult time of my life. I'd just been let go, and I needed resumes that could actually pass the ATS for higher-paying remote roles. The free versions of Claude and ChatGPT never gave me enough to do that. Applio did, and the nervousness of finding a job left me. A diamond in the rough."</blockquote>
-        <div class="auth-quote-author">
-          <div class="auth-quote-avatar">J</div>
-          <div><strong>Jude</strong><span>Recently laid off, job seeker</span></div>
+        <div class="auth-quote-block">
+          <div class="auth-quote-stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <blockquote class="auth-quote">"I needed resumes that could actually pass the ATS. Applio did it, and the free versions of Claude and ChatGPT never gave me enough. A diamond in the rough."</blockquote>
+          <div class="auth-quote-author">
+            <div class="auth-quote-avatar">J</div>
+            <div><strong>Jude</strong><span>Recently laid off, job seeker</span></div>
+          </div>
         </div>
-        <ul class="auth-trust">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free forever, no credit card required</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Data encrypted, never sold</li>
-        </ul>
       </div>
+      <ul class="auth-trust">
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free forever</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> No credit card</li>
+        <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Encrypted, never sold</li>
+      </ul>
     </aside>
 
     <div class="auth-card">

@@ -130,6 +130,20 @@
     var P = orb.P, progTimer = 0;
     var EVORTEX = cubicBezier(0.6, 0, 0.2, 1);
     return {
+      // Calm ambient sphere for the idle hero: assembled, violet, slow rotation,
+      // gentle pulses. It just breathes, no "thinking" labels.
+      idle: function () {
+        P.sweep = 0; P.vortex = 0; P.gain = 1.1; P.floor = 0.15; P.pop = 1;
+        orb.tween('alpha', P.alpha, 1, 600, EOUT);
+        orb.tween('k', P.k, 1, isReduced() ? 1 : 950, EOUT);
+        orb.tween('sweep', P.sweep, 0.78, isReduced() ? 1 : 950, EOUT);
+        orb.tween('spin', P.spin, 0.2, 800, EOUT);
+        orb.ensure();
+        clearInterval(progTimer);
+        if (isReduced()) return;
+        var i = 0;
+        progTimer = setInterval(function () { i = (i + 1) % 4; P.prog = i; }, 2400);
+      },
       think: function (onPhase) {
         P.sweep = 0; P.vortex = 0; P.gain = 1.35; P.floor = 0.12; P.pop = 1;
         orb.tween('alpha', P.alpha, 1, 420, EOUT);

@@ -107,6 +107,11 @@
 
   /* ===== Hero empty state ===== */
   .ca-empty { text-align: center; color: var(--muted); margin: auto 0; position: relative; padding: 20px; animation: caRise .6s ease both; }
+  /* orb as the hero mark (replaces the logo badge) */
+  .ca-hero-orb { position: relative; display: grid; place-items: center; width: 126px; height: 126px; margin: 0 auto 20px; }
+  .ca-hero-orb::before { content: ""; position: absolute; inset: -26px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(109,77,252,.32), rgba(109,77,252,.09) 46%, transparent 68%); filter: blur(12px); }
+  .ca-hero-orb canvas { position: relative; display: block; }
   .ca-hero-badge { position: relative; width: 76px; height: 76px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; background: #fff; margin-bottom: 22px; box-shadow: 0 16px 44px rgba(109,77,252,.5), 0 4px 14px rgba(0,0,0,.35); animation: caFloat 4s ease-in-out infinite; }
   .ca-hero-badge::before { content: ""; position: absolute; inset: -3px; border-radius: 25px; z-index: 1; background: conic-gradient(from 0deg, #6d4dfc, #22d3ee, #8a73f8, #ec4899, #6d4dfc); animation: caSpin 5s linear infinite; }
   .ca-hero-badge::after { content: ""; position: absolute; inset: -26px; border-radius: 48px; z-index: 0; background: radial-gradient(closest-side, rgba(124,92,246,.55), rgba(109,77,252,.18) 52%, transparent 76%); animation: caPulse 4.5s ease-in-out infinite; }
@@ -221,7 +226,16 @@ document.getElementById('cc-top').innerHTML =
   '<textarea class="cc-field" id="cc-field" rows="1" maxlength="600" placeholder="Ask your career coach anything…" spellcheck="false" oninput="autosize(this);refreshSend()" onkeydown="onKey(event)"></textarea>';
 (function(){ let h=''; for(let i=0;i<28;i++) h+='<span style="animation-delay:'+(i*0.045).toFixed(2)+'s"></span>'; document.getElementById('cc-wave').innerHTML=h; })();
 
-const HERO = '<div class="ca-empty"><div class="ca-hero-badge"><img src="logo.jpeg" alt="Applio" class="ca-hero-logo"></div><h1>Applio AI</h1><div class="ca-hero-sub">Your personal career coach. It knows your resume. Ask it anything.</div></div>';
+const HERO = '<div class="ca-empty"><div class="ca-hero-orb"><canvas id="hero-orb"></canvas></div><h1>Applio AI</h1><div class="ca-hero-sub">Your personal career coach. It knows your resume. Ask it anything.</div></div>';
+
+// The empty-state hero shows the orb at rest (ambient), not the logo badge.
+let heroOrb = null;
+function mountHeroOrb(){
+  killHeroOrb();
+  const c = document.getElementById('hero-orb'); if (!c) return;
+  try { heroOrb = ApplioAI.thinkingOrb(c, { size: 124, reduced: _reduced() }); heroOrb.idle(); } catch (e) { heroOrb = null; }
+}
+function killHeroOrb(){ if (heroOrb) { try { heroOrb.destroy(); } catch (e) {} heroOrb = null; } }
 
 /* ── light markdown ── */
 function fmtFull(text){
@@ -276,13 +290,13 @@ function revealWords(bubble, text){
 function _save(){ try { localStorage.setItem(STORE, JSON.stringify(messages.slice(-30))); } catch(e){} }
 function renderInit(){
   const thread = document.getElementById('cc-thread');
-  thread.innerHTML = '';
-  if (!messages.length) { thread.innerHTML = HERO; document.getElementById('cc-chips').style.display = 'flex'; document.getElementById('ca-clear').style.display = 'none'; return; }
+  killHeroOrb(); thread.innerHTML = '';
+  if (!messages.length) { thread.innerHTML = HERO; mountHeroOrb(); document.getElementById('cc-chips').style.display = 'flex'; document.getElementById('ca-clear').style.display = 'none'; return; }
   document.getElementById('cc-chips').style.display = 'none';
   document.getElementById('ca-clear').style.display = '';
   messages.forEach(m => addBubble(m, false));
 }
-function clearChat(){ messages = []; _save(); renderInit(); document.getElementById('cc-field').focus(); }
+function clearChat(){ if (busy) return; messages = []; _save(); renderInit(); document.getElementById('cc-field').focus(); }
 
 /* ── composer: send button (mic ↔ send ↔ stop), pills, voice ── */
 const _SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -336,7 +350,7 @@ async function send(){
   const text = (field.value || '').trim();
   if (!text || busy) return;
   if (recording) stopRec();
-  if (!messages.length) document.getElementById('cc-thread').innerHTML = '';   // clear hero
+  if (!messages.length) { killHeroOrb(); document.getElementById('cc-thread').innerHTML = ''; }   // clear hero
   document.getElementById('cc-chips').style.display = 'none';
 
   const payload = applySteer(text);

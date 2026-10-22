@@ -57,16 +57,6 @@
 <body class="app-body-scroll">
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
-  <nav class="topbar-tabs">
-    <a class="topbar-tab" href="dashboard">Home</a>
-    <a class="topbar-tab" href="autopilot">Autopilot</a>
-    <a class="topbar-tab" href="editor">Resume Builder</a>
-    <a class="topbar-tab active" href="jobs">Job Tracker</a>
-    <a class="topbar-tab" href="interview">Interview Prep</a>
-    <a class="topbar-tab" href="match">Best Match</a>
-    <a class="topbar-tab" href="cover-letter">Cover Letter</a>
-    <a class="topbar-tab" href="assistant">Career Coach</a>
-  </nav>
   <div class="topbar-right">
     <span id="health-badge"></span>
     <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
@@ -360,7 +350,6 @@ if (window.HFJobsSync) HFJobsSync.pull(function (adopted) {
   if (adopted) { try { jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(jobs)) jobs = []; } catch (e) { jobs = []; } render(); }
 });
 </script>
-  <script src="js/appnav.js"></script>
   <script src="js/acctcenter.js"></script>
 <script src="/js/appshell.js"></script>
 <script src="/js/pwa.js" defer></script>

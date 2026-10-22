@@ -72,27 +72,32 @@
   .ca-chip:hover { color: var(--accent); transform: translateY(-2px); border-color: transparent; box-shadow: 0 8px 22px rgba(109,77,252,.22), inset 0 0 0 1.5px rgba(109,77,252,.55); }
   .ca-chip:hover svg { opacity: 1; transform: scale(1.12); }
 
-  /* ===== PromptInputBox-style composer ===== */
-  .cc-composer { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 10px 10px 14px; margin-bottom: 18px; border: 1px solid var(--border); border-radius: 22px; background: var(--bg-2); box-shadow: 0 10px 34px rgba(0,0,0,.18); transition: box-shadow .2s, border-color .2s; }
-  .cc-composer:focus-within { border-color: transparent; box-shadow: 0 14px 40px rgba(109,77,252,.22), inset 0 0 0 1.5px var(--accent); }
-  .cc-top { display: flex; align-items: flex-start; gap: 9px; }
-  .cc-top .applio-mark { margin-top: 7px; }
-  .cc-field { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; resize: none; color: var(--text); font: inherit; font-size: 15px; line-height: 1.5; padding: 9px 4px; max-height: 150px; }
+  /* ===== Gradient-glow AI composer ===== */
+  .cc-composer { position: relative; border-radius: 24px; padding: 1.5px; margin-bottom: 18px;
+    background: linear-gradient(135deg, rgba(109,77,252,.9), rgba(138,115,248,.35) 40%, rgba(255,255,255,.06) 70%, rgba(109,77,252,.6));
+    background-size: 200% 200%; animation: ccShift 8s ease infinite; transition: filter .25s ease; }
+  .cc-composer:focus-within { filter: drop-shadow(0 0 22px rgba(109,77,252,.4)); }
+  @keyframes ccShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .cc-inner { position: relative; background: linear-gradient(180deg, #202026, #191920); border-radius: 22.5px; padding: 14px 14px 11px; overflow: hidden; }
+  .cc-inner::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 80% at 50% -20%, rgba(109,77,252,.12), transparent 60%); }
+  .cc-top { display: flex; align-items: flex-start; gap: 10px; position: relative; }
+  .cc-spark { width: 19px; height: 19px; color: var(--accent-2); flex: 0 0 auto; margin-top: 6px; }
+  .cc-field { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; resize: none; color: var(--text); font: inherit; font-size: 15px; line-height: 1.5; padding: 4px 2px; max-height: 150px; position: relative; }
+  .cc-field:focus-visible { box-shadow: none !important; border-radius: 0 !important; }   /* kill the global textarea focus ring that caused the nested box */
   .cc-field::placeholder { color: var(--muted); }
-  .cc-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
-  .cc-tools { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .cc-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .15s ease; }
+  .cc-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; position: relative; }
+  .cc-tools { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .cc-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .15s ease; }
   .cc-pill svg { width: 15px; height: 15px; }
-  .cc-pill:hover { color: var(--text); }
-  .cc-pill.on { color: var(--accent); background: rgba(109,77,252,.13); border-color: rgba(109,77,252,.5); }
-  .cc-divider { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
-  .cc-send { flex: 0 0 auto; height: 36px; width: 36px; border-radius: 50%; border: 0; background: var(--bg-3); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .18s ease; }
-  .cc-send svg { width: 17px; height: 17px; }
-  .cc-send.ready { background: linear-gradient(135deg, var(--accent), #8a73f8); color: #fff; box-shadow: 0 6px 18px rgba(109,77,252,.42); }
-  .cc-send.ready:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(109,77,252,.5); }
+  .cc-pill:hover { color: var(--text); border-color: #44444d; }
+  .cc-pill.on { color: #fff; background: linear-gradient(135deg, var(--accent), #8a73f8); border-color: transparent; box-shadow: 0 4px 14px rgba(109,77,252,.4); }
+  .cc-send { flex: 0 0 auto; height: 38px; width: 38px; border-radius: 50%; border: 0; background: var(--bg-3); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .18s ease; }
+  .cc-send svg { width: 18px; height: 18px; }
+  .cc-send.ready { background: linear-gradient(135deg, var(--accent), #8a73f8); color: #fff; box-shadow: 0 6px 18px rgba(109,77,252,.5); }
+  .cc-send.ready:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(109,77,252,.6); }
   .cc-send.recording { background: #ef4444; color: #fff; }
   .cc-send:disabled { opacity: .5; cursor: default; box-shadow: none; }
-  .cc-wave { display: none; align-items: center; gap: 3px; height: 26px; padding: 0 6px; }
+  .cc-wave { display: none; align-items: center; gap: 3px; height: 26px; padding: 0 6px; position: relative; }
   .cc-composer.rec .cc-wave { display: flex; }
   .cc-composer.rec .cc-top { display: none; }
   .cc-wave span { width: 3px; border-radius: 2px; background: rgba(109,77,252,.8); height: 6px; animation: ccWave 1s ease-in-out infinite; }
@@ -119,7 +124,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .ca-aurora i, .ca-hero-badge, .ca-hero-badge::before, .ca-hero-badge::after,
-    .ca-live::before, .cc-think-label { animation: none !important; }
+    .ca-live::before, .cc-think-label, .cc-composer { animation: none !important; }
     .ccw { transition: none !important; opacity: 1 !important; transform: none !important; }
   }
 </style>
@@ -171,17 +176,17 @@
   </div>
 
   <form class="cc-composer" id="cc-composer" onsubmit="return false;">
-    <div class="cc-top" id="cc-top"></div>
-    <div class="cc-wave" id="cc-wave"></div>
-    <div class="cc-bar">
-      <div class="cc-tools">
-        <button type="button" class="cc-pill" data-steer="tailor" title="Tailor to a role"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l2 2 4-4"/></svg><span>Tailor</span></button>
-        <div class="cc-divider"></div>
-        <button type="button" class="cc-pill" data-steer="interview" title="Interview prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg><span>Interview</span></button>
-        <div class="cc-divider"></div>
-        <button type="button" class="cc-pill" data-steer="rewrite" title="Rewrite stronger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Rewrite</span></button>
+    <div class="cc-inner">
+      <div class="cc-top" id="cc-top"></div>
+      <div class="cc-wave" id="cc-wave"></div>
+      <div class="cc-bar">
+        <div class="cc-tools">
+          <button type="button" class="cc-pill" data-steer="tailor" title="Tailor to a role"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l2 2 4-4"/></svg><span>Tailor</span></button>
+          <button type="button" class="cc-pill" data-steer="interview" title="Interview prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg><span>Interview</span></button>
+          <button type="button" class="cc-pill" data-steer="rewrite" title="Rewrite stronger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Rewrite</span></button>
+        </div>
+        <button type="button" class="cc-send" id="cc-send" onclick="onSendBtn()" aria-label="Send"></button>
       </div>
-      <button type="button" class="cc-send" id="cc-send" onclick="onSendBtn()" aria-label="Send"></button>
     </div>
   </form>
 </div>
@@ -208,8 +213,9 @@ let messages = (function(){ try { const m = JSON.parse(localStorage.getItem(STOR
 let busy = false;
 
 document.getElementById('ca-title').innerHTML = ApplioAI.markHTML(26) + '<span>Career Coach</span>';
-// Composer logo mark + send icon
-document.getElementById('cc-top').innerHTML = ApplioAI.markHTML(28) +
+// Composer: a light violet spark leads the input (the real logo lives on avatars).
+document.getElementById('cc-top').innerHTML =
+  '<svg class="cc-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>' +
   '<textarea class="cc-field" id="cc-field" rows="1" maxlength="600" placeholder="Ask your career coach anything…" spellcheck="false" oninput="autosize(this);refreshSend()" onkeydown="onKey(event)"></textarea>';
 (function(){ let h=''; for(let i=0;i<28;i++) h+='<span style="animation-delay:'+(i*0.045).toFixed(2)+'s"></span>'; document.getElementById('cc-wave').innerHTML=h; })();
 

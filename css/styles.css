@@ -396,7 +396,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .ai-nochange-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
 .ai-nochange-sub { font-size: 13px; line-height: 1.6; color: var(--muted); max-width: 420px; margin: 0 auto; }
 .ai-df-summary { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
-.ai-df-chip { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: rgba(109,77,252,.12); border: 1px solid rgba(109,77,252,.28); color: var(--accent); }
+.ai-df-chip { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--accent); }
 .ai-df-legend { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 12px; flex-wrap: wrap; }
 .ai-df-legend .ai-df-toggle { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
 .ai-df-legend .ai-df-toggle:hover { border-color: var(--accent); color: var(--text); }
@@ -630,9 +630,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* ===== Pill ===== */
 .pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: var(--bg-3); color: var(--muted); border: 1px solid var(--border); }
-.pill.success { background: rgba(16,185,129,.15); color: #6ee7b7; border-color: rgba(16,185,129,.3); }
-.pill.warn { background: rgba(245,158,11,.15); color: #fcd34d; border-color: rgba(245,158,11,.3); }
-.pill.error { background: rgba(239,68,68,.15); color: #fca5a5; border-color: rgba(239,68,68,.3); }
+.pill.success { background: var(--success-soft); color: var(--success-text); border-color: var(--success-line); }
+.pill.warn { background: var(--warning-soft); color: var(--warning-text); border-color: var(--warning-line); }
+.pill.error { background: var(--danger-soft); color: var(--danger-text); border-color: var(--danger-line); }
 
 /* ===== Toast (in-page replacement for alert) ===== */
 #toast-container {
@@ -1101,8 +1101,8 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .ats-bd-meter-fill { height: 100%; border-radius: 3px; transition: width .9s cubic-bezier(.2,0,.2,1); }
 .ats-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .ats-chip { font-size: 12px; padding: 3px 10px; border-radius: var(--r-full); }
-.ats-chip-ok { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
-.ats-chip-miss { background: rgba(245,158,11,.14); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.ats-chip-ok { background: var(--success-soft); color: var(--success-text); border: 1px solid var(--success-line); }
+.ats-chip-miss { background: var(--warning-soft); color: var(--warning-text); border: 1px solid var(--warning-line); }
 .ats-fix-section { width: 100%; }
 .ats-fix-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .ats-fix { display: flex; align-items: center; gap: 12px; background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }

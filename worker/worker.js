@@ -1130,6 +1130,30 @@ async function adminAnalytics(req, env) {
     heardFrom: onbHeardFrom,
   };
 
+  // ---- Daily breakdown (last 30 days) --------------------------------------
+  // One row per day: new signups, visitors, AI uses, and exports. Signups come
+  // from the per-user createdAt map built above; the rest read their own per-day
+  // KV counters (stats:uv/pv/ai/feature:<name>:<day>). Reads are batched so the
+  // whole table is one fast parallel pass. Newest day last (chronological).
+  const breakdownDays = [];
+  for (let i = 29; i >= 0; i--) breakdownDays.push(tzDay(now - i * DAY));
+  const dailyBreakdown = await Promise.all(breakdownDays.map(async (day) => {
+    const [visitors, pageviews, aiUses, pdf, gdoc, print] = await Promise.all([
+      num(`stats:uv:${day}`),
+      num(`stats:pv:${day}`),
+      num(`stats:ai:${day}`),
+      num(`stats:feature:download_pdf:${day}`),
+      num(`stats:feature:export_gdoc:${day}`),
+      num(`stats:feature:export_print:${day}`),
+    ]);
+    return {
+      day,
+      signups: signupsByDay[day] || 0,
+      visitors, pageviews, aiUses,
+      exports: pdf + gdoc + print,
+    };
+  }));
+
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
@@ -1148,7 +1172,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, attribution, onboarding, channels, geoCountry, geoCity,
+    signupsByDay, dailyBreakdown, attribution, onboarding, channels, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,

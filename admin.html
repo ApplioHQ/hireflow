@@ -288,6 +288,30 @@
     </div>
   </section>
 
+  <!-- ============================ DAILY BREAKDOWN ============================ -->
+  <section class="band" id="daily">
+    <div class="band-hd"><h2>Daily Breakdown</h2><span class="band-note">Day-by-day: signups, visitors, AI uses &amp; exports</span></div>
+    <div class="section-card">
+      <div class="section-hd">
+        <div><h2>Last 30 days</h2><span class="section-sub" id="daily-sub">Newest first · times in the founder's timezone</span></div>
+      </div>
+      <div class="section-bd" style="max-height:60vh;overflow-y:auto;">
+        <table class="user-table" id="daily-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th style="text-align:right;">New users</th>
+              <th style="text-align:right;">Visitors</th>
+              <th style="text-align:right;">AI uses</th>
+              <th style="text-align:right;">Exports</th>
+            </tr>
+          </thead>
+          <tbody id="daily-tbody"><tr><td colspan="5" style="color:var(--muted);">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================ ENGAGEMENT ============================ -->
   <section class="band" id="engagement">
     <div class="band-hd"><h2>Engagement &amp; Retention</h2><span class="band-note">Do people come back and get value</span></div>
@@ -526,6 +550,7 @@ async function loadAnalytics() {
   try {
     var d = await apiGet('/admin/analytics');
     renderHeroCards(d);
+    renderDailyBreakdown(d.dailyBreakdown || []);
     renderAreaChart('chart-signups', 'chart-signups-labels', d.signupsByDay, '#6d4dfc');
     renderAreaChart('chart-pv', 'chart-pv-labels', d.pvByDay, '#06b6d4');
     renderChannelBars(d.channels || {});
@@ -580,6 +605,49 @@ function _setHero(id, val, sub, trendClass) {
   if (el) el.textContent = val;
   var tr = document.getElementById(id + '-trend');
   if (tr) { tr.textContent = sub || ''; tr.className = 'kpi-trend ' + (trendClass || ''); }
+}
+
+// ─────────────── Daily breakdown table ───────────────
+function renderDailyBreakdown(rows) {
+  var tb = document.getElementById('daily-tbody');
+  if (!tb) return;
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--muted);">No data yet.</td></tr>'; return; }
+  // Today is the last (newest) row; display newest-first.
+  var todayKey = rows[rows.length - 1].day;
+  var n = function (v) { return (v || 0).toLocaleString(); };
+  var html = rows.slice().reverse().map(function (r) {
+    // Parse the YYYY-MM-DD as a local date so the weekday label doesn't shift.
+    var parts = (r.day || '').split('-');
+    var dt = new Date(+parts[0], (+parts[1] || 1) - 1, +parts[2] || 1);
+    var label = isNaN(dt) ? r.day
+      : dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    var isToday = r.day === todayKey;
+    var quiet = !(r.signups || r.visitors || r.aiUses || r.exports);
+    var dateCell = esc(label) + (isToday ? ' <span style="color:var(--accent);font-weight:700;">· today</span>' : '');
+    // Dim fully-empty days so the active ones stand out.
+    var rowStyle = quiet ? ' style="opacity:.5;"' : '';
+    var num = function (v, accent) {
+      var style = 'text-align:right;font-variant-numeric:tabular-nums;'
+        + (accent && v ? 'color:var(--text);font-weight:600;' : '');
+      return '<td style="' + style + '">' + n(v) + '</td>';
+    };
+    return '<tr' + rowStyle + '>'
+      + '<td>' + dateCell + '</td>'
+      + num(r.signups, true)
+      + num(r.visitors)
+      + num(r.aiUses, true)
+      + num(r.exports, true)
+      + '</tr>';
+  }).join('');
+  tb.innerHTML = html;
+  // 30-day totals in the section subtitle.
+  var sum = rows.reduce(function (a, r) {
+    a.signups += r.signups || 0; a.visitors += r.visitors || 0;
+    a.aiUses += r.aiUses || 0; a.exports += r.exports || 0; return a;
+  }, { signups: 0, visitors: 0, aiUses: 0, exports: 0 });
+  var sub = document.getElementById('daily-sub');
+  if (sub) sub.textContent = 'Last 30 days · ' + n(sum.signups) + ' signups · '
+    + n(sum.aiUses) + ' AI uses · ' + n(sum.exports) + ' exports';
 }
 
 // ─── Area chart (SVG) with hover tooltip ───

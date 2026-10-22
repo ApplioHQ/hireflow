@@ -41,7 +41,7 @@
   }
   .auth-aside {
     flex:0 0 45%; padding:0; color:#fff; position:relative; overflow:hidden;
-    display:flex; flex-direction:column; justify-content:flex-end;
+    display:flex; flex-direction:column; justify-content:flex-start;
   }
   .auth-aside-bg {
     position:absolute; inset:0;
@@ -60,10 +60,9 @@
     background-size: 40px 40px, 60px 60px, 30px 30px;
   }
   .auth-aside-content {
-    position:relative; z-index:1; padding:38px 34px;
-    background:linear-gradient(to top, rgba(15,10,46,.85) 0%, transparent 100%);
+    position:relative; z-index:1; padding:8px 34px 38px;
   }
-  .auth-aside .brand { color:#fff; position:absolute; top:28px; left:34px; z-index:1; }
+  .auth-aside .brand { color:#fff; position:relative; z-index:1; padding:30px 34px 2px; }
   .auth-aside-title { font-size:26px; font-weight:800; line-height:1.2; letter-spacing:-.5px; margin:0 0 14px; }
   .auth-aside-sub { font-size:14px; color:rgba(255,255,255,.7); line-height:1.5; margin:0 0 20px; }
   .auth-trust { list-style:none; margin:20px 0 0; padding:18px 0 0; border-top:1px solid rgba(255,255,255,.12); display:flex; flex-direction:column; gap:10px; }

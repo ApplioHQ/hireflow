@@ -1257,7 +1257,9 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 @keyframes an-pre-counter { to { transform: rotate(-360deg); } }
 .an-pre-lead { font-size: 14px; line-height: 1.6; color: var(--muted); max-width: 420px; margin: 0; }
 .an-pre-lead b { color: var(--text); }
-.an-pre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+/* auto-fit so the cards collapse to fewer columns based on the ACTUAL column width
+   (e.g. the 340px focus-mode form column), not the viewport — stops one-word-per-line. */
+.an-pre-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px; width: 100%; }
 .an-pre-tile {
   display: flex; align-items: flex-start; gap: 9px; text-align: left;
   padding: 12px; border-radius: 12px; background: var(--bg-1); border: 1px solid var(--border);
@@ -1272,7 +1274,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .an-pre-bad  { border-left: 3px solid #ef4444; } .an-pre-bad  .an-pre-ico { background: rgba(239,68,68,.14); color: #f87171; }
 .an-pre-fix  { border-left: 3px solid var(--accent); } .an-pre-fix .an-pre-ico { background: rgba(109,77,252,.16); color: #c2b8fd; }
 .an-pre-emerald { border-left: 3px solid #10b981; } .an-pre-emerald .an-pre-ico { background: rgba(16,185,129,.15); color: #34d399; }
-.an-pre-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.an-pre-grid-4 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 560px) { .an-pre-grid, .an-pre-grid-4 { grid-template-columns: 1fr; } }
 
 /* Tailor pre-run before → after preview */
@@ -1840,8 +1842,14 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   .focus-mode .right-panel .preview-panel > button,          /* "Full preview" btn */
   .focus-mode .right-panel .preview-panel > div:last-child { display: none !important; }  /* export/history (inline display) */
   .focus-mode #preview { max-width: 900px; margin: 0 auto; }
-  /* The relocated copilot rail column */
-  .focus-rail { background: linear-gradient(180deg, var(--bg-1), var(--bg-0)); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
-  .focus-rail #copilot-rail { margin-bottom: 0; }
+  /* The narrow (340px) focus-mode form column can't fit the rich AI-tool intros
+     laid out for a wide column — stack the card header (action button drops below
+     the title) and collapse any multi-column grids to one column. */
+  .focus-mode .ai-card-header { flex-wrap: wrap; }
+  .focus-mode .ai-card-header > div:nth-child(2) { flex: 1 1 0; min-width: 0; }
+  .focus-mode .ai-card-header > div:last-child { flex: 1 1 100%; margin-left: 0 !important; align-items: stretch !important; }
+  .focus-mode .ai-card-header > div:last-child .btn { width: 100%; justify-content: center; }
+  .focus-mode .tailor-ba { grid-template-columns: 1fr; }
+  .focus-mode #main .grid-2, .focus-mode #main .grid-3 { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) { .focus-rail { display: none; } }

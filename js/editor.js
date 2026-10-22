@@ -2438,9 +2438,12 @@ function _injectPreviewChrome(doc) {
     // highlights the WHOLE section (heading + its entries) and floats an "Edit …"
     // pill on the heading. Clicking anywhere in the section jumps to edit it.
     '.hf-edit{cursor:pointer;}' +
-    '.hf-sec-hover{background:rgba(109,77,252,.07)!important;border-radius:3px;transition:background .16s ease;}' +
+    // Tint as an inset box-shadow OVERLAY (not a background) so it never clobbers a
+    // template's own section background — e.g. a solid-accent header with white text,
+    // which the old `background:...!important` turned pale and unreadable on hover.
+    '.hf-sec-hover{box-shadow:inset 0 0 0 999px rgba(109,77,252,.07);border-radius:3px;transition:box-shadow .16s ease;}' +
     '.hf-sec-head{position:relative;}' +
-    '.hf-sec-head.hf-sec-hover{box-shadow:inset 3px 0 0 rgba(109,77,252,.6);}' +
+    '.hf-sec-head.hf-sec-hover{box-shadow:inset 3px 0 0 rgba(109,77,252,.6), inset 0 0 0 999px rgba(109,77,252,.07);}' +
     '.hf-sec-head.hf-sec-hover::after{content:attr(data-hf-label);position:absolute;top:50%;right:2px;transform:translateY(-50%);' +
       'background:linear-gradient(135deg,#6d4dfc,#8a73f8);color:#fff;font:700 9px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;' +
       'letter-spacing:.02em;text-transform:none;padding:4px 10px;border-radius:999px;box-shadow:0 3px 12px rgba(109,77,252,.5);white-space:nowrap;pointer-events:none;z-index:5;}' +

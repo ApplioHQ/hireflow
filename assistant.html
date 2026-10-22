@@ -56,8 +56,10 @@
   .ccw-in .ccw { opacity: 1; transform: none; }
 
   /* ===== The moving "thinking" sphere (ApplioAI orb) ===== */
-  .cc-think { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 10px auto 2px; }
-  .cc-think canvas { display: block; }
+  .cc-think { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 16px auto 6px; }
+  .cc-think::before { content: ""; position: absolute; left: 50%; top: 78px; transform: translate(-50%,-50%); width: 300px; height: 300px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(109,77,252,.32), rgba(109,77,252,.12) 42%, transparent 66%); filter: blur(12px); }
+  .cc-think canvas { display: block; position: relative; }
   .cc-think-label { font-size: 13.5px; font-weight: 600; color: var(--muted);
     background: linear-gradient(90deg, var(--muted), var(--text), var(--muted)); background-size: 200% 100%;
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ccShimmer 2.2s linear infinite; }
@@ -351,7 +353,7 @@ async function send(){
   const label = row.querySelector('.cc-think-label');
   let orb = null;
   try {
-    orb = ApplioAI.thinkingOrb(row.querySelector('canvas'), { size: 132, reduced: _reduced() });
+    orb = ApplioAI.thinkingOrb(row.querySelector('canvas'), { size: 156, reduced: _reduced() });
     const LBL = ['Thinking', 'Analyzing', 'Searching', 'Composing'];
     orb.think(i => { label.textContent = LBL[i % LBL.length]; });
   } catch (e) { orb = null; }

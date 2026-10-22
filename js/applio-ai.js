@@ -131,9 +131,10 @@
     var EVORTEX = cubicBezier(0.6, 0, 0.2, 1);
     return {
       think: function (onPhase) {
-        P.sweep = 0; P.vortex = 0; P.gain = 1; P.floor = 0; P.pop = 1;
+        P.sweep = 0; P.vortex = 0; P.gain = 1.35; P.floor = 0.12; P.pop = 1;
         orb.tween('alpha', P.alpha, 1, 420, EOUT);
         orb.tween('k', P.k, 1, isReduced() ? 1 : 720, EOUT);
+        orb.tween('sweep', P.sweep, 0.82, isReduced() ? 1 : 820, EOUT);   // charge grey -> vivid violet
         orb.tween('spin', P.spin, 0.55, 600, EOUT);
         orb.ensure();
         clearInterval(progTimer);
@@ -143,10 +144,10 @@
       },
       resolve: function (cb) {
         clearInterval(progTimer); progTimer = 0;
-        if (isReduced()) { orb.tween('sweep', 0, 1, 200, EIO); orb.tween('alpha', 1, 0, 280, EOUT, cb); orb.ensure(); return; }
-        orb.tween('sweep', 0, 1, 520, EIO);
+        if (isReduced()) { orb.tween('sweep', P.sweep, 1, 200, EIO); orb.tween('alpha', 1, 0, 280, EOUT, cb); orb.ensure(); return; }
+        orb.tween('sweep', P.sweep, 1, 520, EIO);
         orb.tween('spin', P.spin, 0.2, 520, EOUT);
-        orb.tween('floor', 0, 0.9, 300, EOUT);
+        orb.tween('floor', P.floor, 0.9, 300, EOUT);
         setTimeout(function () {
           orb.tween('k', P.k, 0, 460, EVORTEX);
           orb.tween('vortex', 0, 1.6, 460, EVORTEX);

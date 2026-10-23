@@ -30,8 +30,8 @@
       title: 'Preview anytime', body: 'See exactly how your resume looks as you build it.' },
     { find: function () { return document.querySelector('a.mobile-nav-btn[href="export"]'); }, place: 'top',
       title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' },
-    { find: function () { return document.querySelector('.tb-dd-trigger'); }, place: 'bottom',
-      title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more are in this Menu.' }
+    { find: function () { return document.querySelector('.rail-mobtrigger'); }, place: 'bottom',
+      title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more live in this menu.' }
   ];
 
   var i = 0, steps = [], overlay, hole, tip;

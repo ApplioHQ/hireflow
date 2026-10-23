@@ -4856,46 +4856,6 @@ function _closeMobileDrawers() {
 
 // ============ Boot ============
 // ---- First-signup welcome screen (plays once) ----
-function _maybeShowWelcome() {
-  // Arrived from the free ATS checker with a resume to import? Skip the generic
-  // welcome and go straight to importing their resume (handled after first render).
-  if ((localStorage.getItem('hf_pending_import') || '').trim()) { localStorage.removeItem('hf_welcome'); return; }
-  if (localStorage.getItem('hf_welcome') !== '1') return;
-  localStorage.removeItem('hf_welcome');
-  const bd = document.createElement('div');
-  bd.id = 'welcome-overlay';
-  bd.innerHTML = `
-    <div class="wel-bg"></div>
-    <div class="wel-card">
-      <div class="wel-logo"><img src="logo.jpeg" alt="Applio"></div>
-      <div class="wel-eyebrow">Welcome to Applio</div>
-      <h1 class="wel-title">Let's land you<br>more interviews.</h1>
-      <p class="wel-sub">Already have a resume? Paste it and AI fills in every section in seconds. Starting fresh? Jump right in.</p>
-      <div class="wel-actions" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
-        <button class="wel-btn" type="button" onclick="_welImport()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> Paste my existing resume</button>
-        <button type="button" onclick="_closeWelcome()" style="background:none; border:0; color:rgba(255,255,255,.8); font-size:14px; font-weight:600; cursor:pointer; padding:4px 8px;">Start from scratch →</button>
-      </div>
-    </div>`;
-  document.body.appendChild(bd);
-  document.body.style.overflow = 'hidden';
-  // auto-dismiss as a fallback so it never blocks
-  bd._t = setTimeout(_closeWelcome, 9000);
-}
-function _closeWelcome() {
-  const b = document.getElementById('welcome-overlay');
-  if (!b) return;
-  clearTimeout(b._t);
-  b.classList.add('wel-out');
-  document.body.style.overflow = '';
-  setTimeout(() => b.remove(), 420);
-}
-// Import-first onboarding: from the welcome screen, jump straight into the paste-your-
-// resume flow so new users never face a blank editor (the #1 cause of abandonment).
-function _welImport() {
-  _closeWelcome();
-  setTimeout(() => { if (typeof openModal === 'function') openModal('import'); }, 180);
-}
-
 // Funnel from the free ATS checker: it stashes the resume the visitor pasted, so on
 // their first editor load we pre-fill the import box and run the free AI import
 // automatically. They land on a resume already built from what they pasted, instead

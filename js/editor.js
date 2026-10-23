@@ -316,13 +316,22 @@ function _firstActionDone() {
 // (_qfGather / qfAction) so the checks and one-click fixes stay in one place.
 function _resumeHealth() {
   const g = _qfGather();                                   // {passed,total,issues}; also sets _qfIssues
-  const checksPct = g.total ? g.passed / g.total : 0;
-  const done = _CORE_SECTIONS.filter(_sectionComplete).length;
-  const compPct = _CORE_SECTIONS.length ? done / _CORE_SECTIONS.length : 0;
-  const exps = (resume.experience || []).map(e => _scoreBullet(e.description || '')).filter(s => s > 0);
-  const bulletPct = exps.length ? (exps.reduce((a, b) => a + b, 0) / exps.length) / 100 : 0;
-  // Weighted: checks passing matters most, then completeness, then bullet strength.
-  const score = Math.max(0, Math.min(100, Math.round(100 * (0.45 * checksPct + 0.30 * compPct + 0.25 * bulletPct))));
+  // ONE score everywhere: the topbar badge, this panel, the Copilot rail and the
+  // dashboard all read calculateHealthScore(), so the number can't disagree with
+  // itself on the same screen. The qf checks still drive the issues list below.
+  let score = (typeof window.calculateHealthScore === 'function')
+    ? window.calculateHealthScore().score
+    : null;
+  if (score == null) {
+    // Defensive fallback if the shared scorer hasn't loaded yet.
+    const checksPct = g.total ? g.passed / g.total : 0;
+    const done = _CORE_SECTIONS.filter(_sectionComplete).length;
+    const compPct = _CORE_SECTIONS.length ? done / _CORE_SECTIONS.length : 0;
+    const exps = (resume.experience || []).map(e => _scoreBullet(e.description || '')).filter(s => s > 0);
+    const bulletPct = exps.length ? (exps.reduce((a, b) => a + b, 0) / exps.length) / 100 : 0;
+    score = Math.round(100 * (0.45 * checksPct + 0.30 * compPct + 0.25 * bulletPct));
+  }
+  score = Math.max(0, Math.min(100, score));
   return { score, passed: g.passed, total: g.total, issues: g.issues };
 }
 // Expose for the Copilot rail so it shows the SAME score + issues as this panel.

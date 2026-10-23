@@ -77,6 +77,9 @@
     };
   }
   window.calculateHealthScore = calculateHealthScore;
+  // Canonical name: one resume score for the whole app (badge, editor panel,
+  // Copilot rail, dashboard all resolve to this single function).
+  window.resumeScore = calculateHealthScore;
 
   function _color(s) { return s >= 75 ? 'var(--success)' : s >= 50 ? 'var(--warning)' : 'var(--danger)'; }
   function _miniBar(label, val, note) {

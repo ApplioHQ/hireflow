@@ -208,10 +208,8 @@ function consumeFreeAiUse(feature) {
   return uses[feature];
 }
 function planLabel() {
-  if (!CURRENT_USER) return 'Free';
-  if (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super') return 'Admin';
-  if (CURRENT_USER.plan === 'lifetime') return 'Lifetime';
-  if (CURRENT_USER.plan === 'premium') return 'Premium';
+  // Applio is completely free: the only distinction is admin vs everyone else.
+  if (CURRENT_USER && (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'super')) return 'Admin';
   return 'Free';
 }
 function downloadsLeft() { return Infinity; }   // unlimited downloads, no watermark, for everyone
@@ -479,41 +477,11 @@ async function _applioPageBoot() {
   if (localStorage.getItem('hf_token')) await loadCurrentUser();
   if (!isLogin) await checkSiteStatus();
 
-  // Founding-member promo: a one-time celebration when a new signup was granted free
-  // Premium. Flag is set at signup (auth.js / Google handler); shown once, then cleared.
-  if (!isLogin && localStorage.getItem('hf_promo_earlybird') === '1') {
-    localStorage.removeItem('hf_promo_earlybird');
-    setTimeout(showEarlyBirdCelebration, 700);   // let the page settle first
-  }
-
-  // Admin Console is now surfaced inside the account menu/dropdown (see the account
-  // dropdown in editor.html and openBillingPortal below), not as a topbar button.
+  // Any stale founding-member promo flag is cleared without showing anything:
+  // Applio is completely free, so there is no Premium grant to celebrate.
+  try { localStorage.removeItem('hf_promo_earlybird'); } catch (e) {}
 }
 
-// One-time celebratory modal telling a founding member they got free Premium.
-function showEarlyBirdCelebration() {
-  if (document.getElementById('eb-celebrate-bd')) return;
-  const bd = document.createElement('div');
-  bd.id = 'eb-celebrate-bd';
-  bd.className = 'modal-backdrop open';
-  bd.innerHTML =
-    '<div class="modal" style="max-width:440px;text-align:center;position:relative;overflow:hidden;">' +
-      '<button class="modal-close" onclick="_closeEarlyBird()" aria-label="Close">×</button>' +
-      '<div style="font-size:46px;line-height:1;margin:6px 0 12px;">🎉</div>' +
-      '<div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Founding member</div>' +
-      '<h3 style="margin-bottom:8px;">You\'ve got Premium, free</h3>' +
-      '<p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px;">' +
-        'You\'re one of our first 100 members, so the next <strong>2 months of Premium are on us</strong>. ' +
-        'Unlimited AI, every template, and unlimited downloads, no card needed.</p>' +
-      '<button class="btn btn-primary btn-block" onclick="_closeEarlyBird()">Start using Premium →</button>' +
-    '</div>';
-  document.body.appendChild(bd);
-  bd.addEventListener('click', e => { if (e.target === bd) _closeEarlyBird(); });
-}
-function _closeEarlyBird() {
-  const bd = document.getElementById('eb-celebrate-bd');
-  if (bd) bd.remove();
-}
 // Run after DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', _applioPageBoot);
@@ -523,51 +491,8 @@ if (document.readyState === 'loading') {
 
 // ============ Upgrade modal (disabled: Applio is completely free) ============
 function showUpgradeModal(reason, context) {
-  // Applio is completely free — never prompt to upgrade or show buy buttons.
+  // Applio is completely free — there is no upgrade, so this never shows anything.
   return;
-  /* eslint-disable no-unreachable */
-  if (document.getElementById('upgrade-modal-bd')) return;
-  const reasons = {
-    ai: { title: 'AI features are Premium', body: 'Tailoring, ATS scoring, AI Improve, interview prep and resume analysis are part of Premium. Upgrade to unlock everything.' },
-    interview: { title: 'Interview Prep is Premium', body: 'Generate practice questions tailored to any role with AI. Upgrade to unlock.' },
-    import: { title: "You've used your free import", body: 'Free accounts get 1 AI resume import. Upgrade to Premium to import unlimited resumes.' },
-    optimize: { title: 'Optimize is Premium', body: 'Tailor to Job, ATS Check, and AI Analysis are part of Premium. Upgrade to unlock.' },
-    downloads: { title: 'Download limit reached', body: `You've used all 10 free downloads for this month. Upgrade to Premium or Lifetime for unlimited downloads.` }
-  };
-  const r = reasons[reason] || { title: 'Upgrade to Premium', body: 'Unlock AI features, interview prep, and unlimited downloads.' };
-  // Optional contextual first line tied to what the user just did.
-  const ctx = context || reason;
-  const contextLines = {
-    ats: 'You ran an ATS check, upgrade to run it again anytime and apply the missing keywords automatically.',
-    tailor: 'You tailored your resume to a job, upgrade to do this for every application.',
-    downloads: "You've used your 10 free downloads, upgrade for unlimited."
-  };
-  const contextLine = contextLines[ctx];
-  const bd = document.createElement('div');
-  bd.id = 'upgrade-modal-bd';
-  bd.className = 'modal-backdrop open';
-  bd.innerHTML = `
-    <div class="modal" style="max-width:520px;">
-      <button class="modal-close" onclick="closeUpgradeModal()">×</button>
-      <h3 style="margin-bottom:8px;">${r.title}</h3>
-      ${contextLine ? `<p style="color:var(--text); font-size:14px; font-weight:600; margin-bottom:10px;">${contextLine}</p>` : ''}
-      <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">${r.body}</p>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <button class="btn btn-secondary" onclick="startCheckout('premium')" style="flex-direction:column; padding:14px; height:auto;">
-          <div style="font-weight:700;">Premium</div>
-          <div style="font-size:18px; font-weight:700; margin-top:4px;">$4.99<span style="font-size:12px; font-weight:400; opacity:.7;">/mo</span></div>
-        </button>
-        <button class="btn btn-primary" onclick="startCheckout('lifetime')" style="flex-direction:column; padding:14px; height:auto;">
-          <div style="font-weight:700;">Lifetime</div>
-          <div style="font-size:18px; font-weight:700; margin-top:4px;">$39.99<span style="font-size:12px; font-weight:400; opacity:.7;"> once</span></div>
-        </button>
-      </div>
-      <div style="text-align:center; margin-top:14px;">
-        <a href="pricing" style="font-size:12px; color:var(--muted);">See full comparison →</a>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(bd);
 }
 function closeUpgradeModal() {
   const m = document.getElementById('upgrade-modal-bd');

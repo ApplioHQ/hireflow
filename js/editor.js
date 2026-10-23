@@ -119,15 +119,10 @@ function hydrate() {
     const s = el.dataset.section;
     const info = SECTION_INFO[s];
     if (!info) return;
-    const isPro = PRO_SECTIONS.has(s);
-    // Free users can enter Pro sections now, show a subtle "Pro" badge instead of a lock.
-    const showProBadge = isPro && isFree();
     const done = _sectionComplete(s);
-    const indicator = showProBadge
-      ? `<span class="sidebar-pro-badge">Pro</span>`
-      : done
-        ? `<span class="s-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg></span>`
-        : `<span class="s-dot"></span>`;
+    const indicator = done
+      ? `<span class="s-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5 5 4 7.5 8.5 2.5"/></svg></span>`
+      : `<span class="s-dot"></span>`;
     if (done) el.classList.add('has-content');
     else el.classList.remove('has-content');
     el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>${indicator}`;
@@ -190,7 +185,7 @@ function hydrate() {
   if (welcome) {
     const b = document.getElementById('welcome-banner');
     b.style.display = '';
-    b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to ${welcome === 'lifetime' ? 'Lifetime' : 'Premium'}! All features are now unlocked.</span>`;
+    b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to Applio! Every feature is free and unlocked.</span>`;
     setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor'); }, 6000);
   }
 
@@ -209,12 +204,9 @@ function hydrate() {
 }
 
 // ---- Sidebar (with plan gating) ----
-const PRO_SECTIONS = new Set(['tailor','ats','analysis','modernize']);
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
     const sec = item.dataset.section;
-    // Free users may now enter Pro sections (tailor/ats/analysis) and see the full
-    // UI. The free-use gate is handled inside the section, just before the AI runs.
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     item.classList.add('active');
     currentSection = sec;

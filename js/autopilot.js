@@ -1,7 +1,7 @@
 /* autopilot.js, Application Autopilot: one job description in, a full application
    packet out (fit verdict + tailored resume + cover letter + missing keywords).
    Calls the single /ai/autopilot endpoint, which orchestrates the tuned ATS, Tailor,
-   and Cover Letter analyses server-side. Premium feature (backend enforces gating). */
+   and Cover Letter analyses server-side. Free and unlocked for everyone. */
 (function () {
   'use strict';
 
@@ -153,19 +153,14 @@
   }
 
   function render(d) {
+    // Applio is 100% free: Autopilot always runs the full packet for everyone.
     var parts = [];
-    if (d._free) parts.push(freeBanner());
     parts.push(verdictCard(d));
     if ((d.missingKeywords && d.missingKeywords.length) || (d.matchedKeywords && d.matchedKeywords.length)) parts.push(keywordsCard(d));
-    var _imp = d._free ? null : _atsImprove(readResume(), d, (els.jd.value || '').trim());
+    var _imp = _atsImprove(readResume(), d, (els.jd.value || '').trim());
     if (_imp) parts.push(improveCard(_imp));
-    if (d._free) {
-      parts.push(lockedCard('Tailored resume', 'Applio rewrites your summary and bullets to match this job, grounded in your real experience.'));
-      parts.push(lockedCard('Cover letter', 'A ready-to-send cover letter written for this exact role and company.'));
-    } else {
-      if (d.tailor) parts.push(tailorCard(d.tailor));
-      if (d.coverLetter) parts.push(coverCard(d.coverLetter));
-    }
+    if (d.tailor) parts.push(tailorCard(d.tailor));
+    if (d.coverLetter) parts.push(coverCard(d.coverLetter));
     parts.push(saveCard(d));
     els.results.innerHTML = parts.join('');
     els.results.classList.add('show');
@@ -306,20 +301,11 @@
       + '<a class="btn btn-ghost btn-sm" href="jobs">Open tracker</a></div></div>';
   }
 
-  function freeBanner() {
-    return '<div class="ap-banner"><div class="ap-banner-txt"><strong>Your free fit check.</strong> Upgrade to Premium and Autopilot writes the tailored resume and cover letter for you.</div>'
-      + '<a class="btn btn-primary btn-sm" href="pricing" style="white-space:nowrap;">Unlock the full packet</a></div>';
-  }
-  function lockedCard(title, desc) {
-    return '<div class="ap-card ap-locked"><h2>' + esc(title) + ' <span class="ap-lock"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Premium</span></h2>'
-      + '<div class="ap-card-sub">' + esc(desc) + '</div>'
-      + '<div class="ap-locked-preview"><div class="ap-blur">Senior product designer with 7+ years shipping user-loved products at scale, specializing in design systems and growth. Led a redesign that lifted activation 30% and cut support tickets 22%…</div></div>'
-      + '<a class="btn btn-primary btn-sm" href="pricing">Unlock with Premium</a></div>';
-  }
+  // Shown only if an Autopilot run genuinely fails (e.g. the scoring engine didn't
+  // load); never a paywall — Applio is completely free.
   function renderUpgrade() {
-    els.results.innerHTML = '<div class="ap-card ap-upgrade"><h3>Application Autopilot is a Premium feature</h3>'
-      + '<p>Upgrade to run the full one-shot flow: fit verdict, tailored resume, and a cover letter for every job.</p>'
-      + '<a class="btn btn-primary" href="pricing">See plans</a></div>';
+    els.results.innerHTML = '<div class="ap-card"><h3>Couldn\'t run Autopilot</h3>'
+      + '<p>Something went wrong running the full packet. Please try again in a moment.</p></div>';
     els.results.classList.add('show');
   }
 

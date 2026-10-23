@@ -716,12 +716,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 }
 .sidebar-item.has-content .s-dot { background: var(--accent); }
 
-/* ===== Pro badge ===== */
-.pro-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  vertical-align: middle;
-}
-
 /* ===== Account modal rows ===== */
 .acct-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -1702,14 +1696,6 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   border-color: rgba(245,158,11,.25);
 }
 .free-ai-label { font-size: 11px; color: var(--muted); opacity: .85; }
-.sidebar-pro-badge {
-  margin-left: auto;
-  font-size: 10px; font-weight: 700; letter-spacing: .04em;
-  color: var(--accent);
-  background: rgba(109,77,252,.12);
-  border: 1px solid rgba(109,77,252,.28);
-  border-radius: 6px; padding: 1px 6px;
-}
 
 /* Button press micro-interaction, subtle tactile feedback on click. */
 .btn { transition: transform .08s ease, filter .15s ease, background .15s ease, box-shadow .15s ease; }
@@ -1841,8 +1827,7 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   /* Label text is now a native title tooltip; hide the inline label + badges. */
   .app-slim .sidebar-item > span:not([class]) { display: none; }
   .app-slim .sidebar-item .s-check,
-  .app-slim .sidebar-item .s-dot,
-  .app-slim .sidebar-item .sidebar-pro-badge { display: none; }
+  .app-slim .sidebar-item .s-dot { display: none; }
   .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
   /* The fold works in the slim rail too: a centered chevron icon stands in for the
      "More sections" row, keeping the rail short until the rare sections are needed. */

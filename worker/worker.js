@@ -1865,11 +1865,10 @@ async function ai(req, env, action) {
   if (!user) throw err(404, "User not found");
   const paid = isPaidPlan(user);
 
-  // Free for everyone (matches the pricing page + in-app copy): resume import
-  // (parse), interview prep, and "AI Improve" on the summary. Every other PRO_AI
-  // action requires Premium.
-  const freeForAll = action === "parse" || action === "interview" ||
-    (action === "improve" && (body.target === "summary" || body.target === "personal"));
+  // Applio is 100% free: every AI feature is unlocked for everyone, with no trials
+  // and no Premium gate (matches the pricing page + in-app copy). The Stripe/plan
+  // plumbing stays below, dormant, in case billing is ever re-enabled.
+  const freeForAll = true;
   // One-time free "instant score": the ATS score the editor auto-runs right after a resume
   // is built or imported, so EVERY user reaches a real AI value moment without spending a
   // trial. Free exactly once per account (guarded by user.autoScoreUsed); after that, ATS
@@ -1911,22 +1910,17 @@ async function ai(req, env, action) {
   const rlDay = new Date().toISOString().slice(0, 10);
   const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
   const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);
-  const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
+  // Everyone gets the high daily cap now (pure abuse protection, not a paid tier).
+  const rlCap = PAID_AI_DAILY;
   if (rlUsed >= rlCap) {
-    throw err(429, paid
-      ? "You've reached today's AI usage limit. It resets at midnight UTC, sorry for the interruption."
-      : "You've reached today's free AI limit. Upgrade to Premium for a much higher limit, or come back tomorrow.");
+    throw err(429, "You've reached today's AI usage limit. It resets at midnight UTC, sorry for the interruption.");
   }
   const bumpRate = () => env.HIREFLOW_KV
     .put(rlKey, String(rlUsed + 1), { expirationTtl: 172800 }).catch(() => {});
 
-  // Cover Letter Maker: free users get a couple of letters as a taste, then must
-  // upgrade. Counted only on a SUCCESSFUL generation. Paid users are unlimited.
-  if (action === "cover-letter" && !paid) {
+  // Cover Letter Maker is free and unlimited for everyone (counted only for metrics).
+  if (action === "cover-letter") {
     const used = user.coverLettersUsed || 0;
-    if (used >= FREE_COVER_LETTERS) {
-      throw err(402, "You've used your free cover letters. Upgrade to Premium for unlimited cover letters.");
-    }
     await bumpRate();
     const result = await aiDispatch(env, action, body);
     await _bumpAiUsage(env, action);
@@ -2510,12 +2504,7 @@ async function aiStream(req, env, action, cors) {
     const user = await getUser(env, payload.email).catch(() => null);
     if (!user) return fail(404, "User not found");
     const paid = isPaidPlan(user);
-    const freeForAll = action === "improve" && (body.target === "summary" || body.target === "personal");
-    if (!paid && !freeForAll) {
-      const trialLimit = (FREE_TRIAL_LIMITS[action] != null) ? FREE_TRIAL_LIMITS[action] : FREE_AI_TRIALS;
-      const trialUsed = (user.aiTrials && user.aiTrials[action]) || 0;
-      if (trialUsed >= trialLimit) return fail(402, "Upgrade to Premium for unlimited AI.");
-    }
+    // Applio is 100% free: no Premium gate on any AI action here either.
     const rlDay = new Date().toISOString().slice(0, 10);
     const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
     const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);

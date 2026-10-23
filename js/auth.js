@@ -120,8 +120,6 @@ document.getElementById('form-signup').addEventListener('submit', async (e) => {
     if (!source) {
       localStorage.setItem('hf_ask_attribution', '1');
     }
-    // Founding-member promo: flag it so the destination page can celebrate the free Premium.
-    if (data.promoEarlyBird) localStorage.setItem('hf_promo_earlybird', '1');
     location.href = _afterAuthDest(data.role, 'editor');
   } catch (err) {
     setMsg('signup','error', err.message);

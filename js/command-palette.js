@@ -55,10 +55,10 @@
         .replace(/\s*(Pro|New|Beta)\s*$/i, '');
       if (!label) return;
       var icon = el.getAttribute('data-icon') || 'doc';
-      var pro = el.classList.contains('pro-item');
+      var isAiTool = ['tailor', 'ats', 'analysis', 'modernize'].indexOf(section) > -1;
       cmds.push({
-        group: pro || ['tailor', 'ats', 'analysis', 'modernize'].indexOf(section) > -1 ? 'AI tools' : 'Go to section',
-        icon: icon, label: label, hint: pro ? 'Pro' : '',
+        group: isAiTool ? 'AI tools' : 'Go to section',
+        icon: icon, label: label, hint: '',
         run: function () { el.click(); }
       });
     });

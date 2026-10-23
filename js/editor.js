@@ -1795,24 +1795,27 @@ function _refreshTrialUI() {
   document.querySelectorAll('.free-ai-label[data-feat]').forEach(el => { el.outerHTML = freeAiLabel(el.getAttribute('data-feat')); });
 }
 
+// One header for every AI tool (icon + title + sub + run button), replacing the
+// old hero-vs-compact split. `tone` drives the card accent + icon color.
+function _aiHead(tone, icon, title, sub, runFn, runLabel, runClass) {
+  return '<div class="ai-card-header">'
+    + '<div class="ai-card-icon ai-icon-' + tone + '">' + ICON(icon) + '</div>'
+    + '<div style="flex:1 1 auto;min-width:0;"><h3 class="ai-card-title">' + title + '</h3><p class="ai-card-sub">' + sub + '</p></div>'
+    + '<div style="margin-left:auto;flex-shrink:0;">'
+    + '<button class="btn ' + runClass + ' btn-sm" onclick="' + runFn + '" style="white-space:nowrap;">'
+    + ICON('sparkle', 'ico ico-sm') + ' ' + runLabel + '</button></div></div>';
+}
+// One loading affordance: the Applio orb, rendered inline into a tool's result host.
+function _aiToolLoading(label) {
+  return '<div class="ai-tool-loading"><div class="ai-tool-orb"></div><span>' + esc(label) + '</span></div>';
+}
+
 function renderTailor() {
   const wc = _jdWordCount(resume.tailor.jobDescription);
-  const stat = (num, lbl) => `<div class="ats-stat"><span class="ats-stat-num" style="color:#a5b4fc;">${num}</span><span class="ats-stat-lbl">${lbl}</span></div>`;
   return `
-    <div class="section-card tailor-shell">
-      <div class="tailor-hero">
-        <div class="tailor-hero-glow"></div>
-        <div class="tailor-hero-badge">${ICON('sparkle','ico ico-sm')} AI TAILORING</div>
-        <h2 class="tailor-hero-title">Match any job in seconds</h2>
-        <p class="ats-hero-sub">Paste a job description and Applio rewrites your bullets, aligns keywords, and reframes your summary, grounded in your real experience, never invented.</p>
-        <div class="ats-stat-strip">
-          ${stat('+38pts', 'average ATS score increase')}
-          ${stat('~30s', 'to tailor vs 45 min manually')}
-          ${stat('2&times;', 'more callbacks when tailored')}
-        </div>
-      </div>
+    <div class="section-card ai-card ai-card-indigo">
+      ${_aiHead('indigo', 'target', 'Tailor to a Job', 'Rewrites your bullets and summary to match a posting &middot; ~30s', 'aiTailor()', 'Tailor', 'btn-primary')}
       <div class="ai-card-body">
-        ${freeAiBanner('tailor')}
         <div class="ats-console tailor-console">
           <div class="ats-console-head">
             <span class="ats-console-dots"><i></i><i></i><i></i></span>
@@ -1820,13 +1823,11 @@ function renderTailor() {
             <button type="button" class="tailor-paste-btn" onclick="_tailorPaste()">${ICON('doc','ico ico-sm')} Paste</button>
             <span id="tailor-wc" class="ats-wc">${wc}</span>
           </div>
-          <textarea data-bind="tailor.jobDescription" rows="11"
+          <textarea data-bind="tailor.jobDescription" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
             oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
-        <button class="btn btn-primary btn-block tailor-run-btn" onclick="aiTailor()">${ICON('sparkle')} <span>Tailor My Resume</span></button>
-        ${freeAiLabel('tailor')}
         <div id="tailor-result" style="margin-top:18px;">
         ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
           <div class="ai-result-box ai-result-indigo">
@@ -1860,20 +1861,9 @@ async function _tailorPaste() {
 }
 
 function renderATS() {
-  const stat = (num, lbl) => `<div class="ats-stat"><span class="ats-stat-num">${num}</span><span class="ats-stat-lbl">${lbl}</span></div>`;
   return `
-    <div class="section-card ats-shell">
-      <div class="ats-hero">
-        <div class="ats-hero-glow"></div>
-        <div class="ats-hero-badge">${ICON('check','ico ico-sm')} ATS SCANNER</div>
-        <h2 class="ats-hero-title">Get past the resume robots</h2>
-        <p class="ats-hero-sub">Most resumes are filtered out by applicant-tracking software before a human ever reads them. Scan yours against the job posting and see exactly what to fix.</p>
-        <div class="ats-stat-strip">
-          ${stat('~70%', 'filtered before a human sees them')}
-          ${stat('6-7s', 'average recruiter first scan')}
-          ${stat('2&times;', 'more callbacks when tailored')}
-        </div>
-      </div>
+    <div class="section-card ai-card ai-card-emerald">
+      ${_aiHead('emerald', 'check', 'ATS Check', 'Scan for parse errors and missing keywords before a recruiter does', 'aiATS()', 'Run scan', 'btn-success')}
       <div class="ai-card-body">
         <div class="ats-console">
           <div class="ats-console-head">
@@ -1882,13 +1872,10 @@ function renderATS() {
             <button type="button" class="ats-paste-btn" onclick="_atsPaste()">${ICON('doc','ico ico-sm')} Paste</button>
             <span id="ats-wc" class="ats-wc"></span>
           </div>
-          <textarea id="ats-jd" rows="11"
+          <textarea id="ats-jd" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
             oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
         </div>
-        ${freeAiBanner('ats')}
-        <button class="btn btn-success btn-block ats-scan-btn" onclick="aiATS()">${ICON('sparkle')} <span>Run ATS Scan</span></button>
-        ${freeAiLabel('ats')}
         <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
@@ -1917,19 +1904,8 @@ async function _atsPaste() {
 function renderAnalysis() {
   return `
     <div class="section-card ai-card ai-card-violet">
-      <div class="ai-card-header">
-        <div class="ai-card-icon ai-icon-violet">${ICON('beaker')}</div>
-        <div>
-          <h3 class="ai-card-title">AI Resume Analysis</h3>
-          <p class="ai-card-sub">Detailed strengths, weaknesses, and actionable improvements.</p>
-        </div>
-        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <button class="btn btn-soft btn-sm" onclick="aiAnalyze()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Analyze</button>
-          ${freeAiLabel('analysis')}
-        </div>
-      </div>
+      ${_aiHead('violet', 'beaker', 'AI Analysis', 'Detailed strengths, weaknesses, and fixes for your resume', 'aiAnalyze()', 'Analyze', 'btn-primary')}
       <div class="ai-card-body">
-        ${freeAiBanner('analysis')}
         <div id="analysis-result">${resume.analysis ? _analysisPanel(resume.analysis) : _analysisEmptyState()}</div>
         ${navRow('ats','modernize')}
       </div>
@@ -1940,19 +1916,8 @@ function renderAnalysis() {
 function renderModernize() {
   return `
     <div class="section-card ai-card ai-card-violet">
-      <div class="ai-card-header">
-        <div class="ai-card-icon ai-icon-violet">${ICON('clock')}</div>
-        <div>
-          <h3 class="ai-card-title">Age-Proof Your Resume</h3>
-          <p class="ai-card-sub">Spot details that read as dated or reveal age unnecessarily, and get concrete fixes.</p>
-        </div>
-        <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <button class="btn btn-soft btn-sm" onclick="aiModernize()" style="white-space:nowrap;">${ICON('sparkle','ico ico-sm')} Age-proof</button>
-          ${freeAiLabel('modernize')}
-        </div>
-      </div>
+      ${_aiHead('violet', 'clock', 'Age-Proof', 'Spot details that read as dated or reveal age, and get concrete fixes', 'aiModernize()', 'Age-proof', 'btn-primary')}
       <div class="ai-card-body">
-        ${freeAiBanner('modernize')}
         <div id="modernize-result">${resume.modernize ? _modernizePanel(resume.modernize) : _modernizeEmptyState()}</div>
         ${navRow('analysis','dashboard')}
       </div>
@@ -2021,7 +1986,15 @@ function _atsEmptyState() {
       <span class="an-pre-ico">${ICON(ico, 'ico ico-sm')}</span>
       <div><b>${title}</b><span>${sub}</span></div>
     </div>`;
-  return '';
+  return `
+    <div class="an-pre">
+      <p class="an-pre-lead">Paste a job posting and Applio scores how well your resume clears the applicant-tracking systems most companies screen with, plus the exact fixes to raise it.</p>
+      <div class="an-pre-grid">
+        ${tile('check', 'Keyword match', 'What the posting asks for vs yours')}
+        ${tile('doc', 'Parse check', 'Formatting that trips up the ATS')}
+        ${tile('bolt', 'Ranked fixes', 'Biggest score gains first')}
+      </div>
+    </div>`;
 }
 
 // Appealing pre-run state for Tailor, shows a before → after transformation.
@@ -3930,7 +3903,8 @@ async function aiTailor() {
   }
   // Snapshot the resume BEFORE tailoring so we can show the ATS score lift afterward.
   const _beforeSnap = JSON.parse(JSON.stringify(resume));
-  aiLoading('Tailoring your resume to the job description…');
+  const _host = document.getElementById('tailor-result');
+  if (_host) _host.innerHTML = _aiToolLoading('Tailoring your resume to the job description…');
   try {
     const r = await ai('tailor', { jobDescription: resume.tailor.jobDescription, resume });
     // Prefer the structured result (keyword chips + before→after bullet diffs).
@@ -3951,8 +3925,7 @@ async function aiTailor() {
     }
     save(); renderMain();
     toast(summaryChanged ? 'Resume tailored, summary updated (restore the original in version history if needed)' : 'Resume tailored', { type: 'success', duration: summaryChanged ? 5000 : 3000 });
-  } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
-  finally { aiLoadingDone(); }
+  } catch(e) { renderMain(); if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
 }
 
 // Best-effort title/company from the pasted job description (first line + an
@@ -4024,7 +3997,7 @@ async function aiATS() {
   }
   const host = document.getElementById('ats-result');
   const prev = host ? host.innerHTML : null;
-  if (host) host.innerHTML = _atsSkeleton();
+  if (host) host.innerHTML = _aiToolLoading('Scanning your resume against the posting…');
   try {
     const r = await ai('ats', { jobDescription: jd, resume });
     _renderATSResult(r);   // replaces #ats-result with the real result
@@ -4332,7 +4305,7 @@ function _atsSkeleton() {
 async function aiAnalyze() {
   const host = document.getElementById('analysis-result');
   const prev = host ? host.innerHTML : null;
-  if (host) host.innerHTML = _analysisSkeleton();
+  if (host) host.innerHTML = _aiToolLoading('Analyzing your resume…');
   try {
     const r = await ai('analyze', { resume });
     resume.analysis = r;            // persist so it's restored when revisiting the section
@@ -4347,7 +4320,7 @@ async function aiAnalyze() {
 async function aiModernize() {
   const host = document.getElementById('modernize-result');
   const prev = host ? host.innerHTML : null;
-  if (host) host.innerHTML = _analysisSkeleton();
+  if (host) host.innerHTML = _aiToolLoading('Reviewing your resume for dated signals…');
   try {
     const r = await ai('modernize', { resume });
     resume.modernize = r;           // persist so it's restored when revisiting the section

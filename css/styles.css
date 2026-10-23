@@ -1206,6 +1206,12 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .td-after > span:not(.td-tag) { flex: 1; min-width: 0; }
 .td-copy { flex-shrink: 0; font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--muted); background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .td-copy:hover { color: var(--text); border-color: var(--accent); }
+/* Apply writes the rewrite straight into the resume (no copy-paste). */
+.td-apply { flex-shrink: 0; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--on-accent); background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 3px 9px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; transition: background var(--dur) var(--ease); }
+.td-apply:hover { background: var(--accent-hover); }
+.td-applied-tag { flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--success-text); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.td-diff.td-applied { border-color: var(--success-line); }
+.td-diff.td-applied .td-after { background: var(--success-soft); }
 
 /* ===== Resume Analysis: score + fix cards ===== */
 .an-score {

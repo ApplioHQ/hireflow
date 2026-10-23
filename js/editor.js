@@ -1742,12 +1742,16 @@ function _renderTailorStructured(r) {
   if (matched.length) html += `<div class="tailor-block tailor-good"><div class="tailor-block-head">Matched keywords<span class="tailor-count">${matched.length}</span></div><div class="tailor-pills">${matched.map(k => chip(k, 'matched')).join('')}</div></div>`;
   if (missing.length) html += `<div class="tailor-block tailor-bad"><div class="tailor-block-head">Add these if true<span class="tailor-count">${missing.length}</span></div><div class="tailor-pills">${missing.map(k => chip(k, 'missing')).join('')}</div></div>`;
   if (bullets.length) {
-    html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Bullet rewrites</div>` +
+    const applicable = bullets.filter(b => b.before && b.after).length;
+    html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">Bullet rewrites` +
+      (applicable > 1 ? `<button class="btn btn-soft btn-xs" onclick="_applyAllTailorBullets(this)" style="margin-left:auto;">${ICON('check','ico ico-sm')} Apply all</button>` : '') +
+      `</div>` +
       bullets.map(b => `
         <div class="td-diff">
           ${b.before ? `<div class="td-row td-before"><span class="td-tag td-tag-before">Before</span><span>${esc(_deName(b.before))}</span></div>` : ''}
           <div class="td-row td-after"><span class="td-tag td-tag-after">After</span><span>${esc(_deName(b.after))}</span>
-            <button class="td-copy" title="Copy rewrite" onclick="_copyTailorBullet(this)" data-t="${esc(b.after)}">${ICON('doc','ico ico-sm')} Copy</button>
+            ${b.before ? `<button class="td-apply" title="Apply to your resume" onclick="_applyTailorBullet(this)" data-before="${esc(b.before)}" data-after="${esc(b.after)}">${ICON('check','ico ico-sm')} Apply</button>`
+                       : `<button class="td-copy" title="Copy rewrite" onclick="_copyTailorBullet(this)" data-t="${esc(b.after)}">${ICON('doc','ico ico-sm')} Copy</button>`}
           </div>
         </div>`).join('') + `</div>`;
   }
@@ -1760,6 +1764,69 @@ function _copyTailorBullet(btn) {
     () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; setTimeout(() => { btn.innerHTML = o; }, 1400); },
     () => toast('Copy failed', { type: 'warn' })
   );
+}
+
+// ---- Apply a tailored bullet straight into the resume (no copy-paste) --------
+// Normalize a bullet for matching: drop the marker + surrounding whitespace, lower-case.
+function _normBullet(s) { return String(s || '').replace(/^\s*[•\-\*]\s*/, '').trim().toLowerCase(); }
+// Find the entry + line that holds `before` and swap in `after`, preserving the
+// line's bullet marker. Returns true if a confident match was replaced. Matching is
+// conservative (exact normalized line, or a long shared prefix) so it never rewrites
+// the wrong bullet.
+function _replaceBulletInResume(before, after) {
+  const target = _normBullet(before);
+  if (target.length < 8) return false;   // too short to match safely
+  const lists = [resume.experience || [], resume.projects || []];
+  for (const list of lists) {
+    for (const item of list) {
+      if (!item || !item.description) continue;
+      const lines = item.description.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const ln = _normBullet(lines[i]);
+        if (!ln) continue;
+        const confident = ln === target
+          || (target.length >= 24 && (ln.startsWith(target.slice(0, 32)) || target.startsWith(ln.slice(0, 32))));
+        if (confident) {
+          const marker = (lines[i].match(/^\s*[•\-\*]\s*/) || [''])[0] || '';
+          lines[i] = marker + String(after).replace(/^\s*[•\-\*]\s*/, '');
+          item.description = lines.join('\n');
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+function _markBulletApplied(row) {
+  if (!row) return;
+  row.classList.add('td-applied');
+  const btn = row.querySelector('.td-apply');
+  if (btn) btn.outerHTML = '<span class="td-applied-tag">' + ICON('check', 'ico ico-sm') + ' Applied</span>';
+}
+function _applyTailorBullet(btn) {
+  const before = btn.getAttribute('data-before') || '';
+  const after = btn.getAttribute('data-after') || '';
+  if (!after) return;
+  if (_replaceBulletInResume(before, after)) {
+    save(); renderPreview(); _refreshCompletion();
+    _markBulletApplied(btn.closest('.td-diff'));
+    toast('Bullet applied to your resume', { type: 'success' });
+  } else {
+    toast("Couldn't place that rewrite automatically — open the section to edit it directly.", { type: 'warn' });
+  }
+}
+function _applyAllTailorBullets(btn) {
+  const rows = document.querySelectorAll('#tailor-result .td-diff:not(.td-applied)');
+  let done = 0;
+  rows.forEach(function (row) {
+    const b = row.querySelector('.td-apply');
+    if (!b) return;
+    if (_replaceBulletInResume(b.getAttribute('data-before') || '', b.getAttribute('data-after') || '')) {
+      _markBulletApplied(row); done++;
+    }
+  });
+  if (done) { save(); renderPreview(); _refreshCompletion(); toast('Applied ' + done + ' rewrite' + (done > 1 ? 's' : '') + ' to your resume', { type: 'success' }); }
+  else toast('Nothing to apply — these rewrites are already in, or need a manual edit.', { type: 'info' });
 }
 
 function _renderTailorResult(text) {

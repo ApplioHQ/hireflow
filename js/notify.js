@@ -385,19 +385,22 @@ window.aiLoading = function (message) {
   ].join(';');
   el.innerHTML = `<style>
       @keyframes aiOverlayIn { from { opacity:0 } to { opacity:1 } }
+      @keyframes aiSpinRing  { to { transform: rotate(360deg) } }
+      @keyframes aiPulseText { 0%,100% { opacity:.6 } 50% { opacity:1 } }
       @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
-      @keyframes aiOrbPulse  { 0%,100% { transform:scale(.88); opacity:.8 } 50% { transform:scale(1.06); opacity:1 } }
     </style>`;
 
-  // Primary visual: the Applio orb, the one AI "thinking" identity shared with the
-  // editor tools and the Career Coach. Reduced motion holds it static.
+  // Primary visual: the animated dot-loader (7x7 grid "snake"). Reduced motion
+  // shows a single static frame instead of animating.
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const orb = document.createElement('div');
-  orb.style.cssText = 'width:72px;height:72px;border-radius:50%;'
-    + 'background:radial-gradient(circle at 38% 34%, #8a73f8, #5a3ce8 72%);'
-    + 'box-shadow:0 0 40px rgba(109,77,252,.55);'
-    + (reduce ? '' : 'animation:aiOrbPulse 1.4s ease-in-out infinite;');
-  el.appendChild(orb);
+  const dots = _aiDotLoader(110);
+  el.appendChild(dots.el);
+  if (reduce) {
+    dots.staticFrame();
+  } else {
+    const dotTimer = dots.start();
+    el._aiTimers.push(dotTimer);
+  }
 
   const msg = document.createElement('div');
   msg.id = 'ai-loading-msg';

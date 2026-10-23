@@ -1602,12 +1602,16 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .dash-ring-lbl { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
 .dash-verdict-title { font-size: 18px; font-weight: 700; }
 .dash-verdict-sub { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
-.dash-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+/* Reflow the stat tiles to the column width instead of forcing 4 skinny columns,
+   so the values never wrap (the cause of "Not / run" and "6 / 7" breaking). */
+.dash-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .dash-tile { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
-  padding: 14px; cursor: pointer; transition: border-color .15s, transform .15s; }
+  padding: 14px 15px; cursor: pointer; transition: border-color .15s, transform .15s; }
 .dash-tile:hover { border-color: var(--accent); transform: translateY(-2px); }
-.dash-tile-label { font-size: 11px; color: var(--muted); }
-.dash-tile-val { font-size: 24px; font-weight: 700; margin-top: 6px; }
+.dash-tile-label { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-tile-val { font-size: 24px; font-weight: 700; margin-top: 6px; white-space: nowrap; line-height: 1.1; }
+/* Non-numeric values ("Not run", "N/A") read as a status, not a giant number. */
+.dash-tile-val.dash-tile-txt { font-size: 15px; font-weight: 600; color: var(--muted); margin-top: 10px; }
 .dash-tile-bar { height: 5px; border-radius: 999px; background: var(--bg-3); margin-top: 8px; overflow: hidden; }
 .dash-tile-bar > span { display: block; height: 100%; border-radius: 999px; transition: width .6s ease; }
 .dash-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }

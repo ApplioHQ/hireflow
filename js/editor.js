@@ -1228,10 +1228,11 @@ function _refreshTagPills() {
   });
   wrap.insertBefore(frag, inp);
   inp.placeholder = items.length ? 'Add another skill...' : 'Type a skill and press Enter or comma...';
-  // Update sidebar dot
-  document.querySelectorAll('.sidebar-item').forEach(function(el) {
-    if (el.dataset.section === 'skills') el.classList.toggle('has-content', items.length > 0);
-  });
+  // Keep the live preview and the health score in sync with every skill change,
+  // the same way the normal form fields do on input. Without this the preview
+  // kept showing skills that had already been added/removed in the form.
+  schedulePreview();
+  if (typeof _refreshCompletion === 'function') _refreshCompletion();
 }
 
 function saveSkills() {} // no-op, kept for safety
@@ -2144,18 +2145,18 @@ function renderDashboard() {
     : ['Just getting started', 'Fill in the core sections and tighten your bullets to raise your score.'];
 
   const barCol = function (v, good, ok) { return v >= good ? 'var(--success)' : v >= ok ? 'var(--warning)' : 'var(--danger)'; };
-  const tile = function (label, valHtml, pct, col, section) {
+  const tile = function (label, valHtml, pct, col, section, isText) {
     return `<div class="dash-tile" onclick="nextSection('${section}')">
       <div class="dash-tile-label">${label}</div>
-      <div class="dash-tile-val">${valHtml}</div>
+      <div class="dash-tile-val${isText ? ' dash-tile-txt' : ''}">${valHtml}</div>
       ${pct != null ? `<div class="dash-tile-bar"><span style="width:${pct}%;background:${col};"></span></div>` : ''}
     </div>`;
   };
   const bq = h.bulletQuality, ats = h.ats;
   const tiles = [
     tile('Completeness', h.completeness + '%', h.completeness, 'var(--accent)', 'personal'),
-    tile('Bullet strength', bq == null ? 'N/A' : bq + '%', bq == null ? 0 : bq, bq == null ? 'var(--border)' : barCol(bq, 70, 45), 'experience'),
-    tile('ATS score', ats == null ? 'Not run' : ats + '%', ats == null ? 0 : ats, ats == null ? 'var(--border)' : barCol(ats, 80, 60), 'ats'),
+    tile('Bullet strength', bq == null ? 'Not scored' : bq + '%', bq == null ? 0 : bq, bq == null ? 'var(--border)' : barCol(bq, 70, 45), 'experience', bq == null),
+    tile('ATS score', ats == null ? 'Not run' : ats + '%', ats == null ? 0 : ats, ats == null ? 'var(--border)' : barCol(ats, 80, 60), 'ats', ats == null),
     tile('Quick Fixes', qf.passed + ' / ' + qf.total, Math.round(qf.passed / qf.total * 100), qf.passed === qf.total ? 'var(--success)' : 'var(--warning)', 'quickfix'),
   ].join('');
 

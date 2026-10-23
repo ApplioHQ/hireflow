@@ -130,7 +130,7 @@
               '<span style="color:var(--muted);">&rarr;</span>' +
             '</button>';
           }).join('') +
-          '<button class="hp-fix" data-qf="0" style="width:100%;margin-top:2px;background:var(--accent);border:0;border-radius:9px;padding:9px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;">Fix it</button>' +
+          '<button class="hp-fix" data-qf="0" style="width:100%;margin-top:2px;background:var(--accent);border:0;border-radius:9px;padding:9px;color:var(--on-accent);font-size:12.5px;font-weight:700;cursor:pointer;">Fix it</button>' +
         '</div>';
     }
 

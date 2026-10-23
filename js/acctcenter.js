@@ -44,7 +44,7 @@
     + '<div class="acct-sep"></div>'
     + '<div class="acct-row acct-row-static"><span class="acct-row-label">Plan</span><span id="plan-pill"></span></div>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>'
-    + '<button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href=\'admin\';"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.admin + '</span>Admin Console</span></button>'
+    + '<button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:var(--danger-text);" onclick="closeAcctMenu(); location.href=\'admin\';"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.admin + '</span>Admin Console</span></button>'
     // Dormant billing row: Applio is free, so hydrate() leaves this hidden unless isPaid().
     + '<button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); if(typeof openBillingPortal===\'function\')openBillingPortal();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.card + '</span>Manage / cancel subscription</span></button>'
     + '<div class="acct-sep"></div>'

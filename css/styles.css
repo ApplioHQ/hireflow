@@ -344,14 +344,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .sidebar-progress .sp-fill { height: 100%; border-radius: 999px; background: var(--gradient); transition: width .5s cubic-bezier(.3,.8,.3,1); }
 .sidebar-progress .sp-done { color: var(--success); }
 .sidebar-section { padding: 10px 16px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
-/* "More sections" fold: keeps rare sections out of the way until needed */
-.sidebar-more { display: flex; align-items: center; gap: 8px; width: calc(100% - 16px); margin: 2px 8px; padding: 8px 10px; background: none; border: 0; border-radius: var(--r-md); color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; text-align: left; }
-.sidebar-more:hover { background: var(--bg-2); color: var(--text); }
-.sidebar-more-chev { flex: 0 0 auto; transition: transform var(--dur) var(--ease); }
-.sidebar-more[aria-expanded="true"] .sidebar-more-chev { transform: rotate(180deg); }
-.sidebar-more-count { margin-left: auto; font-size: 11px; color: var(--muted); }
-.sidebar-more-group { display: none; }
-.sidebar-more-group.open { display: block; }
 .sidebar-item {
   display: flex; align-items: center; gap: 10px; padding: 8px 16px;
   font-size: 13px; color: var(--muted); cursor: pointer; border-left: 2px solid transparent;
@@ -1796,67 +1788,48 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 .cr-chip .cr-chip-ic.cr-warn { color: var(--warning); }
 .cr-chip .cr-chip-ic.cr-info { color: var(--muted); }
 
-/* ===== Applio Studio — slim icon sidebar (mockup 1), desktop only ===== */
+/* ===== Editor section rail: slim by default, hover-expands to a labeled panel ===== */
 @media (min-width: 901px) {
   .app-shell-inner.app-slim { grid-template-columns: 76px 1fr 340px; position: relative; }
-  /* The rail overlays its own 76px column (which stays reserved, so nothing reflows)
-     and animates its width on hover — slim by default, full labeled panel on hover. */
+  /* The rail overlays its own reserved 76px column (so nothing reflows) and animates
+     its width on hover. The icon sits at a FIXED left position so it never jumps —
+     only the width grows and the labels / group headers / progress fade in. */
   .app-slim .sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 76px; z-index: 40;
     background: var(--bg-1); border-right: 1px solid var(--border);
-    padding: 10px 0; overflow-y: auto; overflow-x: hidden;
-    transition: width .18s cubic-bezier(.4,0,.2,1), box-shadow .18s ease; }
-
-  /* Drop the section headers, progress meter, and the collapsed copilot pill. */
-  .app-slim .sidebar-section { display: none; }
-  .app-slim .sidebar-progress { display: none; }
+    padding: 10px 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+    transition: width .26s var(--ease-out), box-shadow .26s ease; }
+  .app-slim .sidebar::-webkit-scrollbar { display: none; }
   .app-slim .banner-gradient { display: none; }
 
-  /* Roomy icon buttons, centered, with more breathing room between them. */
-  .app-slim .sidebar-item {
-    position: relative; justify-content: center; gap: 0;
-    width: 48px; height: 46px; margin: 5px auto; padding: 0;
-    border-left: 0; border-radius: 13px;
-  }
-  .app-slim .sidebar-item:hover { background: var(--bg-3); }
-  .app-slim .sidebar-item.active { border-left: 0; background: var(--accent); }
-  .app-slim .sidebar-item.active:hover { background: var(--accent); }
-  .app-slim .sidebar-item svg { width: 20px; height: 20px; }
+  /* Group headers + progress collapse to zero height (not display:none) so they slide
+     open with the rail instead of popping in. */
+  .app-slim .sidebar-section { max-height: 0; padding: 0 19px; opacity: 0; overflow: hidden;
+    transition: max-height .22s var(--ease-out), opacity .18s ease, padding .22s var(--ease-out); }
+  .app-slim .sidebar-progress { max-height: 0; padding: 0 16px; opacity: 0; overflow: hidden;
+    transition: max-height .26s var(--ease-out), opacity .18s ease, padding .26s var(--ease-out); }
 
-  /* Completion shown by icon color (done = green), not a cramped corner badge:
-     muted when empty, green when complete, white on the active (violet) item. */
-  .app-slim .sidebar-item .ico { color: var(--muted); opacity: 1; }
+  /* Items: the icon is pinned left, the label fades. */
+  .app-slim .sidebar-item { display: flex; align-items: center; gap: 13px; justify-content: flex-start;
+    height: 42px; margin: 2px 0; padding: 0 19px; border-radius: 0;
+    border-left: 2px solid transparent; white-space: nowrap; }
+  .app-slim .sidebar-item:hover { background: var(--bg-2); }
+  .app-slim .sidebar-item.active { background: linear-gradient(90deg, var(--accent-soft), transparent); border-left-color: var(--accent); }
+  .app-slim .sidebar-item svg, .app-slim .sidebar-item .ico { width: 20px; height: 20px; flex: 0 0 auto; }
+  .app-slim .sidebar-item .ico { color: var(--muted); }
   .app-slim .sidebar-item.has-content .ico { color: var(--success); }
-  .app-slim .sidebar-item.active .ico { color: #fff; }
-
-  /* Label text is now a native title tooltip; hide the inline label + badges. */
-  .app-slim .sidebar-item > span:not([class]) { display: none; }
+  .app-slim .sidebar-item.active .ico { color: var(--accent-text); }
+  .app-slim .sidebar-item > span:not([class]) { opacity: 0; transition: opacity .18s ease; }
   .app-slim .sidebar-item .s-check,
-  .app-slim .sidebar-item .s-dot { display: none; }
-  .app-slim #sidebar-add-section { border: 1px dashed var(--border); }
-  /* The fold works in the slim rail too: a centered chevron icon stands in for the
-     "More sections" row, keeping the rail short until the rare sections are needed. */
-  .app-slim .sidebar-more { justify-content: center; width: 48px; height: 40px; margin: 3px auto; padding: 0; border-radius: 13px; }
-  .app-slim .sidebar-more span { display: none; }
-  .app-slim .sidebar-more-chev { width: 18px; height: 18px; }
+  .app-slim .sidebar-item .s-dot { opacity: 0; margin-left: auto; transition: opacity .18s ease; }
+  .app-slim #sidebar-add-section { margin: 6px 8px; border: 1px dashed var(--border); border-radius: 9px; }
 
-  /* ===== Hover-expand: slide the slim rail open into the full labeled, grouped
-     panel (labels + group headers + the progress meter + the labeled More toggle),
-     overlaying the form. Keeps the compact default; clear the moment you point at it. */
+  /* Hover-expand: widen the rail; fade the labels, headers, progress and markers in. */
   .app-slim .sidebar:hover { width: 232px; z-index: 60; box-shadow: 0 24px 60px rgba(0,0,0,.42); }
-  .app-slim .sidebar:hover .sidebar-section { display: flex; }
-  .app-slim .sidebar:hover .sidebar-progress { display: block; }
-  .app-slim .sidebar:hover .sidebar-item {
-    position: relative; justify-content: flex-start; gap: 12px;
-    width: auto; height: 42px; margin: 2px 8px; padding: 0 12px;
-    border-radius: 9px; border-left: 2px solid transparent; }
-  .app-slim .sidebar:hover .sidebar-item.active { background: var(--accent-soft); border-left-color: var(--accent); }
-  .app-slim .sidebar:hover .sidebar-item.active .ico { color: var(--accent-text); }
-  .app-slim .sidebar:hover .sidebar-item > span:not([class]) { display: inline; }
+  .app-slim .sidebar:hover .sidebar-section { max-height: 34px; padding: 12px 19px 4px; opacity: 1; }
+  .app-slim .sidebar:hover .sidebar-progress { max-height: 76px; padding: 6px 16px 10px; opacity: 1; }
+  .app-slim .sidebar:hover .sidebar-item > span:not([class]) { opacity: 1; }
   .app-slim .sidebar:hover .sidebar-item .s-check,
-  .app-slim .sidebar:hover .sidebar-item .s-dot { display: inline-flex; margin-left: auto; }
-  .app-slim .sidebar:hover .sidebar-more { justify-content: flex-start; width: auto; height: auto; margin: 2px 8px; padding: 8px 12px; border-radius: 9px; }
-  .app-slim .sidebar:hover .sidebar-more span { display: inline; }
-  .app-slim .sidebar:hover #sidebar-add-section { justify-content: flex-start; }
+  .app-slim .sidebar:hover .sidebar-item .s-dot { opacity: 1; }
 }
 
 /* ===== Applio Studio — inline bullet AI toolbar (mockup 1) ===== */

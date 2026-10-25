@@ -1798,9 +1798,13 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 
 /* ===== Applio Studio — slim icon sidebar (mockup 1), desktop only ===== */
 @media (min-width: 901px) {
-  .app-shell-inner.app-slim { grid-template-columns: 76px 1fr 340px; }
-  /* Scrollable (was overflow:visible, which trapped the lower sections off-screen). */
-  .app-slim .sidebar { padding: 10px 0; overflow-y: auto; overflow-x: hidden; }
+  .app-shell-inner.app-slim { grid-template-columns: 76px 1fr 340px; position: relative; }
+  /* The rail overlays its own 76px column (which stays reserved, so nothing reflows)
+     and animates its width on hover — slim by default, full labeled panel on hover. */
+  .app-slim .sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 76px; z-index: 40;
+    background: var(--bg-1); border-right: 1px solid var(--border);
+    padding: 10px 0; overflow-y: auto; overflow-x: hidden;
+    transition: width .18s cubic-bezier(.4,0,.2,1), box-shadow .18s ease; }
 
   /* Drop the section headers, progress meter, and the collapsed copilot pill. */
   .app-slim .sidebar-section { display: none; }
@@ -1834,6 +1838,25 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   .app-slim .sidebar-more { justify-content: center; width: 48px; height: 40px; margin: 3px auto; padding: 0; border-radius: 13px; }
   .app-slim .sidebar-more span { display: none; }
   .app-slim .sidebar-more-chev { width: 18px; height: 18px; }
+
+  /* ===== Hover-expand: slide the slim rail open into the full labeled, grouped
+     panel (labels + group headers + the progress meter + the labeled More toggle),
+     overlaying the form. Keeps the compact default; clear the moment you point at it. */
+  .app-slim .sidebar:hover { width: 232px; z-index: 60; box-shadow: 0 24px 60px rgba(0,0,0,.42); }
+  .app-slim .sidebar:hover .sidebar-section { display: flex; }
+  .app-slim .sidebar:hover .sidebar-progress { display: block; }
+  .app-slim .sidebar:hover .sidebar-item {
+    position: relative; justify-content: flex-start; gap: 12px;
+    width: auto; height: 42px; margin: 2px 8px; padding: 0 12px;
+    border-radius: 9px; border-left: 2px solid transparent; }
+  .app-slim .sidebar:hover .sidebar-item.active { background: var(--accent-soft); border-left-color: var(--accent); }
+  .app-slim .sidebar:hover .sidebar-item.active .ico { color: var(--accent-text); }
+  .app-slim .sidebar:hover .sidebar-item > span:not([class]) { display: inline; }
+  .app-slim .sidebar:hover .sidebar-item .s-check,
+  .app-slim .sidebar:hover .sidebar-item .s-dot { display: inline-flex; margin-left: auto; }
+  .app-slim .sidebar:hover .sidebar-more { justify-content: flex-start; width: auto; height: auto; margin: 2px 8px; padding: 8px 12px; border-radius: 9px; }
+  .app-slim .sidebar:hover .sidebar-more span { display: inline; }
+  .app-slim .sidebar:hover #sidebar-add-section { justify-content: flex-start; }
 }
 
 /* ===== Applio Studio — inline bullet AI toolbar (mockup 1) ===== */

@@ -529,23 +529,31 @@ function _genRefCode() {
 
 async function referralGetCode(req, env) {
   const payload = await authenticate(req, env);
-  const user = await getUser(env, payload.email);
-  if (!user) throw err(404, "User not found");
-  if (user.referralCode) return { code: user.referralCode };
+  const email = (payload.email || "").toLowerCase();
+  if (!email) throw err(400, "No account email");
+  // Prefer the code on the user record, but fall back to a per-email key so accounts
+  // WITHOUT a KV user record (e.g. the super admin, who authenticates via env secrets)
+  // still get a stable, working referral link instead of a 404.
+  const user = await getUser(env, email).catch(() => null);
+  if (user && user.referralCode) return { code: user.referralCode };
+  const existing = await env.HIREFLOW_KV.get("refcode:" + email);
+  if (existing) return { code: existing };
   const code = _genRefCode();
-  user.referralCode = code;
-  await putUser(env, user);
-  await env.HIREFLOW_KV.put("ref:" + code, payload.email);
+  if (user) { user.referralCode = code; await putUser(env, user); }
+  await env.HIREFLOW_KV.put("refcode:" + email, code);
+  await env.HIREFLOW_KV.put("ref:" + code, email);
   return { code };
 }
 
 async function referralStats(req, env) {
   const payload = await authenticate(req, env);
-  const user = await getUser(env, payload.email);
-  if (!user) throw err(404, "User not found");
+  const email = (payload.email || "").toLowerCase();
+  // Resilient for accounts without a KV user record (super admin): fall back to the
+  // per-email code key and report zero referrals rather than 404-ing.
+  const user = await getUser(env, email).catch(() => null);
   return {
-    code: user.referralCode || null,
-    count: user.referralCount || 0,
+    code: (user && user.referralCode) || (await env.HIREFLOW_KV.get("refcode:" + email)) || null,
+    count: (user && user.referralCount) || 0,
     rewardDays: REFERRAL_REWARD_DAYS,
   };
 }

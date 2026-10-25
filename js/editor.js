@@ -2549,7 +2549,8 @@ function _renderMiniInto(wrap, sizer, frame, doc) {
   _scaleMini(wrap, sizer, frame, doc);
   frame.style.opacity = '1';                  // reveal once measured + scaled
   // Re-scale after iframe fonts/images settle, the initial scrollHeight can be wrong
-  // before web fonts load, causing the bottom half to appear cut off.
+  // before web fonts load, causing the bottom half to appear cut off. (Re-pagination
+  // after fonts is handled by _mountResume re-running this callback.)
   setTimeout(function () { _scaleMini(wrap, sizer, frame, doc); }, 400);
   if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(function () { _scaleMini(wrap, sizer, frame, doc); });
 }
@@ -2746,7 +2747,25 @@ function _paginate(doc) {
     (b.el.parentNode || flow).insertBefore(sp, b.el);
     accGap += spH;
   }
-  const totalPages = dec.pages;
+  let totalPages = dec.pages;
+  // Safety net: content must never hang below the last sheet into the gray void.
+  // If the real laid-out content extends past the pages the decision computed (an
+  // un-splittable block, a late font/layout shift, or a measurement edge case),
+  // grow the page count to cover it. Inert whenever pagination is already correct.
+  {
+    const colTop = col.getBoundingClientRect().top;
+    let bottom = 0;
+    Array.from(col.children).forEach(function (el) {
+      if (el.classList.contains('hf-pagebreak') || el.classList.contains('hf-sheet')) return;
+      const b = el.getBoundingClientRect().bottom - colTop;
+      if (b > bottom) bottom = b;
+    });
+    const cap = (window.HFPaginate && HFPaginate.MAX_SHEETS) || 40;
+    const tail = (window.HFPaginate && HFPaginate.TAIL) || 8;
+    const needed = bottom <= PAGE_PX + tail ? 1
+      : Math.min(cap, Math.ceil((bottom - PAGE_PX) / step) + 1);
+    if (needed > totalPages) totalPages = needed;
+  }
 
   // --- Raise the content above the sheets (within the column). ---
   Array.from(col.children).forEach(el => {

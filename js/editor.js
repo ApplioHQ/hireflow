@@ -2096,89 +2096,142 @@ function _analysisEmptyState() {
     </div>`;
 }
 
-function renderDashboard() {
-  const h = (window.calculateHealthScore && window.calculateHealthScore()) || { score: 0, completeness: 0, bulletQuality: null, ats: null };
-  const qf = _qfGather();
-  const score = Math.max(0, Math.min(100, h.score));
-  const ringCol = score >= 75 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
-  const C = 213.6, off = C * (1 - score / 100);
-  const verdict = score >= 80 ? ['Looking strong', 'Your resume is in great shape, give it a final read and export.']
-    : score >= 50 ? ['Getting there', 'A few improvements will make this resume noticeably stronger.']
-    : ['Just getting started', 'Fill in the core sections and tighten your bullets to raise your score.'];
+// ── Dashboard: Resume Builder home, Teal-style grid ──
+// Four action tiles above a card for the user's current resume. Applio is
+// single-resume today, so the grid shows the one resume + a "New resume"
+// dashed card that offers to start fresh. Scales to a real grid the day
+// multi-resume lands without a rewrite.
+function _timeAgo(ts) {
+  if (!ts) return '';
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd ago';
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
-  const barCol = function (v, good, ok) { return v >= good ? 'var(--success)' : v >= ok ? 'var(--warning)' : 'var(--danger)'; };
-  const tile = function (label, valHtml, pct, col, section, isText) {
-    return `<div class="dash-tile" onclick="nextSection('${section}')">
-      <div class="dash-tile-label">${label}</div>
-      <div class="dash-tile-val${isText ? ' dash-tile-txt' : ''}">${valHtml}</div>
-      ${pct != null ? `<div class="dash-tile-bar"><span style="width:${pct}%;background:${col};"></span></div>` : ''}
-    </div>`;
-  };
-  const bq = h.bulletQuality, ats = h.ats;
-  const tiles = [
-    tile('Completeness', h.completeness + '%', h.completeness, 'var(--accent)', 'personal'),
-    tile('Bullet strength', bq == null ? 'Not scored' : bq + '%', bq == null ? 0 : bq, bq == null ? 'var(--border)' : barCol(bq, 70, 45), 'experience', bq == null),
-    tile('ATS score', ats == null ? 'Not run' : ats + '%', ats == null ? 0 : ats, ats == null ? 'var(--border)' : barCol(ats, 80, 60), 'ats', ats == null),
-    tile('Quick Fixes', qf.passed + ' / ' + qf.total, Math.round(qf.passed / qf.total * 100), qf.passed === qf.total ? 'var(--success)' : 'var(--warning)', 'quickfix'),
-  ].join('');
-
-  // Readiness checklist (all client-side, synchronous)
+function _hasAnyResumeContent() {
   const p = resume.personal || {};
-  const hasContact = !!(p.email && p.phone && p.location);
-  const hasMetric = (resume.experience || []).concat(resume.projects || []).some(function (e) { return /[\d$%]/.test(e && e.description || ''); });
-  const noWeak = (typeof _qfWeakVerbs === 'function') ? _qfWeakVerbs().length === 0 : true;
-  const hasSkills = (resume.skills.categories || []).some(function (c) { return (c.items || []).length; });
-  const readyItems = [
-    ['Contact details complete', hasContact, 'personal'],
-    ['At least one quantified bullet', hasMetric, 'experience'],
-    ['No weak opening phrases', noWeak, 'quickfix'],
-    ['Skills listed', hasSkills, 'skills'],
-  ];
-  const readyCount = readyItems.filter(function (i) { return i[1]; }).length;
-  const allReady = readyCount === readyItems.length;
-  const readyRows = readyItems.map(function (it) {
-    return `<div class="dash-ready-item">
-      <span class="dash-ready-ico ${it[1] ? 'dash-ready-ok' : 'dash-ready-no'}">${it[1] ? _qfCheckSvg() : _qfWarnSvg()}</span>
-      <span style="flex:1;${it[1] ? '' : 'color:var(--muted);'}">${it[0]}</span>
-      ${it[1] ? '' : `<button class="qf-goto" onclick="nextSection('${it[2]}')">Fix →</button>`}
-    </div>`;
-  }).join('');
+  if ((p.fullName || '').trim() || (p.email || '').trim() || (p.summary || '').trim()) return true;
+  if ((resume.experience || []).length) return true;
+  if ((resume.education || []).length) return true;
+  if ((resume.projects || []).length) return true;
+  const cats = (resume.skills && resume.skills.categories) || [];
+  if (cats.some(c => (c.items || []).length)) return true;
+  return false;
+}
 
-  // Top 3 fixes (first issues are _qfIssues[0..2], so qfAction indices line up)
-  const top = qf.issues.slice(0, 3);
-  const topHtml = top.length ? top.map(function (iss, idx) {
-    const btn = iss.action && iss.action.type === 'fix'
-      ? `<button class="btn btn-secondary qf-btn" onclick="qfAction(${idx})">${esc(iss.action.label || 'Auto-fix')}</button>`
-      : `<button class="qf-goto" onclick="qfAction(${idx})">Go →</button>`;
-    return `<div class="qf-card qf-${iss.level === 'warn' ? 'warn' : 'info'}">
-      <span class="qf-ico qf-ico-${iss.level === 'warn' ? 'warn' : 'info'}">${_qfWarnSvg()}</span>
-      <div class="qf-card-body"><div class="qf-card-title">${esc(iss.title)}</div></div>
-      ${btn}</div>`;
-  }).join('') : `<div style="font-size:13px;color:var(--muted);">No issues, nice work. ✦</div>`;
+// Reset the current resume to the default shape, with a confirm when the
+// user has existing content so one accidental click can't wipe their work.
+function startNewResume() {
+  if (_hasAnyResumeContent()) {
+    const ok = confirm("Start a new resume? Your current resume will be cleared from this browser. If you've exported or saved to your account, those copies are kept.");
+    if (!ok) return;
+  }
+  resume = structuredClone(DEFAULT_RESUME);
+  save();
+  goSection('template');
+  if (typeof toast === 'function') toast('New resume started', { type: 'success' });
+}
+window.startNewResume = startNewResume;
+
+function renderDashboard() {
+  const p = resume.personal || {};
+  const h = (typeof _resumeHealth === 'function') ? _resumeHealth() : { score: 0, issues: [] };
+  const score = Math.max(0, Math.min(100, h.score || 0));
+  const scoreTone = score >= 75 ? 'ok' : score >= 50 ? 'warn' : 'danger';
+  const hasJd = !!(resume.tailor && (resume.tailor.jobDescription || '').trim());
+  const hasContent = _hasAnyResumeContent();
+
+  const titleName = (p.fullName || '').trim();
+  // Add a role hint from the current experience if we have one — matches how
+  // real users name files ("Alex Carter — Software Engineer").
+  const firstRole = ((resume.experience || [])[0] || {}).title || '';
+  const resumeTitle = titleName
+    ? (firstRole ? esc(titleName) + ' <span class="rb-card-role">— ' + esc(firstRole) + '</span>' : esc(titleName))
+    : (hasContent ? 'Untitled resume' : 'Your first resume');
+  const edited = resume.updatedAt ? ('Edited ' + _timeAgo(resume.updatedAt)) : 'Not saved yet';
+
+  const greeting = titleName ? ('Welcome back, ' + esc(titleName.split(/\s+/)[0]) + '.') : 'Welcome to Applio.';
+  const sub = hasContent
+    ? "Jump back into your resume, or start somewhere new."
+    : "Start fresh, drop in a job post, or pick a template — every feature is free.";
 
   return `
-    <div class="section-card">
-      <div class="section-head"><h3>${ICON('chart')} Dashboard</h3>${allReady ? '<span class="pill success">Ready to submit</span>' : ''}</div>
-      <div class="dash-hero">
-        <div class="dash-ring">
-          <svg viewBox="0 0 80 80" width="96" height="96"><circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg-3)" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="${ringCol}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 40 40)"/></svg>
-          <div class="dash-ring-num"><div class="dash-ring-score" style="color:${ringCol};">${score}</div><div class="dash-ring-lbl">Health</div></div>
+    <div class="rb-page">
+      <div class="rb-head">
+        <div>
+          <div class="rb-title">${greeting}</div>
+          <div class="rb-sub">${sub}</div>
         </div>
-        <div><div class="dash-verdict-title">${verdict[0]}</div><div class="dash-verdict-sub">${verdict[1]}</div></div>
+        <div class="rb-head-right"><span class="rb-pill-ok"><span class="rb-dot"></span> Every feature free · forever</span></div>
       </div>
-      <div class="dash-tiles">${tiles}</div>
-      <div class="dash-card">
-        <div class="dash-card-head"><h4>Ready to submit?</h4><span class="pill ${allReady ? 'success' : 'warn'}">${readyCount}/${readyItems.length}</span></div>
-        <div class="dash-ready-list">${readyRows}</div>
+
+      <div class="rb-actions">
+        <button class="rb-action" type="button" onclick="startNewResume()">
+          <div class="rb-ic rb-ic-violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="rb-a-title">New resume</div>
+          <div class="rb-a-desc">Start fresh. Pick a template, fill it in.</div>
+        </button>
+
+        <button class="rb-action" type="button" onclick="goSection('tailor')">
+          <div class="rb-ic rb-ic-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div class="rb-a-title">Start from a job post</div>
+          <div class="rb-a-desc">Paste a job description, Applio tailors every bullet.</div>
+        </button>
+
+        <button class="rb-action" type="button" onclick="goSection('template')">
+          <div class="rb-ic rb-ic-pink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          </div>
+          <div class="rb-a-title">Start from a template</div>
+          <div class="rb-a-desc">Browse ${TEMPLATE_DEFS.length} recruiter-ready layouts.</div>
+        </button>
+
+        <a class="rb-action" href="cover-letter-generator">
+          <div class="rb-ic rb-ic-amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+          </div>
+          <div class="rb-a-title">New cover letter</div>
+          <div class="rb-a-desc">AI-drafted from your resume + the job.</div>
+        </a>
       </div>
-      <div class="dash-card">
-        <div class="dash-card-head"><h4>Top things to fix</h4>${qf.issues.length > 3 ? `<button class="qf-goto" onclick="nextSection('quickfix')">View all (${qf.issues.length}) →</button>` : ''}</div>
-        <div class="qf-list">${topHtml}</div>
+
+      <div class="rb-rr-head">
+        <div class="rb-rr-title">Your resume ${hasContent ? '<span class="rb-count">1</span>' : ''}</div>
       </div>
-      ${_renderSubCard()}
-      <div class="action-row">
-        <button class="btn btn-secondary" onclick="nextSection('analysis')">${ICON('arrowLeft')} Back</button>
-        <a href="export" class="btn btn-primary">Preview &amp; Export ${ICON('arrowRight')}</a>
+
+      <div class="rb-rr-grid">
+        ${hasContent ? `
+          <div class="rb-rr-card" onclick="goSection('personal')">
+            <div class="rb-rr-score rb-rr-score-${scoreTone}"><span class="rb-rr-dot"></span>${score}</div>
+            <div class="rb-rr-card-top">
+              <div class="rb-rr-card-title">${resumeTitle}</div>
+            </div>
+            <div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); goSection('tailor');">
+              ${hasJd
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Match to a job'}
+            </div>
+            <div class="rb-rr-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${esc(edited)}
+            </div>
+          </div>
+        ` : ''}
+
+        <button class="rb-rr-card rb-rr-add" type="button" onclick="startNewResume()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div>${hasContent ? 'New resume' : 'Start building'}</div>
+        </button>
       </div>
     </div>`;
 }

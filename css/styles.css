@@ -1617,6 +1617,92 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .dash-hero, .dash-sub-card { flex-direction: column; text-align: center; align-items: center; }
 }
 
+/* ===== Resume Builder dashboard (Teal-style home) =====
+   Four action tiles above a card for the user's current resume.
+   .rb- prefix keeps it isolated from the old .dash- styles above. */
+.rb-page { padding: 4px 2px 8px; }
+.rb-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 26px; }
+.rb-title { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+.rb-sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
+.rb-head-right { display: inline-flex; align-items: center; gap: 8px; }
+.rb-pill-ok { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; background: var(--bg-1); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.rb-pill-ok .rb-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px rgba(34,197,94,.5); }
+
+/* Action tiles: four big cards for the primary jobs on this screen.
+   auto-fit so they wrap to 2x2 inside the narrow focus-mode form column
+   (~440px), stay as a 4-wide row at full editor width. */
+.rb-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 38px; }
+.rb-action {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg, 20px);
+  padding: 24px 20px 22px; cursor: pointer; text-align: left; text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  transition: transform .18s var(--ease, ease), background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  font: inherit; min-height: 162px; position: relative;
+}
+.rb-action:hover { transform: translateY(-3px); background: var(--bg-2); border-color: rgba(255,255,255,.14); box-shadow: 0 20px 60px -24px rgba(0,0,0,.6); }
+.rb-ic {
+  width: 50px; height: 50px; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.rb-ic svg { width: 22px; height: 22px; }
+.rb-ic-violet { background: linear-gradient(140deg, rgba(109,77,252,.28), rgba(109,77,252,.08)); color: #c2b5ff; }
+.rb-ic-blue   { background: linear-gradient(140deg, rgba(56,189,248,.28),  rgba(56,189,248,.06)); color: #93dbff; }
+.rb-ic-pink   { background: linear-gradient(140deg, rgba(236,72,153,.28),  rgba(236,72,153,.06)); color: #fbb6d9; }
+.rb-ic-amber  { background: linear-gradient(140deg, rgba(245,158,11,.28),  rgba(245,158,11,.06)); color: #fcd38a; }
+.rb-a-title { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.rb-a-desc { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin-top: -6px; }
+
+/* Recent-resumes header */
+.rb-rr-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.rb-rr-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 10px; }
+.rb-count { font-size: 11.5px; color: var(--muted); font-weight: 500; padding: 3px 9px; background: var(--bg-2); border-radius: 999px; }
+
+/* Resume cards grid */
+.rb-rr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.rb-rr-card {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md, 14px);
+  padding: 18px 18px 16px; cursor: pointer; text-align: left; color: inherit; font: inherit;
+  position: relative; overflow: hidden;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  min-height: 128px;
+}
+.rb-rr-card:hover { transform: translateY(-2px); background: var(--bg-2); border-color: rgba(255,255,255,.14); box-shadow: 0 16px 48px -24px rgba(0,0,0,.6); }
+.rb-rr-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+.rb-rr-card-title { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 54px; /* leave room for score pill */ }
+.rb-card-role { color: var(--muted); font-weight: 500; }
+.rb-rr-row { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+.rb-rr-row svg { width: 13px; height: 13px; flex-shrink: 0; }
+.rb-rr-row.rb-rr-link { color: #c2b5ff; font-weight: 500; cursor: pointer; }
+.rb-rr-row.rb-rr-link:hover { color: #d6cdff; }
+
+/* Health score pill in the card's top-right corner */
+.rb-rr-score {
+  position: absolute; top: 16px; right: 16px;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: -.01em;
+  background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.22);
+}
+.rb-rr-score-warn { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.22); }
+.rb-rr-score-danger { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.22); }
+.rb-rr-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* "+ New resume" dashed-border tile that slots into the same grid */
+.rb-rr-card.rb-rr-add {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; border-style: dashed; color: var(--muted); background: transparent;
+}
+.rb-rr-card.rb-rr-add:hover { background: var(--bg-1); color: #c2b5ff; border-color: var(--accent); }
+.rb-rr-card.rb-rr-add svg { width: 22px; height: 22px; }
+
+@media (max-width: 900px) {
+  .rb-actions { grid-template-columns: repeat(2, 1fr); }
+  .rb-title { font-size: 22px; }
+}
+@media (max-width: 560px) {
+  .rb-actions { grid-template-columns: 1fr; }
+}
+
 /* ===== Editor mobile bottom nav + drawers (styles were missing) =====
    The editor uses its own classes (.mobile-nav, .mobile-open, #sidebar-overlay)
    which had no CSS, so the bar rendered raw and showed on every screen. These

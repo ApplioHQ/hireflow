@@ -4626,7 +4626,7 @@ function openModal(id) {
 function _updateImportHint(){
   const el = document.getElementById('import-hint');
   if (!el) return;
-  el.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> <strong style="color:var(--accent);">Free for everyone</strong>import as many resumes as you like.`;
+  el.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> <strong style="color:var(--accent);">Free for everyone.</strong> Import as many resumes as you like.`;
 }
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 

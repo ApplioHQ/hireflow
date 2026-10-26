@@ -19,6 +19,10 @@
   .admin-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -.5px; display: flex; align-items: center; gap: 10px; }
   .admin-head .admin-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
   .admin-head-actions { display: flex; gap: 10px; align-items: center; }
+  #refresh-btn .refresh-ico { display: inline-block; transform-origin: 50% 50%; }
+  #refresh-btn .refresh-ico.spin { animation: refreshSpin .9s linear infinite; }
+  #refresh-btn.is-refreshing { opacity: .75; cursor: wait; }
+  @keyframes refreshSpin { to { transform: rotate(360deg); } }
   .role-banner {
     padding: 9px 14px; border-radius: 10px; font-size: 12px; margin-bottom: 16px;
     background: linear-gradient(135deg, rgba(109,77,252,.14), rgba(139,92,246,.12));
@@ -214,7 +218,7 @@
     </div>
     <div class="admin-head-actions">
       <span id="analytics-updated" style="font-size:11px; color:var(--muted);"></span>
-      <button class="btn btn-secondary btn-sm" onclick="refresh()">↻ Refresh</button>
+      <button class="btn btn-secondary btn-sm" id="refresh-btn" onclick="refresh()"><span class="refresh-ico" aria-hidden="true">↻</span> <span class="refresh-label">Refresh</span></button>
     </div>
   </div>
 
@@ -531,18 +535,41 @@ function setupNav() {
   bands.forEach(function (b) { io.observe(b); });
 }
 
+var _refreshing = false;
 async function refresh() {
-  try {
-    var results = await Promise.all([apiGet('/admin/users'), apiGet('/status')]);
-    ALL_USERS = results[0].users || [];
+  if (_refreshing) return;
+  _refreshing = true;
+  var btn = document.getElementById('refresh-btn');
+  var label = btn ? btn.querySelector('.refresh-label') : null;
+  var ico = btn ? btn.querySelector('.refresh-ico') : null;
+  var prev = label ? label.textContent : null;
+  if (btn) { btn.disabled = true; btn.classList.add('is-refreshing'); }
+  if (label) label.textContent = 'Refreshing…';
+  if (ico) ico.classList.add('spin');
+
+  // Run every panel in parallel so one slow / failing endpoint can't block the others,
+  // and so we know when ALL of them have finished (success or failure) before stamping
+  // the "Updated …" label + re-enabling the button.
+  var usersAndStatus = Promise.all([apiGet('/admin/users'), apiGet('/status')]).then(function (r) {
+    ALL_USERS = r[0].users || [];
     renderUsers();
-    renderStatus(results[1]);
-  } catch (e) {
-    toast('Failed to load: ' + e.message, { type: 'error' });
+    renderStatus(r[1]);
+  });
+  var results = await Promise.allSettled([usersAndStatus, loadAnalytics(), loadFeedback(), loadExcludedIps()]);
+
+  var failed = results.filter(function (r) { return r.status === 'rejected'; });
+  var upd = document.getElementById('analytics-updated');
+  if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  if (btn) { btn.disabled = false; btn.classList.remove('is-refreshing'); }
+  if (label) label.textContent = prev || 'Refresh';
+  if (ico) ico.classList.remove('spin');
+  if (failed.length) {
+    toast(failed.length + ' panel' + (failed.length > 1 ? 's' : '') + ' failed to refresh', { type: 'error' });
+    try { console.warn('Refresh errors:', failed.map(function (r) { return r.reason && r.reason.message || r.reason; })); } catch (e) {}
+  } else {
+    toast('Refreshed', { type: 'success' });
   }
-  loadAnalytics();
-  loadFeedback();
-  loadExcludedIps();
+  _refreshing = false;
 }
 
 // ─────────────── Hero cards + charts ───────────────

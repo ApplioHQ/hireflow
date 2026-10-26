@@ -2623,8 +2623,8 @@ function _bestFlowRoot(preview) {
 }
 
 let PAGE_W = 816;          // page width (Letter 816 / A4 794 at 96dpi); set by _syncPaperDims
-const SHEET_GAP = 24;      // gray gap between page sheets (true px)
-const CANVAS_PAD = 40;     // gray canvas margin around the page column (true px)
+const SHEET_GAP = 24;      // gap between page sheets (true px)
+const CANVAS_PAD = 0;      // canvas margin around the page column — 0 so the page fills the preview edge-to-edge (true px)
 let CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins; set by _syncPaperDims
 const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
@@ -2665,14 +2665,15 @@ function _paginate(doc) {
   doc._lastRatio = (body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
 
   // --- Wrap the resume (everything except the <style> tag) into a centered 816px
-  // page column, and turn the body into a gray canvas around it. This gives the
-  // pages gray margins on all four sides + an all-around shadow, like Google Docs. ---
+  // page column. The body is transparent so the page sits directly on the preview
+  // panel (no gray desk), filling the preview edge-to-edge. The .preview-mini
+  // container supplies the paper color + shadow. ---
   const col = doc.createElement('div');
   col.className = 'hf-doc';
   col.style.cssText = 'position:relative; width:' + PAGE_W + 'px; margin:0 auto;';
   _contentEls(body).forEach(el => col.appendChild(el));
   body.appendChild(col);
-  body.style.background = '#e9eaef';
+  body.style.background = 'transparent';
   body.style.width = CANVAS_W + 'px';
   body.style.padding = CANVAS_PAD + 'px 0';
   body.style.margin = '0';

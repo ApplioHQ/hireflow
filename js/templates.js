@@ -680,7 +680,7 @@ function tHarvard(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
   return `
     <style>
-      .t-harvard { font-family: Georgia, "Times New Roman", serif; color:#111; padding: calc(6% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height:100%; }
+      .t-harvard { font-family: var(--app-font, Georgia, "Times New Roman", serif); color:#111; padding: calc(6% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height:100%; }
       .t-harvard .h-name { text-align:center; font-size:210%; font-weight:700; letter-spacing:.01em; }
       .t-harvard .h-contact { text-align:center; font-size:82%; color:#333; margin-top:4px; }
       .t-harvard .h-contact span:not(:last-child)::after { content:"  \\2022  "; color:#888; }
@@ -707,7 +707,7 @@ function tStanford(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-stanford { font-family: "Helvetica Neue", Arial, var(--app-font), sans-serif; color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); height:100%; }
+      .t-stanford { font-family: var(--app-font, "Helvetica Neue", Arial, sans-serif); color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); height:100%; }
       .t-stanford .s-name { font-size:230%; font-weight:800; letter-spacing:-.02em; line-height:1; }
       .t-stanford .s-contact { font-size:81%; color:#555; margin-top:9px; display:flex; flex-wrap:wrap; gap:2.5%; }
       .t-stanford h2 { font-size:79%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.18em; color:#111; margin: calc(5.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
@@ -1085,7 +1085,7 @@ function tWharton(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-wharton { font-family: "Times New Roman", Times, serif; color:#111; height:100%;
+      .t-wharton { font-family: var(--app-font, "Times New Roman", Times, serif); color:#111; height:100%;
         padding: calc(5.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.34; }
       .t-wharton .w-name { text-align:center; font-size:200%; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
       .t-wharton .w-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; padding-bottom:calc(2% * var(--app-space,1)); border-bottom:1.2px solid #111; }
@@ -1117,7 +1117,7 @@ function tMit(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
   return `
     <style>
-      .t-mit { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color:#111; height:100%;
+      .t-mit { font-family: var(--app-font, "Helvetica Neue", Helvetica, Arial, sans-serif); color:#111; height:100%;
         padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.36; }
       .t-mit .m-head { border-bottom: 3px solid ${c}; padding-bottom: calc(2% * var(--app-space,1)); margin-bottom: calc(3% * var(--app-space,1)); }
       .t-mit .m-name { font-size: 215%; font-weight:800; letter-spacing:-.01em; }
@@ -1153,7 +1153,7 @@ function tPlain(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-plain { font-family: "Times New Roman", Times, Georgia, serif; color:#111; height:100%;
+      .t-plain { font-family: var(--app-font, "Times New Roman", Times, Georgia, serif); color:#111; height:100%;
         padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.38; }
       .t-plain .p-name { font-size:210%; font-weight:700; text-align:center; letter-spacing:.01em; }
       .t-plain .p-contact { text-align:center; font-size:85%; color:#333; margin-top:4px; }
@@ -1187,7 +1187,7 @@ function tGoogledocs(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-gdocs { font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; color:#202124; height:100%;
+      .t-gdocs { font-family: var(--app-font, Arial, "Helvetica Neue", Helvetica, sans-serif); color:#202124; height:100%;
         padding: calc(6% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.4; }
       .t-gdocs .g-name { font-size: 200%; font-weight:700; color:#202124; letter-spacing:-.01em; }
       .t-gdocs .g-title { font-size:105%; color:${c}; margin-top:2px; font-weight:500; }

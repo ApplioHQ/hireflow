@@ -903,6 +903,21 @@ const TEMPLATE_THUMBS = {
     <rect x="52" y="79" width="16" height="3.5" rx="1.5" fill="#f3e8ea"/>
     <rect x="8" y="85" width="20" height="3.5" rx="1.5" fill="#f3e8ea"/><rect x="30" y="85" width="24" height="3.5" rx="1.5" fill="#f3e8ea"/>
   </svg>`,
+  googledocs: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="10" width="42" height="6" rx="1" fill="#202124"/>
+    <rect x="8" y="19" width="30" height="1.8" rx=".5" fill="#1a73e8"/>
+    <rect x="8" y="25" width="52" height="1.4" rx=".5" fill="#5f6368"/>
+    <rect x="8" y="34" width="20" height="1.8" rx=".5" fill="#1a73e8"/><rect x="8" y="37.4" width="69" height=".7" fill="#dadce0"/>
+    <rect x="8" y="42" width="36" height="1.6" rx=".5" fill="#202124"/><rect x="62" y="42" width="15" height="1.4" rx=".5" fill="#9aa0a6"/>
+    <rect x="8" y="46" width="30" height="1.3" rx=".5" fill="#5f6368"/>
+    <rect x="8" y="50" width="62" height="1.3" rx=".5" fill="#dadce0"/><rect x="8" y="54" width="56" height="1.3" rx=".5" fill="#dadce0"/>
+    <rect x="8" y="63" width="20" height="1.8" rx=".5" fill="#1a73e8"/><rect x="8" y="66.4" width="69" height=".7" fill="#dadce0"/>
+    <rect x="8" y="71" width="36" height="1.6" rx=".5" fill="#202124"/><rect x="62" y="71" width="15" height="1.4" rx=".5" fill="#9aa0a6"/>
+    <rect x="8" y="75" width="60" height="1.3" rx=".5" fill="#dadce0"/>
+    <rect x="8" y="84" width="20" height="1.8" rx=".5" fill="#1a73e8"/><rect x="8" y="87.4" width="69" height=".7" fill="#dadce0"/>
+    <rect x="8" y="92" width="54" height="1.3" rx=".5" fill="#dadce0"/>
+  </svg>`,
 };
 
 // ============ Personal ============

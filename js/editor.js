@@ -128,8 +128,10 @@ function hydrate() {
     el.innerHTML = `${ICON(info.icon)}<span>${info.label}</span>${indicator}`;
     el.title = info.label;   // native tooltip for the slim icon rail
   });
+  const _isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const _mod = _isMac ? '⌘' : 'Ctrl+';
   document.getElementById('btn-import').innerHTML = `${ICON('upload')} <span>Import</span>`;
-  document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span>`;
+  document.getElementById('btn-save').innerHTML = `${ICON('check')} <span>Save</span><span class="kbd-hint">${_mod}S</span>`;
   document.getElementById('btn-export').innerHTML = `${ICON('arrowRight')} <span>Preview &amp; Export</span>`;
   document.getElementById('copilot-label').innerHTML = `${ICON('sparkle')} <span>Smart writing copilot</span>`;
   document.getElementById('rp-export').innerHTML = `${ICON('download')} <span>Export PDF</span>`;
@@ -274,23 +276,31 @@ function renderMain() {
   const renderer = SECTIONS[currentSection]
     || (isCustomSection(currentSection) ? () => renderCustomSection(currentSection) : null)
     || (() => '<p>Section not built yet.</p>');
-  mainEl.innerHTML = renderer();
-  _renderFirstActionBanner();
-  // Trigger section fade-in
-  const card = mainEl.firstElementChild;
-  if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
-  // Close mobile drawers when navigating
-  _closeMobileDrawers();
-  bindAutoSave();
-  _wireAutoGrow();
-  setTimeout(_wireAutoGrow, 60);   // re-fit after fonts/layout settle
-  renderPreview();
-  // Bind tag input if on skills section
-  if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
-  // Wire drag-to-reorder
-  setTimeout(_bindDragReorder, 0);
-  setTimeout(_bindSectionDrag, 0);
-  _refreshCompletion();
+
+  const _applyContent = () => {
+    mainEl.innerHTML = renderer();
+    _renderFirstActionBanner();
+    const card = mainEl.firstElementChild;
+    if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
+    _closeMobileDrawers();
+    bindAutoSave();
+    _wireAutoGrow();
+    setTimeout(_wireAutoGrow, 60);
+    renderPreview();
+    if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
+    setTimeout(_bindDragReorder, 0);
+    setTimeout(_bindSectionDrag, 0);
+    _refreshCompletion();
+  };
+
+  // Use View Transitions API for a polished cross-fade when switching sections.
+  if (document.startViewTransition && mainEl.dataset.vtReady) {
+    mainEl.style.viewTransitionName = 'main-content';
+    document.startViewTransition(() => _applyContent());
+  } else {
+    mainEl.dataset.vtReady = '1';
+    _applyContent();
+  }
 }
 
 // Guided first-action banner (replaces the old tooltip tour). A persistent, non-
@@ -2128,14 +2138,17 @@ function _hasAnyResumeContent() {
 // Reset the current resume to the default shape, with a confirm when the
 // user has existing content so one accidental click can't wipe their work.
 function startNewResume() {
-  if (_hasAnyResumeContent()) {
-    const ok = confirm("Start a new resume? Your current resume will be cleared from this browser. If you've exported or saved to your account, those copies are kept.");
-    if (!ok) return;
-  }
+  const prev = _hasAnyResumeContent() ? structuredClone(resume) : null;
   resume = structuredClone(DEFAULT_RESUME);
   save();
   goSection('template');
-  if (typeof toast === 'function') toast('New resume started', { type: 'success' });
+  if (prev && typeof toast === 'function') {
+    toast('New resume started', { type: 'success', duration: 8000, action: { label: 'Undo', onClick: () => {
+      resume = prev; save(); renderMain(); toast('Resume restored', { type: 'success' });
+    } } });
+  } else if (typeof toast === 'function') {
+    toast('New resume started', { type: 'success' });
+  }
 }
 window.startNewResume = startNewResume;
 
@@ -3209,8 +3222,9 @@ function _setSaveStatus(msg, color) {
   if (!el) return;
   el.textContent = msg;
   el.style.color = color || 'var(--muted)';
+  el.classList.toggle('save-saving', msg === 'Saving…');
   clearTimeout(_saveStatusTimer);
-  if (color) _saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 4000);
+  if (color) _saveStatusTimer = setTimeout(() => { el.textContent = ''; el.classList.remove('save-saving'); }, 4000);
 }
 
 let _cloudTimer = null;

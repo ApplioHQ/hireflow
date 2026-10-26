@@ -322,8 +322,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   margin-left: 0;
   transition: max-width .45s cubic-bezier(.2,.8,.2,1), opacity .3s ease, margin-left .4s cubic-bezier(.2,.8,.2,1);
 }
-.exp-act:hover > span:not(.ico),
-.exp-act:focus-visible > span:not(.ico) { max-width: 160px; opacity: 1; margin-left: 6px; }
+.exp-act > span.kbd-hint { max-width: none !important; opacity: 1 !important; margin-left: 4px; overflow: visible; }
+.exp-act:hover > span:not(.ico):not(.kbd-hint),
+.exp-act:focus-visible > span:not(.ico):not(.kbd-hint) { max-width: 160px; opacity: 1; margin-left: 6px; }
 @media (prefers-reduced-motion: reduce) {
   .exp-act, .exp-act > span:not(.ico) { transition: none; }
 }
@@ -1955,3 +1956,41 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   .focus-mode #main .grid-2, .focus-mode #main .grid-3 { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) { .focus-rail { display: none; } }
+
+/* ===== UX polish: skeleton loader, shortcut hints, view transitions ===== */
+
+/* Initial-load skeleton: placeholder shapes shown in #main before JS hydrates.
+   Replaced by renderMain() on DOMContentLoaded. */
+.sk-page { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+.sk-bar { border-radius: 6px; }
+.sk-bar.sk-title { width: 40%; height: 22px; }
+.sk-bar.sk-sub   { width: 60%; height: 14px; }
+.sk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; }
+.sk-card { height: 96px; border-radius: var(--r-md); }
+.sk-row  { height: 64px; border-radius: var(--r-md); }
+
+/* Keyboard shortcut hints (pill badges on buttons) */
+.kbd-hint {
+  display: inline-flex; align-items: center; gap: 2px;
+  font-size: 10px; font-weight: 600; letter-spacing: .02em;
+  color: var(--muted); background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 1px 5px; margin-left: 6px;
+  line-height: 1.4; pointer-events: none; vertical-align: middle;
+}
+
+/* View Transitions API: cross-fade between editor sections */
+::view-transition-old(main-content) {
+  animation: vt-fade-out .14s ease both;
+}
+::view-transition-new(main-content) {
+  animation: vt-fade-in .18s ease both;
+}
+@keyframes vt-fade-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes vt-fade-in  { from { opacity: 0; transform: translateY(8px); } }
+
+/* Optimistic save indicator pulse */
+@keyframes save-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+.save-saving { animation: save-pulse .8s ease infinite; }

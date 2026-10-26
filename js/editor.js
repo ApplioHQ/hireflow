@@ -1984,9 +1984,11 @@ function _aiHead(tone, icon, title, sub, runFn, runLabel, runClass) {
     + '<button class="btn ' + runClass + ' btn-sm" onclick="' + runFn + '" style="white-space:nowrap;">'
     + ICON('sparkle', 'ico ico-sm') + ' ' + runLabel + '</button></div></div>';
 }
-// One loading affordance: the Applio orb, rendered inline into a tool's result host.
+// One loading affordance: the dotted globe, rendered inline into a tool's result host.
 function _aiToolLoading(label) {
-  return '<div class="ai-tool-loading"><div class="ai-tool-orb"></div><span>' + esc(label) + '</span></div>';
+  return '<div class="ai-tool-loading"><div class="ai-globe"><div class="ai-globe-inner">' +
+    '<div class="ai-globe-ring"></div><div class="ai-globe-ring"></div><div class="ai-globe-ring"></div>' +
+    '<div class="ai-globe-eq"></div></div></div><span>' + esc(label) + '</span></div>';
 }
 
 function renderTailor() {

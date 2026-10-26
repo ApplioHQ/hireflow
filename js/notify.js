@@ -390,17 +390,14 @@ window.aiLoading = function (message) {
       @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
     </style>`;
 
-  // Primary visual: the animated dot-loader (7x7 grid "snake"). Reduced motion
-  // shows a single static frame instead of animating.
+  // Primary visual: the dotted globe (3D rotating sphere).
+  const globe = document.createElement('div');
+  globe.className = 'ai-globe ai-globe-lg';
+  globe.innerHTML = '<div class="ai-globe-inner">' +
+    '<div class="ai-globe-ring"></div><div class="ai-globe-ring"></div><div class="ai-globe-ring"></div>' +
+    '<div class="ai-globe-eq"></div></div>';
+  el.appendChild(globe);
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const dots = _aiDotLoader(110);
-  el.appendChild(dots.el);
-  if (reduce) {
-    dots.staticFrame();
-  } else {
-    const dotTimer = dots.start();
-    el._aiTimers.push(dotTimer);
-  }
 
   const msg = document.createElement('div');
   msg.id = 'ai-loading-msg';

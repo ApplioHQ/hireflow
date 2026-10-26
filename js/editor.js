@@ -2342,7 +2342,6 @@ function renderDashboard() {
           <div class="rb-title">${greeting}</div>
           <div class="rb-sub">${sub}</div>
         </div>
-        <div class="rb-head-right"><span class="rb-pill-ok"><span class="rb-dot"></span> Every feature free · forever</span></div>
       </div>
 
       <div class="rb-actions">
@@ -4698,7 +4697,6 @@ function _anonBarInject() {
   bar.className = 'anon-bar';
   bar.innerHTML =
     '<div class="anon-bar-in">' +
-      '<span class="anon-bar-dot"></span>' +
       '<span class="anon-bar-msg"><strong>Looking good.</strong> Sign up free to save it, unlock all templates &amp; customization, and download a PDF.</span>' +
       '<a href="login?mode=signup" class="btn btn-primary btn-sm">Sign up free &rarr;</a>' +
       '<button class="anon-bar-x" aria-label="Dismiss" onclick="_dismissAnonBar()">&times;</button>' +

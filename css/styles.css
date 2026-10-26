@@ -1648,11 +1648,11 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
    .rb- prefix keeps it isolated from the old .dash- styles above. */
 .rb-page { padding: 4px 2px 8px; }
 .rb-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 26px; }
-.rb-title { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+.rb-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
 .rb-sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
-.rb-head-right { display: inline-flex; align-items: center; gap: 8px; }
-.rb-pill-ok { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; background: var(--bg-1); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--muted); white-space: nowrap; }
-.rb-pill-ok .rb-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px rgba(34,197,94,.5); }
+.rb-a-title { font-family: var(--font-display); }
+.rb-rr-title { font-family: var(--font-display); }
+.rb-rr-card-title { font-family: var(--font-display); }
 
 /* Action tiles: four big cards for the primary jobs on this screen.
    auto-fit so they wrap to 2x2 inside the narrow focus-mode form column

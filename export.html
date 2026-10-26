@@ -805,8 +805,8 @@ function updatePills() {
 }
 
 (async () => {
-  document.getElementById('back-link').innerHTML = `${ICON('arrowLeft')} <span>Back to Editor</span>`;
-  document.getElementById('es-title').innerHTML = `${ICON('settings')} <span style="margin-left:6px;">Export Settings</span>`;
+  const _esTitle = document.getElementById('es-title');
+  if (_esTitle) _esTitle.innerHTML = `${ICON('settings')} <span style="margin-left:6px;">Export Settings</span>`;
   selectFormat(SELECTED_FORMAT);
   const fitBox = document.getElementById('fit-one-page');
   if (fitBox) fitBox.checked = !!(resume.customize && resume.customize.fitOnePage);

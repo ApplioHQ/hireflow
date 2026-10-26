@@ -1721,9 +1721,43 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .rb-rr-card.rb-rr-add:hover { background: var(--bg-1); color: #c2b5ff; border-color: var(--accent); }
 .rb-rr-card.rb-rr-add svg { width: 22px; height: 22px; }
 
+/* Active resume card outline */
+.rb-rr-card.rb-rr-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 24px -8px rgba(109,77,252,.18); }
+
+/* Three-dot menu button on resume cards */
+.rb-rr-menu-btn {
+  background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px;
+  border-radius: var(--r-sm); opacity: 0; transition: opacity .15s, background .15s;
+}
+.rb-rr-card:hover .rb-rr-menu-btn { opacity: 1; }
+.rb-rr-menu-btn:hover { background: var(--bg-2); color: var(--fg); }
+
+/* Dropdown menu on resume cards */
+.rb-rr-menu {
+  position: absolute; right: 10px; top: 44px; z-index: 20;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 4px; min-width: 150px; box-shadow: 0 12px 40px -12px rgba(0,0,0,.6);
+}
+.rb-rr-menu button {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px;
+  background: none; border: none; cursor: pointer; color: var(--fg); font-size: 13px;
+  border-radius: var(--r-sm); text-align: left; white-space: nowrap;
+}
+.rb-rr-menu button:hover { background: var(--bg-1); }
+.rb-rr-menu button svg { width: 14px; height: 14px; flex-shrink: 0; }
+.rb-rr-menu button.rb-rr-menu-danger { color: var(--danger); }
+.rb-rr-menu button.rb-rr-menu-danger:hover { background: rgba(239,68,68,.1); }
+
+/* Card needs relative for the absolute menu */
+.rb-rr-card { position: relative; }
+
+/* Meta row wrapper */
+.rb-rr-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: auto; }
+
 @media (max-width: 900px) {
   .rb-actions { grid-template-columns: repeat(2, 1fr); }
   .rb-title { font-size: 22px; }
+  .rb-rr-menu-btn { opacity: 1; }
 }
 @media (max-width: 560px) {
   .rb-actions { grid-template-columns: 1fr; }

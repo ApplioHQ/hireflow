@@ -55,11 +55,138 @@ function _normalizeResume(raw) {
 const HAD_LOCAL_RESUME = !!localStorage.getItem('hf_resume');
 let resume = (function () {
   try { return _normalizeResume(JSON.parse(localStorage.getItem('hf_resume') || 'null')); }
-  catch { return structuredClone(DEFAULT_RESUME); }  // corrupt storage must not white-screen the editor
+  catch { return structuredClone(DEFAULT_RESUME); }
 })();
 let currentSection = 'dashboard';
 // Cache of the last AI results (read by the health-score badge, never re-fetched).
 let AI_RESULTS = (function(){ try { return JSON.parse(localStorage.getItem('hf_ai_results') || '{}'); } catch { return {}; } })();
+
+// ---- Multi-resume storage ----
+// Each entry: { id, name, resume, updatedAt }
+// The "active" resume is always `resume` (synced to hf_resume + cloud).
+// hf_resumes holds the saved list; hf_active_id tracks which one is loaded.
+let _allResumes = (function () {
+  try { return JSON.parse(localStorage.getItem('hf_resumes') || '[]'); } catch { return []; }
+})();
+let _activeResumeId = localStorage.getItem('hf_active_id') || null;
+
+function _genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function _resumeName(r) {
+  const name = (r.personal && r.personal.fullName || '').trim();
+  const role = ((r.experience || [])[0] || {}).title || '';
+  if (name && role) return name + ', ' + role;
+  if (name) return name;
+  if (role) return role;
+  return 'Untitled resume';
+}
+
+// Migrate: if user has content in hf_resume but no hf_resumes list, seed the list.
+if (_allResumes.length === 0 && _hasAnyResumeContent()) {
+  _activeResumeId = _genId();
+  _allResumes = [{ id: _activeResumeId, name: _resumeName(resume), resume: structuredClone(resume), updatedAt: resume.updatedAt || Date.now() }];
+  localStorage.setItem('hf_resumes', JSON.stringify(_allResumes));
+  localStorage.setItem('hf_active_id', _activeResumeId);
+}
+
+// Persist the saved-resumes list (debounced alongside save).
+function _persistResumes() {
+  localStorage.setItem('hf_resumes', JSON.stringify(_allResumes));
+  localStorage.setItem('hf_active_id', _activeResumeId || '');
+}
+
+// Sync the active resume back into the list entry.
+function _syncActiveToList() {
+  if (!_activeResumeId) return;
+  const idx = _allResumes.findIndex(r => r.id === _activeResumeId);
+  if (idx >= 0) {
+    _allResumes[idx].resume = structuredClone(resume);
+    _allResumes[idx].updatedAt = resume.updatedAt || Date.now();
+    const autoName = _resumeName(resume);
+    _allResumes[idx].name = _allResumes[idx].customName || (autoName !== 'Untitled resume' ? autoName : _allResumes[idx].name || autoName);
+  }
+  _persistResumes();
+}
+
+// Load a resume from the list into the active slot.
+function _loadResume(id) {
+  const entry = _allResumes.find(r => r.id === id);
+  if (!entry) return;
+  _activeResumeId = id;
+  resume = _normalizeResume(structuredClone(entry.resume));
+  localStorage.setItem('hf_resume', JSON.stringify(resume));
+  localStorage.setItem('hf_active_id', id);
+}
+
+// Delete a resume from the list.
+function deleteResume(id) {
+  const idx = _allResumes.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const removed = _allResumes.splice(idx, 1)[0];
+  _persistResumes();
+  if (_activeResumeId === id) {
+    if (_allResumes.length) {
+      _loadResume(_allResumes[0].id);
+    } else {
+      _activeResumeId = null;
+      resume = structuredClone(DEFAULT_RESUME);
+      localStorage.setItem('hf_resume', JSON.stringify(resume));
+      localStorage.removeItem('hf_active_id');
+    }
+  }
+  goSection('dashboard');
+  if (typeof toast === 'function') {
+    toast('Resume deleted', { type: 'success', duration: 6000, action: { label: 'Undo', onClick: () => {
+      _allResumes.splice(idx, 0, removed);
+      _persistResumes();
+      if (!_activeResumeId) { _loadResume(removed.id); }
+      goSection('dashboard');
+      toast('Resume restored', { type: 'success' });
+    }}});
+  }
+}
+window.deleteResume = deleteResume;
+
+// Rename a resume.
+function renameResume(id) {
+  const entry = _allResumes.find(r => r.id === id);
+  if (!entry) return;
+  const current = entry.customName || entry.name || '';
+  const name = prompt('Rename resume:', current);
+  if (name === null || !name.trim()) return;
+  entry.customName = name.trim();
+  entry.name = name.trim();
+  _persistResumes();
+  goSection('dashboard');
+}
+window.renameResume = renameResume;
+
+// Duplicate a resume.
+function duplicateResume(id) {
+  const entry = _allResumes.find(r => r.id === id);
+  if (!entry) return;
+  const newId = _genId();
+  const dup = {
+    id: newId,
+    name: (entry.name || 'Untitled') + ' (copy)',
+    customName: (entry.customName || entry.name || 'Untitled') + ' (copy)',
+    resume: structuredClone(entry.resume),
+    updatedAt: Date.now()
+  };
+  _allResumes.push(dup);
+  _persistResumes();
+  goSection('dashboard');
+  if (typeof toast === 'function') toast('Resume duplicated', { type: 'success' });
+}
+window.duplicateResume = duplicateResume;
+
+// Open a resume from the dashboard.
+function openResume(id) {
+  if (_activeResumeId && _activeResumeId !== id) _syncActiveToList();
+  _loadResume(id);
+  goSection('personal');
+}
+window.openResume = openResume;
 
 // ---- Section label/icon map ----
 const SECTION_INFO = {
@@ -1797,7 +1924,7 @@ function _applyTailorBullet(btn) {
     _markBulletApplied(btn.closest('.td-diff'));
     toast('Bullet applied to your resume', { type: 'success' });
   } else {
-    toast("Couldn't place that rewrite automatically — open the section to edit it directly.", { type: 'warn' });
+    toast("Couldn't place that rewrite automatically. Open the section to edit it directly.", { type: 'warn' });
   }
 }
 function _applyAllTailorBullets(btn) {
@@ -1811,7 +1938,7 @@ function _applyAllTailorBullets(btn) {
     }
   });
   if (done) { save(); renderPreview(); _refreshCompletion(); toast('Applied ' + done + ' rewrite' + (done > 1 ? 's' : '') + ' to your resume', { type: 'success' }); }
-  else toast('Nothing to apply — these rewrites are already in, or need a manual edit.', { type: 'info' });
+  else toast('Nothing to apply. These rewrites are already in, or need a manual edit.', { type: 'info' });
 }
 
 function _renderTailorResult(text) {
@@ -2141,41 +2268,72 @@ function _hasAnyResumeContent() {
 // Reset the current resume to the default shape, with a confirm when the
 // user has existing content so one accidental click can't wipe their work.
 function startNewResume() {
-  const prev = _hasAnyResumeContent() ? structuredClone(resume) : null;
+  // Save the current resume to the list before creating a new one.
+  if (_hasAnyResumeContent()) {
+    if (_activeResumeId) {
+      _syncActiveToList();
+    } else {
+      const id = _genId();
+      _allResumes.push({ id, name: _resumeName(resume), resume: structuredClone(resume), updatedAt: resume.updatedAt || Date.now() });
+    }
+  }
+  // Create a fresh resume and assign it a new slot.
+  _activeResumeId = _genId();
   resume = structuredClone(DEFAULT_RESUME);
   save();
+  _allResumes.push({ id: _activeResumeId, name: 'New resume', resume: structuredClone(resume), updatedAt: Date.now() });
+  _persistResumes();
   goSection('template');
-  if (prev && typeof toast === 'function') {
-    toast('New resume started', { type: 'success', duration: 8000, action: { label: 'Undo', onClick: () => {
-      resume = prev; save(); renderMain(); toast('Resume restored', { type: 'success' });
-    } } });
-  } else if (typeof toast === 'function') {
-    toast('New resume started', { type: 'success' });
-  }
+  if (typeof toast === 'function') toast('New resume started', { type: 'success' });
 }
 window.startNewResume = startNewResume;
 
 function renderDashboard() {
   const p = resume.personal || {};
-  const h = (typeof _resumeHealth === 'function') ? _resumeHealth() : { score: 0, issues: [] };
-  const score = Math.max(0, Math.min(100, h.score || 0));
-  const scoreTone = score >= 75 ? 'ok' : score >= 50 ? 'warn' : 'danger';
-  const hasJd = !!(resume.tailor && (resume.tailor.jobDescription || '').trim());
   const hasContent = _hasAnyResumeContent();
 
   const titleName = (p.fullName || '').trim();
-  // Add a role hint from the current experience if we have one — matches how
-  // real users name files ("Alex Carter — Software Engineer").
-  const firstRole = ((resume.experience || [])[0] || {}).title || '';
-  const resumeTitle = titleName
-    ? (firstRole ? esc(titleName) + ' <span class="rb-card-role">— ' + esc(firstRole) + '</span>' : esc(titleName))
-    : (hasContent ? 'Untitled resume' : 'Your first resume');
-  const edited = resume.updatedAt ? ('Edited ' + _timeAgo(resume.updatedAt)) : 'Not saved yet';
-
   const greeting = titleName ? ('Welcome back, ' + esc(titleName.split(/\s+/)[0]) + '.') : 'Welcome to Applio.';
-  const sub = hasContent
+  const sub = (_allResumes.length > 0 || hasContent)
     ? "Jump back into your resume, or start somewhere new."
-    : "Start fresh, drop in a job post, or pick a template — every feature is free.";
+    : "Start fresh, drop in a job post, or pick a template. Every feature is free.";
+
+  // Build resume cards from the saved list.
+  let cards = '';
+  for (const entry of _allResumes) {
+    const r = entry.resume || {};
+    const rp = r.personal || {};
+    const name = entry.customName || entry.name || _resumeName(r);
+    const role = ((r.experience || [])[0] || {}).title || '';
+    const titleHtml = esc(name) + (role && !name.includes(role) ? ' <span class="rb-card-role">' + esc(role) + '</span>' : '');
+    const edited = entry.updatedAt ? ('Edited ' + _timeAgo(entry.updatedAt)) : 'Not saved yet';
+    const isActive = entry.id === _activeResumeId;
+    const template = (r.template || 'modern');
+    const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
+
+    cards += `
+      <div class="rb-rr-card ${isActive ? 'rb-rr-active' : ''}" onclick="openResume('${entry.id}')">
+        <div class="rb-rr-card-top">
+          <div class="rb-rr-card-title">${titleHtml}</div>
+          <button class="rb-rr-menu-btn" type="button" onclick="event.stopPropagation(); _toggleResumeMenu('${entry.id}')" aria-label="Resume options">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+        <div class="rb-rr-meta">
+          <div class="rb-rr-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${esc(edited)}
+          </div>
+          ${hasJd ? '<div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); openResume(\'' + entry.id + '\'); setTimeout(()=>goSection(\'tailor\'),50);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job</div>' : ''}
+        </div>
+        <div class="rb-rr-menu" id="rb-menu-${entry.id}" style="display:none;">
+          <button onclick="event.stopPropagation(); openResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+          <button onclick="event.stopPropagation(); renameResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Rename</button>
+          <button onclick="event.stopPropagation(); duplicateResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate</button>
+          <button class="rb-rr-menu-danger" onclick="event.stopPropagation(); deleteResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
+        </div>
+      </div>`;
+  }
 
   return `
     <div class="rb-page">
@@ -2222,35 +2380,34 @@ function renderDashboard() {
       </div>
 
       <div class="rb-rr-head">
-        <div class="rb-rr-title">Your resume ${hasContent ? '<span class="rb-count">1</span>' : ''}</div>
+        <div class="rb-rr-title">Your resumes ${_allResumes.length ? '<span class="rb-count">' + _allResumes.length + '</span>' : ''}</div>
       </div>
 
       <div class="rb-rr-grid">
-        ${hasContent ? `
-          <div class="rb-rr-card" onclick="goSection('personal')">
-            <div class="rb-rr-score rb-rr-score-${scoreTone}"><span class="rb-rr-dot"></span>${score}</div>
-            <div class="rb-rr-card-top">
-              <div class="rb-rr-card-title">${resumeTitle}</div>
-            </div>
-            <div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); goSection('tailor');">
-              ${hasJd
-                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job'
-                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Match to a job'}
-            </div>
-            <div class="rb-rr-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ${esc(edited)}
-            </div>
-          </div>
-        ` : ''}
-
+        ${cards}
         <button class="rb-rr-card rb-rr-add" type="button" onclick="startNewResume()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <div>${hasContent ? 'New resume' : 'Start building'}</div>
+          <div>${_allResumes.length ? 'New resume' : 'Start building'}</div>
         </button>
       </div>
     </div>`;
 }
+
+// Toggle the three-dot menu on a resume card.
+function _toggleResumeMenu(id) {
+  const menu = document.getElementById('rb-menu-' + id);
+  if (!menu) return;
+  const showing = menu.style.display !== 'none';
+  // Close all menus first.
+  document.querySelectorAll('.rb-rr-menu').forEach(m => m.style.display = 'none');
+  if (!showing) {
+    menu.style.display = '';
+    // Close on outside click.
+    const close = (e) => { if (!menu.contains(e.target)) { menu.style.display = 'none'; document.removeEventListener('click', close, true); } };
+    setTimeout(() => document.addEventListener('click', close, true), 0);
+  }
+}
+window._toggleResumeMenu = _toggleResumeMenu;
 
 // Account status card. Applio is 100% free, so there's no subscription to
 // manage, just a confirmation that everything is unlocked.
@@ -3232,14 +3389,14 @@ function _setSaveStatus(msg, color) {
 
 let _cloudTimer = null;
 function save() {
-  resume.updatedAt = Date.now();   // last-write timestamp for cross-device reconciliation
+  resume.updatedAt = Date.now();
   localStorage.setItem('hf_resume', JSON.stringify(resume));
+  _syncActiveToList();
   _setSaveStatus('● Unsaved changes', 'var(--warning)');
-  // Debounced cloud autosave so work is never stranded on one device.
   clearTimeout(_cloudTimer);
   _cloudTimer = setTimeout(_cloudSaveNow, 1400);
-  if (IS_ANON) _refreshAnonBar();   // surface the signup nudge once there's real content
-  _scheduleAutoScore();             // fire the one-time "instant score" once there's a real resume, on a typing pause
+  if (IS_ANON) _refreshAnonBar();
+  _scheduleAutoScore();
 }
 async function _cloudSaveNow() {
   if (IS_ANON) { _setSaveStatus('Saved on this device · Sign up to save it forever', 'var(--muted)'); return; }

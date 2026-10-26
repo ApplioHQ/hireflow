@@ -217,7 +217,7 @@ function downloadsLeft() { return Infinity; }   // unlimited downloads, no water
 async function startCheckout(plan) {
   // Applio is completely free — there is nothing to purchase. This is a no-op
   // so no checkout can ever be initiated from the client.
-  if (window.toast) toast("Applio is completely free — every feature is already unlocked.", { type: 'info' });
+  if (window.toast) toast("Applio is completely free. Every feature is already unlocked.", { type: 'info' });
 }
 
 // Open Stripe Customer Portal directly (for the Manage Billing button)

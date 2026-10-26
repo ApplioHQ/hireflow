@@ -83,7 +83,7 @@
       score = h.score;
       sub = issues.length
         ? issues.length + ' fix' + (issues.length > 1 ? 'es' : '') + ' to raise it'
-        : 'Every check passes — ready to export';
+        : 'Every check passes. Ready to export';
       chips = issues.slice(0, 3).map(function (iss, i) {
         var lvl = iss.level === 'warn' ? 'warn' : 'info';
         return '<button class="cr-chip" data-qf="' + i + '">' +

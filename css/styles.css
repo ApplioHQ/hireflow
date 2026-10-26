@@ -1618,6 +1618,31 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
   .dash-hero, .dash-sub-card { flex-direction: column; text-align: center; align-items: center; }
 }
 
+/* ===== Dashboard mode =====
+   When the user is on the Resume Builder home (dashboard), hide the editing
+   sidebar items and the right panel so the dashboard fills the screen.
+   The sidebar shows only the Dashboard item + the app-rail nav icons. */
+.dashboard-mode { grid-template-columns: 76px 1fr !important; }
+.dashboard-mode .right-panel { display: none; }
+.dashboard-mode .sidebar { width: 76px; padding-top: 12px; }
+.dashboard-mode .sidebar .banner-gradient,
+.dashboard-mode .sidebar .sidebar-section,
+.dashboard-mode .sidebar .sidebar-progress,
+.dashboard-mode .sidebar #sidebar-add-section,
+.dashboard-mode .sidebar #custom-nav { display: none; }
+.dashboard-mode .sidebar .sidebar-item:not([data-section="dashboard"]) { display: none; }
+.dashboard-mode .sidebar .sidebar-item[data-section="dashboard"] {
+  justify-content: center; padding: 10px 0; border-left: none;
+}
+.dashboard-mode .sidebar .sidebar-item[data-section="dashboard"] > span:not([class]) { display: none; }
+.dashboard-mode .sidebar .sidebar-item[data-section="dashboard"] .s-check,
+.dashboard-mode .sidebar .sidebar-item[data-section="dashboard"] .s-dot { display: none; }
+.dashboard-mode .main-area { padding: 36px 48px; max-width: 960px; }
+/* Prevent the slim-sidebar hover-expand from showing hidden editing items. */
+.dashboard-mode.app-slim .sidebar:hover { width: 76px; box-shadow: none; }
+.dashboard-mode.app-slim .sidebar:hover .sidebar-section,
+.dashboard-mode.app-slim .sidebar:hover .sidebar-progress { max-height: 0; opacity: 0; }
+
 /* ===== Resume Builder dashboard (Teal-style home) =====
    Four action tiles above a card for the user's current resume.
    .rb- prefix keeps it isolated from the old .dash- styles above. */

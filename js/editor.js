@@ -57,7 +57,7 @@ let resume = (function () {
   try { return _normalizeResume(JSON.parse(localStorage.getItem('hf_resume') || 'null')); }
   catch { return structuredClone(DEFAULT_RESUME); }  // corrupt storage must not white-screen the editor
 })();
-let currentSection = 'template';
+let currentSection = 'dashboard';
 // Cache of the last AI results (read by the health-score badge, never re-fetched).
 let AI_RESULTS = (function(){ try { return JSON.parse(localStorage.getItem('hf_ai_results') || '{}'); } catch { return {}; } })();
 
@@ -280,6 +280,9 @@ function renderMain() {
   const _applyContent = () => {
     mainEl.innerHTML = renderer();
     _renderFirstActionBanner();
+    // Toggle dashboard mode: hide editing sidebar + right panel when on the home screen.
+    const shell = document.querySelector('.app-shell-inner');
+    if (shell) shell.classList.toggle('dashboard-mode', currentSection === 'dashboard');
     const card = mainEl.firstElementChild;
     if (card) { card.classList.remove('main-section-enter'); void card.offsetWidth; card.classList.add('main-section-enter'); }
     _closeMobileDrawers();

@@ -1,75 +1,51 @@
-# Applio
+# Applio — Free AI Resume Builder
+# https://appliohq.com
 
-> Applio is a free, AI-powered career copilot for job seekers and professionals. It builds ATS-optimized resumes that pass automated applicant-tracking filters, tailors them to any job, and then supports the whole career arc, landing the job, ramping in a new role, growing, and moving to the next one. All AI is grounded in the user's real experience and never fabricates facts, numbers, or skills.
+## What Applio Does
+Applio is a 100% free AI resume builder that helps job seekers build ATS-optimized resumes, tailor them to any job description, and get more interviews. Every feature is free — no credit card, no watermark, no paywall.
 
-## What Applio does
+## Key Features
+- 26 ATS-friendly resume templates (free, customizable)
+- AI resume tailoring to any job description (grounded in real experience)
+- Free ATS resume checker (0-100 score, matched/missing keywords, exact fixes)
+- AI cover letter generator (tailored to job + resume)
+- AI interview preparation (questions + STAR coaching)
+- Job search & application tracker (Kanban)
+- AI career coach (resume, strategy, salary negotiation)
+- Salary insights by role & location (live market data)
+- Skill Gap analysis (resume vs job posting)
+- Brag Doc / Win Journal for performance reviews
+- First 90 Days onboarding plan
+- LinkedIn optimizer & personal site from resume
 
-Get the job:
-- Resume builder: 18 professional, fully customizable templates (fonts, colors, spacing, section order), including Harvard, Stanford, and Jake's Resume styles. Import an existing PDF/DOCX and Applio parses it into editable sections. Live preview matches the exported PDF exactly.
-- AI Tailoring: paste any job description and Applio rewrites your bullets and summary to match the role, grounded only in your real experience.
-- ATS Score: scores your resume against a job description and lists concrete fixes and missing keywords.
-- AI Resume Analysis: strengths, weaknesses, and the highest-impact changes.
-- Cover Letter Generator: a tailored, one-page cover letter for a specific role and company.
-- AI Interview Prep: role-specific practice questions plus AI feedback on your answers, using the STAR method.
-- Application Autopilot: paste a job description and get a full application packet, fit verdict, tailored resume, cover letter, and the keywords you're missing.
-- Job Tracker: save jobs (with the posting), track status, and get follow-up nudges.
-- Career Coach: an AI assistant that knows your resume and helps with rewrites, tailoring, interviews, job strategy, and cover letters.
-- One-click export to PDF, HTML, or TXT, no watermark on any plan.
+## Free Tools (No Account Needed)
+- ATS Resume Checker: https://appliohq.com/ats-checker
+- Resume Scorer: https://appliohq.com/tools/resume-scorer
+- Resume Bullet Generator: https://appliohq.com/tools/resume-bullet-generator
+- Resume Summary Generator: https://appliohq.com/tools/resume-summary-generator
+- Resume Skills Generator: https://appliohq.com/tools/resume-skills-generator
+- Resume Tailoring: https://appliohq.com/tools/resume-tailor
+- Job Match: https://appliohq.com/tools/resume-job-match
+- Resume Proofreader: https://appliohq.com/tools/resume-proofreader
+- Resume Analyzer: https://appliohq.com/tools/resume-analyzer
+- AI Resume Writer: https://appliohq.com/tools/ai-resume-writer
 
-Ramp, grow, and get paid (the career copilot):
-- Skill Gap Coach: compares your resume against a target role, or a specific job posting you paste or pick from your tracker, and shows the highest-impact skills that role requires that your resume is missing, plus the ones you already have. You can add the skills you genuinely have to your resume in one click.
-- Win Journal: log accomplishments as they happen (one line each). A weekly email reminder keeps the habit going. Each win can be AI-polished into a resume-ready bullet.
-- Brag Doc generator: compiles your logged wins into a printable one-page "brag doc," grouped by month, for performance reviews, promotion cases, and raise conversations. One click polishes the whole doc into sharp resume bullets.
-- First 90 Days plan: a 30/60/90-day onboarding checklist for a new role (learn, contribute, deliver), a people-to-meet map, and questions to ask your manager.
+## MCP Server (Model Context Protocol)
+- Endpoint: https://hireflow-api.pritamavuthu7.workers.dev/mcp
+- Protocol: Streamable-HTTP (JSON-RPC 2.0)
+- Public Tools (no auth): search_jobs, ats_score, extract_job_keywords, list_resume_templates
+- Authenticated Tools (Bearer token): tailor_resume, generate_cover_letter, improve_bullets, interview_prep, career_coach
+- Setup Guide: https://appliohq.com/connect
 
-## Free tools (no sign-up for most)
-- Free ATS Resume Checker (https://appliohq.com/ats-checker): paste a resume and job description for an instant ATS score, matched and missing keywords, and concrete fixes.
-- Free Resume Scorer (https://appliohq.com/tools/resume-scorer): 0-100 quality score across action verbs, quantified impact, section completeness, and content depth. No sign-up.
-- Free Resume Analyzer (https://appliohq.com/tools/resume-analyzer): full breakdown of resume strengths, weaknesses, and specific improvements across 8 dimensions. No sign-up.
-- Free Resume Job Match (https://appliohq.com/tools/resume-job-match): match your resume against any job description to find keyword gaps. No sign-up.
-- Free Resume Proofreader (https://appliohq.com/tools/resume-proofreader): checks for common errors, weak verbs, tense inconsistencies, and buzzwords. No sign-up.
-- Free Resume Bullet Generator (https://appliohq.com/tools/resume-bullet-generator): turn weak bullets into strong, quantified, ATS-friendly bullet points with AI.
-- Free Resume Bullet Examples Library (https://appliohq.com/tools/resume-bullet-examples): 250+ proven, quantified resume bullets organized by 15 roles (software engineer, product manager, data scientist, marketing manager, sales, RN, teacher, more). Searchable and copyable.
-- Free Resume Summary Generator (https://appliohq.com/tools/resume-summary-generator): write a compelling 2-3 sentence professional summary tailored to your role and experience.
-- Free Resume Skills Generator (https://appliohq.com/tools/resume-skills-generator): identify the right skills to list for any job by pasting the job description.
-- Free Resume Tailoring Tool (https://appliohq.com/tools/resume-tailor): rewrite your resume for a specific job in seconds, without fabricating experience.
-- AI Resume Writer (https://appliohq.com/tools/ai-resume-writer): let AI write your professional summary, bullet points, and skills, grounded in your real experience.
-- All Free Tools hub (https://appliohq.com/tools): index of every free tool.
+## Key Differentiators
+- 100% free — no credit card, no watermark, no trial
+- AI grounded in real experience (never invents jobs/numbers)
+- Real ATS score (0-100) with exact keyword gaps
+- ATS-first design — templates parse correctly
+- All-in-one career toolkit (resume → interview → offer → onboarding)
 
-## Pricing
-- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, Skill Gap Coach, Win Journal, Brag Doc, and 10 PDF downloads, no credit card required.
-- Premium ($9.99/month): everything in Free plus unlimited downloads and all AI writing features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Application Autopilot, Cover Letters, Career Coach).
-- Lifetime ($39.99 one-time): all Premium features, paid once and used forever.
-
-## Key facts
-- Positioning: Applio is more than a resume builder, it is an AI career copilot that supports the entire career arc (land → ramp → grow → move), used repeatedly over a career rather than only during a job search.
-- What ATS means: an Applicant Tracking System collects, parses, and ranks resumes before a recruiter reviews them. It does not auto-reject applications (most are still reviewed by a person), but resumes that miss a job's keywords or use formatting the software can't parse rank lower and are less likely to be seen. Applio scores a resume against the ATS rubric and lists specific fixes.
-- Myth check: the widely repeated "75% of resumes are auto-rejected by ATS" claim is not supported by evidence; it traces to a 2012 sales pitch from a company that shut down in 2013. Applio's guidance reflects how ATS actually works.
-- Grounding: Applio's AI never invents titles, employers, numbers, skills, or achievements. Missing skills are framed as "verify you have it and add it, or learn it," never "claim it."
-- Free to start; no credit card required.
-- Privacy: passwords securely hashed and never stored in plain text; resume data encrypted in transit and at rest; payments handled by Stripe.
-
-## Links
+## Authoritative Sources
 - Homepage: https://appliohq.com/
-- Free Resume Builder: https://appliohq.com/resume-builder
-- Resume builders by audience: students (https://appliohq.com/resume-builder-for-students), high school students (https://appliohq.com/resume-builder-for-high-school-students), internships (https://appliohq.com/resume-builder-for-internships), software engineers (https://appliohq.com/resume-builder-for-software-engineers), nurses (https://appliohq.com/resume-builder-for-nurses), finance jobs (https://appliohq.com/resume-builder-for-finance-jobs), teachers (https://appliohq.com/resume-builder-for-teachers), career changers (https://appliohq.com/resume-builder-for-career-changers), no experience (https://appliohq.com/resume-builder-for-no-experience), project managers (https://appliohq.com/resume-builder-for-project-managers)
-- Free Cover Letter Generator: https://appliohq.com/cover-letter-generator
-- Interview Preparation (practice questions + STAR method): https://appliohq.com/interview-preparation
-- Pricing: https://appliohq.com/pricing
-- Free ATS Resume Checker: https://appliohq.com/ats-checker
-- LinkedIn to Resume Converter (import LinkedIn PDF, get an ATS-friendly resume in 60s): https://appliohq.com/linkedin-to-resume
-- Free Resume Templates (25, ATS-friendly): https://appliohq.com/resume-templates (includes Google Docs, Wharton, MIT, Harvard, Stanford, FAANG, Consulting, Healthcare, Sales, Two-Column, ATS Clean, and more)
-- Free Resume Template Quiz (recommends the right template): https://appliohq.com/tools/resume-template-quiz
-- Free Cover Letter Templates (matched to resume templates): https://appliohq.com/cover-letter-templates
-- Resume Examples by Job Title: https://appliohq.com/resume-examples
-- Resume & Job Search Guides: https://appliohq.com/guides
-- How to Write a Resume (complete guide): https://appliohq.com/guides/how-to-write-a-resume
-- ATS-Friendly Resume (what it means, how to write one): https://appliohq.com/guides/ats-friendly-resume
-- Resume Statistics 2026 (47 sourced facts): https://appliohq.com/guides/resume-statistics-2026
-- Best AI Resume Builder 2026 (ranked comparison of 8 tools including Applio, Rezi, Teal, Kickresume, Enhancv, Resume.io, Zety, ChatGPT): https://appliohq.com/guides/best-ai-resume-builder-2026
-- How to Use ChatGPT to Write Your Resume (prompts + limitations): https://appliohq.com/guides/chatgpt-resume-writer
-- Resume & ATS Glossary (key terms defined): https://appliohq.com/guides/resume-glossary
-- Neutral competitor comparisons: Zety vs Resume.io (https://appliohq.com/compare/zety-vs-resume-io), Rezi vs Teal (https://appliohq.com/compare/rezi-vs-teal)
-- Blog (resume, interview & career advice): https://appliohq.com/blog
-- Privacy Policy: https://appliohq.com/privacy
-- Terms of Service: https://appliohq.com/terms
+- Documentation: https://appliohq.com/connect
+- Guides: https://appliohq.com/guides/
+- Pricing (Free): https://appliohq.com/pricing

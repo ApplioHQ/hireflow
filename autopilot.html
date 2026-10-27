@@ -15,31 +15,63 @@
 <link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
 <style>
-  .ap-wrap { max-width: 920px; margin: 0 auto; padding: 30px 20px 90px; }
-  .ap-hero { margin-bottom: 22px; }
-  .ap-hero h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
-  .ap-hero .ap-badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 4px 10px; border-radius: var(--r-full); }
-  .ap-hero p { color: var(--muted); font-size: 15px; margin-top: 6px; max-width: 620px; line-height: 1.55; }
-  .ap-steps { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; max-width: 680px; }
-  .ap-steps li { display: flex; gap: 11px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; color: var(--text); }
-  .ap-steps .ap-step-n { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
-  .ap-steps a { color: var(--accent); font-weight: 600; }
+  .ap-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
 
-  .ap-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; }
+  /* ---- Hero ---- */
+  .ap-hero { text-align: center; margin-bottom: 24px; }
+  .ap-hero h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; letter-spacing: -.5px; display: inline-flex; align-items: center; gap: 10px; }
+  .ap-hero p { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.55; }
+
+  /* ---- Steps ---- */
+  .ap-steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 640px) { .ap-steps-row { grid-template-columns: 1fr; } }
+  .ap-step { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px; display: flex; gap: 12px; align-items: flex-start; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ap-step:hover { transform: translateY(-2px); box-shadow: var(--sh-1); }
+  .ap-step-n { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-ghost); border: 1px solid var(--accent-line); color: var(--accent); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .ap-step-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .ap-step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .ap-step-desc a { color: var(--accent); font-weight: 600; }
+
+  /* ---- Form card ---- */
+  .ap-form { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; }
   .ap-field { margin-bottom: 14px; }
-  .ap-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .ap-field .hint { color: var(--muted); font-weight: 400; }
-  .ap-ta { width: 100%; box-sizing: border-box; min-height: 180px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13.5px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ap-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--muted); }
+  .ap-field .hint { font-weight: 400; }
+  .ap-ta { width: 100%; box-sizing: border-box; min-height: 160px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 13.5px; line-height: 1.55; resize: vertical; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .ap-ta:focus, .ap-input:focus, .ap-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+
+  /* Options toggle */
+  .ap-opts-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; margin: 4px 0 8px; background: none; border: none; font-family: inherit; transition: color var(--dur) var(--ease); }
+  .ap-opts-toggle:hover { color: var(--accent); }
+  .ap-opts-toggle svg { width: 14px; height: 14px; transition: transform var(--dur) var(--ease); }
+  .ap-opts-toggle.open svg { transform: rotate(180deg); }
+  .ap-opts-area { max-height: 0; overflow: hidden; transition: max-height .3s var(--ease-out); }
+  .ap-opts-area.open { max-height: 200px; }
+
   .ap-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   @media (max-width: 620px) { .ap-row { grid-template-columns: 1fr; } }
-  .ap-input, .ap-select { width: 100%; box-sizing: border-box; padding: 9px 11px; font: inherit; font-size: 13.5px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); }
-  .ap-resume-note { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin: 4px 0 14px; }
+  .ap-input, .ap-select { width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 13.5px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+
+  .ap-resume-note { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin: 10px 0 14px; }
   .ap-resume-note a { color: var(--accent); }
 
+  .ap-run-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .ap-loading { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .ap-loading.show { display: flex; }
+  .ap-spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
+  @keyframes ap-spin { to { transform: rotate(360deg); } }
+
+  /* ---- Results ---- */
   .ap-results { margin-top: 22px; display: none; }
   .ap-results.show { display: block; }
-  .ap-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; margin-bottom: 16px; }
+
+  .ap-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 22px; margin-bottom: 16px; animation: apFadeUp .4s var(--ease-out) both; }
+  @keyframes apFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .ap-card { animation: none; } }
+  .ap-card:nth-child(2) { animation-delay: .06s; }
+  .ap-card:nth-child(3) { animation-delay: .12s; }
+  .ap-card:nth-child(4) { animation-delay: .18s; }
+  .ap-card:nth-child(5) { animation-delay: .24s; }
   .ap-card h2 { font-size: 15px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
   .ap-card .ap-card-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
 
@@ -51,33 +83,35 @@
   .ap-verdict-label { font-size: 20px; font-weight: 800; }
   .ap-verdict-why { color: var(--muted); font-size: 13.5px; margin-top: 4px; line-height: 1.5; }
   .ap-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-top: 16px; }
-  @media (max-width: 520px){ .ap-bars { grid-template-columns: 1fr; } }
-  .ap-bar-track { height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-top: 5px; }
-  .ap-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+  @media (max-width: 520px) { .ap-bars { grid-template-columns: 1fr; } }
+  .ap-bar-row { display: flex; justify-content: space-between; font-size: 12.5px; }
+  .ap-bar-row .label { color: var(--muted); }
+  .ap-bar-row .value { font-weight: 700; }
+  .ap-bar-track { height: 6px; background: var(--bg-2); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+  .ap-bar-fill { height: 100%; border-radius: 4px; transition: width .6s var(--ease-out); }
 
+  /* Keywords */
   .ap-chip { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: var(--r-full); margin: 3px 5px 0 0; }
   .ap-chip-ok { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
   .ap-chip-no { background: rgba(148,163,184,.14); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
 
+  /* Diff blocks */
   .ap-diff { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 10px; }
   .ap-diff-before { padding: 10px 12px; font-size: 13px; color: var(--muted); background: rgba(239,68,68,.06); border-bottom: 1px solid var(--border); text-decoration: line-through; text-decoration-color: rgba(239,68,68,.4); }
   .ap-diff-after { padding: 10px 12px; font-size: 13.5px; color: var(--text); background: rgba(34,197,94,.06); }
   .ap-list { list-style: none; padding: 0; margin: 0; }
   .ap-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.5; margin-bottom: 7px; }
 
-  .ap-cover { white-space: pre-wrap; font-size: 13.5px; line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px 18px; max-height: 340px; overflow: auto; }
+  /* Cover letter */
+  .ap-cover { white-space: pre-wrap; font-size: 13.5px; line-height: 1.7; color: var(--text); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px 18px; max-height: 340px; overflow: auto; }
   .ap-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 
-  .ap-run-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
-  .ap-loading { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
-  .ap-loading.show { display: flex; }
-  .ap-spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
-  @keyframes ap-spin { to { transform: rotate(360deg); } }
+  .ap-fail { font-size: 12.5px; color: #f59e0b; margin-top: 10px; }
   .ap-upgrade { text-align: center; padding: 26px; }
   .ap-upgrade h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
   .ap-upgrade p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
-  .ap-fail { font-size: 12.5px; color: #f59e0b; margin-top: 10px; }
-  /* Free-taste: locked premium cards */
+
+  /* Locked/banner (kept for free taste flow) */
   .ap-banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; padding: 14px 18px; margin-bottom: 16px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
   .ap-banner-txt { font-size: 13.5px; line-height: 1.5; }
   .ap-banner-txt strong { font-weight: 700; }
@@ -88,59 +122,86 @@
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#111113">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
   <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <div class="topbar-right">
     <span id="health-badge"></span>
+    <span id="plan-pill"></span>
+    <button class="theme-toggle" onclick="toggleTheme()"></button>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
 
 <main class="ap-wrap">
   <div class="ap-hero">
-    <h1>Application Autopilot</h1>
-    <p>Paste a job description and Applio builds your whole application in one shot: a fit verdict, a tailored resume, a cover letter, and the keywords you're missing. It's free, and it tailors the resume you've already saved.</p>
-    <ol class="ap-steps">
-      <li><span class="ap-step-n">1</span><span><strong>Paste the job description</strong> below and hit Run. (Build or import your resume in the Editor first so Autopilot has something to tailor.)</span></li>
-      <li><span class="ap-step-n">2</span><span><strong>Review your results:</strong> fit score, tailored summary and bullets, cover letter, and missing keywords.</span></li>
-      <li><span class="ap-step-n">3</span><span><strong>Apply &amp; export:</strong> click <em>Apply to my resume</em>, then open the <a href="editor">Editor</a> and hit <strong>Export</strong> to download your tailored PDF.</span></li>
-    </ol>
+    <h1 id="ap-title"></h1>
+    <p>Paste a job description and get a fit verdict, tailored resume, cover letter, and missing keywords in one shot. Free, and it uses the resume you've already saved.</p>
   </div>
 
-  <div class="ap-panel">
+  <!-- Steps -->
+  <div class="ap-steps-row">
+    <div class="ap-step">
+      <span class="ap-step-n">1</span>
+      <div>
+        <div class="ap-step-title">Paste the job description</div>
+        <div class="ap-step-desc">Drop the full posting below. <a href="editor">Build your resume</a> first so Autopilot can tailor it.</div>
+      </div>
+    </div>
+    <div class="ap-step">
+      <span class="ap-step-n">2</span>
+      <div>
+        <div class="ap-step-title">Review your results</div>
+        <div class="ap-step-desc">Fit score, tailored summary and bullets, cover letter, and missing keywords.</div>
+      </div>
+    </div>
+    <div class="ap-step">
+      <span class="ap-step-n">3</span>
+      <div>
+        <div class="ap-step-title">Apply and export</div>
+        <div class="ap-step-desc">Click <em>Apply to my resume</em>, then open the <a href="editor">Editor</a> and hit <strong>Export</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="ap-form">
     <div class="ap-field">
       <label for="ap-jd">Job description <span class="hint">paste the full posting for the best result</span></label>
-      <textarea id="ap-jd" class="ap-ta" placeholder="Paste the job description here…"></textarea>
+      <textarea id="ap-jd" class="ap-ta" placeholder="Paste the job description here..."></textarea>
     </div>
-    <div class="ap-row">
-      <div class="ap-field" style="margin-bottom:0;">
-        <label for="ap-role">Role <span class="hint">(optional)</span></label>
-        <input id="ap-role" class="ap-input" type="text" placeholder="e.g. Senior PM" maxlength="120">
-      </div>
-      <div class="ap-field" style="margin-bottom:0;">
-        <label for="ap-company">Company <span class="hint">(optional)</span></label>
-        <input id="ap-company" class="ap-input" type="text" placeholder="e.g. Acme" maxlength="120">
-      </div>
-      <div class="ap-field" style="margin-bottom:0;">
-        <label for="ap-tone">Cover letter tone</label>
-        <select id="ap-tone" class="ap-select">
-          <option value="professional">Professional</option>
-          <option value="enthusiastic">Enthusiastic</option>
-          <option value="confident">Confident</option>
-          <option value="warm">Warm</option>
-        </select>
+
+    <button type="button" class="ap-opts-toggle" id="ap-opts-toggle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      Role, company, and cover letter tone (optional)
+    </button>
+    <div class="ap-opts-area" id="ap-opts-area">
+      <div class="ap-row" style="margin-top:8px;">
+        <div class="ap-field" style="margin-bottom:0;">
+          <label for="ap-role">Role</label>
+          <input id="ap-role" class="ap-input" type="text" placeholder="e.g. Senior PM" maxlength="120">
+        </div>
+        <div class="ap-field" style="margin-bottom:0;">
+          <label for="ap-company">Company</label>
+          <input id="ap-company" class="ap-input" type="text" placeholder="e.g. Acme" maxlength="120">
+        </div>
+        <div class="ap-field" style="margin-bottom:0;">
+          <label for="ap-tone">Cover letter tone</label>
+          <select id="ap-tone" class="ap-select">
+            <option value="professional">Professional</option>
+            <option value="enthusiastic">Enthusiastic</option>
+            <option value="confident">Confident</option>
+            <option value="warm">Warm</option>
+          </select>
+        </div>
       </div>
     </div>
+
     <div class="ap-resume-note" id="ap-resume-note"></div>
     <div class="ap-run-wrap">
-      <button class="btn btn-primary" id="ap-run">Run Autopilot →</button>
-      <div class="ap-loading" id="ap-loading"><span class="ap-spin"></span> <span id="ap-loading-text">Tailoring your application… this takes ~15 seconds</span></div>
+      <button class="btn btn-primary" id="ap-run"></button>
+      <div class="ap-loading" id="ap-loading"><span class="ap-spin"></span> <span id="ap-loading-text">Tailoring your application... this takes ~15 seconds</span></div>
     </div>
   </div>
 
@@ -155,8 +216,30 @@
 <script src="js/health-badge.js"></script>
 <script src="js/jobsync.js"></script>
 <script src="js/skeleton.js"></script>
+<script>
+// Set icons + wire opts toggle before autopilot.js runs
+(async function() {
+  try {
+    await loadCurrentUser();
+    document.getElementById('ap-title').innerHTML = ICON('zap') + ' <span>Application Autopilot</span>';
+    document.getElementById('ap-run').innerHTML = ICON('sparkle') + ' <span>Run Autopilot</span>';
+    var planPill = document.getElementById('plan-pill');
+    if (isPaid()) planPill.innerHTML = '<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">'+ICON('crown','ico ico-sm')+' '+planLabel()+'</button>';
+    else planPill.innerHTML = '<a class="btn btn-primary btn-xs" href="pricing">'+ICON('sparkle','ico ico-sm')+' <span>Upgrade</span></a>';
+  } catch(e) {
+    document.getElementById('ap-title').innerHTML = ICON('zap') + ' <span>Application Autopilot</span>';
+    document.getElementById('ap-run').innerHTML = ICON('sparkle') + ' <span>Run Autopilot</span>';
+  }
+})();
+
+document.getElementById('ap-opts-toggle').addEventListener('click', function() {
+  var area = document.getElementById('ap-opts-area');
+  area.classList.toggle('open');
+  this.classList.toggle('open');
+});
+</script>
 <script src="js/autopilot.js"></script>
-  <script src="js/acctcenter.js"></script>
+<script src="js/acctcenter.js"></script>
 <script src="/js/appshell.js"></script>
 <script src="/js/pwa.js" defer></script>
 </body>

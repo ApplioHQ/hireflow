@@ -40,7 +40,9 @@
   function setLoading(on) {
     els.run.disabled = on;
     els.loading.classList.toggle('show', on);
-    els.run.textContent = on ? 'Running…' : 'Run Autopilot →';
+    if (on) { els.run.textContent = 'Running...'; }
+    else if (typeof ICON === 'function') { els.run.innerHTML = ICON('sparkle') + ' <span>Run Autopilot</span>'; }
+    else { els.run.textContent = 'Run Autopilot'; }
   }
 
   els.run.addEventListener('click', run);

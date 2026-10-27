@@ -38,7 +38,7 @@
 (function () {
   var params = new URLSearchParams(window.location.search);
   var tpl = params.get('tpl') || 'harvard';
-  var accent = params.get('accent') || '#6d4dfc';
+  var accent = params.get('accent') || '#d4a843';
   try {
     var html = renderTemplate(tpl, {}, false, accent);
     // Use an iframe so template <style> blocks stay isolated from this

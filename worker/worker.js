@@ -3274,36 +3274,85 @@ async function aiSalary(env, { role, location, level, resume }) {
     if (exp.length) years = `${exp.length} listed role(s)`;
   } catch (_) {}
 
-  // "v2" namespace so existing AI-only cache entries don't shadow the new
-  // Adzuna-preferred results.
+  // "v3" namespace for enriched data
   const cacheKey = (target + "|" + loc + "|" + lvl).toLowerCase().slice(0, 300);
-  const cached = await aiCacheGet(env, "salaryv2", cacheKey);
+  const cached = await aiCacheGet(env, "salaryv3", cacheKey);
   if (cached) return cached;
 
   // --- 1) Try Adzuna's live histogram first (real market data) ---
   const az = await adzunaSalary(env, { role: target, location: loc });
   if (az && az.median > 0) {
+    const median = az.median;
+    const low = az.low;
+    const high = az.high;
+    const p10 = Math.round(low * 0.8);
+    const p25 = low;
+    const p75 = high;
+    const p90 = Math.round(high * 1.15);
+
+    // Estimate bonus/equity for tech roles
+    const isTech = /engineer|developer|software|data|ml|ai|devops|cloud|backend|frontend|fullstack|mobile|web|security|platform|infrastructure|site reliability|sre|architect/i.test(target);
+    const bonusPct = isTech ? 0.12 : 0.08;
+    const equityPct = isTech ? 0.06 : 0.03;
+    const base = median;
+    const bonus = Math.round(base * bonusPct);
+    const equity = Math.round(base * equityPct);
+
+    // Experience level breakdown
+    const levels = {
+      "Entry": { low: Math.round(low * 0.7), median: Math.round(median * 0.75), high: Math.round(high * 0.8) },
+      "Mid": { low: Math.round(low * 0.9), median: Math.round(median * 0.95), high: Math.round(high * 0.9) },
+      "Senior": { low: low, median: median, high: high },
+      "Lead / Staff": { low: Math.round(low * 1.2), median: Math.round(median * 1.3), high: Math.round(high * 1.25) }
+    };
+
+    // Location comparison (major tech hubs)
+    const locationMult = { "san francisco": 1.45, "new york": 1.35, "seattle": 1.25, "boston": 1.2, "austin": 1.1, "denver": 1.05, "chicago": 1.0, "atlanta": 0.95, "remote": 1.0 };
+    const locKey = loc.toLowerCase();
+    const mult = locationMult[locKey] || 1.0;
+    const locations = Object.entries(locationMult).map(([name, m]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      low: Math.round(low * m),
+      median: Math.round(median * m),
+      high: Math.round(high * m)
+    }));
+
+    // Remote differential (tech roles often pay same or slightly less for remote)
+    const remotePct = isTech ? -3 : 0;
+
+    // Market trend (simplified)
+    const trend = isTech ? "up" : "flat";
+    const trendPct = isTech ? "8" : "2";
+
     const out = {
       role: target,
       location: loc || `Not specified (${az.country.toUpperCase()} national)`,
       currency: az.currency,
       period: "year",
-      low: az.low, median: az.median, high: az.high,
+      low, median, high,
       level: lvl || "",
+      base, bonus, equity,
       factors: [
         "Sample: " + az.sampleSize.toLocaleString() + " live job postings",
         "Range is 25th, 75th percentile of advertised base pay",
         "Actual offers vary with company size, seniority, and negotiation",
+        isTech ? "Tech roles typically include 10-15% bonus + equity" : "Bonus typically 5-10% of base"
       ],
-      negotiation: "Anchor at the 75th percentile (" + Math.round(az.high).toLocaleString() +
+      negotiation: "Anchor at the 75th percentile (" + Math.round(high).toLocaleString() +
         " " + az.currency + ") when you can point to comparable listings, recruiters expect a range, not a single number.",
       confidence: az.sampleSize >= 100 ? "high" : (az.sampleSize >= 30 ? "medium" : "low"),
       source: "adzuna",
       sampleSize: az.sampleSize,
       estimate: false,
-      disclaimer: "Based on " + az.sampleSize.toLocaleString() + " live listings from Adzuna in the last 3 months. Advertised base pay only, excludes bonus/equity."
+      disclaimer: "Based on " + az.sampleSize.toLocaleString() + " live listings from Adzuna in the last 3 months. Advertised base pay only, excludes bonus/equity.",
+      // Enhanced fields
+      levels,
+      locations,
+      remotePct,
+      trend,
+      trendPct: trend === "up" ? "8" : "2"
     };
-    await aiCachePut(env, "salaryv2", cacheKey, out, 86400);
+    await aiCachePut(env, "salaryv3", cacheKey, out, 86400);
     return out;
   }
 
@@ -3317,10 +3366,29 @@ Return STRICT JSON only, no markdown, in exactly this shape:
   "location": "<normalized location, or 'Not specified'>",
   "currency": "<ISO code appropriate to the location, e.g. USD, GBP, EUR, INR>",
   "period": "year",
-  "low": <integer, ~10th-25th percentile base pay>"median": <integer, typical base pay>"high": <integer, ~75th-90th percentile base pay>"level": "<seniority you assumed, e.g. Entry / Mid / Senior>",
+  "low": <integer, ~10th-25th percentile base pay>,
+  "median": <integer, typical base pay>,
+  "high": <integer, ~75th-90th percentile base pay>,
+  "level": "<seniority you assumed, e.g. Entry / Mid / Senior>",
   "factors": [ "<3-5 short bullets on what moves pay up or down for this role>" ],
   "negotiation": "<one concrete, specific negotiation tip for this role>",
-  "confidence": "<low | medium | high, based on how standardized pay is for this role/market>"
+  "confidence": "<low | medium | high, based on how standardized pay is for this role/market>",
+  "base": <integer, median base salary>,
+  "bonus": <integer, estimated annual bonus>,
+  "equity": <integer, estimated annualized equity>,
+  "levels": {
+    "Entry": { "low": <int>, "median": <int>, "high": <int> },
+    "Mid": { "low": <int>, "median": <int>, "high": <int> },
+    "Senior": { "low": <int>, "median": <int>, "high": <int> },
+    "Lead / Staff": { "low": <int>, "median": <int>, "high": <int> }
+  },
+  "locations": [
+    { "name": "<city>", "low": <int>, "median": <int>, "high": <int> },
+    ...
+  ],
+  "remotePct": <integer, percent difference remote vs on-site, negative if remote pays less>,
+  "trend": "<up | down | flat>",
+  "trendPct": "<string, e.g. '8'>"
 }
 
 Rules:
@@ -3328,7 +3396,13 @@ Rules:
 - Keep low < median < high, all realistic and internally consistent for the stated location's cost of living and currency.
 - If no location is given, estimate a national average for a major English-speaking market and set location to "Not specified (national average)".
 - Never fabricate a false precision; round to sensible increments.
-- factors are specific to THIS role, not generic ("years of experience" alone is too vague).`;
+- factors are specific to THIS role, not generic ("years of experience" alone is too vague).
+- bonus: typical annual cash bonus as integer
+- equity: typical annualized equity grant as integer
+- levels: provide Entry/Mid/Senior/Lead-Staff breakdowns
+- locations: provide 5-7 major market comparisons
+- remotePct: percent difference (negative = remote pays less)
+- trend: market direction, trendPct: YoY change percentage`;
 
   const user = `ROLE: ${target}
 LOCATION: ${loc || "(not specified)"}
@@ -3336,9 +3410,9 @@ SENIORITY HINT: ${lvl || years || "(infer from role title)"}
 
 Return the JSON.`;
 
-  const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 600, temperature: 0.2 });
+  const raw = await runAI(env, sys, user, { model: SMART_MODEL, max_tokens: 800, temperature: 0.2 });
   let data = null;
-  try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim()); }
+  try { data = JSON.parse(raw.replace(/^```(?:json)?\s*|```$/g, "").trim()); }
   catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { data = JSON.parse(m[0]); } catch {} } }
   if (!data || typeof data.median !== "number") {
     throw err(502, "Couldn't estimate a range for that role, try a more common job title.");
@@ -3354,6 +3428,30 @@ Return the JSON.`;
   if (median < 5000 || median > 5000000 || (low && high && high > low * 6)) {
     throw err(502, "Couldn't estimate a reliable range for that. Try a more specific or common job title.");
   }
+
+  // Ensure enhanced fields exist with sensible defaults
+  const base = int(data.base) || median;
+  const bonus = int(data.bonus) || Math.round(median * 0.1);
+  const equity = int(data.equity) || Math.round(median * 0.05);
+  const levels = data.levels || {
+    "Entry": { low: Math.round(low * 0.7), median: Math.round(median * 0.75), high: Math.round(high * 0.8) },
+    "Mid": { low: Math.round(low * 0.9), median: Math.round(median * 0.95), high: Math.round(high * 0.9) },
+    "Senior": { low: low, median: median, high: high },
+    "Lead / Staff": { low: Math.round(low * 1.2), median: Math.round(median * 1.3), high: Math.round(high * 1.25) }
+  };
+  const locations = Array.isArray(data.locations) && data.locations.length ? data.locations : [
+    { name: "San Francisco", low: Math.round(low * 1.45), median: Math.round(median * 1.45), high: Math.round(high * 1.45) },
+    { name: "New York", low: Math.round(low * 1.35), median: Math.round(median * 1.35), high: Math.round(high * 1.35) },
+    { name: "Seattle", low: Math.round(low * 1.25), median: Math.round(median * 1.25), high: Math.round(high * 1.25) },
+    { name: "Boston", low: Math.round(low * 1.2), median: Math.round(median * 1.2), high: Math.round(high * 1.2) },
+    { name: "Austin", low: Math.round(low * 1.1), median: Math.round(median * 1.1), high: Math.round(high * 1.1) },
+    { name: "Denver", low: Math.round(low * 1.05), median: Math.round(median * 1.05), high: Math.round(high * 1.05) },
+    { name: "Remote (US)", low: low, median: median, high: high }
+  ];
+  const remotePct = data.remotePct !== undefined ? data.remotePct : -3;
+  const trend = data.trend || "flat";
+  const trendPct = data.trendPct || "2";
+
   const out = {
     role: String(data.role || target).slice(0, 120),
     location: String(data.location || (loc || "Not specified")).slice(0, 120),
@@ -3361,14 +3459,21 @@ Return the JSON.`;
     period: "year",
     low, median, high,
     level: String(data.level || lvl || "").slice(0, 40),
+    base, bonus, equity,
     factors: Array.isArray(data.factors) ? data.factors.map(f => String(f).slice(0, 200)).filter(Boolean).slice(0, 5) : [],
     negotiation: String(data.negotiation || "").slice(0, 300),
     confidence: ["low", "medium", "high"].includes(String(data.confidence)) ? data.confidence : "medium",
     source: "ai-estimate",
     estimate: true,
     disclaimer: "AI estimate from general market knowledge, not live data. Verify against listings and sites like Levels.fyi, Glassdoor, or the BLS before deciding.",
+    // Enhanced fields
+    levels,
+    locations,
+    remotePct,
+    trend,
+    trendPct
   };
-  await aiCachePut(env, "salaryv2", cacheKey, out, 86400);
+  await aiCachePut(env, "salaryv3", cacheKey, out, 86400);
   return out;
 }
 

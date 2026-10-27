@@ -404,6 +404,18 @@ function renderMain() {
     || (isCustomSection(currentSection) ? () => renderCustomSection(currentSection) : null)
     || (() => '<p>Section not built yet.</p>');
 
+  // Skeleton loader while section renders
+  mainEl.innerHTML = `
+    <div class="sk-page">
+      <div class="sk sk-bar"></div>
+      <div class="sk sk-bar sk-sub"></div>
+      <div class="sk-grid">
+        <div class="sk sk-card"></div>
+        <div class="sk sk-card"></div>
+        <div class="sk sk-card"></div>
+      </div>
+    </div>`;
+
   const _applyContent = () => {
     mainEl.innerHTML = renderer();
     _renderFirstActionBanner();
@@ -1872,7 +1884,7 @@ function _renderTailorStructured(r) {
 function _copyTailorBullet(btn) {
   const t = btn.getAttribute('data-t') || '';
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(
-    () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; setTimeout(() => { btn.innerHTML = o; }, 1400); },
+    () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; toast('Copied to clipboard', { type: 'saved', duration: 1200 }); setTimeout(() => { btn.innerHTML = o; }, 1400); },
     () => toast('Copy failed', { type: 'warn' })
   );
 }
@@ -3946,6 +3958,22 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   document.body.appendChild(bd);
   requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
   _aiSuggestState = { text, apply };
+  // Focus trap for the suggestion dialog
+  const dialog = bd.querySelector('.app-dialog');
+  if (dialog) {
+    const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const trap = (e) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    dialog.addEventListener('keydown', trap);
+    bd._focusTrap = trap;
+    bd._focusDialog = dialog;
+    first?.focus();
+  }
   // Show a before -> after comparison when we have the original, so the user sees
   // exactly what the AI sharpened, not just a block of new text.
   const hasBefore = original != null && String(original).trim().length > 0;
@@ -3999,6 +4027,7 @@ function closeAiSuggest() {
   const bd = document.getElementById('ai-suggest-bd');
   if (!bd) return;
   document.removeEventListener('keydown', _aiSuggestKey);
+  if (bd._focusTrap && bd._focusDialog) bd._focusDialog.removeEventListener('keydown', bd._focusTrap);
   bd.classList.remove('app-dialog-bd-in');
   setTimeout(() => bd.remove(), 180);
 }

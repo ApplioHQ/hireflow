@@ -22,7 +22,8 @@
       success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
       error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>',
       warn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20z"/><line x1="12" y1="9" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17"/></svg>',
-      info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8"/></svg>'
+      info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8"/></svg>',
+      saved:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
     };
     return set[type] || set.info;
   }
@@ -63,6 +64,22 @@
     bd.className = 'app-dialog-bd';
     document.body.appendChild(bd);
     requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
+    // Focus trap: keep Tab inside the dialog
+    const dialog = bd.querySelector('.app-dialog');
+    if (dialog) {
+      const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const trap = (e) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      dialog.addEventListener('keydown', trap);
+      bd._focusTrap = trap;
+      bd._focusDialog = dialog;
+      first?.focus();
+    }
     return bd;
   }
 
@@ -87,6 +104,7 @@
 
       const close = () => {
         bd.classList.remove('app-dialog-bd-in');
+        if (bd._focusTrap && bd._focusDialog) bd._focusDialog.removeEventListener('keydown', bd._focusTrap);
         setTimeout(() => { bd.remove(); resolve(); }, 180);
       };
       bd.querySelector('[data-act="ok"]').onclick = close;
@@ -122,6 +140,7 @@
 
       const finish = (val) => {
         bd.classList.remove('app-dialog-bd-in');
+        if (bd._focusTrap && bd._focusDialog) bd._focusDialog.removeEventListener('keydown', bd._focusTrap);
         setTimeout(() => { bd.remove(); resolve(val); }, 180);
       };
       bd.querySelector('[data-act="confirm"]').onclick = () => finish(true);

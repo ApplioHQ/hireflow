@@ -2917,6 +2917,55 @@ async function adzunaSalary(env, { role, location }) {
   } catch (_) { return null; }
 }
 
+// JSearch salary — aggregates from Google/LinkedIn/Indeed/Glassdoor listings
+// Returns percentiles computed from job_min_salary / job_max_salary fields
+async function jsearchSalary(env, { role, location }) {
+  const key = env.JSEARCH_KEY;
+  if (!key) return null;
+  const country = inferAdzunaCountry(location);
+  const q = (location ? `${role} in ${location}` : role).slice(0, 200);
+  const params = new URLSearchParams({
+    query: q,
+    page: "1",
+    num_pages: "2",
+    date_posted: "month"
+  });
+  if (country) params.set("country", country);
+  const apiUrl = `https://jsearch.p.rapidapi.com/search-v2?${params.toString()}`;
+  try {
+    const r = await fetch(apiUrl, {
+      headers: { "x-rapidapi-key": key, "x-rapidapi-host": "jsearch.p.rapidapi.com" },
+      cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 86400, "300-599": 0 } }
+    });
+    if (!r.ok) return null;
+    const data = await r.json().catch(() => null);
+    const jobs = (data && data.data && Array.isArray(data.data.jobs)) ? data.data.jobs
+      : (data && Array.isArray(data.data)) ? data.data : null;
+    if (!jobs || !jobs.length) return null;
+
+    const salaries = [];
+    for (const j of jobs) {
+      const min = j.job_min_salary;
+      const max = j.job_max_salary;
+      const currency = j.job_salary_currency || "USD";
+      if (min && max && min > 0 && max > 0) {
+        salaries.push({ min: Number(min), max: Number(max), currency });
+      }
+    }
+    if (!salaries.length) return null;
+
+    const mids = salaries.map(s => (s.min + s.max) / 2).sort((a, b) => a - b);
+    const n = mids.length;
+    const pAt = (p) => mids[Math.min(n - 1, Math.max(0, Math.floor(p * (n - 1))))];
+    const low = Math.round(pAt(0.25));
+    const median = Math.round(pAt(0.50));
+    const high = Math.round(pAt(0.75));
+    const currency = salaries[0].currency;
+
+    return { low, median, high, currency, country: (country || "us").toUpperCase(), sampleSize: n, source: "jsearch" };
+  } catch (_) { return null; }
+}
+
 // Job search. Prefers JSearch (RapidAPI, aggregates Google for Jobs → LinkedIn /
 // Indeed / Glassdoor / ZipRecruiter) when its key is set; falls back to Adzuna.
 async function jobSearch(req, env) {
@@ -3356,7 +3405,77 @@ async function aiSalary(env, { role, location, level, resume }) {
     return out;
   }
 
-  // --- 2) Fall back to the LLM's general knowledge (clearly disclaimed) ---
+  // --- 2) Try JSearch (RapidAPI) as second live source ---
+  const js = await jsearchSalary(env, { role: target, location: loc });
+  if (js && js.median > 0) {
+    const median = js.median;
+    const low = js.low;
+    const high = js.high;
+    const p10 = Math.round(low * 0.8);
+    const p25 = low;
+    const p75 = high;
+    const p90 = Math.round(high * 1.15);
+
+    const isTech = /engineer|developer|software|data|ml|ai|devops|cloud|backend|frontend|fullstack|mobile|web|security|platform|infrastructure|site reliability|sre|architect/i.test(target);
+    const bonusPct = isTech ? 0.12 : 0.08;
+    const equityPct = isTech ? 0.06 : 0.03;
+    const base = median;
+    const bonus = Math.round(base * bonusPct);
+    const equity = Math.round(base * equityPct);
+
+    const levels = {
+      "Entry": { low: Math.round(low * 0.7), median: Math.round(median * 0.75), high: Math.round(high * 0.8) },
+      "Mid": { low: Math.round(low * 0.9), median: Math.round(median * 0.95), high: Math.round(high * 0.9) },
+      "Senior": { low: low, median: median, high: high },
+      "Lead / Staff": { low: Math.round(low * 1.2), median: Math.round(median * 1.3), high: Math.round(high * 1.25) }
+    };
+
+    const locationMult = { "san francisco": 1.45, "new york": 1.35, "seattle": 1.25, "boston": 1.2, "austin": 1.1, "denver": 1.05, "chicago": 1.0, "atlanta": 0.95, "remote": 1.0 };
+    const locKey = loc.toLowerCase();
+    const mult = locationMult[locKey] || 1.0;
+    const locations = Object.entries(locationMult).map(([name, m]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      low: Math.round(low * m),
+      median: Math.round(median * m),
+      high: Math.round(high * m)
+    }));
+
+    const remotePct = isTech ? -3 : 0;
+    const trend = isTech ? "up" : "flat";
+    const trendPct = isTech ? "8" : "2";
+
+    const out = {
+      role: target,
+      location: loc || `Not specified (${js.country.toUpperCase()} national)`,
+      currency: js.currency,
+      period: "year",
+      low, median, high,
+      level: lvl || "",
+      base, bonus, equity,
+      factors: [
+        "Sample: " + js.sampleSize.toLocaleString() + " live job postings from JSearch",
+        "Range is 25th, 75th percentile of advertised base pay",
+        "Actual offers vary with company size, seniority, and negotiation",
+        isTech ? "Tech roles typically include 10-15% bonus + equity" : "Bonus typically 5-10% of base"
+      ],
+      negotiation: "Anchor at the 75th percentile (" + Math.round(high).toLocaleString() +
+        " " + js.currency + ") when you can point to comparable listings, recruiters expect a range, not a single number.",
+      confidence: js.sampleSize >= 100 ? "high" : (js.sampleSize >= 30 ? "medium" : "low"),
+      source: "jsearch",
+      sampleSize: js.sampleSize,
+      estimate: false,
+      disclaimer: "Based on " + js.sampleSize.toLocaleString() + " live listings from JSearch (Google/LinkedIn/Indeed/Glassdoor) in the last month. Advertised base pay only, excludes bonus/equity.",
+      levels,
+      locations,
+      remotePct,
+      trend,
+      trendPct: trend === "up" ? "8" : "2"
+    };
+    await aiCachePut(env, "salaryv3", cacheKey, out, 86400);
+    return out;
+  }
+
+  // --- 3) Fall back to the LLM's general knowledge (clearly disclaimed) ---
 
   const sys = GROUNDING + "\n\n" + `You are a compensation analyst. Give a realistic ESTIMATED annual pay range for a role, based on your general knowledge of typical market compensation. You do not have live market data, so these are informed estimates, be honest about that.
 

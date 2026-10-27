@@ -307,6 +307,11 @@ function _loadingState(){
 }
 
 function _render(d){
+  if (!d || typeof d.median !== 'number') {
+    document.getElementById('sw-body').innerHTML =
+      '<div class="sw-empty" style="color:var(--danger);"><h4 style="color:var(--danger);">Invalid response</h4><p>Please try again.</p></div>';
+    return;
+  }
   var cur = d.currency || 'USD';
   var lo = Number(d.low)||0, mid = Number(d.median)||0, hi = Number(d.high)||0;
   var pct = (hi > lo) ? Math.max(4, Math.min(96, ((mid - lo) / (hi - lo)) * 100)) : 50;
@@ -333,7 +338,7 @@ function _render(d){
   var bonus = d.bonus || Math.round(mid * 0.1);
   var equity = d.equity || Math.round(mid * 0.05);
   var totalComp = base + bonus + equity;
-  var compBreakdown = d.source === 'adzuna' ? '' : (
+  var compBreakdown = (d.source === 'adzuna') ? '' : (
     '<div class="sw-section-t">Total compensation estimate</div>'
     + '<div class="sw-comp-breakdown">'
     +   '<div class="sw-comp-card base"><div class="sw-comp-label">Base salary</div><div class="sw-comp-value">' + _money(base, cur) + '</div><div class="sw-comp-pct">~' + Math.round(base/totalComp*100) + '%</div></div>'
@@ -371,10 +376,11 @@ function _render(d){
 
   // Experience level breakdown (if available)
   var levelHtml = '';
-  if (d.levels && Object.keys(d.levels).length) {
+  if (d.levels && typeof d.levels === 'object' && Object.keys(d.levels).length) {
     levelHtml = '<div class="sw-section-t">By experience level</div>'
       + '<div class="sw-size-grid">';
     for (var lvl in d.levels) {
+      if (!d.levels.hasOwnProperty(lvl)) continue;
       var ld = d.levels[lvl];
       levelHtml += '<div class="sw-size-card">'
         + '<div class="sw-size-label">' + esc(lvl) + '</div>'
@@ -387,7 +393,7 @@ function _render(d){
 
   // Location comparison (if multiple locations returned)
   var locHtml = '';
-  if (d.locations && d.locations.length > 1) {
+  if (d.locations && Array.isArray(d.locations) && d.locations.length > 1) {
     locHtml = '<div class="sw-section-t">Compare locations</div>'
       + '<div class="sw-loc-grid">';
     d.locations.forEach(function(loc) {
@@ -402,7 +408,7 @@ function _render(d){
 
   // Remote vs on-site differential
   var remoteHtml = '';
-  if (d.remotePct !== undefined) {
+  if (d.remotePct !== undefined && d.remotePct !== null) {
     var diff = d.remotePct > 0 ? '+' : '';
     remoteHtml = '<div class="sw-section-t">Remote vs on-site</div>'
       + '<div class="sw-remote-diff">'

@@ -263,8 +263,8 @@ function hydrate() {
   document.getElementById('copilot-label').innerHTML = `${ICON('sparkle')} <span>Smart writing copilot</span>`;
   document.getElementById('rp-export').innerHTML = `${ICON('download')} <span>Export PDF</span>`;
   document.getElementById('rp-history').innerHTML = `${ICON('clock')} <span>Version History</span>`;
-  document.getElementById('modal-import-title').innerHTML = `${ICON('upload','ico ico-lg')} <span style="margin-left:8px;">Import Your Resume</span>`;
-  document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span style="margin-left:8px;">Version History</span>`;
+  document.getElementById('modal-import-title').innerHTML = `${ICON('upload','ico ico-lg')} <span class="icon-label-sm">Import Your Resume</span>`;
+  document.getElementById('modal-version-title').innerHTML = `${ICON('clock','ico ico-lg')} <span class="icon-label-sm">Version History</span>`;
   document.getElementById('btn-import-go').innerHTML = `${ICON('sparkle')} <span>Import with AI</span>`;
 
   // Plan pill (download counter lives only on the export page now)
@@ -277,7 +277,7 @@ function hydrate() {
     planPill.innerHTML = `<span class="pill success" title="Admin, full access">${ICON('crown','ico ico-sm')} Admin</span>`;
     if (obadge) obadge.innerHTML = '';
   } else if (isPaid()) {
-    planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+    planPill.innerHTML = `<button class="pill success clickable" onclick="openBillingPortal()">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
     if (obadge) obadge.innerHTML = '';
   } else {
     // Applio is completely free: no upgrade CTA, no "Pro" badge.
@@ -314,7 +314,7 @@ function hydrate() {
   if (welcome) {
     const b = document.getElementById('welcome-banner');
     b.style.display = '';
-    b.innerHTML = `${ICON('sparkle')} <span style="margin-left:6px;">Welcome to Applio! Every feature is free and unlocked.</span>`;
+    b.innerHTML = `${ICON('sparkle')} <span class="icon-label-sm">Welcome to Applio! Every feature is free and unlocked.</span>`;
     setTimeout(() => { b.style.display = 'none'; history.replaceState(null,'','editor'); }, 6000);
   }
 
@@ -474,7 +474,7 @@ function _renderHealthPanel() {
   const host = document.getElementById('resume-health');
   if (!host || (typeof IS_ANON !== 'undefined' && IS_ANON)) { if (host) host.innerHTML = ''; return; }
   const h = _resumeHealth();
-  const col = h.score >= 80 ? '#22c55e' : h.score >= 55 ? '#f59e0b' : '#ef4444';
+  const scoreClass = h.score >= 80 ? 'good' : h.score >= 55 ? 'warn' : 'bad';
   const label = h.score >= 80 ? 'Strong' : h.score >= 55 ? 'Getting there' : 'Needs work';
   // Top issues (index into _qfIssues is their position, since _qfGather pushes in order).
   const top = h.issues.slice(0, 3).map((iss, i) => {
@@ -491,10 +491,10 @@ function _renderHealthPanel() {
     <div class="rh-card">
       <div class="rh-top">
         <span class="rh-label">Resume health</span>
-        <span class="rh-score" style="color:${col};">${h.score}<small>/100</small></span>
+        <span class="rh-score ${scoreClass}">${h.score}<small>/100</small></span>
       </div>
-      <div class="rh-track"><div class="rh-fill" style="width:${h.score}%;background:${col};"></div></div>
-      <div class="rh-sub"><span style="color:${col};font-weight:700;">${label}</span> · ${h.passed}/${h.total} checks passing</div>
+      <div class="rh-track"><div class="rh-fill ${scoreClass}" style="width:${h.score}%;"></div></div>
+      <div class="rh-sub"><span class="${scoreClass}" style="font-weight:700;">${label}</span> · ${h.passed}/${h.total} checks passing</div>
       ${allGood
         ? `<div class="rh-clean">${ICON('check','ico ico-sm')} Looks strong, every check is passing.</div>`
         : `<ul class="rh-issues">${top}</ul>
@@ -556,7 +556,7 @@ function _renderSidebarProgress() {
     + '<span class="sp-label">' + (allDone ? 'Resume ready' : 'Resume progress') + '</span>'
     + '<span class="sp-count' + (allDone ? ' sp-done' : '') + '">' + (allDone ? '✓ ' : '') + done + '/' + total + '</span>'
     + '</div>'
-    + '<div class="sp-track"><div class="sp-fill" style="width:' + pct + '%"></div></div>';
+    + '<div class="sp-track"><div class="sp-fill progress-fill" style="width:' + pct + '%"></div></div>';
 }
 
 
@@ -570,12 +570,12 @@ function _tplLocked(id) { return IS_ANON && ANON_FREE_TEMPLATES.indexOf(id) === 
 const _LOCK_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 // A locked feature panel shown to guests in place of a premium/account-only section.
 function _lockedPanel(title, desc, action) {
-  return `<div class="section-card" style="text-align:center; padding:44px 28px;">
-    <div style="width:58px;height:58px;border-radius:16px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;background:var(--bg-2);color:var(--accent);">${_LOCK_SVG}</div>
-    <h3 style="margin-bottom:8px;">${title}</h3>
-    <p style="color:var(--muted); font-size:14px; max-width:400px; margin:0 auto 22px; line-height:1.65;">${desc}</p>
+  return `<div class="section-card centered" style="padding:44px 28px;">
+    <div class="lock-icon">${_LOCK_SVG}</div>
+    <h3 class="mb-8">${title}</h3>
+    <p class="muted-text" style="font-size:14px; max-width:400px; margin:0 auto 22px; line-height:1.65;">${desc}</p>
     <button class="btn btn-primary" onclick="_promptSignup('${action}')">Sign up free to unlock &rarr;</button>
-    <div style="margin-top:12px;font-size:12px;color:var(--muted);">Free forever &middot; No credit card</div>
+    <div class="small-text muted-text" style="margin-top:12px;">Free forever &middot; No credit card</div>
   </div>`;
 }
 
@@ -586,19 +586,19 @@ function renderTemplateSection() {
         <h3>${ICON('doc')} Templates</h3>
         <span class="pill">${TEMPLATE_DEFS.length} templates</span>
       </div>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:18px;">Choose a style, grouped by what you're applying for. Colors and fonts are in Customize.</p>
+      <p class="muted-text" style="font-size:13px; margin-bottom:18px;">Choose a style, grouped by what you're applying for. Colors and fonts are in Customize.</p>
       ${(typeof TEMPLATE_CATEGORIES !== 'undefined' ? TEMPLATE_CATEGORIES : [null]).map(cat => {
         const items = TEMPLATE_DEFS.filter(t => (cat ? t.cat === cat : true));
         if (!items.length) return '';
         return `
-        ${cat ? `<div class="tpl-cat-label">${cat}</div>${cat === 'Your Resume' ? '<div style="font-size:12px;color:var(--muted);margin:-6px 0 8px;">Keep the look your resume already has</div>' : ''}` : ''}
+        ${cat ? `<div class="tpl-cat-label">${cat}</div>${cat === 'Your Resume' ? '<div class="small-text muted-text" style="margin:-6px 0 8px;">Keep the look your resume already has</div>' : ''}` : ''}
         <div class="template-grid">
           ${items.map(t => `
             <div class="template-card ${resume.template===t.id?'selected':''} ${_tplLocked(t.id)?'tpl-locked':''}" onclick="selectTemplate('${t.id}')">
               <div class="template-thumb">${TEMPLATE_THUMBS[t.id] || ''}${_tplLocked(t.id)?'<span class="tpl-lock">'+_LOCK_SVG.replace('width="22" height="22"','width="12" height="12"')+'</span>':''}</div>
               <div class="template-card-foot">
                 <span class="t-name">${t.name}</span>
-                ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : (_tplLocked(t.id) ? '<span class="t-badge" style="color:var(--muted);">Sign up</span>' : '')}
+                ${resume.template===t.id ? '<span class="t-badge" style="color:#a5b4fc;">✓ Active</span>' : (_tplLocked(t.id) ? '<span class="t-badge muted-text">Sign up</span>' : '')}
               </div>
             </div>`).join('')}
         </div>`;
@@ -1187,15 +1187,15 @@ function renderCustomSection(key) {
       <div class="section-head">
         <h3>${ICON('doc')} <input id="custom-title-input" value="${esc(title)}" placeholder="Section title"
           oninput="renameCustomSection('${key}', this.value)"
-          style="font-size:16px;font-weight:600;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);padding:2px 2px 4px;min-width:180px;"></h3>
+          class="custom-title-input"></h3>
         <button class="ai-btn" onclick="aiImprove('${key}')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
       </div>
-      <p style="color:var(--muted);font-size:12.5px;margin:-4px 0 14px;">A section you control, add anything: languages, patents, interests, references, and more.</p>
+      <p class="muted-text" style="font-size:12.5px;margin:-4px 0 14px;">A section you control, add anything: languages, patents, interests, references, and more.</p>
       ${list.length === 0 ? `<div class="empty-state">No entries yet. Add your first one below.</div>`
         : `<div class="drag-list">${list.map((it, i) => itemCard(key, i, fields.map(f => [f[0], f[1], it[f[1]]]), 'description', it.description)).join('')}</div>`}
       <button class="add-btn" onclick='addItem("${key}",${JSON.stringify(blank(fields, 'description'))})'>${ICON('plus','ico ico-sm')} Add entry</button>
       <div class="action-row" style="margin-top:16px;">
-        <button class="btn btn-ghost btn-sm" onclick="deleteCustomSection('${key}')" style="color:var(--danger);">${ICON('trash','ico ico-sm')} Delete section</button>
+        <button class="btn btn-ghost btn-sm danger-text" onclick="deleteCustomSection('${key}')">${ICON('trash','ico ico-sm')} Delete section</button>
         <button class="btn btn-primary btn-sm" onclick="nextSection('customize')">Done ${ICON('arrowRight')}</button>
       </div>
     </div>`;
@@ -1477,11 +1477,10 @@ function _liveBM(ta, meterId) {
   var barWrap = document.getElementById(meterId.replace('bm_', 'bmbar_'));
   if (barWrap) {
     barWrap.innerHTML = score > 0
-      ? '<div class="bm-track"><div class="bm-fill" style="width:'+score+'%;background:'+col+';"></div></div>'
+      ? '<div class="bm-track"><div class="bm-fill progress-fill" style="width:'+score+'%;background:'+col+';"></div></div>'
       : '';
+    }
   }
-}
-
 
 // ============ Quick Fixes (100% client-side, no AI, no network) ============
 // A self-serve checklist of resume best-practices. Every check below is a pure
@@ -1977,7 +1976,7 @@ function _refreshTrialUI() {
 // One header for every AI tool (icon + title + sub + run button), replacing the
 // old hero-vs-compact split. `tone` drives the card accent + icon color.
 function _aiHead(tone, icon, title, sub, runFn, runLabel, runClass) {
-  return '<div class="ai-card-header">'
+  return '<div class="ai-card-header" title="' + title + '">'
     + '<div class="ai-card-icon ai-icon-' + tone + '">' + ICON(icon) + '</div>'
     + '<div style="flex:1 1 auto;min-width:0;"><h3 class="ai-card-title">' + title + '</h3><p class="ai-card-sub">' + sub + '</p></div>'
     + '<div style="margin-left:auto;flex-shrink:0;">'
@@ -3437,7 +3436,7 @@ async function saveResume(silent) {
   // Open version history (button save) so users can restore versions. A keyboard
   // save (⌘S) stays quiet so it doesn't yank focus into a modal mid-edit.
   if (!silent) openModal('version');
-  toast(cloudOk ? 'Saved to cloud ✓' : 'Saved locally ✓', { type: 'success' });
+  toast(cloudOk ? 'Saved to cloud' : 'Saved locally', { type: 'saved' });
 }
 // ⌘/Ctrl+S saves to the cloud without opening the version modal.
 document.addEventListener('keydown', function (e) {
@@ -5127,3 +5126,91 @@ async function _hydrateFromCloud() {
   // deep-linked them into the tailor flow (don't stack a score modal over that).
   if (!_deepLinked) setTimeout(_maybeAutoScore, 1200);
 })();
+
+// ---- Keyboard shortcuts for editor ----
+(function () {
+  const _isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const MOD = _isMac ? 'metaKey' : 'ctrlKey';
+
+  function isTyping(e) {
+    const t = e.target;
+    return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+  }
+
+  function goSectionByNumber(n) {
+    const items = document.querySelectorAll('.sidebar-item[data-section]');
+    const idx = n - 1;
+    if (items[idx]) { items[idx].click(); return true; }
+    return false;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (isTyping(e)) return;
+
+    // Cmd/Ctrl + 1-9: jump to sidebar section
+    if (e[MOD] && !e.shiftKey && !e.altKey && e.key >= '1' && e.key <= '9') {
+      e.preventDefault();
+      goSectionByNumber(parseInt(e.key, 10));
+      return;
+    }
+
+    // Cmd/Ctrl + S: save
+    if (e[MOD] && e.key === 's') {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btn-save');
+      if (saveBtn) saveBtn.click();
+      return;
+    }
+
+    // Cmd/Ctrl + E: export
+    if (e[MOD] && e.key === 'e') {
+      e.preventDefault();
+      const exportBtn = document.getElementById('btn-export') || document.getElementById('rp-export');
+      if (exportBtn) exportBtn.click();
+      return;
+    }
+
+    // / (slash): open command palette
+    if (e.key === '/' && !isTyping(e)) {
+      e.preventDefault();
+      const cmd = document.getElementById('cmd-palette');
+      if (cmd) cmd.click();
+      return;
+    }
+
+    // Escape: close modals/drawers
+    if (e.key === 'Escape') {
+      const backdrop = document.querySelector('.modal-backdrop.open, .app-dialog-bd.app-dialog-bd-in, .rail-drawer-bd.open');
+      if (backdrop) backdrop.click();
+      const sidebar = document.querySelector('.sidebar.mob-open');
+      if (sidebar) sidebar.classList.remove('mob-open');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (overlay) overlay.classList.remove('show');
+      return;
+    }
+  });
+})();
+
+// Prevent accidental loss of unsaved changes on tab/window close
+window.addEventListener('beforeunload', (e) => {
+  let unsaved = false;
+  try {
+    const editorResume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+    const currentResume = window.resume || {};
+    // Compare key sections to detect unsaved changes
+    const keySections = ['personal', 'experience', 'education', 'skills', 'projects'];
+    for (const section of keySections) {
+      const oldData = editorResume[section] || [];
+      const currentData = currentResume[section] || [];
+      if (JSON.stringify(oldData) !== JSON.stringify(currentData)) {
+        unsaved = true;
+        break;
+      }
+    }
+  } catch (_) { /* keep default behavior if parse fails */ }
+  if (unsaved) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});

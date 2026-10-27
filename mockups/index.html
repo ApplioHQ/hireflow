@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applio — Design Mockups</title>
+  <link rel="stylesheet" href="css/design-system.css">
+  <style>
+    .mockups-landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 56px var(--sp-4) 40px;
+    }
+    .mockups-hero {
+      text-align: center;
+      margin-bottom: 48px;
+      max-width: 700px;
+    }
+    .mockups-hero h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-5xl);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .mockups-hero .subtitle {
+      font-size: var(--fs-lg);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .mockups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .mockup-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      box-shadow: var(--sh-1);
+      transition: all var(--dur) var(--ease);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .mockup-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--sh-3);
+      border-color: var(--accent-line);
+    }
+    .mockup-preview {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, var(--bg-3) 0%, var(--bg-2) 100%);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mockup-preview::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--gradient-soft);
+      opacity: 0.15;
+    }
+    .mockup-preview .preview-canvas {
+      position: relative;
+      z-index: 1;
+      width: 280px;
+      height: 140px;
+      background: var(--bg-0);
+      border-radius: var(--r-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--sh-1);
+      overflow: hidden;
+    }
+    .mockup-preview .preview-canvas .topbar-mock {
+      height: 24px;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mockup-preview .preview-canvas .topbar-mock .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--r-full);
+      background: var(--muted);
+    }
+    .mockup-preview .preview-canvas .topbar-mock .dot.active {
+      background: var(--accent);
+    }
+    .mockup-preview .preview-canvas .body-mock {
+      padding: 8px 10px;
+    }
+    .mockup-preview .preview-canvas .body-mock .row {
+      height: 8px;
+      background: var(--bg-2);
+      border-radius: 2px;
+      margin-bottom: 5px;
+    }
+    .mockup-preview .preview-canvas .body-mock .row.short {
+      width: 60%;
+    }
+    .mockup-preview .preview-canvas .body-mock .row.title {
+      width: 90%;
+      height: 10px;
+      margin-bottom: 8px;
+    }
+    .mockup-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .mockup-body h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .mockup-body p {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      flex: 1;
+    }
+    .mockup-body .mockup-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: var(--fs-xs);
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .mockup-body .mockup-meta .tag {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border: 1px solid var(--accent-line);
+      padding: 2px 8px;
+      border-radius: var(--r-full);
+      font-weight: 600;
+    }
+    .mockup-cta {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+    .mockup-footer {
+      padding-top: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: var(--fs-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="mockups-landing">
+    <div class="mockups-hero">
+      <h1>Applio Design Studies</h1>
+      <p class="subtitle">A set of polished UI mockups exploring elevated versions of Applio's core surfaces. Each mockup is a standalone HTML file — open it directly in your browser.</p>
+    </div>
+
+    <div class="mockups-grid">
+      <div class="mockup-card">
+        <div class="mockup-preview">
+          <div class="preview-canvas">
+            <div class="topbar-mock">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="body-mock">
+              <div class="row title"></div>
+              <div class="row"></div>
+              <div class="row short"></div>
+              <div class="row"></div>
+              <div class="row short"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <h3>Dashboard</h3>
+          <p>A Monitor surface — resume cards, stats at a glance, and quick actions. Committed to density over decoration.</p>
+          <div class="mockup-meta">
+            <span class="tag">Surface: Monitor</span>
+            <span>1180px max</span>
+          </div>
+          <div class="mockup-cta">
+            <a href="dashboard.html" class="btn btn-primary btn-sm">View mockup</a>
+            <a href="dashboard.html" class="btn btn-ghost btn-sm">View source</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-card">
+        <div class="mockup-preview">
+          <div class="preview-canvas">
+            <div class="topbar-mock">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="body-mock">
+              <div class="row title"></div>
+              <div class="row"></div>
+              <div class="row short"></div>
+              <div class="row"></div>
+              <div class="row"></div>
+              <div class="row short"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <h3>Career Coach</h3>
+          <p>An AI chat surface — conversational career advice with suggested prompts, resume preview alongside, and thinking states.</p>
+          <div class="mockup-meta">
+            <span class="tag">Surface: Command</span>
+            <span>Split view</span>
+          </div>
+          <div class="mockup-cta">
+            <a href="career-coach.html" class="btn btn-primary btn-sm">View mockup</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mockup-card">
+        <div class="mockup-preview">
+          <div class="preview-canvas">
+            <div class="topbar-mock">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="body-mock">
+              <div class="row title"></div>
+              <div class="row short"></div>
+              <div class="row"></div>
+              <div class="row"></div>
+              <div class="row short"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <h3>Autopilot</h3>
+          <p>A Configure surface — step-by-step resume tailoring from a job description, with AI analysis and diff review.</p>
+          <div class="mockup-meta">
+            <span class="tag">Surface: Configure</span>
+            <span>Progress steps</span>
+          </div>
+          <div class="mockup-cta">
+            <a href="autopilot.html" class="btn btn-primary btn-sm">View mockup</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-footer">
+      Built with vanilla HTML/CSS/JS — same stack as Applio. <a href="#" id="themeToggle" style="color: var(--accent-text);">Toggle theme</a>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    const toggle = document.getElementById('themeToggle');
+    toggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('light-mode');
+      toggle.textContent = document.documentElement.classList.contains('light-mode') ? 'Dark mode' : 'Light mode';
+    });
+
+    // Animate preview rows
+    document.querySelectorAll('.body-mock').forEach((el, i) => {
+      el.style.animationDelay = (i * 0.1) + 's';
+    });
+  </script>
+</body>
+</html>

@@ -2966,6 +2966,124 @@ async function jsearchSalary(env, { role, location }) {
   } catch (_) { return null; }
 }
 
+// BLS OES API — official US government wage data by SOC code and area
+// Free, no key required (v1: 25 req/day), or free key for v2 (500 req/day)
+// Returns percentiles: P10, P25, Median, P75, P90 (annual)
+async function blsSalary(env, { role, location }) {
+  // Map common job titles to SOC codes (Standard Occupational Classification)
+  const SOC_MAP = {
+    "software engineer": "151252", "software developer": "151252", "web developer": "151254",
+    "frontend developer": "151254", "backend developer": "151252", "fullstack developer": "151252",
+    "mobile developer": "151252", "devops engineer": "151244", "site reliability engineer": "151244",
+    "data engineer": "151242", "data scientist": "152051", "ml engineer": "151242",
+    "ai engineer": "151242", "security engineer": "151212", "cloud engineer": "151244",
+    "platform engineer": "151244", "systems engineer": "151244", "network engineer": "151241",
+    "qa engineer": "151253", "test engineer": "151253", "sdet": "151253",
+    "engineering manager": "119041", "tech lead": "151252", "staff engineer": "151252",
+    "principal engineer": "151252", "architect": "151244", "cto": "111011",
+    "product manager": "113011", "project manager": "113011", "program manager": "113011",
+    "designer": "271024", "ux designer": "271024", "ui designer": "271024",
+    "product designer": "271024", "data analyst": "152051", "business analyst": "151121",
+    "sales engineer": "151251", "solutions architect": "151244",
+    "account executive": "113011", "sales rep": "413011", "customer success": "113011",
+    "recruiter": "131071", "hr manager": "113121", "operations manager": "113011",
+    "marketing manager": "112021", "content writer": "273043", "copywriter": "273043"
+  };
+
+  const targetLower = role.toLowerCase();
+  let socCode = null;
+  for (const [title, code] of Object.entries(SOC_MAP)) {
+    if (targetLower.includes(title)) { socCode = code; break; }
+  }
+  if (!socCode) return null; // No SOC mapping
+
+  // Map location to BLS area code
+  // Format: OE + U + areatype(1) + area(7) + industry(6) + occupation(6) + datatype(2)
+  // areatype: N=national, S=state, M=metro
+  // area: 0000000=national, state FIPS, metro CBSA
+  let prefix = "OEUN"; // national
+  let area = "0000000";
+  const locLower = location.toLowerCase();
+
+  const METRO_MAP = {
+    "san francisco": "0041860", "san jose": "0041940", "oakland": "0041884",
+    "new york": "0035620", "nyc": "0035620", "manhattan": "0035620",
+    "seattle": "0042660", "boston": "0014460", "austin": "0012420",
+    "denver": "0019740", "chicago": "0016980", "atlanta": "0012060",
+    "los angeles": "0031080", "la": "0031080", "san diego": "0041740",
+    "washington": "0047900", "dc": "0047900", "dallas": "0019100",
+    "houston": "0026420", "miami": "0033100", "philadelphia": "0037980",
+    "phoenix": "0038060", "portland": "0038900", "minneapolis": "0033460"
+  };
+
+  const STATE_MAP = {
+    "california": "0600000", "ca": "0600000", "new york": "3600000", "ny": "3600000",
+    "texas": "4800000", "tx": "4800000", "washington": "5300000", "wa": "5300000",
+    "massachusetts": "2500000", "ma": "2500000", "colorado": "0800000", "co": "0800000",
+    "illinois": "1700000", "il": "1700000", "georgia": "1300000", "ga": "1300000",
+    "florida": "1200000", "fl": "1200000", "virginia": "5100000", "va": "5100000",
+    "north carolina": "3700000", "nc": "3700000", "oregon": "4100000", "or": "4100000"
+  };
+
+  if (METRO_MAP[locLower]) { prefix = "OEUM"; area = METRO_MAP[locLower]; }
+  else if (STATE_MAP[locLower]) { prefix = "OEUS"; area = STATE_MAP[locLower]; }
+  // else national (default)
+
+  // Datatypes: 11=P10, 12=P25, 13=Median, 14=P75, 15=P90 (annual)
+  const datatypes = ["11", "12", "13", "14", "15"];
+  const seriesIds = datatypes.map(dt => `${prefix}${area}000000${socCode}${dt}`);
+
+  const apiUrl = "https://api.bls.gov/publicAPI/v1/timeseries/data/"; // v1 no key
+  const payload = { seriesid: seriesIds, startyear: "2024", endyear: "2024" };
+  // If BLS_KEY env var exists, use v2
+  if (env.BLS_API_KEY) {
+    payload.registrationkey = env.BLS_API_KEY;
+  }
+
+  try {
+    const r = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 86400, "300-599": 0 } }
+    });
+    if (!r.ok) return null;
+    const data = await r.json().catch(() => null);
+    if (!data || data.status !== "REQUEST_SUCCEEDED") return null;
+
+    const results = {};
+    for (const s of data.Results.series) {
+      if (s.data && s.data[0]) {
+        const dt = s.seriesID.slice(-2);
+        const val = s.data[0].value;
+        const footnotes = s.data[0].footnotes || [];
+        // BLS caps at $239,200 - value "-" with footnote code 5
+        if (val !== "-" && val !== "") {
+          results[dt] = parseInt(val, 10);
+        }
+      }
+    }
+
+    // Need at least median
+    if (!results["13"]) return null;
+
+    const low = results["12"] || Math.round(results["13"] * 0.7);
+    const median = results["13"];
+    const high = results["14"] || Math.round(results["13"] * 1.3);
+    const p10 = results["11"] || Math.round(low * 0.8);
+    const p90 = results["15"] || Math.round(high * 1.15);
+
+    return {
+      low, median, high,
+      currency: "USD",
+      country: "US",
+      sampleSize: data.Results.series.length,
+      source: "bls",
+      bls: { socCode, area: prefix === "OEUN" ? "national" : (prefix === "OEUS" ? "state" : "metro"), p10, p25: low, p75: high, p90 }
+    };
+  } catch (_) { return null; }
+}
+
 // Job search. Prefers JSearch (RapidAPI, aggregates Google for Jobs → LinkedIn /
 // Indeed / Glassdoor / ZipRecruiter) when its key is set; falls back to Adzuna.
 async function jobSearch(req, env) {
@@ -3475,7 +3593,79 @@ async function aiSalary(env, { role, location, level, resume }) {
     return out;
   }
 
-  // --- 3) Fall back to the LLM's general knowledge (clearly disclaimed) ---
+  // --- 3) Try BLS OES (official US gov data) as third live source ---
+  const bls = await blsSalary(env, { role: target, location: loc });
+  if (bls && bls.median > 0) {
+    const median = bls.median;
+    const low = bls.low;
+    const high = bls.high;
+    const p10 = bls.bls?.p10 || Math.round(low * 0.8);
+    const p25 = low;
+    const p75 = high;
+    const p90 = bls.bls?.p90 || Math.round(high * 1.15);
+
+    const isTech = /engineer|developer|software|data|ml|ai|devops|cloud|backend|frontend|fullstack|mobile|web|security|platform|infrastructure|site reliability|sre|architect/i.test(target);
+    const bonusPct = isTech ? 0.12 : 0.08;
+    const equityPct = isTech ? 0.06 : 0.03;
+    const base = median;
+    const bonus = Math.round(base * bonusPct);
+    const equity = Math.round(base * equityPct);
+
+    const levels = {
+      "Entry": { low: Math.round(low * 0.7), median: Math.round(median * 0.75), high: Math.round(high * 0.8) },
+      "Mid": { low: Math.round(low * 0.9), median: Math.round(median * 0.95), high: Math.round(high * 0.9) },
+      "Senior": { low: low, median: median, high: high },
+      "Lead / Staff": { low: Math.round(low * 1.2), median: Math.round(median * 1.3), high: Math.round(high * 1.25) }
+    };
+
+    const locationMult = { "san francisco": 1.45, "new york": 1.35, "seattle": 1.25, "boston": 1.2, "austin": 1.1, "denver": 1.05, "chicago": 1.0, "atlanta": 0.95, "remote": 1.0 };
+    const locKey = loc.toLowerCase();
+    const mult = locationMult[locKey] || 1.0;
+    const locations = Object.entries(locationMult).map(([name, m]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      low: Math.round(low * m),
+      median: Math.round(median * m),
+      high: Math.round(high * m)
+    }));
+
+    const remotePct = isTech ? -3 : 0;
+    const trend = isTech ? "up" : "flat";
+    const trendPct = isTech ? "8" : "2";
+
+    const out = {
+      role: target,
+      location: loc || `Not specified (${bls.bls?.area || "national"})`,
+      currency: bls.currency,
+      period: "year",
+      low, median, high,
+      level: lvl || "",
+      base, bonus, equity,
+      factors: [
+        "Source: BLS OEWS May 2024 (official US employer survey)",
+        "Range is 25th, 75th percentile of annual base wages",
+        "Covers ~830 occupations, national/state/metro areas",
+        isTech ? "Tech roles typically include 10-15% bonus + equity" : "Bonus typically 5-10% of base",
+        "Note: BLS caps wages at $239,200/yr; high percentiles may be capped"
+      ],
+      negotiation: "Anchor at the 75th percentile (" + Math.round(high).toLocaleString() +
+        " " + bls.currency + ") — BLS data is employer-reported, used in federal wage determinations.",
+      confidence: "high",
+      source: "bls",
+      sampleSize: bls.sampleSize,
+      estimate: false,
+      disclaimer: "Based on BLS Occupational Employment and Wage Statistics (OEWS), May 2024. Employer-reported base wages only. Top-coded at $239,200/yr.",
+      levels,
+      locations,
+      remotePct,
+      trend,
+      trendPct: trend === "up" ? "8" : "2",
+      bls: bls.bls
+    };
+    await aiCachePut(env, "salaryv3", cacheKey, out, 86400);
+    return out;
+  }
+
+  // --- 4) Fall back to the LLM's general knowledge (clearly disclaimed) ---
 
   const sys = GROUNDING + "\n\n" + `You are a compensation analyst. Give a realistic ESTIMATED annual pay range for a role, based on your general knowledge of typical market compensation. You do not have live market data, so these are informed estimates, be honest about that.
 

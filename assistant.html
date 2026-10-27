@@ -132,7 +132,9 @@
   @keyframes caSpin { to { transform: rotate(360deg); } }
   @keyframes caPulse { 0%,100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
   .ca-hero-logo { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
-  .ca-empty h1 { font-size: 32px; font-weight: 800; letter-spacing: -.02em; margin: 0; background: linear-gradient(120deg, var(--text), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .ca-empty h1 { font-size: 32px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+  .ca-empty h1.ca-title-brand .brand-applio { color: #fff; -webkit-text-fill-color: #fff; }
+  .ca-empty h1.ca-title-brand .brand-ai { -webkit-text-fill-color: unset; }
   .ca-empty .ca-hero-sub { font-size: 14.5px; margin-top: 10px; }
 
   /* ===== Sleek scrollbars ===== */
@@ -222,7 +224,7 @@ function _isFreeUser(){ return typeof isFree === 'function' ? isFree() : false; 
 let messages = (function(){ try { const m = JSON.parse(localStorage.getItem(STORE) || '[]'); return Array.isArray(m) ? m : []; } catch { return []; } })();
 let busy = false;
 
-document.getElementById('ca-title').innerHTML = '<span class="ca-title-brand small"><span class="brand-applio">Applio</span><span class="brand-ai"> AI</span></span><span>Career Coach</span>';
+document.getElementById('ca-title').innerHTML = '<span>Career Coach</span>';
 // Composer: a light violet spark leads the input (the real logo lives on avatars).
 document.getElementById('cc-top').innerHTML =
   '<svg class="cc-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>' +

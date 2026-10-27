@@ -57,18 +57,18 @@
 
 /* ===== Light mode ===== */
 html.light-mode {
-  --bg-0: #f0f2f8;
+  --bg-0: #f7f6f3;
   --bg-1: #ffffff;
-  --bg-2: #e8eaf2;
-  --bg-3: #d8dce8;
-  --border: #c8cde0;
+  --bg-2: #efece7;
+  --bg-3: #e6e3dc;
+  --border: #d8d5cf;
   --text: #1a1f3c;
-  --muted: #5a6080;
-  --gradient-soft: linear-gradient(135deg, #e0e4f8 0%, #c8d0f0 100%);
-  /* Softer, cool-gray elevation for light mode */
-  --sh-1: 0 1px 2px rgba(20,30,70,.06), 0 2px 8px rgba(20,30,70,.06);
-  --sh-2: 0 4px 12px rgba(20,30,70,.08), 0 14px 34px rgba(20,30,70,.08);
-  --sh-3: 0 8px 24px rgba(20,30,70,.10), 0 24px 60px rgba(20,30,70,.10);
+  --muted: #6a6778;
+  --gradient-soft: linear-gradient(135deg, #e8e5df 0%, #dcd8d2 100%);
+  /* Softer, warm elevation for light mode */
+  --sh-1: 0 1px 2px rgba(40,38,35,.06), 0 2px 8px rgba(40,38,35,.06);
+  --sh-2: 0 4px 12px rgba(40,38,35,.08), 0 14px 34px rgba(40,38,35,.08);
+  --sh-3: 0 8px 24px rgba(40,38,35,.10), 0 24px 60px rgba(40,38,35,.10);
   --hi: inset 0 1px 0 rgba(255,255,255,.7);
   --ring: 0 0 0 3px rgba(109,77,252,.22);
   /* Accent & status text need darker ink to stay legible on light surfaces */

@@ -14,16 +14,66 @@
 <link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
 <style>
-  .bm-cand { border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-2); padding:12px; margin-bottom:12px; box-shadow:var(--sh-1); }
+  .bm-wrap { max-width:860px; margin:0 auto; padding:28px 20px 80px; }
+
+  /* ---- Hero ---- */
+  .bm-hero { text-align:center; margin-bottom:24px; }
+  .bm-hero h1 { font-size:clamp(22px,4vw,30px); font-weight:800; letter-spacing:-.5px; display:inline-flex; align-items:center; gap:10px; }
+  .bm-hero p { color:var(--muted); font-size:14px; margin-top:6px; max-width:520px; margin-left:auto; margin-right:auto; line-height:1.55; }
+
+  /* ---- Steps ---- */
+  .bm-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+  @media (max-width:640px){ .bm-steps { grid-template-columns:1fr; } }
+  .bm-step { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:16px; display:flex; gap:12px; align-items:flex-start; transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .bm-step:hover { transform:translateY(-2px); box-shadow:var(--sh-1); }
+  .bm-step-n { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--accent-ghost); border:1px solid var(--accent-line); color:var(--accent); font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .bm-step-title { font-size:13px; font-weight:700; margin-bottom:3px; }
+  .bm-step-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+  /* ---- Form card ---- */
+  .bm-form { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:24px; }
+  .bm-field { margin-bottom:14px; }
+  .bm-field label { display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--muted); }
+  .bm-ta { width:100%; box-sizing:border-box; min-height:120px; padding:12px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-md); color:var(--text); font-size:13.5px; line-height:1.55; resize:vertical; font-family:inherit; transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .bm-ta:focus { outline:none; border-color:var(--accent); box-shadow:var(--ring); }
+
+  /* ---- Candidates ---- */
+  .bm-cand { border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-2); padding:12px; margin-bottom:12px; }
   .bm-cand-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .bm-cand-head input { flex:1; font-weight:600; font-size:13px; background:transparent; border:0; border-bottom:1px solid transparent; color:var(--text); padding:4px 2px; }
   .bm-cand-head input:focus { outline:none; border-bottom-color:var(--accent); box-shadow:none; }
   .bm-cand textarea { width:100%; box-sizing:border-box; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-size:13px; line-height:1.55; resize:vertical; font-family:inherit; transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .bm-cand textarea:focus { outline:none; border-color:var(--accent); box-shadow:var(--ring); }
   .bm-tag { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:var(--r-full); }
-  .bm-row { border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; margin-bottom:12px; background:var(--bg-2); box-shadow:var(--sh-1), var(--hi); transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
-  .bm-row:hover { transform:translateY(-1px); box-shadow:var(--sh-2), var(--hi); }
-  .bm-row.best { border-color:transparent; background:linear-gradient(180deg, rgba(109,77,252,.08), var(--bg-2)) padding-box, var(--gradient) border-box; box-shadow:var(--sh-2), 0 0 30px rgba(109,77,252,.12); }
+  .bm-cand-actions { display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 16px; }
+
+  .bm-run-wrap { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+
+  /* ---- Sample preview ---- */
+  .bm-preview { margin-top:24px; }
+  .bm-preview-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:10px; text-align:center; }
+  .bm-sample { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  @media (max-width:640px){ .bm-sample { grid-template-columns:1fr; } }
+  .bm-sample-card { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; text-align:center; transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .bm-sample-card:hover { transform:translateY(-2px); box-shadow:var(--sh-1); }
+  .bm-sample-card.best { border-color:rgba(109,77,252,.4); background:linear-gradient(135deg, rgba(109,77,252,.08), rgba(139,92,246,.04)); }
+  .bm-sample-badge { display:inline-block; font-size:9px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#6ee7b7; background:rgba(16,185,129,.16); border:1px solid rgba(16,185,129,.3); border-radius:var(--r-full); padding:2px 8px; margin-bottom:6px; }
+  .bm-sample-name { font-size:13px; font-weight:600; margin-bottom:8px; }
+  .bm-sample-score { font-size:28px; font-weight:800; font-variant-numeric:tabular-nums; margin-bottom:6px; }
+  .bm-sample-track { height:6px; border-radius:999px; background:var(--bg-2); overflow:hidden; }
+  .bm-sample-track > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#6d4dfc,#8a73f8); }
+
+  /* ---- Results ---- */
+  .bm-results { margin-top:22px; }
+  .bm-results.show { display:block; }
+  .bm-row { border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; margin-bottom:12px; background:var(--bg-1); box-shadow:var(--sh-1); transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); animation:bmFadeUp .4s var(--ease-out) both; }
+  @keyframes bmFadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion:reduce){ .bm-row { animation:none; } }
+  .bm-row:nth-child(2){ animation-delay:.06s; }
+  .bm-row:nth-child(3){ animation-delay:.12s; }
+  .bm-row:nth-child(4){ animation-delay:.18s; }
+  .bm-row:hover { transform:translateY(-1px); box-shadow:var(--sh-2); }
+  .bm-row.best { border-color:transparent; background:linear-gradient(180deg, rgba(109,77,252,.08), var(--bg-1)) padding-box, var(--gradient) border-box; box-shadow:var(--sh-2), 0 0 30px rgba(109,77,252,.12); }
   .bm-row-head { display:flex; align-items:center; gap:12px; padding:14px 16px; }
   .bm-rank { font-size:13px; font-weight:800; color:var(--muted); min-width:22px; text-align:center; }
   .bm-score { font-size:26px; font-weight:800; min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
@@ -39,41 +89,15 @@
   .bm-detail summary::-webkit-details-marker { display:none; }
   .bm-detail .bm-detail-body { padding:0 16px 14px; font-size:12.5px; line-height:1.6; color:var(--muted); }
   .bm-chip { display:inline-block; font-size:11px; padding:3px 9px; border-radius:var(--r-full); background:var(--bg); border:1px solid var(--border); margin:3px 4px 0 0; color:var(--text); }
-  /* Two-column hero so the value preview sits beside the form (no long scroll) */
-  .bm-main { padding:32px 20px; max-width:1120px; margin:0 auto; }
-  .bm-hero { display:grid; grid-template-columns:1.12fr .88fr; gap:20px; align-items:start; }
-  @media (max-width:900px){ .bm-hero { grid-template-columns:1fr; } }
-  .bm-hero .section-card { margin:0; }
-  .bm-hero.results-open { grid-template-columns:1fr; }   /* full-width form once results show */
-  .bm-hero.results-open #bm-intro { display:none; }
-  /* Intro: sample ranked result + how it works */
-  #bm-intro { margin-top:0; }
-  .bm-sample-label { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
-  .bm-sample { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:12px; box-shadow:var(--sh-2), var(--hi); }
-  .bm-sample-row { display:flex; align-items:center; gap:14px; padding:12px; border-radius:var(--r-md); }
-  .bm-sample-row.best { background:linear-gradient(135deg, rgba(109,77,252,.10), rgba(139,92,246,.05)); border:1px solid rgba(109,77,252,.3); }
-  .bm-sample-rank { width:30px; text-align:center; font-weight:800; font-size:15px; color:var(--muted); flex-shrink:0; }
-  .bm-sample-main { flex:1; min-width:0; }
-  .bm-sample-name { font-size:13.5px; font-weight:600; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
-  .bm-sample-badge { font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#6ee7b7; background:rgba(16,185,129,.16); border:1px solid rgba(16,185,129,.3); border-radius:var(--r-full); padding:2px 8px; }
-  .bm-sample-track { height:7px; border-radius:999px; background:var(--bg-2); overflow:hidden; }
-  .bm-sample-track > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#6d4dfc,#8a73f8); }
-  .bm-sample-score { font-size:22px; font-weight:800; min-width:40px; text-align:right; font-variant-numeric:tabular-nums; }
-  .bm-how { display:grid; grid-template-columns:1fr; gap:12px; margin-top:16px; }
-  .bm-step { display:flex; gap:12px; align-items:flex-start; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-md); padding:16px; box-shadow:var(--sh-1), var(--hi); }
-  .bm-step-ico { width:38px; height:38px; flex-shrink:0; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; }
-  .bm-step-ico svg { width:19px; height:19px; }
-  .bm-step-t { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
-  .bm-step-n { width:18px; height:18px; border-radius:50%; background:var(--bg-3); color:var(--muted); font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
-  .bm-step-d { font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:4px; }
+
+  /* Winner card */
+  .bm-winner { background:var(--bg-1); border:1px solid var(--accent); border-radius:var(--r-lg); padding:20px; margin-bottom:16px; background:linear-gradient(135deg, rgba(109,77,252,.10), rgba(139,92,246,.06)); animation:bmFadeUp .4s var(--ease-out) both; }
+
+  /* Hide intro when results show */
+  .bm-wrap.results-open .bm-intro-section { display:none; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#111113">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -81,80 +105,88 @@
   <div class="topbar-right">
     <span id="health-badge"></span>
     <span id="plan-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="theme-toggle" onclick="toggleTheme()"></button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
 
-<main class="bm-main">
+<main class="bm-wrap">
+  <!-- Hero -->
   <div class="bm-hero">
-  <div class="section-card">
-    <div class="section-head"><h3 id="bm-title"></h3></div>
-    <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Paste a job description and two or more resume versions. Applio scores each against the role and finds your strongest match.</p>
+    <h1 id="bm-title"></h1>
+    <p>Paste a job description and two or more resume versions. Applio scores each against the role and finds your strongest match.</p>
+  </div>
 
-    <div class="form-field">
+  <!-- Steps -->
+  <div class="bm-steps bm-intro-section">
+    <div class="bm-step">
+      <div class="bm-step-n">1</div>
+      <div>
+        <div class="bm-step-title">Paste the job</div>
+        <div class="bm-step-desc">Drop in the full job description you're targeting.</div>
+      </div>
+    </div>
+    <div class="bm-step">
+      <div class="bm-step-n">2</div>
+      <div>
+        <div class="bm-step-title">Add your resumes</div>
+        <div class="bm-step-desc">Compare two or more versions, or use your saved resume.</div>
+      </div>
+    </div>
+    <div class="bm-step">
+      <div class="bm-step-n">3</div>
+      <div>
+        <div class="bm-step-title">See the winner</div>
+        <div class="bm-step-desc">Ranked scores with keyword, experience and formatting breakdowns.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="bm-form">
+    <div class="bm-field">
       <label>Job Description</label>
-      <textarea id="bm-jd" rows="6" placeholder="Paste the full job posting here…"></textarea>
+      <textarea id="bm-jd" class="bm-ta" rows="5" placeholder="Paste the full job posting here..."></textarea>
     </div>
 
-    <label style="display:block; font-size:12px; color:var(--muted); margin:6px 0 8px;">Resumes to compare</label>
+    <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">Resumes to compare</label>
     <div id="bm-candidates"></div>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:4px 0 18px;">
+    <div class="bm-cand-actions">
       <button class="btn btn-ghost btn-sm" id="bm-add"></button>
       <button class="btn btn-ghost btn-sm" id="bm-use-saved"></button>
     </div>
 
-    <button class="btn btn-primary btn-block" id="bm-run"></button>
+    <div class="bm-run-wrap">
+      <button class="btn btn-primary" id="bm-run" style="flex:1;"></button>
+    </div>
     <div id="bm-banner"></div>
   </div>
 
-  <div id="bm-intro">
-    <div class="bm-sample-label"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.9;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> What you'll get</div>
+  <!-- Sample preview (hidden when results show) -->
+  <div class="bm-preview bm-intro-section">
+    <div class="bm-preview-label">What you'll get</div>
     <div class="bm-sample">
-      <div class="bm-sample-row best">
-        <div class="bm-sample-rank"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></div>
-        <div class="bm-sample-main">
-          <div class="bm-sample-name">Resume v2, Product focus <span class="bm-sample-badge">Best match</span></div>
-          <div class="bm-sample-track"><i style="width:92%"></i></div>
-        </div>
+      <div class="bm-sample-card best">
+        <div class="bm-sample-badge">Best match</div>
+        <div class="bm-sample-name">Resume v2, Product focus</div>
         <div class="bm-sample-score" style="color:#6ee7b7;">92</div>
+        <div class="bm-sample-track"><i style="width:92%"></i></div>
       </div>
-      <div class="bm-sample-row">
-        <div class="bm-sample-rank">2</div>
-        <div class="bm-sample-main">
-          <div class="bm-sample-name">Resume v1, General</div>
-          <div class="bm-sample-track"><i style="width:78%"></i></div>
-        </div>
+      <div class="bm-sample-card">
+        <div class="bm-sample-name" style="margin-top:8px;">Resume v1, General</div>
         <div class="bm-sample-score" style="color:#fcd34d;">78</div>
+        <div class="bm-sample-track"><i style="width:78%"></i></div>
       </div>
-      <div class="bm-sample-row">
-        <div class="bm-sample-rank">3</div>
-        <div class="bm-sample-main">
-          <div class="bm-sample-name">Resume v3, Design lead</div>
-          <div class="bm-sample-track"><i style="width:64%"></i></div>
-        </div>
+      <div class="bm-sample-card">
+        <div class="bm-sample-name" style="margin-top:8px;">Resume v3, Design lead</div>
         <div class="bm-sample-score" style="color:#fca5a5;">64</div>
-      </div>
-    </div>
-
-    <div class="bm-how">
-      <div class="bm-step">
-        <div class="bm-step-ico" style="background:linear-gradient(135deg,#4338ca,#6d4dfc);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></div>
-        <div><div class="bm-step-t"><span class="bm-step-n">1</span> Paste the job</div><div class="bm-step-d">Drop in the full job description you're targeting.</div></div>
-      </div>
-      <div class="bm-step">
-        <div class="bm-step-ico" style="background:linear-gradient(135deg,#0891b2,#06b6d4);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-        <div><div class="bm-step-t"><span class="bm-step-n">2</span> Add your resumes</div><div class="bm-step-d">Compare two or more versions, or use your saved resume.</div></div>
-      </div>
-      <div class="bm-step">
-        <div class="bm-step-ico" style="background:linear-gradient(135deg,#7c3aed,#8a73f8);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
-        <div><div class="bm-step-t"><span class="bm-step-n">3</span> See the winner</div><div class="bm-step-d">Ranked scores with keyword, experience &amp; formatting breakdowns.</div></div>
+        <div class="bm-sample-track"><i style="width:64%"></i></div>
       </div>
     </div>
   </div>
-  </div><!-- /.bm-hero -->
 
+  <!-- Results -->
   <div id="bm-results"></div>
 </main>
 
@@ -171,7 +203,7 @@ const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTop
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function signOut(){ localStorage.removeItem('hf_token'); localStorage.removeItem('hf_email'); location.href='/'; }
 
-// ── Candidate list state ──
+// -- Candidate list state --
 let _candidates = [ { label:'Resume 1', content:'', type:'text' }, { label:'Resume 2', content:'', type:'text' } ];
 
 function _renderCandidates() {
@@ -181,8 +213,8 @@ function _renderCandidates() {
       ? `<span class="bm-tag" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.35);">Saved resume</span>`
       : '';
     const body = c.type === 'saved'
-      ? `<div style="font-size:12px;color:var(--muted);padding:8px 2px;">Using your saved resume from the editor (${esc(c.preview||'')}). It’s scored as-is.</div>`
-      : `<textarea rows="5" placeholder="Paste this resume’s full text…" oninput="_onCandInput(${i}, this.value)">${esc(c.content)}</textarea>`;
+      ? `<div style="font-size:12px;color:var(--muted);padding:8px 2px;">Using your saved resume from the editor (${esc(c.preview||'')}). It's scored as-is.</div>`
+      : `<textarea rows="4" placeholder="Paste this resume's full text..." oninput="_onCandInput(${i}, this.value)">${esc(c.content)}</textarea>`;
     return `<div class="bm-cand">
       <div class="bm-cand-head">
         ${ICON('doc','ico ico-sm')}
@@ -219,20 +251,15 @@ function _noteTrial(t){
   }
 }
 
-// ── Run the match ──
+// -- Run the match --
 async function runMatch(){
   if (IS_ANON) { promptSignup('run the best-match analysis'); return; }
   const jd = document.getElementById('bm-jd').value.trim();
   if (jd.length < 40) { toast('Paste a fuller job description first (a few lines).', {type:'warn'}); return; }
-  // Valid candidates: saved resume, or pasted text with enough content.
   const cands = _candidates.filter(c => c.type === 'saved' || (typeof c.content === 'string' && c.content.trim().length >= 40));
   if (cands.length < 1) { toast('Add at least one resume (paste a few lines or use your saved resume).', {type:'warn'}); return; }
-  // Use the SAME free-AI bucket as the editor (localStorage hf_free_ai_uses) so a
-  // free user's "1 free ATS use" is consistent everywhere. One match run = one use.
   if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
 
-  // Skeleton cards mirror the results grid (one card per candidate) so the
-  // page reserves the right shape while each resume is scored serially.
   if (typeof skeleton === 'function') {
     document.getElementById('bm-results').innerHTML = skeleton('cards', { count: cands.length, cols: cands.length >= 3 ? 3 : 2 });
   } else {
@@ -240,9 +267,9 @@ async function runMatch(){
   }
   const scored = [];
   let paywalled = false;
-  aiLoading('Scoring resume 1 of ' + cands.length + '…');
+  aiLoading('Scoring resume 1 of ' + cands.length + '...');
   for (let i = 0; i < cands.length; i++) {
-    aiLoading('Scoring resume ' + (i+1) + ' of ' + cands.length + '…');
+    aiLoading('Scoring resume ' + (i+1) + ' of ' + cands.length + '...');
     try {
       const r = await fetch(API + '/ai/ats', {
         method:'POST',
@@ -259,8 +286,6 @@ async function runMatch(){
     }
   }
   aiLoadingDone();
-  // Only spend the free ATS use if at least one resume actually scored, a run that
-  // errored out (cold worker / offline) must not burn the user's single free try.
   if (isFree() && scored.some(s => typeof s.score === 'number')) consumeFreeAiUse('ats');
   _renderResults(scored, paywalled, cands.length);
 }
@@ -273,14 +298,14 @@ function _renderResults(scored, paywalled, attempted){
   const errored = scored.filter(s => typeof s.score !== 'number');
   const res = document.getElementById('bm-results');
   const hasResults = ok.length || errored.length;
-  const hero = document.querySelector('.bm-hero');
-  if (hero) hero.classList.toggle('results-open', !!hasResults);
+  const wrap = document.querySelector('.bm-wrap');
+  if (wrap) wrap.classList.toggle('results-open', !!hasResults);
   if (!hasResults) { res.innerHTML = ''; return; }
 
   let html = '';
   if (ok.length) {
     const best = ok[0];
-    html += `<div class="section-card" style="border:1px solid var(--accent); background:linear-gradient(135deg, rgba(109,77,252,.10), rgba(139,92,246,.06));">
+    html += `<div class="bm-winner">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="font-size:34px;">${ICON('trophy','ico').replace('class="ico"','style="width:34px;height:34px;color:var(--accent);"')}</div>
         <div>
@@ -292,19 +317,17 @@ function _renderResults(scored, paywalled, attempted){
     </div>`;
   }
 
-  html += '<div class="section-card"><div class="section-head"><h3>Ranked results</h3></div>';
+  html += '<div style="margin-bottom:8px;"><h3 style="font-size:15px; font-weight:800;">Ranked results</h3></div>';
   html += ok.map((s, idx) => _rowHTML(s, idx, idx === 0)).join('');
   html += errored.map(s => `<div class="bm-row"><div class="bm-row-head"><div class="bm-rank">-</div><div style="flex:1;"><strong>${esc(s.label)}</strong><div style="font-size:12px;color:var(--danger);">${esc(s.error||"Couldn't score this resume, please try again.")}</div></div></div></div>`).join('');
-  html += '</div>';
 
   if (paywalled) {
-    html += `<div class="section-card" style="text-align:center;">
+    html += `<div style="text-align:center; margin-top:16px; padding:20px; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg);">
       <p style="font-size:14px; margin-bottom:6px;"><strong>Scored ${ok.length} of ${attempted} resumes.</strong></p>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You’ve used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You've used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
       <a href="pricing" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
     </div>`;
   }
-  res.classList.add('ai-reveal');
   res.innerHTML = html;
 }
 
@@ -336,8 +359,8 @@ function _rowHTML(s, idx, isBest){
     </div>
     ${hasDetail ? `<details class="bm-detail"><summary>Details</summary><div class="bm-detail-body">
       ${sub}
-      ${list(s.wins, 'What works', '✓', '#22c55e')}
-      ${list(s.issues, 'What to fix', '✗', '#f59e0b')}
+      ${list(s.wins, 'What works', String.fromCharCode(10003), '#22c55e')}
+      ${list(s.issues, 'What to fix', String.fromCharCode(10007), '#f59e0b')}
       ${missing}
     </div></details>` : ''}
   </div>`;
@@ -361,11 +384,9 @@ function _rowHTML(s, idx, isBest){
 
   const banner = document.getElementById('bm-banner');
   if (isFree()) {
-    // Use the SAME counter the gate enforces (freeAiUsesLeft/hf_free_ai_uses), so the
-    // displayed count never disagrees with when the paywall actually triggers.
     const left = freeAiUsesLeft('ats');
     if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You’ve used your free match, running it again needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
+      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You've used your free match, running it again needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
     } else {
       banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;"><strong style="color:var(--accent);">${left} free ${left===1?'match':'matches'}</strong> left. Then it's Premium.</p>`;
     }

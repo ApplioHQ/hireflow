@@ -15,78 +15,141 @@
 <link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
 <style>
-  .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); overflow: hidden; box-shadow: var(--sh-1); transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
-  .ip-tip:hover { border-color: var(--accent); box-shadow: var(--sh-2); }
+  .ip-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---- Hero ---- */
+  .ip-hero-head { text-align: center; margin-bottom: 24px; }
+  .ip-hero-head h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; letter-spacing: -.5px; display: inline-flex; align-items: center; gap: 10px; }
+  .ip-hero-head p { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+  /* ---- Form ---- */
+  .ip-form-row { display: flex; gap: 10px; align-items: flex-end; }
+  @media (max-width: 640px) { .ip-form-row { flex-direction: column; align-items: stretch; } }
+  .ip-field { flex: 1; }
+  .ip-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--muted); }
+  .ip-field input, .ip-field textarea { width: 100%; box-sizing: border-box; padding: 10px 14px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: 14px; font-family: inherit; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ip-field input:focus, .ip-field textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+  .ip-go { flex-shrink: 0; height: 42px; padding: 0 22px; white-space: nowrap; }
+
+  /* Role chips */
+  .ip-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 12px 0 6px; }
+  .ip-chip { font-size: 12.5px; padding: 6px 14px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--bg-1); color: var(--text); cursor: pointer; transition: all var(--dur) var(--ease); }
+  .ip-chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+  /* JD toggle */
+  .ip-jd-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; margin: 8px 0 4px; transition: color var(--dur) var(--ease); background: none; border: none; font-family: inherit; }
+  .ip-jd-toggle:hover { color: var(--accent); }
+  .ip-jd-toggle svg { width: 14px; height: 14px; transition: transform var(--dur) var(--ease); }
+  .ip-jd-toggle.open svg { transform: rotate(180deg); }
+  .ip-jd-area { max-height: 0; overflow: hidden; transition: max-height .3s var(--ease-out); }
+  .ip-jd-area.open { max-height: 200px; }
+
+  /* ---- Feature cards ---- */
+  .ip-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+  @media (max-width: 640px) { .ip-features { grid-template-columns: 1fr; } }
+  .ip-feat { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px 16px; text-align: center; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ip-feat:hover { transform: translateY(-3px); box-shadow: var(--sh-1); }
+  .ip-feat-icon { width: 40px; height: 40px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+  .ip-feat-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .ip-feat-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ---- Sample preview ---- */
+  .ip-sample-strip { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; margin-top: 20px; }
+  .ip-sample-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .ip-sample-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .ip-sample-row { grid-template-columns: 1fr; } }
+  .ip-sample-q-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px; }
+  .ip-sample-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #c2b8fd; background: rgba(109,77,252,.12); border: 1px solid rgba(109,77,252,.22); border-radius: var(--r-full); padding: 3px 10px; }
+  .ip-sample-qtext { font-size: 14px; font-weight: 600; line-height: 1.5; margin-top: 10px; }
+  .ip-sample-fb-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px; }
+  .ip-sample-fb-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .ip-sample-ring { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; position: relative;
+    background: conic-gradient(#34d399 calc(var(--p,92) * 1%), var(--bg-3) 0); }
+  .ip-sample-ring::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--bg-2); }
+  .ip-sample-ring b { position: relative; font-size: 15px; font-weight: 800; }
+  .ip-sample-fb-title { font-size: 13px; font-weight: 700; }
+  .ip-sample-fb-sub { font-size: 11px; color: #34d399; font-weight: 600; margin-top: 2px; }
+  .ip-sample-bars { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .ip-sample-bl { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .ip-sample-bl span:last-child { font-weight: 700; color: var(--text); }
+  .ip-fb-bar { height: 5px; border-radius: 99px; background: var(--bg-3); overflow: hidden; margin-top: 4px; }
+  .ip-fb-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #6d4dfc, #818cf8); transition: width .7s cubic-bezier(.2,.8,.2,1); }
+  .ip-types-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .ip-types-row span { font-size: 11px; font-weight: 600; color: #c2b8fd; background: rgba(109,77,252,.10); border: 1px solid rgba(109,77,252,.22); border-radius: var(--r-full); padding: 3px 10px; }
+
+  /* ---- Resume banner ---- */
+  .ip-resume-banner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 20px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(109,77,252,.12), rgba(139,92,246,.08)); border: 1px solid rgba(109,77,252,.4); border-radius: var(--r-md); animation: ipFadeUp .3s var(--ease-out) both; }
+  .ip-resume-info { flex: 1; min-width: 200px; }
+  .ip-resume-info strong { font-size: 14px; display: block; margin-bottom: 2px; }
+  .ip-resume-info span { font-size: 12.5px; color: var(--muted); }
+
+  /* ---- Practice mode ---- */
+  @keyframes ipFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .ip-practice-card, .ip-resume-banner, .ip-fb-reveal { animation: none !important; } }
+
+  .ip-practice-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; animation: ipFadeUp .4s var(--ease-out) both; }
+  .ip-practice-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .ip-practice-left { display: flex; align-items: center; gap: 10px; }
+  .ip-practice-right { display: flex; align-items: center; gap: 8px; }
+  .ip-cat-pill { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--r-full); }
+  .ip-q-counter { font-size: 12px; color: var(--muted); }
+  .ip-timer { font-size: 18px; font-weight: 700; color: var(--accent); min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Progress */
+  .ip-progress { height: 4px; background: var(--bg-2); border-radius: 2px; margin-bottom: 18px; overflow: hidden; }
+  .ip-progress-fill { height: 100%; background: linear-gradient(90deg, #6d4dfc, #8a73f8); border-radius: 2px; transition: width .35s var(--ease-out); }
+
+  .ip-question-text { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 14px; }
+
+  /* Coaching tip */
+  .ip-tip { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); overflow: hidden; transition: border-color var(--dur) var(--ease); }
+  .ip-tip:hover { border-color: var(--accent); }
   .ip-tip summary { cursor: pointer; padding: 11px 14px; font-size: 12.5px; font-weight: 600; color: var(--accent); list-style: none; user-select: none; }
   .ip-tip summary::-webkit-details-marker { display: none; }
   .ip-tip[open] summary { border-bottom: 1px solid var(--border); }
   .ip-tip p { margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--muted); }
-  /* Voice recorder */
-  .ip-rec-row { display:flex; align-items:center; gap:12px; margin:10px 0 4px; flex-wrap:wrap; }
-  .ip-mic { display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:var(--r-full); border:1px solid var(--border); background:var(--bg-2); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; transition:border-color var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease); }
-  .ip-mic:hover { border-color:var(--accent); color:var(--accent); }
-  .ip-mic.recording { border-color:#ef4444; color:#fff; background:#ef4444; }
-  .ip-mic svg { width:16px; height:16px; }
-  .ip-rec-dot { width:9px; height:9px; border-radius:50%; background:#ef4444; animation:ipPulse 1.1s infinite; }
-  @keyframes ipPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.35;transform:scale(.7);} }
-  .ip-wave { display:flex; align-items:center; gap:3px; height:26px; }
-  .ip-wave span { width:3px; border-radius:2px; background:var(--accent); height:6px; animation:ipWave 1s ease-in-out infinite; }
-  @keyframes ipWave { 0%,100%{height:6px;} 50%{height:24px;} }
-  .ip-rec-time { font-size:13px; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
-  .ip-rec-hint { font-size:11.5px; color:var(--muted); }
-  /* Scored feedback breakdown bars */
-  .ip-fb-bar { height:5px; border-radius:99px; background:var(--bg-3); overflow:hidden; margin-top:6px; }
-  .ip-fb-bar > i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#6d4dfc,#818cf8); transition:width .7s cubic-bezier(.2,.8,.2,1); }
 
-  /* ===== Landing layout ===== */
-  .ip-main { position:relative; padding:40px 20px 70px; max-width:1080px; margin:0 auto; }
-  .ip-glow { position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:900px; height:520px; max-width:110vw;
-    background:radial-gradient(ellipse at 50% 0%, rgba(109,77,252,.18), transparent 62%); filter:blur(14px); pointer-events:none; z-index:0; }
-  #ip-intro { position:relative; z-index:1; }
-  .ip-hero { display:grid; grid-template-columns:1.05fr .95fr; gap:22px; align-items:start; }
-  @media (max-width:860px){ .ip-hero { grid-template-columns:1fr; } .ip-sample { display:none; } }
-  .ip-form-card { margin:0; }
-  /* Role chips */
-  .ip-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  .ip-chip { font-size:12.5px; padding:7px 13px; border-radius:var(--r-full); border:1px solid var(--border); background:var(--bg-2); color:var(--text); cursor:pointer; transition:all var(--dur) var(--ease); }
-  .ip-chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
-  /* Sample "what you'll get" card */
-  .ip-sample-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
-  .ip-sample-card { background:var(--bg-1); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:var(--sh-2), var(--hi); }
-  .ip-sample-q { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .ip-sample-tag { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#c2b8fd; background:rgba(109,77,252,.12); border:1px solid rgba(109,77,252,.22); border-radius:var(--r-full); padding:4px 11px; }
-  .ip-sample-rec { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-weight:600; }
-  .ip-sample-rec i { width:7px; height:7px; border-radius:50%; background:#f87171; animation:ipRecPulse 1.8s ease-in-out infinite; }
-  @keyframes ipRecPulse { 0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(248,113,113,.45); } 50% { opacity:.45; box-shadow:0 0 0 5px rgba(248,113,113,0); } }
-  .ip-sample-qtext { font-size:15px; font-weight:600; line-height:1.5; letter-spacing:-.01em; margin-bottom:18px; }
-  .ip-sample-wave { display:flex; align-items:center; gap:3px; height:34px; margin-bottom:20px; }
-  .ip-sample-wave span { flex:1; border-radius:99px; background:#6d4dfc; opacity:.45; }
-  /* Feedback: flat and airy, no boxed header */
-  .ip-sample-fb { border-top:1px solid var(--border); padding-top:18px; }
-  .ip-sample-fb-head { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
-  .ip-sample-ring { width:54px; height:54px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; position:relative;
-    background:conic-gradient(#34d399 calc(var(--p,92) * 1%), var(--bg-3) 0); }
-  .ip-sample-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-1); }
-  .ip-sample-ring b { position:relative; font-size:17px; font-weight:800; color:var(--text); letter-spacing:-.02em; }
-  .ip-sample-fb-title { font-size:14px; font-weight:700; letter-spacing:-.01em; }
-  .ip-sample-fb-sub { font-size:12px; color:#34d399; font-weight:600; margin-top:3px; }
-  .ip-sample-bars { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:18px; }
-  .ip-sample-bl { display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); }
-  .ip-sample-bl span:last-child { color:var(--text); font-weight:700; }
-  .ip-sample-note { font-size:12.5px; color:var(--muted); line-height:1.6; }
-  /* Question types folded into the same card, one clean surface, no extra boxes */
-  .ip-sample-types { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
-  .ip-types-label { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
-  .ip-types-chips { display:flex; flex-wrap:wrap; gap:7px; }
-  .ip-types-chips span { font-size:11.5px; font-weight:600; color:#c2b8fd; background:rgba(109,77,252,.10); border:1px solid rgba(109,77,252,.22); border-radius:var(--r-full); padding:4px 11px; }
+  /* Voice recorder */
+  .ip-rec-row { display: flex; align-items: center; gap: 12px; margin: 10px 0 4px; flex-wrap: wrap; }
+  .ip-mic { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--bg-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .ip-mic:hover { border-color: var(--accent); color: var(--accent); }
+  .ip-mic.recording { border-color: #ef4444; color: #fff; background: #ef4444; }
+  .ip-mic svg { width: 16px; height: 16px; }
+  .ip-wave { display: flex; align-items: center; gap: 3px; height: 26px; }
+  .ip-wave span { width: 3px; border-radius: 2px; background: var(--accent); height: 6px; animation: ipWave 1s ease-in-out infinite; }
+  @keyframes ipWave { 0%,100% { height: 6px; } 50% { height: 24px; } }
+  .ip-rec-time { font-size: 13px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ip-rec-hint { font-size: 11.5px; color: var(--muted); }
+  .ip-answer-ta { width: 100%; box-sizing: border-box; padding: 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-size: 13px; font-family: inherit; line-height: 1.6; resize: vertical; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ip-answer-ta:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+
+  .ip-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* Feedback card */
+  .ip-fb-reveal { border: 1px solid rgba(109,77,252,.3); border-radius: var(--r-md); overflow: hidden; margin-top: 16px; animation: ipFadeUp .35s var(--ease-out) both; }
+  .ip-fb-header { background: rgba(109,77,252,.1); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .ip-fb-score { font-size: 22px; font-weight: 800; }
+  .ip-fb-score.good { color: #6ee7b7; }
+  .ip-fb-score.fair { color: #fcd34d; }
+  .ip-fb-score.low { color: #fca5a5; }
+  .ip-fb-bars { padding: 12px 16px 4px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .ip-fb-body { padding: 14px 16px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+
+  /* All questions view */
+  .ip-all-card { padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); margin-bottom: 8px; cursor: pointer; transition: all var(--dur) var(--ease); }
+  .ip-all-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--sh-1); }
+  .ip-all-cat { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+  .ip-all-q { font-size: 13px; line-height: 1.5; }
+  .ip-all-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; margin-top: 4px; }
+  .ip-all-status.answered { color: var(--success-text); }
+  .ip-all-status.scored { color: var(--accent); }
+
+  /* Gate */
+  .ip-gate { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 44px 30px; }
+  .ip-gate .badge { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-full); padding: 5px 12px; margin-bottom: 16px; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#111113">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
@@ -94,71 +157,100 @@
   <div class="topbar-right">
     <span id="health-badge"></span>
     <span id="plan-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="theme-toggle" onclick="toggleTheme()"></button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
 
-<main class="ip-main">
-  <div class="ip-glow" aria-hidden="true"></div>
-
+<main class="ip-wrap">
   <div id="ip-intro">
-    <div class="ip-hero">
-      <!-- Left: the form -->
-      <div class="section-card ip-form-card">
-        <div class="section-head"><h3 id="ip-title"></h3></div>
-        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Tell us about the role and we'll generate practice interview questions tailored to your resume, then score your answers out loud.</p>
-        <div class="form-field">
-          <label>Role / Title</label>
-          <input id="role" placeholder="e.g. Senior Software Engineer, Product Manager">
-        </div>
-        <div class="ip-chips" id="ip-role-chips">
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Software Engineer</button>
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Product Manager</button>
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Data Analyst</button>
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Designer</button>
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Marketing Manager</button>
-          <button type="button" class="ip-chip" onclick="pickRole(this)">Consultant</button>
-        </div>
-        <div class="form-field" style="margin-top:14px;">
-          <label>Job Description (optional)</label>
-          <textarea id="jd" rows="5" placeholder="Paste job description for more targeted questions…"></textarea>
-        </div>
-        <button class="btn btn-primary btn-block" onclick="generate()" id="gen-btn"></button>
-      </div>
+    <div class="ip-hero-head">
+      <h1 id="ip-title"></h1>
+      <p>Practice interview questions tailored to your resume, then get scored AI feedback on your answers.</p>
+    </div>
 
-      <!-- Right: a live sample of what you'll get -->
-      <div class="ip-sample" aria-hidden="true">
-        <div class="ip-sample-label">What you'll get</div>
-        <div class="ip-sample-card">
-          <div class="ip-sample-q">
-            <span class="ip-sample-tag">Behavioral</span>
-            <span class="ip-sample-rec"><i></i> Recording</span>
-          </div>
+    <!-- Inline form -->
+    <div class="ip-form-row">
+      <div class="ip-field" style="flex:2;">
+        <label for="role">Role / Title</label>
+        <input id="role" placeholder="e.g. Senior Software Engineer, Product Manager" autocomplete="off">
+      </div>
+      <button class="btn btn-primary ip-go" id="gen-btn" onclick="generate()"></button>
+    </div>
+
+    <div class="ip-chips" id="ip-role-chips">
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Software Engineer</button>
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Product Manager</button>
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Data Analyst</button>
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Designer</button>
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Marketing Manager</button>
+      <button type="button" class="ip-chip" onclick="pickRole(this)">Consultant</button>
+    </div>
+
+    <button type="button" class="ip-jd-toggle" id="jd-toggle" onclick="toggleJd()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      Add a job description for more targeted questions
+    </button>
+    <div class="ip-jd-area" id="jd-area">
+      <div class="ip-field" style="margin-top:8px;">
+        <textarea id="jd" rows="4" placeholder="Paste the job description here for more targeted questions..."></textarea>
+      </div>
+    </div>
+
+    <!-- Feature cards -->
+    <div class="ip-features">
+      <div class="ip-feat">
+        <div class="ip-feat-icon" style="background:var(--accent-soft); color:var(--accent);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </div>
+        <div class="ip-feat-title">Speak or type</div>
+        <div class="ip-feat-desc">Record your answer out loud or type it. Live transcription as you speak.</div>
+      </div>
+      <div class="ip-feat">
+        <div class="ip-feat-icon" style="background:var(--success-soft); color:var(--success-text);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="ip-feat-title">AI scoring</div>
+        <div class="ip-feat-desc">Get a score on structure, impact, and clarity with specific improvement tips.</div>
+      </div>
+      <div class="ip-feat">
+        <div class="ip-feat-icon" style="background:var(--warning-soft); color:var(--warning-text);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="ip-feat-title">Every question type</div>
+        <div class="ip-feat-desc">Behavioral, role-specific, situational, and closing questions tailored to you.</div>
+      </div>
+    </div>
+
+    <!-- Sample preview -->
+    <div class="ip-sample-strip" aria-hidden="true">
+      <div class="ip-sample-label">What you'll get</div>
+      <div class="ip-sample-row">
+        <div class="ip-sample-q-card">
+          <span class="ip-sample-tag">Behavioral</span>
           <div class="ip-sample-qtext">"Tell me about a product you built and the impact it had."</div>
-          <div class="ip-sample-wave" id="ip-sample-wave"></div>
-          <div class="ip-sample-fb">
-            <div class="ip-sample-fb-head">
-              <div class="ip-sample-ring" style="--p:92"><b>92</b></div>
-              <div>
-                <div class="ip-sample-fb-title">Feedback</div>
-                <div class="ip-sample-fb-sub">Strong answer</div>
-              </div>
-            </div>
-            <div class="ip-sample-bars">
-              <div><div class="ip-sample-bl"><span>Structure</span><span>90</span></div><div class="ip-fb-bar"><i style="width:90%"></i></div></div>
-              <div><div class="ip-sample-bl"><span>Impact</span><span>95</span></div><div class="ip-fb-bar"><i style="width:95%"></i></div></div>
-              <div><div class="ip-sample-bl"><span>Clarity</span><span>88</span></div><div class="ip-fb-bar"><i style="width:88%"></i></div></div>
-            </div>
-            <div class="ip-sample-note">Great structure. You covered impact and metrics well. Try adding the challenges you faced.</div>
+          <div class="ip-types-row">
+            <span>Behavioral</span><span>Role-specific</span><span>Situational</span><span>Closing</span>
           </div>
-          <div class="ip-sample-types">
-            <span class="ip-types-label">Every question type</span>
-            <span class="ip-types-chips"><span>Behavioral</span><span>Role-specific</span><span>Situational</span><span>Closing</span></span>
+        </div>
+        <div class="ip-sample-fb-card">
+          <div class="ip-sample-fb-head">
+            <div class="ip-sample-ring" style="--p:92"><b>92</b></div>
+            <div>
+              <div class="ip-sample-fb-title">AI Feedback</div>
+              <div class="ip-sample-fb-sub">Strong answer</div>
+            </div>
+          </div>
+          <div class="ip-sample-bars">
+            <div><div class="ip-sample-bl"><span>Structure</span><span>90</span></div><div class="ip-fb-bar"><i style="width:90%"></i></div></div>
+            <div><div class="ip-sample-bl"><span>Impact</span><span>95</span></div><div class="ip-fb-bar"><i style="width:95%"></i></div></div>
+            <div><div class="ip-sample-bl"><span>Clarity</span><span>88</span></div><div class="ip-fb-bar"><i style="width:88%"></i></div></div>
           </div>
         </div>
       </div>
     </div>
+
+    <p id="ip-free-note" style="display:none; font-size:12px; color:var(--muted); text-align:center; margin-top:14px;"></p>
   </div>
 
   <div id="results"></div>
@@ -175,69 +267,72 @@
 function showAILoading(msg) { aiLoading(msg); }
 function hideAILoading() { aiLoadingDone(); }
 
-const API = window.HIREFLOW_CONFIG.API_URL;
-const TOKEN = localStorage.getItem('hf_token');
-const IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
-function _track(name, meta) { if (!TOKEN) return; fetch(window.HIREFLOW_CONFIG.API_URL + '/track', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify({name,meta}) }).catch(()=>{}); }
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+var API = window.HIREFLOW_CONFIG.API_URL;
+var TOKEN = localStorage.getItem('hf_token');
+var IS_ANON = !TOKEN; if (IS_ANON) window.addEventListener('load', initAnonTopbar);
+function _track(name, meta) { if (!TOKEN) return; fetch(API + '/track', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify({name,meta}) }).catch(function(){}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]); }); }
 
-function pickRole(btn){ var r = document.getElementById('role'); r.value = btn.textContent; r.focus(); }
+function pickRole(btn) { var r = document.getElementById('role'); r.value = btn.textContent; r.focus(); }
+function toggleJd() {
+  var area = document.getElementById('jd-area');
+  var tog = document.getElementById('jd-toggle');
+  area.classList.toggle('open');
+  tog.classList.toggle('open');
+}
+function signOut() { localStorage.removeItem('hf_token'); location.href = '/'; }
 
 async function generate() {
   if (IS_ANON) { promptSignup('generate your interview questions'); return; }
-  const role = document.getElementById('role').value.trim();
-  const jd = document.getElementById('jd').value.trim();
-  if (!role) return toast('Enter a role first', { type: 'warn' });
-  let resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch { resume = {}; }
+  var role = document.getElementById('role').value.trim();
+  var jd = document.getElementById('jd').value.trim();
+  if (!role) { toast('Enter a role first', { type: 'warn' }); document.getElementById('role').focus(); return; }
+  var resume; try { resume = JSON.parse(localStorage.getItem('hf_resume') || '{}'); } catch(e) { resume = {}; }
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
-  var _rb = document.getElementById('_resume-banner'); if (_rb) _rb.remove();   // starting fresh
-  // Skeleton "analysis" preset ~= section heading + 5 bullet lines, matching
-  // the [Category] → question list shape the AI actually returns.
+  var _rb = document.getElementById('_resume-banner'); if (_rb) _rb.remove();
   document.getElementById('results').innerHTML = (typeof skeleton === 'function') ? skeleton('analysis') : '';
-  showAILoading('Generating your interview questions…');
+  showAILoading('Generating your interview questions...');
   try {
-    const r = await fetch(API + '/ai/interview', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-      body: JSON.stringify({ role, jobDescription: jd, resume })
+    var r = await fetch(API + '/ai/interview', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify({ role: role, jobDescription: jd, resume: resume })
     });
     hideAILoading();
     if (!r.ok) throw new Error('AI failed');
-    const data = await r.json();
+    var data = await r.json();
     if (data._trial) _noteTrial(data._trial);
-    const questions = _parseQuestions((data.text || '').trim());
+    var questions = _parseQuestions((data.text || '').trim());
     if (!questions.length) throw new Error('No questions returned, try again.');
     _startPracticeMode(questions);
     _track('interview_prep_open');
   } catch(e) {
     hideAILoading();
-    document.getElementById('results').innerHTML = '<div class="section-card" style="color:var(--danger);">Something went wrong generating your questions. Please try again.</div>';
+    document.getElementById('results').innerHTML = '<div class="ip-practice-card" style="color:var(--danger);text-align:center;padding:40px 20px;">'
+      + '<h4 style="margin-bottom:6px;">Could not generate questions</h4><p style="font-size:13px;">'+esc(e.message||'Please try again.')+'</p></div>';
   }
 }
 
-// Parse the [Category] / "1. Question" / "Tip: …" output into structured items.
 function _parseQuestions(raw) {
-  const out = [];
-  let category = 'General', cur = null;
+  var out = [];
+  var category = 'General', cur = null;
   raw.split('\n').forEach(function(line) {
-    const t = line.trim();
+    var t = line.trim();
     if (!t) return;
-    const cat = t.match(/^\[(.+?)\]\s*$/);
+    var cat = t.match(/^\[(.+?)\]\s*$/);
     if (cat) { category = cat[1].trim(); return; }
-    const tip = t.match(/^tip\s*[:\-]\s*(.*)$/i);
+    var tip = t.match(/^tip\s*[:\-]\s*(.*)$/i);
     if (tip) { if (cur) cur.tip = (cur.tip ? cur.tip + ' ' : '') + tip[1].trim(); return; }
-    const q = t.match(/^\d+[.):]\s*(.*)$/);
+    var q = t.match(/^\d+[.):]\s*(.*)$/);
     if (q) { cur = { question: q[1].trim(), category: category, tip: '' }; out.push(cur); return; }
-    if (cur && !cur.tip) cur.question += ' ' + t; // wrapped question line
+    if (cur && !cur.tip) cur.question += ' ' + t;
   });
   if (out.length) return out;
   return raw.split('\n').filter(function(l){ return l.trim().length > 10; })
-            .map(function(q){ return { question: q.replace(/^[\d]+[.):]\s*/, '').trim(), category: 'General', tip: '' }; });
+    .map(function(q){ return { question: q.replace(/^[\d]+[.):]\s*/, '').trim(), category: 'General', tip: '' }; });
 }
 
 function _noteTrial(t) {
-  // Interview Prep is free for everyone, so we don't show a "trial used" toast
-  // here (it would be misleading). Still sync any trial data the API returns.
   if (typeof CURRENT_USER !== 'undefined' && CURRENT_USER && t && t.feature) {
     CURRENT_USER.aiTrials = CURRENT_USER.aiTrials || {};
     CURRENT_USER.aiTrials[t.feature] = t.used;
@@ -249,19 +344,18 @@ var _practiceQs = [];
 var _practiceIdx = 0;
 var _practiceTimer = null;
 var _practiceStart = null;
-var _practiceAnswers = {};   // idx -> typed/spoken answer (kept across navigation)
-var _practiceFeedback = {};  // idx -> scored feedback HTML
+var _practiceAnswers = {};
+var _practiceFeedback = {};
 var _PRACTICE_KEY = 'hf_interview_session';
 
-// Persist the whole practice session so it survives navigating away and back.
 function _persistPractice() {
   try {
     localStorage.setItem(_PRACTICE_KEY, JSON.stringify({
       qs: _practiceQs, answers: _practiceAnswers, feedback: _practiceFeedback, idx: _practiceIdx
     }));
-  } catch (e) {}
+  } catch(e) {}
 }
-// Capture whatever is currently in the answer box (tagged with its own index).
+
 function _saveCurrentAnswer() {
   var ta = document.getElementById('_panswer');
   if (!ta) return;
@@ -269,9 +363,6 @@ function _saveCurrentAnswer() {
   if (pi != null) { _practiceAnswers[pi] = ta.value; _persistPractice(); }
 }
 
-// ── Leaving / resuming a practice session ─────────────────────────────────────
-// Leave practice and return to the setup screen. The session (questions, answers,
-// feedback) stays saved, so it can be resumed from the banner on the setup screen.
 function _exitPractice() {
   _saveCurrentAnswer();
   clearInterval(_practiceTimer);
@@ -279,24 +370,26 @@ function _exitPractice() {
   var res = document.getElementById('results'); if (res) res.innerHTML = '';
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = '';
   _renderResumeBanner();
-  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
 }
+
 function _resumePractice() {
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = 'none';
   _renderPracticeQuestion();
-  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
 }
+
 function _discardSession() {
-  try { localStorage.removeItem(_PRACTICE_KEY); } catch (e) {}
+  try { localStorage.removeItem(_PRACTICE_KEY); } catch(e) {}
   _practiceQs = []; _practiceAnswers = {}; _practiceFeedback = {}; _practiceIdx = 0;
   var b = document.getElementById('_resume-banner'); if (b) b.remove();
 }
+
 function _hasSavedSession() {
   try { var s = JSON.parse(localStorage.getItem(_PRACTICE_KEY) || 'null'); return !!(s && Array.isArray(s.qs) && s.qs.length); }
-  catch (e) { return false; }
+  catch(e) { return false; }
 }
-// A "resume your in-progress session" banner at the top of the setup screen, so
-// exiting (or reloading) never loses work and getting back in is one click.
+
 function _renderResumeBanner() {
   var intro = document.getElementById('ip-intro');
   if (!intro) return;
@@ -304,15 +397,16 @@ function _renderResumeBanner() {
   if (existing) existing.remove();
   if (!_hasSavedSession()) return;
   var total = _practiceQs.length || 0;
-  var answered = Object.keys(_practiceAnswers || {}).filter(function (k) { return (_practiceAnswers[k] || '').trim(); }).length;
+  var answered = Object.keys(_practiceAnswers || {}).filter(function(k) { return (_practiceAnswers[k] || '').trim(); }).length;
+  var scored = Object.keys(_practiceFeedback || {}).length;
   var at = Math.min((_practiceIdx || 0) + 1, total);
-  var html = '<div id="_resume-banner" class="section-card" style="margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid rgba(109,77,252,.4);background:linear-gradient(135deg,rgba(109,77,252,.12),rgba(139,92,246,.08));">'
-    + '<div style="flex:1;min-width:200px;">'
-    + '<div style="font-weight:700;font-size:14px;margin-bottom:2px;">You have a practice session in progress</div>'
-    + '<div style="font-size:12.5px;color:var(--muted);">Question ' + at + ' of ' + total + (answered ? ' · ' + answered + ' answered' : '') + ', your answers are saved.</div>'
+  var html = '<div id="_resume-banner" class="ip-resume-banner">'
+    + '<div class="ip-resume-info">'
+    + '<strong>Practice session in progress</strong>'
+    + '<span>Question ' + at + ' of ' + total + (answered ? ' - ' + answered + ' answered' : '') + (scored ? ' - ' + scored + ' scored' : '') + '</span>'
     + '</div>'
-    + '<button class="btn btn-primary btn-sm" onclick="_resumePractice()">Resume practice →</button>'
-    + '<button class="btn btn-ghost btn-sm" onclick="_discardSession()" title="Discard this session and start fresh">Start over</button>'
+    + '<button class="btn btn-primary btn-sm" onclick="_resumePractice()">Resume practice</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="_discardSession()">Start over</button>'
     + '</div>';
   intro.insertAdjacentHTML('afterbegin', html);
 }
@@ -326,52 +420,77 @@ function _startPracticeMode(questions) {
   _renderPracticeQuestion();
 }
 
+var _catColors = { Behavioral:'#6d4dfc', 'Role-Specific':'#06b6d4', Technical:'#06b6d4', Situational:'#f59e0b', Closing:'#22c55e', General:'#8a73f8' };
+
 function _renderPracticeQuestion() {
-  // Save the answer currently on screen (previous question) before rebuilding.
   _saveCurrentAnswer();
-  // Stop any in-progress recording before rebuilding the view
   if (_recActive) { _recActive = false; try { _recog && _recog.stop(); } catch(e){} clearInterval(_recTimer); }
   var q = _practiceQs[_practiceIdx];
   var total = _practiceQs.length;
   var res = document.getElementById('results');
-  var catColors = { Behavioral:'#6d4dfc', 'Role-Specific':'#06b6d4', Technical:'#06b6d4', Situational:'#f59e0b', Closing:'#22c55e', General:'#8a73f8' };
-  var catColor = catColors[q.category] || '#8a73f8';
-  res.innerHTML = '<div class="section-card">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;">'
-    + '<div style="display:flex;align-items:center;gap:10px;">'
-    + '<button class="btn btn-ghost btn-xs" id="_pexit" title="Leave practice and go back to the setup screen, your answers are saved">← Exit</button>'
-    + '<span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:' + catColor + ';background:' + catColor + '22;border:1px solid ' + catColor + '44;border-radius:20px;padding:3px 10px;">' + esc(q.category || 'Question') + '</span>'
-    + '<span style="font-size:12px;color:var(--muted);">Question ' + (_practiceIdx+1) + ' of ' + total + '</span>'
+  var catColor = _catColors[q.category] || '#8a73f8';
+  var pct = Math.round(((_practiceIdx + 1) / total) * 100);
+
+  var html = '<div class="ip-practice-card">';
+
+  // Top bar: exit, category, counter, timer
+  html += '<div class="ip-practice-top">'
+    + '<div class="ip-practice-left">'
+    + '<button class="btn btn-ghost btn-xs" id="_pexit" title="Exit practice (answers are saved)">'+ICON('arrow-left','ico ico-sm')+' Exit</button>'
+    + '<span class="ip-cat-pill" style="color:'+catColor+'; background:'+catColor+'22; border:1px solid '+catColor+'44;">'+esc(q.category || 'Question')+'</span>'
+    + '<span class="ip-q-counter">'+(_practiceIdx+1)+' of '+total+'</span>'
     + '</div>'
-    + '<div style="display:flex;align-items:center;gap:8px;">'
-    + '<div id="_ptimer" style="font-size:18px;font-weight:700;color:var(--accent);min-width:46px;text-align:right;font-variant-numeric:tabular-nums;">0:00</div>'
+    + '<div class="ip-practice-right">'
+    + '<span class="ip-timer" id="_ptimer">0:00</span>'
     + '<button class="btn btn-ghost btn-xs" id="_ptimer-toggle">Start Timer</button>'
-    + '</div></div>'
-    + '<div style="height:4px;background:var(--bg-2);border-radius:2px;margin-bottom:18px;overflow:hidden;">'
-    + '<div style="width:' + Math.round(((_practiceIdx+1)/total)*100) + '%;height:100%;background:linear-gradient(90deg,#6d4dfc,#8a73f8);border-radius:2px;transition:width .35s;"></div>'
+    + '</div></div>';
+
+  // Progress bar
+  html += '<div class="ip-progress"><div class="ip-progress-fill" style="width:'+pct+'%;"></div></div>';
+
+  // Question
+  html += '<div class="ip-question-text">'+esc(q.question)+'</div>';
+
+  // Coaching tip
+  if (q.tip) {
+    html += '<details class="ip-tip"><summary>'+ICON('bulb','ico ico-sm')+' Coaching tip</summary><p>'+esc(q.tip)+'</p></details>';
+  }
+
+  // Answer area
+  html += '<div style="margin-bottom:4px;"><label style="font-size:12px;font-weight:600;color:var(--muted);">Your answer <span style="font-weight:400;">- speak out loud or type (aim for STAR: Situation, Task, Action, Result)</span></label></div>';
+
+  // Voice recorder row
+  html += '<div class="ip-rec-row" id="_prec-row">'
+    + '<button type="button" class="ip-mic" id="_pmic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg><span id="_pmic-label">Record answer</span></button>'
+    + '<div class="ip-wave" id="_pwave" style="display:none;">'
+    + '<span style="animation-delay:0s"></span><span style="animation-delay:.1s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.3s"></span><span style="animation-delay:.15s"></span><span style="animation-delay:.25s"></span><span style="animation-delay:.05s"></span>'
     + '</div>'
-    + '<h3 style="font-size:17px;font-weight:600;line-height:1.5;margin-bottom:14px;">' + esc(q.question) + '</h3>'
-    + (q.tip ? '<details class="ip-tip"><summary><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;opacity:.9;"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 2z"/></svg> Coaching tip</summary><p>' + esc(q.tip) + '</p></details>' : '')
-    + '<div class="form-field"><label style="font-size:12px;">Your Answer <span style="color:var(--muted);font-weight:400;">speak it out loud or type, aim for STAR: Situation · Task · Action · Result</span></label>'
-    + '<div class="ip-rec-row" id="_prec-row">'
-    +   '<button type="button" class="ip-mic" id="_pmic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg><span id="_pmic-label">Record answer</span></button>'
-    +   '<div class="ip-wave" id="_pwave" style="display:none;">' + '<span style="animation-delay:0s"></span><span style="animation-delay:.1s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.3s"></span><span style="animation-delay:.15s"></span><span style="animation-delay:.25s"></span><span style="animation-delay:.05s"></span>' + '</div>'
-    +   '<span class="ip-rec-time" id="_prec-time" style="display:none;">0:00</span>'
-    +   '<span class="ip-rec-hint" id="_prec-hint"></span>'
-    + '</div>'
-    + '<textarea id="_panswer" data-idx="' + _practiceIdx + '" rows="6" placeholder="Type your answer here, or tap Record answer to speak…" style="width:100%;box-sizing:border-box;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;line-height:1.6;resize:vertical;">' + esc(_practiceAnswers[_practiceIdx] || '') + '</textarea></div>'
-    + '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
-    + '<button class="btn btn-primary btn-sm" id="_psubmit">' + ICON('sparkle','ico ico-sm') + ' Get AI Feedback</button>'
-    + (_practiceIdx > 0 ? '<button class="btn btn-ghost btn-sm" id="_pprev">← Previous</button>' : '')
-    + (_practiceIdx < total-1 ? '<button class="btn btn-secondary btn-sm" id="_pnext">Next →</button>' : '')
-    + '<button class="btn btn-ghost btn-sm" id="_pall" style="margin-left:auto;">View All</button>'
-    + '</div>'
-    + '<div id="_pfeedback" style="margin-top:16px;"></div>'
+    + '<span class="ip-rec-time" id="_prec-time" style="display:none;">0:00</span>'
+    + '<span class="ip-rec-hint" id="_prec-hint"></span>'
     + '</div>';
 
-  // Persist the answer as the user types, and restore any saved feedback for this question.
+  html += '<textarea id="_panswer" data-idx="'+_practiceIdx+'" rows="6" class="ip-answer-ta" placeholder="Type your answer here, or tap Record answer to speak...">'+esc(_practiceAnswers[_practiceIdx] || '')+'</textarea>';
+
+  // Actions
+  html += '<div class="ip-actions">'
+    + '<button class="btn btn-primary btn-sm" id="_psubmit">'+ICON('sparkle','ico ico-sm')+' Get AI Feedback</button>';
+  if (_practiceIdx > 0) html += '<button class="btn btn-ghost btn-sm" id="_pprev">'+ICON('arrow-left','ico ico-sm')+' Previous</button>';
+  if (_practiceIdx < total - 1) html += '<button class="btn btn-secondary btn-sm" id="_pnext">Next '+ICON('arrow-right','ico ico-sm')+'</button>';
+  html += '<button class="btn btn-ghost btn-sm" id="_pall" style="margin-left:auto;">'+ICON('grid','ico ico-sm')+' All Questions</button>';
+  html += '</div>';
+
+  // Feedback slot
+  html += '<div id="_pfeedback"></div>';
+
+  html += '</div>'; // end ip-practice-card
+
+  res.innerHTML = html;
+
+  // Restore saved answer input handler
   var answerEl = document.getElementById('_panswer');
-  if (answerEl) answerEl.addEventListener('input', function () { _practiceAnswers[_practiceIdx] = answerEl.value; _persistPractice(); });
+  if (answerEl) answerEl.addEventListener('input', function() { _practiceAnswers[_practiceIdx] = answerEl.value; _persistPractice(); });
+
+  // Restore saved feedback
   if (_practiceFeedback[_practiceIdx]) {
     var fbEl = document.getElementById('_pfeedback');
     if (fbEl) fbEl.innerHTML = _practiceFeedback[_practiceIdx];
@@ -389,9 +508,8 @@ function _renderPracticeQuestion() {
       running = true; timerBtn.textContent = 'Stop';
       _practiceTimer = setInterval(function() {
         var elapsed = Math.floor((Date.now() - _practiceStart) / 1000);
-        var m = Math.floor(elapsed/60); var sec = elapsed%60;
-        timerEl.textContent = m + ':' + (sec<10?'0':'') + sec;
-        // Color red after 2 min
+        var m = Math.floor(elapsed / 60); var sec = elapsed % 60;
+        timerEl.textContent = m + ':' + (sec < 10 ? '0' : '') + sec;
         timerEl.style.color = elapsed > 120 ? 'var(--danger)' : 'var(--accent)';
       }, 500);
     } else {
@@ -399,7 +517,7 @@ function _renderPracticeQuestion() {
     }
   });
 
-  // Voice recorder (Web Speech API, client-side, no upload)
+  // Voice recorder
   _wireRecorder();
 
   // AI Feedback
@@ -407,7 +525,7 @@ function _renderPracticeQuestion() {
     var answer = document.getElementById('_panswer').value.trim();
     if (!answer) { toast('Speak or type your answer first', {type:'warn'}); return; }
     var fb = document.getElementById('_pfeedback');
-    fb.innerHTML = '<div style="color:var(--muted);font-size:13px;animation:_pu 1.5s ease-in-out infinite;">Getting AI feedback...</div>';
+    fb.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">Getting AI feedback...</div>';
     try {
       var r = await fetch(API + '/ai/interview-feedback', {
         method: 'POST',
@@ -418,31 +536,32 @@ function _renderPracticeQuestion() {
       var data = await r.json();
       if (data._trial) _noteTrial(data._trial);
       var score = data.score || 0;
-      var col = score >= 75 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
+      var scoreCls = score >= 75 ? 'good' : score >= 50 ? 'fair' : 'low';
       var bd = data.breakdown || null;
-      var bars = '';
+      var barsHtml = '';
       if (bd) {
         var rows = [['Structure', bd.structure], ['Impact', bd.impact], ['Clarity', bd.clarity]];
-        bars = '<div style="padding:12px 14px 4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'
-          + rows.map(function(rw){ var v = Math.max(0, Math.min(100, rw[1]||0));
-              return '<div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);"><span>' + rw[0] + '</span><span style="font-weight:700;color:var(--text);">' + v + '</span></div>'
-                + '<div class="ip-fb-bar"><i style="width:' + v + '%"></i></div></div>'; }).join('')
+        barsHtml = '<div class="ip-fb-bars">'
+          + rows.map(function(rw) {
+              var v = Math.max(0, Math.min(100, rw[1] || 0));
+              return '<div><div class="ip-sample-bl"><span>'+rw[0]+'</span><span>'+v+'</span></div>'
+                + '<div class="ip-fb-bar"><i style="width:'+v+'%"></i></div></div>';
+            }).join('')
           + '</div>';
       }
-      fb.innerHTML = '<div class="ai-reveal" style="border:1px solid rgba(109,77,252,.3);border-radius:var(--r-md);overflow:hidden;margin-top:8px;box-shadow:var(--sh-1);">'
-        + '<div style="background:rgba(109,77,252,.1);padding:10px 14px;display:flex;align-items:center;gap:10px;">'
-        + '<span style="font-size:20px;font-weight:800;color:' + col + ';">' + score + '/100</span>'
-        + '<span style="font-size:13px;font-weight:600;color:var(--text);">AI Feedback</span>'
+      fb.innerHTML = '<div class="ip-fb-reveal">'
+        + '<div class="ip-fb-header">'
+        + '<span class="ip-fb-score '+scoreCls+'">'+score+'/100</span>'
+        + '<span style="font-size:13px;font-weight:600;">AI Feedback</span>'
         + '</div>'
-        + bars
-        + '<div style="padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);">' + esc(data.feedback||'') + '</div>'
+        + barsHtml
+        + '<div class="ip-fb-body">'+esc(data.feedback || '')+'</div>'
         + '</div>';
-      // Remember this answer + its feedback so they survive navigation.
       _practiceAnswers[_practiceIdx] = answer;
       _practiceFeedback[_practiceIdx] = fb.innerHTML;
       _persistPractice();
     } catch(e) {
-      fb.innerHTML = '<div style="color:var(--danger);font-size:13px;">We couldn\'t score that answer right now. Please try again.</div>';
+      fb.innerHTML = '<div style="color:var(--danger);font-size:13px;padding:12px 0;">Could not score that answer right now. Please try again.</div>';
     }
   });
 
@@ -451,25 +570,41 @@ function _renderPracticeQuestion() {
   if (exitBtn) exitBtn.addEventListener('click', _exitPractice);
   var prevBtn = document.getElementById('_pprev');
   var nextBtn = document.getElementById('_pnext');
-  var allBtn  = document.getElementById('_pall');
+  var allBtn = document.getElementById('_pall');
   if (prevBtn) prevBtn.addEventListener('click', function() { clearInterval(_practiceTimer); _practiceIdx--; _renderPracticeQuestion(); });
   if (nextBtn) nextBtn.addEventListener('click', function() { clearInterval(_practiceTimer); _practiceIdx++; _renderPracticeQuestion(); });
-  if (allBtn) allBtn.addEventListener('click', function() {
-    clearInterval(_practiceTimer);
-    var res2 = document.getElementById('results');
-    res2.innerHTML = '<div class="section-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>All Questions</h3>'
-      + '<button class="btn btn-ghost btn-xs" onclick="_renderPracticeQuestion()">← Back to practice</button></div>'
-      + _practiceQs.map(function(q2, i) {
-          return '<div role="button" tabindex="0" style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;" onclick="_practiceIdx=' + i + ';_renderPracticeQuestion();" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
-            + '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;">Q' + (i+1) + ' · ' + esc(q2.category || 'General') + '</div>'
-            + '<div style="font-size:13px;line-height:1.5;">' + esc(q2.question) + '</div>'
-            + '</div>';
-        }).join('')
-      + '</div>';
-  });
+  if (allBtn) allBtn.addEventListener('click', _renderAllQuestions);
 }
 
-// ── Voice recorder: live speech-to-text into the answer box (Web Speech API) ──
+function _renderAllQuestions() {
+  _saveCurrentAnswer();
+  clearInterval(_practiceTimer);
+  var res = document.getElementById('results');
+  var html = '<div class="ip-practice-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    + '<h3 style="font-size:16px;font-weight:700;">All Questions ('+_practiceQs.length+')</h3>'
+    + '<button class="btn btn-ghost btn-xs" onclick="_renderPracticeQuestion()">'+ICON('arrow-left','ico ico-sm')+' Back to practice</button>'
+    + '</div>';
+
+  html += _practiceQs.map(function(q2, i) {
+    var hasAnswer = (_practiceAnswers[i] || '').trim();
+    var hasScore = !!_practiceFeedback[i];
+    var statusHtml = '';
+    if (hasScore) statusHtml = '<div class="ip-all-status scored">'+ICON('check','ico ico-xs')+' Scored</div>';
+    else if (hasAnswer) statusHtml = '<div class="ip-all-status answered">'+ICON('check','ico ico-xs')+' Answered</div>';
+
+    return '<div class="ip-all-card" role="button" tabindex="0" onclick="_practiceIdx='+i+';_renderPracticeQuestion();" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
+      + '<div class="ip-all-cat">Q'+(i+1)+' - '+esc(q2.category || 'General')+'</div>'
+      + '<div class="ip-all-q">'+esc(q2.question)+'</div>'
+      + statusHtml
+      + '</div>';
+  }).join('');
+
+  html += '</div>';
+  res.innerHTML = html;
+}
+
+// ── Voice recorder ──
 var _recog = null, _recActive = false, _recTimer = null, _recStart = 0;
 function _wireRecorder() {
   var mic = document.getElementById('_pmic');
@@ -477,7 +612,6 @@ function _wireRecorder() {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   var hint = document.getElementById('_prec-hint');
   if (!SR) {
-    // Graceful fallback: hide the mic, invite typing.
     document.getElementById('_prec-row').style.display = 'none';
     return;
   }
@@ -489,7 +623,7 @@ function _wireRecorder() {
 
   function stop() {
     _recActive = false;
-    try { if (_recog) _recog.stop(); } catch(e){}
+    try { if (_recog) _recog.stop(); } catch(e) {}
     clearInterval(_recTimer);
     mic.classList.remove('recording');
     label.textContent = 'Record answer';
@@ -503,7 +637,7 @@ function _wireRecorder() {
     _recog.continuous = true;
     _recog.interimResults = true;
     _recog.lang = (navigator.language || 'en-US');
-    var baseText = ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '';
+    var baseText = ta.value ? ta.value.replace(/\s+$/, '') + ' ' : '';
     var finalText = '';
     _recog.onresult = function(ev) {
       var interim = '';
@@ -519,7 +653,7 @@ function _wireRecorder() {
       }
       stop();
     };
-    _recog.onend = function() { if (_recActive) { try { _recog.start(); } catch(e){ stop(); } } };
+    _recog.onend = function() { if (_recActive) { try { _recog.start(); } catch(e) { stop(); } } };
     try { _recog.start(); } catch(e) { toast('Could not start recording.', {type:'warn'}); return; }
 
     _recActive = true;
@@ -530,54 +664,55 @@ function _wireRecorder() {
     _recStart = Date.now();
     clearInterval(_recTimer);
     _recTimer = setInterval(function() {
-      var s = Math.floor((Date.now() - _recStart)/1000);
-      timeEl.textContent = Math.floor(s/60) + ':' + (s%60<10?'0':'') + (s%60);
+      var s = Math.floor((Date.now() - _recStart) / 1000);
+      timeEl.textContent = Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
     }, 500);
   });
 }
 
-function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
+// Enter on role input triggers generate
+document.getElementById('role').addEventListener('keydown', function(e) { if (e.key === 'Enter') generate(); });
 
-// Build the sample waveform bars in the "what you'll get" preview.
-(function(){
-  var w = document.getElementById('ip-sample-wave'); if (!w) return;
-  var html = '';
-  for (var i = 0; i < 34; i++) { html += '<span style="height:' + (6 + Math.round(Math.abs(Math.sin(i * 0.7)) * 22)) + 'px"></span>'; }
-  w.innerHTML = html;
-})();
-
-(async () => {
-  await loadCurrentUser();
-  document.getElementById('ip-title').innerHTML = `${ICON('mic')} <span>AI Interview Preparation</span>`;
-  document.getElementById('gen-btn').innerHTML = `${ICON('sparkle')} <span>Generate Practice Questions</span>`;
-  const planPill = document.getElementById('plan-pill');
-  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-  // Interview Prep is free for everyone, no trial banner or paywall.
-  if (isFree()) {
-    const note = document.createElement('p');
-    note.style.cssText = 'font-size:12px;color:var(--muted);text-align:center;margin-top:10px;';
-    note.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.8;"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.`;
-    document.querySelector('main .section-card').appendChild(note);
-  }
-
-  // Restore an in-progress practice session (questions + answers + feedback) if the
-  // user left and came back, so nothing they did is lost.
+(async function() {
   try {
-    const saved = JSON.parse(localStorage.getItem(_PRACTICE_KEY) || 'null');
-    if (saved && Array.isArray(saved.qs) && saved.qs.length) {
-      _practiceQs = saved.qs;
-      _practiceAnswers = saved.answers || {};
-      _practiceFeedback = saved.feedback || {};
-      _practiceIdx = Math.min(saved.idx || 0, saved.qs.length - 1);
-      // Land on the setup screen with a one-click "Resume" banner rather than
-      // dropping the user back into the questions with no way out.
-      _renderResumeBanner();
+    await loadCurrentUser();
+    document.getElementById('ip-title').innerHTML = ICON('mic') + ' <span>AI Interview Prep</span>';
+    document.getElementById('gen-btn').innerHTML = ICON('sparkle') + ' <span>Generate Questions</span>';
+    var planPill = document.getElementById('plan-pill');
+    if (isPaid()) planPill.innerHTML = '<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">'+ICON('crown','ico ico-sm')+' '+planLabel()+'</button>';
+    else planPill.innerHTML = '<a class="btn btn-primary btn-xs" href="pricing">'+ICON('sparkle','ico ico-sm')+' <span>Upgrade</span></a>';
+    if (isFree()) {
+      var note = document.getElementById('ip-free-note');
+      if (note) {
+        note.style.display = '';
+        note.innerHTML = ICON('sparkle','ico ico-xs') + ' Interview Prep is <strong style="color:var(--accent);">free</strong> for everyone.';
+      }
     }
-  } catch (e) {}
+    // Pre-fill role from resume
+    try {
+      var rz = JSON.parse(localStorage.getItem('hf_resume') || '{}');
+      var top = (rz.experience || [])[0];
+      if (top && top.title) document.getElementById('role').value = top.title;
+    } catch(e) {}
+    // Restore saved session
+    try {
+      var saved = JSON.parse(localStorage.getItem(_PRACTICE_KEY) || 'null');
+      if (saved && Array.isArray(saved.qs) && saved.qs.length) {
+        _practiceQs = saved.qs;
+        _practiceAnswers = saved.answers || {};
+        _practiceFeedback = saved.feedback || {};
+        _practiceIdx = Math.min(saved.idx || 0, saved.qs.length - 1);
+        _renderResumeBanner();
+      }
+    } catch(e) {}
+  } catch(e) {
+    console.warn('Interview page: user load failed', e);
+    document.getElementById('ip-title').innerHTML = ICON('mic') + ' <span>AI Interview Prep</span>';
+    document.getElementById('gen-btn').innerHTML = ICON('sparkle') + ' <span>Generate Questions</span>';
+  }
 })();
 </script>
-  <script src="js/acctcenter.js"></script>
+<script src="js/acctcenter.js"></script>
 <script src="/js/appshell.js"></script>
 <script src="/js/pwa.js" defer></script>
 </body>

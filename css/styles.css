@@ -57,37 +57,37 @@
 
 /* ===== Light mode ===== */
 html.light-mode {
-  --bg-0: #f7f6f3;
+  --bg-0: #ffffff;
   --bg-1: #ffffff;
-  --bg-2: #efece7;
-  --bg-3: #e6e3dc;
-  --border: #d8d5cf;
-  --text: #1a1f3c;
-  --muted: #6a6778;
-  --gradient-soft: linear-gradient(135deg, #e8e5df 0%, #dcd8d2 100%);
-  /* Softer, warm elevation for light mode */
-  --sh-1: 0 1px 2px rgba(40,38,35,.06), 0 2px 8px rgba(40,38,35,.06);
-  --sh-2: 0 4px 12px rgba(40,38,35,.08), 0 14px 34px rgba(40,38,35,.08);
-  --sh-3: 0 8px 24px rgba(40,38,35,.10), 0 24px 60px rgba(40,38,35,.10);
-  --hi: inset 0 1px 0 rgba(255,255,255,.7);
-  --ring: 0 0 0 3px rgba(109,77,252,.22);
-  /* Accent & status text need darker ink to stay legible on light surfaces */
-  --accent-text: #5a3ce8;
-  --accent-ghost: rgba(109,77,252,.06); --accent-soft: rgba(109,77,252,.1);
+  --bg-2: #ffffff;
+  --bg-3: #ffffff;
+  --border: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --gradient-soft: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  /* Clean white elevation - subtle shadows only */
+  --sh-1: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.03);
+  --sh-2: 0 4px 12px rgba(0,0,0,.05), 0 14px 34px rgba(0,0,0,.04);
+  --sh-3: 0 8px 24px rgba(0,0,0,.06), 0 24px 60px rgba(0,0,0,.05);
+  --hi: inset 0 1px 0 rgba(255,255,255,.9);
+  --ring: 0 0 0 3px rgba(99,102,241,.25);
+  /* Accent & status text */
+  --accent-text: #4f46e5;
+  --accent-ghost: rgba(99,102,241,.08); --accent-soft: rgba(99,102,241,.12);
   --success-text: #059669; --warning-text: #b45309; --danger-text: #dc2626;
   --success-soft: rgba(16,185,129,.1); --warning-soft: rgba(245,158,11,.12); --danger-soft: rgba(239,68,68,.1);
-  /* Fix: ensure accent buttons have enough contrast on light backgrounds */
-  --accent-hover: #4a34c4;
-  --accent-line: rgba(109,77,252,.45);
-  /* Fix: input/textarea backgrounds stay readable */
-  --input-bg: var(--bg-2);
-  --input-border: var(--border);
-  --input-text: var(--text);
-  /* Fix: card borders visible on light mode */
-  --card-border: var(--border);
-  /* Fix: dropdown/select backgrounds */
-  --select-bg: var(--bg-1);
-  /* Fix: ensure health score colors are readable */
+  /* Accent buttons */
+  --accent-hover: #4338ca;
+  --accent-line: rgba(99,102,241,.4);
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-border: #e5e7eb;
+  --input-text: #111827;
+  /* Cards */
+  --card-border: #e5e7eb;
+  /* Dropdowns */
+  --select-bg: #ffffff;
+  /* Health score */
   --rh-score-good: #059669;
   --rh-score-warn: #b45309;
   --rh-score-bad: #dc2626;

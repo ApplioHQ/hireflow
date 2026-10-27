@@ -264,6 +264,9 @@ function render(){
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
             <h4 style="margin:0;">${esc(j.title)} <span style="color:var(--muted); font-weight:normal;">at</span> ${esc(j.company)}</h4>
             ${_statusBadge(j.status)}
+            <select onchange="updateStatus(${j.id}, this.value)" style="padding:4px 8px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:11px;">
+              ${STATUSES.map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
           </div>
           <div style="color:var(--muted); font-size:12px;">${j.location?esc(j.location)+' · ':''}added ${new Date(j.addedAt).toLocaleDateString()}</div>
           ${fu ? `<div class="jt-followup">
@@ -273,9 +276,6 @@ function render(){
           ${j.notes ? `<p style="font-size:13px; margin-top:8px; word-break:break-word;">${esc(j.notes)}</p>`:''}
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0;">
-          <select onchange="updateStatus(${j.id}, this.value)" style="padding:5px 10px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px;">
-            ${STATUSES.map(s=>`<option ${j.status===s?'selected':''}>${s}</option>`).join('')}
-          </select>
           <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
             <a class="btn btn-primary btn-xs" href="editor?section=tailor&job=${j.id}" title="Rewrite your resume to match this job with AI">${ICON('sparkle','ico ico-sm')} Tailor resume</a>
             <a class="btn btn-ghost btn-xs" href="skill-gap?job=${j.id}" title="See what this job wants that your resume is missing">${ICON('target','ico ico-sm')} Skill gap</a>

@@ -5220,26 +5220,3 @@ async function _hydrateFromCloud() {
   });
 })();
 
-// Prevent accidental loss of unsaved changes on tab/window close
-window.addEventListener('beforeunload', (e) => {
-  let unsaved = false;
-  try {
-    const editorResume = JSON.parse(localStorage.getItem('hf_resume') || '{}');
-    const currentResume = window.resume || {};
-    // Compare key sections to detect unsaved changes
-    const keySections = ['personal', 'experience', 'education', 'skills', 'projects'];
-    for (const section of keySections) {
-      const oldData = editorResume[section] || [];
-      const currentData = currentResume[section] || [];
-      if (JSON.stringify(oldData) !== JSON.stringify(currentData)) {
-        unsaved = true;
-        break;
-      }
-    }
-  } catch (_) { /* keep default behavior if parse fails */ }
-  if (unsaved) {
-    e.preventDefault();
-    e.returnValue = '';
-    return '';
-  }
-});

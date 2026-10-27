@@ -11,7 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Applio">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/skeleton.css">
 <script src="js/theme.js"></script>
+<script src="js/skeleton.js"></script>
 <style>
   .cl-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 80px; }
   .cl-head h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 800; letter-spacing: -.5px; display:flex; align-items:center; gap:10px; }
@@ -182,6 +184,32 @@ function _syncType(){
   document.getElementById('cl-gen').innerHTML = ICON('sparkle') + ' <span>Write my ' + m.name.replace(' Letter','').toLowerCase() + ' letter</span>';
 }
 
+function _loadingState() {
+  document.getElementById('cl-body').innerHTML =
+    '<div class="sw-skel" aria-hidden="true" role="status" aria-label="Loading letter">'
+    +   '<div class="sw-skel-head">'
+    +     '<div class="sw-skel-head-l">'
+    +       '<span class="sw-sk sw-sk-title"></span>'
+    +       '<span class="sw-sk sw-sk-sub"></span>'
+    +       '<span class="sw-sk sw-sk-pill"></span>'
+    +     '</div>'
+    +     '<span class="sw-sk sw-sk-pill" style="width:120px;"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-lg"></span>'
+    +   '<span class="sw-sk sw-sk-sub" style="width:46%;"></span>'
+    +   '<span class="sw-sk sw-sk-bar"></span>'
+    +   '<div class="sw-sk-legend">'
+    +     '<span class="sw-sk"></span><span class="sw-sk"></span><span class="sw-sk"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-line w95"></span>'
+    +   '<span class="sw-sk sw-sk-line w85"></span>'
+    +   '<span class="sw-sk sw-sk-line w70"></span>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-block"></span>'
+    + '</div>';
+}
+
 function _emptyState(){
   document.getElementById('cl-actions').style.display = 'none';
   var steps = [
@@ -320,7 +348,7 @@ document.addEventListener('click', function(e){
     if (nm) document.getElementById('cl-name').value = nm;
   } catch (e) {}
   _syncType();
-  _emptyState();
+  _loadingState();
 })();
 </script>
   <script src="js/acctcenter.js"></script>

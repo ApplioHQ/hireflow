@@ -1884,7 +1884,7 @@ function _renderTailorStructured(r) {
 function _copyTailorBullet(btn) {
   const t = btn.getAttribute('data-t') || '';
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(
-    () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; toast('Copied to clipboard', { type: 'saved', duration: 1200 }); setTimeout(() => { btn.innerHTML = o; }, 1400); },
+    () => { const o = btn.innerHTML; btn.innerHTML = 'Copied ✓'; toast('Copied to clipboard', { type: 'copied', duration: 1200 }); setTimeout(() => { btn.innerHTML = o; }, 1400); },
     () => toast('Copy failed', { type: 'warn' })
   );
 }
@@ -4034,7 +4034,7 @@ function closeAiSuggest() {
 function _copyAiSuggestion() {
   if (!_aiSuggestState) return;
   navigator.clipboard.writeText(_aiSuggestState.text)
-    .then(() => toast('Copied to clipboard', { type: 'success' }))
+    .then(() => toast('Copied to clipboard', { type: 'copied' }))
     .catch(() => toast('Copy failed', { type: 'error' }));
 }
 function _applyAiSuggestion() {

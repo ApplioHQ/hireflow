@@ -717,6 +717,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 /* Saved indicator style - green border for save confirmations */
 .app-toast-saved { border-left: 4px solid var(--success); }
 .app-toast-saved .app-toast-ico { color: var(--success); }
+/* Copied indicator style - blue border for copy confirmations */
+.app-toast-copied { border-left: 4px solid var(--accent); }
+.app-toast-copied .app-toast-ico { color: var(--accent); }
 
 /* ===== Notify / Confirm dialogs ===== */
 .app-dialog-bd {

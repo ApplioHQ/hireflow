@@ -199,6 +199,32 @@ function _showFreeRemaining(n){
     : `That was your last free cover letter. <a href="pricing" style="color:var(--accent);font-weight:600;">Upgrade to keep going →</a>`;
 }
 
+function _loadingState() {
+  document.getElementById('cl-body').innerHTML =
+    '<div class="sw-skel" aria-hidden="true" role="status" aria-label="Loading cover letter">'
+    +   '<div class="sw-skel-head">'
+    +     '<div class="sw-skel-head-l">'
+    +       '<span class="sw-sk sw-sk-title"></span>'
+    +       '<span class="sw-sk sw-sk-sub"></span>'
+    +       '<span class="sw-sk sw-sk-pill"></span>'
+    +     '</div>'
+    +     '<span class="sw-sk sw-sk-pill" style="width:120px;"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-lg"></span>'
+    +   '<span class="sw-sk sw-sk-sub" style="width:46%;"></span>'
+    +   '<span class="sw-sk sw-sk-bar"></span>'
+    +   '<div class="sw-sk-legend">'
+    +     '<span class="sw-sk"></span><span class="sw-sk"></span><span class="sw-sk"></span>'
+    +   '</div>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-line w95"></span>'
+    +   '<span class="sw-sk sw-sk-line w85"></span>'
+    +   '<span class="sw-sk sw-sk-line w70"></span>'
+    +   '<span class="sw-sk sw-sk-section"></span>'
+    +   '<span class="sw-sk sw-sk-block"></span>'
+    + '</div>';
+}
+
 function _writingState(){
   // Paragraph line widths (%) with blank-line gaps between "paragraphs".
   var groups = [[62], [96,92,88,70], [94,90,97,64], [90,84,40]];
@@ -305,7 +331,7 @@ document.addEventListener('click', function(e){
     const used = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER && CURRENT_USER.coverLettersUsed) || 0;
     _showFreeRemaining(Math.max(0, 2 - used));
   }
-  _emptyState();
+  _loadingState();
 })();
 </script>
   <script src="js/acctcenter.js"></script>

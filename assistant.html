@@ -35,6 +35,18 @@
   .ca-clear { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; margin-left: auto; transition: color .15s; }
   .ca-clear:hover { color: var(--text); }
 
+  /* Applio AI text style - Applio white, AI gradient */
+  .ca-title-brand { display: flex; align-items: center; gap: 4px; font-weight: 800; }
+  .ca-title-brand .brand-applio { color: #fff; }
+  .ca-title-brand .brand-ai {
+    background: linear-gradient(135deg, #6d4dfc 0%, #8a73f8 50%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ca-title-brand.small { font-size: 20px; }
+  .ca-title-brand.large { font-size: 28px; }
+
   /* ===== Thread + messages ===== */
   .cc-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 6px 2px 16px; scroll-behavior: smooth; }
   .ca-msg { display: flex; gap: 11px; max-width: 88%; }
@@ -210,14 +222,14 @@ function _isFreeUser(){ return typeof isFree === 'function' ? isFree() : false; 
 let messages = (function(){ try { const m = JSON.parse(localStorage.getItem(STORE) || '[]'); return Array.isArray(m) ? m : []; } catch { return []; } })();
 let busy = false;
 
-document.getElementById('ca-title').innerHTML = ApplioAI.markHTML(26) + '<span>Career Coach</span>';
+document.getElementById('ca-title').innerHTML = '<span class="ca-title-brand small"><span class="brand-applio">Applio</span><span class="brand-ai"> AI</span></span><span>Career Coach</span>';
 // Composer: a light violet spark leads the input (the real logo lives on avatars).
 document.getElementById('cc-top').innerHTML =
   '<svg class="cc-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>' +
   '<textarea class="cc-field" id="cc-field" rows="1" maxlength="600" placeholder="Ask your career coach anything…" spellcheck="false" oninput="autosize(this);refreshSend()" onkeydown="onKey(event)"></textarea>';
 (function(){ let h=''; for(let i=0;i<28;i++) h+='<span style="animation-delay:'+(i*0.045).toFixed(2)+'s"></span>'; document.getElementById('cc-wave').innerHTML=h; })();
 
-const HERO = '<div class="ca-empty"><div class="ca-hero-orb"><canvas id="hero-orb"></canvas></div><h1>Applio AI</h1><div class="ca-hero-sub">Your personal career coach. It knows your resume. Ask it anything.</div></div>';
+const HERO = '<div class="ca-empty"><div class="ca-hero-orb"><canvas id="hero-orb"></canvas></div><h1 class="ca-title-brand large"><span class="brand-applio">Applio</span><span class="brand-ai"> AI</span></h1><div class="ca-hero-sub">Your personal career coach. It knows your resume. Ask it anything.</div></div>';
 
 // The empty-state hero shows the orb at rest (ambient), not the logo badge.
 let heroOrb = null;
@@ -396,7 +408,7 @@ function _showPremiumGate(){
   document.getElementById('cc-chips').style.display = 'none';
   document.querySelector('.cc-composer').style.display = 'none';
   document.getElementById('cc-thread').innerHTML =
-    '<div class="ca-empty"><div class="ca-hero-badge"><img src="logo.jpeg" alt="Applio" class="ca-hero-logo"></div>'
+    '<div class="ca-empty"><div class="ca-hero-badge"><span class="ca-title-brand large"><span class="brand-applio">Applio</span><span class="brand-ai"> AI</span></span></div>'
     + '<h1>Career Coach is Premium</h1>'
     + '<div class="ca-hero-sub" style="max-width:420px;margin:8px auto 18px;">Your personal AI coach that knows your resume. All free and unlimited.</div>'
     + '<a class="btn btn-primary" href="pricing">See plans</a></div>';

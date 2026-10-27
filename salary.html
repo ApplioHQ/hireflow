@@ -535,19 +535,28 @@ document.getElementById('sw-role').addEventListener('keydown', function(e){ if (
 document.getElementById('sw-location').addEventListener('keydown', function(e){ if (e.key === 'Enter') lookup(); });
 
 (async () => {
-  await loadCurrentUser();
-  document.getElementById('sw-title').innerHTML = ICON('gauge') + ' <span>Salary Insights</span>';
-  document.getElementById('sw-go').innerHTML = ICON('sparkle') + ' <span>Show pay range</span>';
-  const planPill = document.getElementById('plan-pill');
-  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
-  // Prefill role from the resume's most recent title, if present.
-  try {
-    var rz = _resume();
-    var top = (rz.experience || [])[0];
-    if (top && top.title) document.getElementById('sw-role').value = top.title;
-  } catch (e) {}
+  // Show empty state immediately, don't wait for user load
   _emptyState();
+
+  try {
+    await loadCurrentUser();
+    document.getElementById('sw-title').innerHTML = ICON('gauge') + ' <span>Salary Insights</span>';
+    document.getElementById('sw-go').innerHTML = ICON('sparkle') + ' <span>Show pay range</span>';
+    const planPill = document.getElementById('plan-pill');
+    if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
+    else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+    // Prefill role from the resume's most recent title, if present.
+    try {
+      var rz = _resume();
+      var top = (rz.experience || [])[0];
+      if (top && top.title) document.getElementById('sw-role').value = top.title;
+    } catch (e) {}
+  } catch (e) {
+    console.warn('Salary page: user load failed', e);
+    // Still show the title/button even if user load fails
+    document.getElementById('sw-title').innerHTML = ICON('gauge') + ' <span>Salary Insights</span>';
+    document.getElementById('sw-go').innerHTML = ICON('sparkle') + ' <span>Show pay range</span>';
+  }
 })();
 </script>
   <script src="js/acctcenter.js"></script>

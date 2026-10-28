@@ -81,7 +81,7 @@
   "url": "https://appliohq.com/",
   "publisher": { "@id": "https://appliohq.com/#organization" },
   "featureList": [
-    "ATS-optimized resume builder with 26 templates",
+    "ATS-optimized resume builder with 31 templates",
     "AI resume tailoring to any job description",
     "ATS score and keyword matching",
     "AI resume analysis and improvement",
@@ -153,7 +153,7 @@
     { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Passwords are securely hashed and never stored in plain text. Payment data is handled by Stripe directly. Your resume data is encrypted in transit and at rest." } },
     { "@type": "Question", "name": "Is Applio just a resume builder?", "acceptedAnswer": { "@type": "Answer", "text": "The resume is the core, and it's what most people come for: recruiter-ready templates, one-click tailoring to any job, and a real 0-100 ATS score with the exact fixes to make. Once your resume is landing interviews, the same free account also helps with cover letters, interview prep, job tracking, and AI career coaching." } },
     { "@type": "Question", "name": "Does Applio help after I land the job?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Once you're in the role, the same free account keeps helping: a First 90 Days onboarding plan, a Win Journal to log accomplishments as they happen with a weekly reminder, a brag-doc generator for performance reviews and raises, and a Skill Gap Coach that shows what your next role requires." } },
-    { "@type": "Question", "name": "How is Applio different from other resume builders?", "acceptedAnswer": { "@type": "Answer", "text": "Three things: a real 0-100 ATS score with the exact keywords and formatting to fix (not a vague grade), AI that only uses your real experience and never invents jobs or numbers, and 18 recruiter-ready templates that export clean PDFs, all free with no watermark. Everything is designed around one outcome: a resume that gets you interviews." } }
+    { "@type": "Question", "name": "How is Applio different from other resume builders?", "acceptedAnswer": { "@type": "Answer", "text": "Three things: a real 0-100 ATS score with the exact keywords and formatting to fix (not a vague grade), AI that only uses your real experience and never invents jobs or numbers, and 31 recruiter-ready templates that export clean PDFs, all free with no watermark. Everything is designed around one outcome: a resume that gets you interviews." } }
   ]
 }
 </script>
@@ -198,7 +198,7 @@
   "description": "Create a resume that passes applicant tracking systems and lands more interviews, in four steps.",
   "totalTime": "PT10M",
   "step": [
-    { "@type": "HowToStep", "position": 1, "name": "Start from a template or import", "text": "Pick one of 26 ATS-friendly templates, or upload an existing PDF or DOCX and let Applio parse it into editable sections.", "url": "https://appliohq.com/resume-builder" },
+    { "@type": "HowToStep", "position": 1, "name": "Start from a template or import", "text": "Pick one of 31 ATS-friendly templates, or upload an existing PDF or DOCX and let Applio parse it into editable sections.", "url": "https://appliohq.com/resume-builder" },
     { "@type": "HowToStep", "position": 2, "name": "Fill in your sections", "text": "Add your experience, education, skills, and projects. A live preview shows exactly what recruiters and the exported PDF will see." },
     { "@type": "HowToStep", "position": 3, "name": "Check your ATS score and tailor to the job", "text": "Paste a job description to score your resume against it, then tighten bullets and keywords to match the role, grounded in your real experience.", "url": "https://appliohq.com/ats-checker" },
     { "@type": "HowToStep", "position": 4, "name": "Export a clean PDF", "text": "Download a single-column, ATS-safe PDF with no watermark, ready to submit." }
@@ -393,7 +393,7 @@
       <div class="hs-divider" aria-hidden="true"></div>
       <div class="hs-grid">
         <div class="hs-item">
-          <div class="hs-num"><span data-magic-ticker="26" data-magic-ticker-duration="1400">0</span></div>
+          <div class="hs-num"><span data-magic-ticker="31" data-magic-ticker-duration="1400">0</span></div>
           <div class="hs-label">ATS templates</div>
         </div>
         <div class="hs-item">
@@ -641,7 +641,7 @@
   <div class="container">
     <div class="tpl-layout">
       <div class="tpl-copy">
-        <span class="kicker">26 designed templates</span>
+        <span class="kicker">31 designed templates</span>
         <h2 class="section-title">Pick a look.<br>Switch anytime.</h2>
         <p class="section-sub">Recruiter-tested layouts, from clean and minimal to bold and modern. Change template, colors, and fonts without retyping a single line.</p>
 
@@ -692,7 +692,7 @@
   var nextBtn = document.getElementById('tpl-next');
   var ctaLink = document.getElementById('tpl-cta-link');
 
-  // TEMPLATE_DEFS comes from js/templates.js, {id, name, cat} for all 26.
+  // TEMPLATE_DEFS comes from js/templates.js, {id, name, cat} for all 31.
   var ALL = (typeof TEMPLATE_DEFS !== 'undefined') ? TEMPLATE_DEFS.slice() : [];
   var CATS = ['All','Students','Business','Technology','Creative','Industry'];
   var SWATCHES = [
@@ -1099,7 +1099,7 @@
   // Comparison rows, every Applio claim maps to a real, shipped feature.
   var ROWS = [
     ['Real ATS score', 'Scores you 0-100, flags missing keywords', 'Guesses, no real score'],
-    ['Recruiter-ready design', '26 templates, one-click PDF', 'Plain text you reformat'],
+    ['Recruiter-ready design', '31 templates, one-click PDF', 'Plain text you reformat'],
     ['Stays truthful', 'Only what you actually wrote', 'Invents jobs &amp; numbers'],
     ['Tailored to the job', 'Matched resume in ~30s', 'Re-prompt every time'],
     ['Keeps your work', 'Version history + job tracker', 'Gone when the chat resets'],
@@ -1161,7 +1161,7 @@
     <p class="section-sub">Recruiter-ready design, real ATS scoring, and AI that only ever uses your real experience.</p>
 
     <div class="stats-row">
-      <div class="stat"><div class="stat-num">26</div><div class="stat-label">ATS-ready templates, fully customizable</div></div>
+      <div class="stat"><div class="stat-num">31</div><div class="stat-label">ATS-ready templates, fully customizable</div></div>
       <div class="stat"><div class="stat-num">0-100</div><div class="stat-label">real ATS score with the exact fixes to make</div></div>
       <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Free forever, no credit card</div></div>
     </div>
@@ -1181,7 +1181,7 @@
         <div class="price"><span class="price-num">$0</span><span class="price-period">forever</span></div>
         <p class="price-sub">For every job seeker</p>
         <ul class="price-list">
-          <li>✓ All 26 ATS-friendly templates</li>
+          <li>✓ All 31 ATS-friendly templates</li>
           <li>✓ Unlimited PDF downloads, no watermark</li>
           <li>✓ AI resume tailoring to any job</li>
           <li>✓ ATS check &amp; score with keyword gaps</li>
@@ -1211,7 +1211,7 @@
     <div class="faq">
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Is Applio really free to use?</span><span class="faq-icon"></span></summary>
-        <div class="faq-content"><p>Yes, completely. You get the full resume builder, all 26 templates, the job tracker, unlimited PDF downloads, and every AI feature, all free, with no credit card required.</p></div>
+        <div class="faq-content"><p>Yes, completely. You get the full resume builder, all 31 templates, the job tracker, unlimited PDF downloads, and every AI feature, all free, with no credit card required.</p></div>
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>How does the AI tailor my resume?</span><span class="faq-icon"></span></summary>
@@ -1239,7 +1239,7 @@
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg></span>How is Applio different from other resume builders?</span><span class="faq-icon"></span></summary>
-        <div class="faq-content"><p>Three things. You get a real 0-100 ATS score with the exact keywords and formatting to fix, not a vague grade. The AI only ever uses your real experience, so it never invents jobs or numbers. And the core resume builder, all 26 templates, and the job tracker are free with no watermark. Everything is designed around one outcome: a resume that gets you interviews.</p></div>
+        <div class="faq-content"><p>Three things. You get a real 0-100 ATS score with the exact keywords and formatting to fix, not a vague grade. The AI only ever uses your real experience, so it never invents jobs or numbers. And the core resume builder, all 31 templates, and the job tracker are free with no watermark. Everything is designed around one outcome: a resume that gets you interviews.</p></div>
       </details>
     </div>
   </div>

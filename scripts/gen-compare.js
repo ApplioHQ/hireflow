@@ -90,7 +90,7 @@ const C = [
     goodAt: 'Zety has a large, well-designed template and examples library and a friendly step-by-step editor, which many people find easy to start with.',
     faq: [
       { q: 'Is Applio really free, unlike Zety?', a: 'Yes. Applio lets you build and export a resume for free (10 downloads, no credit card) and check your ATS score with no sign-up. Zety generally requires a paid plan to download your finished resume.' },
-      { q: 'Does Applio have resume examples and templates like Zety?', a: 'Yes. Applio has 18 ATS-friendly templates and a growing library of resume examples by job title, all usable for free.' },
+      { q: 'Does Applio have resume examples and templates like Zety?', a: 'Yes. Applio has 31 ATS-friendly templates and a growing library of resume examples by job title, all usable for free.' },
       { q: 'Is Applio a good Zety alternative for ATS?', a: 'Yes. Applio adds a free ATS checker that scores your resume against a specific job and lists the missing keywords, which is a stronger ATS focus than Zety\'s template-first approach.' }
     ]
   },

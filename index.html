@@ -27,10 +27,48 @@
 <meta name="theme-color" content="#111113">
 <link rel="preconnect" href="https://hireflow-api.pritamavuthu7.workers.dev" crossorigin>
 <link rel="dns-prefetch" href="https://hireflow-api.pritamavuthu7.workers.dev">
+<link rel="preload" as="image" href="https://appliohq.com/img/screens/home.png" fetchpriority="high">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/magic.css">
 <link rel="canonical" href="https://appliohq.com/">
+<link rel="alternate" hreflang="en" href="https://appliohq.com/">
+<link rel="alternate" hreflang="x-default" href="https://appliohq.com/">
+<style>
+/* Critical CSS - Above-fold inline for LCP */
+.hero{position:relative;min-height:calc(100vh-62px);display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding:80px 20px 120px}
+@media (max-width:900px){.hero{grid-template-columns:1fr;padding-top:100px}}
+.hero-inner{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;width:100%}
+@media (max-width:900px){.hero-inner{grid-template-columns:1fr}}
+.hero-left{order:1}
+.hero-title{font-size:clamp(36px,6vw,56px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin:0 0 16px}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--muted);margin:0 0 28px;max-width:520px;line-height:1.6}
+.hero-ctas{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.liquid-btn,.hero-cta-ghost{display:inline-flex;align-items:center;justify-content:center;padding:16px 28px;border-radius:999px;font-size:16px;font-weight:700;text-decoration:none;transition:all .2s}
+.liquid-btn{background:var(--gradient);color:#fff;box-shadow:0 8px 24px rgba(109,77,252,.4)}
+.hero-cta-ghost{color:var(--text);border:1px solid var(--border);background:var(--bg-1)}
+.hero-trust-badges{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.trust-badge-inline{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.hero-right{order:2;position:relative}
+.hero-right img{width:100%;height:auto;border-radius:16px;box-shadow:0 26px 60px rgba(15,23,42,.14), 0 4px 14px rgba(15,23,42,.06)}
+.hero-trust-icons{display:flex;gap:16px;flex-wrap:wrap;margin-top:24px}
+.hti{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(180deg,rgba(109,77,252,.05),transparent);z-index:-1}
+#hero-waves{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 20px}
+.section-light{background:#f7f8fc}
+.section-alt{background:#fff}
+.section-title{font-size:clamp(28px,4vw,40px);font-weight:800;text-align:center;margin:0 0 8px;letter-spacing:-1px}
+.section-sub{font-size:16px;color:var(--muted);text-align:center;max-width:640px;margin:0 auto 48px;line-height:1.6}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:999px;font-size:15px;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--gradient);color:#fff;box-shadow:0 6px 18px rgba(109,77,252,.4)}
+.btn-ghost{color:var(--text);border:1px solid var(--border);background:var(--bg-1)}
+.btn-lg{padding:18px 32px;font-size:17px}
+.liquid-btn{position:relative;overflow:hidden}
+.liquid-btn-shadow,.liquid-btn-blur{position:absolute;inset:0;border-radius:inherit}
+.skip-link{position:absolute;top:-100%;left:50%;transform:translateX(-50%);padding:12px 24px;background:var(--accent);color:#fff;border-radius:8px;z-index:1000;text-decoration:none}
+.skip-link:focus{top:10px}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -242,6 +280,11 @@
         </a>
         <a href="ats-checker" class="hero-cta-ghost">Score my resume</a>
       </div>
+      <div class="hero-trust-badges" style="display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; align-items:center;">
+        <span class="trust-badge-inline" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> No credit card</span>
+        <span class="trust-badge-inline" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Your data never sold</span>
+        <span class="trust-badge-inline" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--muted);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> 256-bit SSL</span>
+      </div>
       <div class="hero-trust-icons">
         <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> No credit card</span>
         <span class="hti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 2l1.9 5.1L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9z"/></svg> Free forever plan</span>
@@ -252,6 +295,7 @@
     <div class="hero-right">
       <div class="hero-visual-glow" aria-hidden="true"></div>
       <div class="mock-resume-stack" aria-hidden="true"></div>
+      <img src="https://appliohq.com/img/screens/home.png" alt="Applio resume builder in action — ATS score 96/100, mock resume preview" width="720" height="900" loading="eager" fetchpriority="high" style="max-width:100%; height:auto; border-radius:16px; box-shadow:0 26px 60px rgba(15,23,42,.14), 0 4px 14px rgba(15,23,42,.06);">
       <div class="mock-resume" aria-hidden="true">
         <div class="mock-resume-stamp">
           <div class="mock-resume-stamp-icon">✓</div>

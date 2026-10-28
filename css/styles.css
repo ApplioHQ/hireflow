@@ -9,29 +9,29 @@
   --border: #33333a;
   --text: #e6e9f5;
   --muted: #9a9aa2;
-  --accent: #d4a843;         /* rich gold */
-  --accent-deep: #b89038;    /* button depth / pressed */
-  --accent-2: #e8c56a;
-  --primary: #b89038;
-  --primary-hover: #9a7a2f;
+  --accent: #6d4dfc;         /* deeper, richer indigo, less "default AI purple" */
+  --accent-deep: #5a3ce8;    /* button depth / pressed */
+  --accent-2: #8a73f8;
+  --primary: #5a3ce8;
+  --primary-hover: #4a34c4;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  /* ---- Accent ramp (tokenizes the scattered hexes) ---- */
-  --accent-hover: #e8c56a;              /* the real :hover accent */
-  --accent-text: #f0d48a;               /* accent-coloured text on dark surfaces */
-  --on-accent: #1a1a1a;                 /* text/icon on a solid accent fill */
-  --accent-ghost: rgba(212,168,67,.08); /* faint hover / selected fill */
-  --accent-soft: rgba(212,168,67,.14);  /* soft tinted surface */
-  --accent-line: rgba(212,168,67,.35);  /* tinted border */
+  /* ---- Accent ramp (tokenizes the scattered #8370ff/#8a73f8/#c2b8fd/#818cf8 hexes) ---- */
+  --accent-hover: #8370ff;              /* the real :hover accent, was hardcoded */
+  --accent-text: #c2b8fd;               /* accent-coloured text on dark surfaces */
+  --on-accent: #ffffff;                 /* text/icon on a solid accent fill */
+  --accent-ghost: rgba(109,77,252,.08); /* faint hover / selected fill */
+  --accent-soft: rgba(109,77,252,.14);  /* soft tinted surface */
+  --accent-line: rgba(109,77,252,.35);  /* tinted border */
   /* ---- Status tints (soft fill + readable text + border, per status) ---- */
   --success-soft: rgba(16,185,129,.14); --success-text: #34d399; --success-line: rgba(16,185,129,.35);
   --warning-soft: rgba(245,158,11,.14); --warning-text: #fbbf24; --warning-line: rgba(245,158,11,.35);
   --danger-soft: rgba(239,68,68,.14);   --danger-text: #f87171;  --danger-line: rgba(239,68,68,.35);
   /* Reserved for hero moments only (banner, featured tier, hero CTA). Regular
      buttons use a restrained vertical sheen instead of this diagonal gradient. */
-  --gradient: linear-gradient(135deg, #b89038 0%, #d4a843 100%);
-  --gradient-soft: linear-gradient(135deg, #2e281a 0%, #3d351f 100%);
+  --gradient: linear-gradient(135deg, #5a3ce8 0%, #8370ff 100%);
+  --gradient-soft: linear-gradient(135deg, #201d33 0%, #2e2b4e 100%);
 
   /* ---- Design tokens (Tier 1 system) ---- */
   /* Radius scale */
@@ -70,15 +70,15 @@ html.light-mode {
   --sh-2: 0 4px 12px rgba(0,0,0,.05), 0 14px 34px rgba(0,0,0,.04);
   --sh-3: 0 8px 24px rgba(0,0,0,.06), 0 24px 60px rgba(0,0,0,.05);
   --hi: inset 0 1px 0 rgba(255,255,255,.9);
-  --ring: 0 0 0 3px rgba(212,168,67,.25);
+  --ring: 0 0 0 3px rgba(99,102,241,.25);
   /* Accent & status text */
-  --accent-text: #b89038;
-  --accent-ghost: rgba(212,168,67,.08); --accent-soft: rgba(212,168,67,.12);
+  --accent-text: #4f46e5;
+  --accent-ghost: rgba(99,102,241,.08); --accent-soft: rgba(99,102,241,.12);
   --success-text: #059669; --warning-text: #b45309; --danger-text: #dc2626;
   --success-soft: rgba(16,185,129,.1); --warning-soft: rgba(245,158,11,.12); --danger-soft: rgba(239,68,68,.1);
   /* Accent buttons */
-  --accent-hover: #9a7a2f;
-  --accent-line: rgba(212,168,67,.4);
+  --accent-hover: #4338ca;
+  --accent-line: rgba(99,102,241,.4);
   /* Inputs */
   --input-bg: #ffffff;
   --input-border: #e5e7eb;

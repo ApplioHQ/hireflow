@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '2026-10b';   // bump this to re-show after the next batch of updates
+  var VERSION = '2026-10c';   // bump this to re-show after the next batch of updates
 
   function ls(get, k, v) { try { return get ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
 
@@ -19,18 +19,18 @@
   if (ls(true, 'hf_onboard_new')) { ls(false, 'hf_whatsnew_seen', VERSION); return; }
 
   var ITEMS = [
-    { tint: 'accent', title: 'Salary negotiation redesign',
-      desc: 'Interactive range bar, live offer calculator, and tabbed breakdowns with percentiles and levels.',
-      svg: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
-    { tint: 'success', title: 'Interview prep redesign',
-      desc: 'Cleaner form layout with collapsible JD, feature cards, and voice practice mode with AI scoring.',
-      svg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' },
-    { tint: 'warn', title: 'Autopilot and Best Match redesign',
-      desc: 'Centered hero layouts, step cards, collapsible options, and ranked results with animations.',
-      svg: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>' },
-    { tint: 'accent', title: 'AI career coach refresh',
-      desc: 'Cleaner header and updated branding under the thinking orb.',
-      svg: '<path d="M12 2a4 4 0 0 0-4 4 4 4 0 0 0-.5 0A3.5 3.5 0 0 0 4 9.5c0 .98.4 1.86 1.05 2.5A4 4 0 0 0 4 15a4 4 0 0 0 2.5 3.7A3.5 3.5 0 0 0 10 22h4a3.5 3.5 0 0 0 3.5-3.3A4 4 0 0 0 20 15a4 4 0 0 0-1.05-3A3.5 3.5 0 0 0 20 9.5 3.5 3.5 0 0 0 16.5 6a4 4 0 0 0-.5 0 4 4 0 0 0-4-4z"/><path d="M12 2v20"/>' },
+    { tint: 'accent', title: 'Skill Gap Coach redesign',
+      desc: 'Centered hero layout, step cards, fuzzy-matched gaps with staggered animations, and one-click add to resume.',
+      svg: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>' },
+    { tint: 'success', title: 'Brag Doc redesign',
+      desc: 'Feature cards, cleaner toolbar, and fade-up animations for your accomplishment sheet.',
+      svg: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>' },
+    { tint: 'warn', title: 'Smarter command palette',
+      desc: 'Fuzzy search, keyboard shortcut hints, match highlighting, and a smoother open/close animation.',
+      svg: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>' },
+    { tint: 'accent', title: 'Six tools redesigned this month',
+      desc: 'Salary, interview prep, autopilot, best match, skill gap, and brag doc all share a consistent new layout.',
+      svg: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/>' },
   ];
 
   var TINTS = {

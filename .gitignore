@@ -13,6 +13,9 @@ backups/
 *.key
 secrets.*
 
+# Graphify knowledge graph (local dev tool, regenerate with `graphify . --code-only`)
+graphify-out/
+
 # Dependencies / tooling
 node_modules/
 *.log

@@ -15,18 +15,34 @@
 <script src="js/theme.js"></script>
 <script src="js/skeleton.js"></script>
 <style>
-  .bd-main { max-width: 860px; margin: 0 auto; padding: 24px 20px 80px; }
-  .bd-intro { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin: 6px 0 18px; max-width: 640px; }
-  .bd-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2); box-shadow: var(--sh-1); }
+  .bd-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---- Hero ---- */
+  .bd-hero { text-align: center; margin-bottom: 28px; }
+  .bd-hero h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; letter-spacing: -.5px; display: inline-flex; align-items: center; gap: 10px; }
+  .bd-hero p { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+  /* ---- Feature cards ---- */
+  .bd-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  @media (max-width: 640px) { .bd-features { grid-template-columns: 1fr; } }
+  .bd-feat { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px 16px; text-align: center; animation: bdFadeUp .4s var(--ease-out) both; }
+  .bd-feat:nth-child(2) { animation-delay: .06s; }
+  .bd-feat:nth-child(3) { animation-delay: .12s; }
+  .bd-feat-ico { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .bd-feat-ico svg { width: 18px; height: 18px; }
+  .bd-feat-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .bd-feat-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ---- Toolbar ---- */
+  .bd-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-1); animation: bdFadeUp .4s var(--ease-out) both; animation-delay: .15s; }
   .bd-toolbar label { font-size: 12px; font-weight: 600; color: var(--muted); }
-  .bd-toolbar select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 7px 10px; font-size: 13px; font-family: inherit; }
+  .bd-toolbar select { background: var(--bg-0); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 7px 10px; font-size: 13px; font-family: inherit; }
   .bd-toolbar .bd-spacer { flex: 1; }
   .bd-count { font-size: 12px; color: var(--muted); }
   #bd-polish.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .bd-polished-note { font-size: 11.5px; color: var(--muted); margin: -8px 0 16px; }
 
-  /* The printable sheet */
-  .bd-sheet { background: #fff; color: #111827; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.22), 0 18px 44px rgba(0,0,0,.28); padding: 52px 56px; }
+  /* ---- The printable sheet ---- */
+  .bd-sheet { background: #fff; color: #111827; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.22), 0 18px 44px rgba(0,0,0,.28); padding: 52px 56px; animation: bdFadeUp .4s var(--ease-out) both; }
   .bd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
   .bd-sheet h1 { font-size: 27px; font-weight: 800; letter-spacing: -.4px; margin: 0; color: #0f172a; }
   .bd-role { font-size: 14px; color: #475569; margin-top: 5px; }
@@ -42,40 +58,63 @@
   .bd-group li { position: relative; padding-left: 18px; font-size: 13.5px; line-height: 1.65; color: #1f2937; margin-bottom: 8px; }
   .bd-group li::before { content: ""; position: absolute; left: 3px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: #d4a843; }
   .bd-foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid #eef1f5; font-size: 11px; color: #94a3b8; }
-  .bd-empty { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 40px 28px; text-align: center; color: var(--muted); }
+  .bd-empty { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 40px 28px; text-align: center; color: var(--muted); }
   .bd-empty h2 { color: var(--text); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+
+  /* ---- Animation ---- */
+  @keyframes bdFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .bd-feat, .bd-toolbar, .bd-sheet { animation: none; } }
 
   @media (max-width: 560px) { .bd-sheet { padding: 32px 24px; } }
   @media print {
     body { background: #fff !important; }
-    .app-topbar, .bd-toolbar, .bd-intro, .bd-pagehead .sub, #theme-toggle, .theme-toggle { display: none !important; }
-    .bd-main { padding: 0; max-width: none; }
-    .bd-sheet { box-shadow: none; border-radius: 0; padding: 0; }
+    .app-topbar, .bd-toolbar, .bd-hero, .bd-features, #theme-toggle, .theme-toggle { display: none !important; }
+    .bd-wrap { padding: 0; max-width: none; }
+    .bd-sheet { box-shadow: none; border-radius: 0; padding: 0; animation: none; }
     .bd-range-label { color: #4338ca !important; }
   }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#111113">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Applio">
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
   <a class="brand" href="dashboard" style="text-decoration:none;color:inherit;"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></a>
   <div class="topbar-right">
     <span id="plan-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="theme-toggle" onclick="toggleTheme()"></button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
 
-<main class="bd-main">
-  <div class="bd-pagehead">
-    <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;">Your brag doc</h1>
-    <p class="bd-intro">A running record of what you've accomplished, pulled straight from your Win Journal. Perfect for performance reviews, promotion cases, raise conversations, or your next resume update. Pick a time range, then print or copy it.</p>
+<main class="bd-wrap">
+  <div class="bd-hero">
+    <h1>Brag Doc</h1>
+    <p>Your accomplishments from the Win Journal, grouped by month and ready for performance reviews, promotion cases, or your next resume update.</p>
+  </div>
+
+  <div class="bd-features">
+    <div class="bd-feat">
+      <div class="bd-feat-ico" style="background:rgba(109,77,252,.14);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </div>
+      <div class="bd-feat-title">Auto-compiled</div>
+      <div class="bd-feat-desc">Pulls from your Win Journal so you never forget an accomplishment</div>
+    </div>
+    <div class="bd-feat">
+      <div class="bd-feat-ico" style="background:rgba(34,197,94,.14);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>
+      </div>
+      <div class="bd-feat-title">AI polish</div>
+      <div class="bd-feat-desc">Turn rough notes into sharp resume bullets with one click</div>
+    </div>
+    <div class="bd-feat">
+      <div class="bd-feat-ico" style="background:rgba(245,158,11,.14);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/><rect x="4" y="2" width="16" height="20" rx="2"/></svg>
+      </div>
+      <div class="bd-feat-title">Print or copy</div>
+      <div class="bd-feat-desc">Export a clean PDF or paste straight into a review doc</div>
+    </div>
   </div>
 
   <div class="bd-toolbar" id="bd-toolbar">

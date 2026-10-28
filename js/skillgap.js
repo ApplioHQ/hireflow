@@ -123,6 +123,8 @@
   }
 
   function render(role, data, isJD) {
+    var wrap = document.querySelector('.sg-wrap');
+    if (wrap) wrap.classList.add('results-open');
     var missing = Array.isArray(data.missing) ? data.missing : [];
     var relevant = Array.isArray(data.relevant) ? data.relevant : [];
     var forWhat = isJD ? 'this posting' : (esc(role) + ' roles');
@@ -153,7 +155,7 @@
     html += '<div class="sg-block"><h2>Gaps to close</h2>'
       + '<div class="sg-sub">' + (isJD ? 'The most important skills this posting asks for that aren\'t on your resume yet.' : 'The highest-impact skills ' + esc(role) + ' roles expect that aren\'t on your resume yet.') + '</div>'
       + missing.map(function (m, i) {
-        return '<div class="sg-gap"><div class="sg-num">' + (i + 1) + '</div>'
+        return '<div class="sg-gap" style="animation-delay:' + (i * .05) + 's"><div class="sg-num">' + (i + 1) + '</div>'
           + '<div style="flex:1;min-width:0;"><div class="sg-skill">' + esc(m.skill) + '</div>'
           + (m.why ? '<div class="sg-why">' + esc(m.why) + '</div>' : '') + '</div>'
           + '<label class="sg-have"><input type="checkbox" class="sg-have-cb" data-skill="' + esc(m.skill) + '"> I have this</label></div>';

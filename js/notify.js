@@ -384,6 +384,59 @@ function _aiDotLoader(duration) {
   };
 }
 
+function _aiPong(canvas) {
+  var W = canvas.width, H = canvas.height;
+  var ctx = canvas.getContext('2d');
+  var pw = 4, ph = 24, r = 3;
+  var lx = 6, ly = H / 2 - ph / 2;
+  var rx = W - 6 - pw, ry = H / 2 - ph / 2;
+  var bx = W / 2, by = H / 2, vx = 1.8, vy = 1.2;
+  var ls = 0, rs = 0, raf = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // center line
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+    ctx.setLineDash([]);
+    // score
+    ctx.fillStyle = 'rgba(255,255,255,.25)';
+    ctx.font = '600 14px system-ui,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(ls, W / 2 - 20, 18);
+    ctx.fillText(rs, W / 2 + 20, 18);
+    // paddles
+    ctx.fillStyle = '#a5b4fc';
+    ctx.fillRect(lx, ly, pw, ph);
+    ctx.fillRect(rx, ry, pw, ph);
+    // ball
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  }
+  function tick() {
+    bx += vx; by += vy;
+    // top/bottom bounce
+    if (by - r <= 0) { by = r; vy = Math.abs(vy); }
+    if (by + r >= H) { by = H - r; vy = -Math.abs(vy); }
+    // left paddle
+    if (bx - r <= lx + pw && by >= ly && by <= ly + ph) { vx = Math.abs(vx); bx = lx + pw + r; }
+    // right paddle
+    if (bx + r >= rx && by >= ry && by <= ry + ph) { vx = -Math.abs(vx); bx = rx - r; }
+    // score
+    if (bx < 0) { rs++; bx = W / 2; by = H / 2; vx = 1.8; vy = (Math.random() - .5) * 2.4; }
+    if (bx > W) { ls++; bx = W / 2; by = H / 2; vx = -1.8; vy = (Math.random() - .5) * 2.4; }
+    // AI paddles track ball with slight delay
+    var spd = 1.6;
+    if (by > ly + ph / 2 + 2) ly += spd; else if (by < ly + ph / 2 - 2) ly -= spd;
+    if (by > ry + ph / 2 + 2) ry += spd; else if (by < ry + ph / 2 - 2) ry -= spd;
+    ly = Math.max(0, Math.min(H - ph, ly));
+    ry = Math.max(0, Math.min(H - ph, ry));
+    draw();
+    raf = requestAnimationFrame(tick);
+  }
+  raf = requestAnimationFrame(tick);
+  return function () { cancelAnimationFrame(raf); };
+}
+
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)
   const existing = document.getElementById('ai-loading-overlay');
@@ -410,13 +463,13 @@ window.aiLoading = function (message) {
       @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
     </style>`;
 
-  // Primary visual: the dotted globe (3D rotating sphere).
-  const globe = document.createElement('div');
-  globe.className = 'ai-globe ai-globe-lg';
-  globe.innerHTML = '<div class="ai-globe-inner">' +
-    '<div class="ai-globe-ring"></div><div class="ai-globe-ring"></div><div class="ai-globe-ring"></div>' +
-    '<div class="ai-globe-eq"></div></div>';
-  el.appendChild(globe);
+  // Primary visual: Pong game
+  const pongCanvas = document.createElement('canvas');
+  pongCanvas.width = 200; pongCanvas.height = 120;
+  pongCanvas.style.cssText = 'border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);';
+  el.appendChild(pongCanvas);
+  const _pongCleanup = _aiPong(pongCanvas);
+  el._pongCleanup = _pongCleanup;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const msg = document.createElement('div');
@@ -478,6 +531,7 @@ window.aiLoadingDone = function () {
   const el = document.getElementById('ai-loading-overlay');
   if (!el) return;
   if (el._siriCleanup) { try { el._siriCleanup(); } catch (e) {} el._siriCleanup = null; }
+  if (el._pongCleanup) { try { el._pongCleanup(); } catch (e) {} el._pongCleanup = null; }
   _clearAiTimers(el);
   el.style.animation = 'aiOverlayIn .15s ease reverse both';
   setTimeout(() => el.remove(), 150);

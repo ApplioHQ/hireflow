@@ -130,6 +130,7 @@ export default {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
       if (path === "/auth/google")             return json(await googleAuth(req, env), 200, cors);
+      if (path === "/auth/linkedin/callback")  return json(await linkedinCallback(req, env), 200, cors);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
@@ -678,6 +679,88 @@ async function googleAuth(req, env) {
   const token = await signToken({ email, exp: Math.floor(Date.now()/1000) + 86400*30 }, env.JWT_SECRET);
   return { token, email, promoEarlyBird: gotPromo, isNew };
 }
+
+// ============ LinkedIn OAuth Callback ============
+// Exchanges authorization code for access token, fetches profile, returns profile text for import
+async function linkedinCallback(req, env) {
+  const url = new URL(req.url);
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const error = url.searchParams.get('error');
+  const errorDesc = url.searchParams.get('error_description');
+
+  const clientId = env.LINKEDIN_CLIENT_ID;
+  const clientSecret = env.LINKEDIN_CLIENT_SECRET;
+  const redirectUri = `https://hireflow-api.pritamavuthu7.workers.dev/auth/linkedin/callback`;
+
+  // HTML response that posts message back to opener
+  function respondHtml(message, profileText = null) {
+    const html = `<!doctype html><html><head><meta charset="utf-8"></head><body>
+<script>
+  (function() {
+    const data = ${JSON.stringify({ type: 'linkedin-import', error: message, profileText: profileText })};
+    if (window.opener) window.opener.postMessage(data, '${env.SITE_URL}');
+    window.close();
+  })();
+</script>
+</body></html>`;
+    return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  }
+
+  if (error) return respondHtml(errorDesc || error || 'LinkedIn authorization denied');
+
+  if (!code) return respondHtml('Missing authorization code');
+  if (!clientId || !clientSecret) return respondHtml('LinkedIn import not configured on server');
+
+  try {
+    // Exchange code for access token
+    const tokenResp = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }).toString(),
+    });
+    const tokenData = await tokenResp.json();
+    if (!tokenResp.ok || !tokenData.access_token) {
+      return respondHtml('Failed to exchange code for token: ' + (tokenData.error_description || 'unknown'));
+    }
+    const accessToken = tokenData.access_token;
+
+    // Fetch profile (lite profile + email)
+    const profileResp = await fetch('https://api.linkedin.com/v2/userinfo', {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    });
+    const profile = await profileResp.json();
+    if (!profileResp.ok) {
+      return respondHtml('Failed to fetch LinkedIn profile: ' + (profile.message || 'unknown'));
+    }
+
+    // Fetch email (may be in userinfo or separate endpoint)
+    const email = profile.email || '';
+    const firstName = profile.given_name || profile.firstName?.localized?.en_US || '';
+    const lastName = profile.family_name || profile.lastName?.localized?.en_US || '';
+    const headline = profile.headline || '';
+
+    // Build resume text from LinkedIn profile
+    const profileText = [
+      firstName && lastName ? `${firstName} ${lastName}` : '',
+      email ? `Email: ${email}` : '',
+      headline ? `Headline: ${headline}` : '',
+      '---',
+      'LinkedIn Profile imported. Add your experience, education, and skills below.'
+    ].filter(Boolean).join('\n');
+
+    return respondHtml(null, profileText);
+  } catch (e) {
+    return respondHtml('LinkedIn import failed: ' + e.message);
+  }
+}
+
 async function login(req, env) {
   const { email, password } = await req.json();
   if (!email || !password) throw err(400, "Email and password required");

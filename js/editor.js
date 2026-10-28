@@ -4865,8 +4865,44 @@ async function importResume(optText) {
     }
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
   finally { aiLoadingDone(); }
-  setTimeout(_maybeAutoScore, 600);   // reveal the instant score once the import toast settles
+  setTimeout(_maybeAutoScore, 600);
   return ok;
+}
+
+// Import from LinkedIn — opens OAuth popup, fetches profile, passes to importResume
+async function importFromLinkedIn() {
+  const CFG = window.HIREFLOW_CONFIG || {};
+  const clientId = CFG.LINKEDIN_CLIENT_ID;
+  if (!clientId) { toast('LinkedIn import not configured', { type: 'warn' }); return; }
+  
+  const redirectUri = `${CFG.API_URL}/auth/linkedin/callback`;
+  const state = btoa(JSON.stringify({ ts: Date.now() }));
+  const scope = 'r_liteprofile r_emailaddress';
+  const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent(scope)}`;
+  
+  // Open popup
+  const popup = window.open(authUrl, 'linkedin-import', 'width=600,height=700');
+  if (!popup) { toast('Popup blocked — allow popups for appliohq.com', { type: 'warn' }); return; }
+  
+  // Wait for callback message
+  return new Promise((resolve) => {
+    const listener = (event) => {
+      if (event.origin !== CFG.API_URL.replace(/^https?:\/\//, 'https://')) return;
+      if (event.data?.type === 'linkedin-import') {
+        window.removeEventListener('message', listener);
+        popup.close();
+        if (event.data.error) { toast(event.data.error, { type: 'error' }); resolve(false); }
+        else { importResume(event.data.profileText).then(resolve); }
+      }
+    };
+    window.addEventListener('message', listener);
+    
+    // Timeout after 3 min
+    setTimeout(() => {
+      window.removeEventListener('message', listener);
+      if (!popup.closed) { popup.close(); toast('LinkedIn import timed out', { type: 'warn' }); resolve(false); }
+    }, 180000);
+  });
 }
 
 // ======================================================================

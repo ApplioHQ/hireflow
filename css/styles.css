@@ -1319,6 +1319,8 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .rf-status.ok { color: var(--muted); }
 .rf-or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin: 12px 0; }
 .rf-or::before, .rf-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.rf-divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin: 12px 0; }
+.rf-divider::before, .rf-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 @keyframes aiBarGrow { from { width: 0 !important; } }
 .ac-bar-fill, .sm-bar-fill, .bm-bar-fill, .bm-sub-bar > div, .ip-fb-bar > i {

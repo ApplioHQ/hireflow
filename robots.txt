@@ -5,20 +5,10 @@ Disallow: /dashboard
 Disallow: /editor
 Disallow: /export
 Disallow: /jobs
-Disallow: /interview
 Disallow: /feedback
 Disallow: /admin
 Disallow: /login
 Disallow: /success
-Disallow: /match
-Disallow: /assistant
-Disallow: /cover-letter
-Disallow: /salary/lookup
-Disallow: /letters
-Disallow: /skill-gap
-Disallow: /brag-doc
-Disallow: /first-90-days
-Disallow: /autopilot
 Disallow: /testimonial
 Disallow: /email-preferences
 # Internal renderer used by the template PNG generator script — no user value

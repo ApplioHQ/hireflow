@@ -2447,6 +2447,9 @@ const TEXT_SIZES = [['xs','Extra small'],['s','Small'],['m','Medium'],['l','Larg
 const MARGIN_OPTS = ['Narrow','Normal','Wide'];
 const LINE_OPTS = [['tight','Tight'],['normal','Normal'],['relaxed','Relaxed'],['loose','Loose']];
 const BULLET_OPTS = [['dot','• Dot'],['dash','- Dash'],['square','▪ Square'],['chevron','› Chevron'],['arrow','→ Arrow'],['circle','◦ Circle'],['none','No bullets']];
+const HEADING_STYLE_OPTS = [['underline','Underline'],['accent-bar','Accent bar'],['none','No decoration']];
+const DATE_FORMAT_OPTS = [['short','Jan 2022'],['long','January 2022'],['numeric','01/2022']];
+const SKILLS_LAYOUT_OPTS = [['pills','Pills'],['comma','Comma list'],['bars','Skill bars']];
 
 function renderCustomize() {
   if (IS_ANON) return _lockedPanel('Customize your resume', 'Change colors, fonts, spacing, line height, margins, bullets and paper size, then make it truly yours. All free with an account.', 'customize your resume');
@@ -2510,6 +2513,20 @@ function renderCustomize() {
           <button type="button" onclick="setCustom('headingCase','uppercase')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid ${(c.headingCase||'uppercase')==='uppercase'?'transparent':'var(--border)'};background:${(c.headingCase||'uppercase')==='uppercase'?'var(--accent,#6d4dfc)':'transparent'};color:${(c.headingCase||'uppercase')==='uppercase'?'#fff':'var(--text)'};font-weight:600;">Uppercase</button>
           <button type="button" onclick="setCustom('headingCase','normal')" style="flex:1;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid ${c.headingCase==='normal'?'transparent':'var(--border)'};background:${c.headingCase==='normal'?'var(--accent,#6d4dfc)':'transparent'};color:${c.headingCase==='normal'?'#fff':'var(--text)'};font-weight:600;">Normal case</button>
         </div>
+      </div>
+      <div class="pf-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+        <div class="form-field">
+          <label>Heading style</label>
+          <select data-bind="customize.headingStyle">${HEADING_STYLE_OPTS.map(([v,l])=>`<option value="${v}" ${(c.headingStyle||'underline')===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
+        <div class="form-field">
+          <label>Date format</label>
+          <select data-bind="customize.dateFormat">${DATE_FORMAT_OPTS.map(([v,l])=>`<option value="${v}" ${(c.dateFormat||'short')===v?'selected':''}>${l}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:12px;">
+        <label>Skills layout</label>
+        <select data-bind="customize.skillsLayout">${SKILLS_LAYOUT_OPTS.map(([v,l])=>`<option value="${v}" ${(c.skillsLayout||'pills')===v?'selected':''}>${l}</option>`).join('')}</select>
       </div>
       <div style="margin-top:18px;">
         <strong>Resume Sections</strong>

@@ -39,6 +39,12 @@ const TEMPLATE_DEFS = [
   { id: 'wharton',      name: 'Wharton',        cat: 'Business' },
   { id: 'mit',          name: 'MIT',            cat: 'Technology' },
   { id: 'googledocs',   name: 'Google Docs',    cat: 'Students' },
+  // New templates
+  { id: 'notion',       name: 'Notion',         cat: 'Technology' },
+  { id: 'sidebar',      name: 'Sidebar',        cat: 'Creative' },
+  { id: 'federal',      name: 'Federal',        cat: 'Industry' },
+  { id: 'academic',     name: 'Academic CV',    cat: 'Industry' },
+  { id: 'infographic',  name: 'Infographic',    cat: 'Creative' },
 ];
 
 const SAMPLE = {
@@ -91,8 +97,39 @@ const SCALE_MULT  = { xs: 0.9, s: 0.95, m: 1.0, l: 1.06, xl: 1.12 };
 const LINE_MULT   = { tight: 1.22, normal: 1.4, relaxed: 1.6, loose: 1.8 };
 // Bullet glyph used before every list item (empty = no marker, tighter indent).
 const BULLET_CHAR = { dot: '•', dash: '-', square: '▪', chevron: '›', arrow: '→', circle: '◦', none: '' };
+// Heading underline style: controls the visual treatment of section headers.
+// Templates that use border-bottom on h2 can read --app-h2-border to override.
+const HEADING_STYLES = { underline: 'underline', 'accent-bar': 'accent-bar', none: 'none' };
+// Date display format applied to entry dates.
+const DATE_FORMATS = { short: 'short', long: 'long', numeric: 'numeric' };
+// Skills display layout.
+const SKILLS_LAYOUTS = { pills: 'pills', comma: 'comma', bars: 'bars' };
 
 function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+// Format a date string according to the user's chosen date format.
+// Input is freeform (e.g. "2022", "Jan 2022", "01/2022", "Present").
+// 'short' = "Jan 2022", 'long' = "January 2022", 'numeric' = "01/2022", default = passthrough.
+const _MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const _MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function _fmtDate(raw, fmt) {
+  if (!fmt || fmt === 'short') return raw || '';
+  const s = String(raw || '').trim();
+  if (!s || /present|current|now/i.test(s)) return s;
+  // Try to parse "Mon YYYY" or "MM/YYYY" or "YYYY-MM"
+  var m, y;
+  var match;
+  if ((match = s.match(/^(\d{1,2})\s*[\/\-]\s*(\d{4})$/))) { m = parseInt(match[1],10); y = match[2]; }
+  else if ((match = s.match(/^(\d{4})\s*[\/\-]\s*(\d{1,2})$/))) { m = parseInt(match[2],10); y = match[1]; }
+  else if ((match = s.match(/^([A-Za-z]+)\s+(\d{4})$/))) {
+    var mi = _MONTHS_SHORT.findIndex(function(ms){ return ms.toLowerCase() === match[1].slice(0,3).toLowerCase(); });
+    if (mi >= 0) { m = mi + 1; y = match[2]; }
+  }
+  if (!m || !y) return s;
+  if (fmt === 'long') return _MONTHS_LONG[m-1] + ' ' + y;
+  if (fmt === 'numeric') return (m < 10 ? '0' : '') + m + '/' + y;
+  return _MONTHS_SHORT[m-1] + ' ' + y;
+}
 
 // Build inline style for the root template div, sets CSS vars used inside.
 function customizeStyleAttr(customize, marginsKey) {
@@ -118,6 +155,9 @@ function customizeStyleAttr(customize, marginsKey) {
   }
   // Capitalization of headings/labels: templates use `var(--app-upper, uppercase)`.
   if (c.headingCase === 'normal') parts.push('--app-upper:none');
+  // Heading underline style: 'none' removes the bottom border, 'accent-bar' swaps to a left bar.
+  if (c.headingStyle === 'none') parts.push('--app-h2-border:0');
+  if (c.headingStyle === 'accent-bar') parts.push('--app-h2-border:0', '--app-h2-bar:3px');
   if (font) {
     // Font stacks contain quoted multi-word names (e.g. "Segoe UI", "Times New Roman").
     // This string is injected into a double-quoted style="" attribute, so any double
@@ -208,13 +248,14 @@ function bulletHTML(text) {
 }
 
 // ============ Section block builders ============
+var _dateFmt = '';
+function _d(v) { return _fmtDate(v, _dateFmt); }
 function expBlocks(exp) {
   return (exp||[]).map(e => {
-    // 3-tier hierarchy: bold role on its own line, company + location beneath.
     const sub = [e.company, e.location].filter(Boolean).map(esc).join(' · ');
     return `
     <div class="t-entry">
-      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)}</span><span class="t-entry-date">${esc(e.start)} - ${esc(e.end)}</span></div>
+      <div class="t-entry-head"><span class="t-entry-title">${esc(e.title)}</span><span class="t-entry-date">${esc(_d(e.start))} - ${esc(_d(e.end))}</span></div>
       ${sub ? `<div class="t-entry-sub">${sub}</div>` : ''}
       ${bulletHTML(e.description)}
     </div>`;
@@ -223,7 +264,7 @@ function expBlocks(exp) {
 function eduBlocks(edu) {
   return (edu||[]).map(e => `
     <div class="t-entry">
-      <div class="t-entry-head"><span class="t-entry-title">${esc(e.school)}</span><span class="t-entry-date">${esc(e.start)} - ${esc(e.end)}</span></div>
+      <div class="t-entry-head"><span class="t-entry-title">${esc(e.school)}</span><span class="t-entry-date">${esc(_d(e.start))} - ${esc(_d(e.end))}</span></div>
       <div class="t-entry-sub">${esc(e.degree)} ${esc(e.field)}${e.gpa?' · GPA '+esc(e.gpa):''}</div>
     </div>`).join('');
 }
@@ -240,9 +281,23 @@ function listBlocks(items, fields) {
 function skillsLine(skills) {
   return esc((skills?.categories||[]).flatMap(c=>c.items).join(' · '));
 }
-function skillsHTML(skills, compact) {
+function skillsHTML(skills, compact, layout) {
   const cats = (skills?.categories||[]).filter(c=>c.items&&c.items.length);
   if (!cats.length) return '';
+  if (layout === 'comma') {
+    if (cats.length === 1 && (!cats[0].name || cats[0].name === 'All'))
+      return `<div class="sk-comma">${esc(cats[0].items.join(', '))}</div>`;
+    return cats.map(c =>
+      `<div class="sk-comma-group"><span class="sk-label">${esc(c.name)}:</span> ${esc(c.items.join(', '))}</div>`
+    ).join('');
+  }
+  if (layout === 'bars') {
+    const all = cats.flatMap(c => c.items);
+    return `<div class="sk-bars">${all.slice(0,10).map((s,i) => {
+      const w = Math.max(40, 95 - i * 5);
+      return `<div class="sk-bar-row"><span class="sk-bar-name">${esc(s)}</span><span class="sk-bar-track"><span class="sk-bar-fill" style="width:${w}%"></span></span></div>`;
+    }).join('')}</div>`;
+  }
   const pills = items => items.map(i => `<span class="sk-pill">${esc(i)}</span>`).join('');
   if (cats.length === 1 && (!cats[0].name || cats[0].name === 'All'))
     return `<div class="sk-wrap${compact?' sk-compact':''}">${pills(cats[0].items)}</div>`;
@@ -261,7 +316,7 @@ const MAIN_COLUMN_KEYS = ['experience','projects','certifications','awards','lea
 const SECTION_DEF = {
   experience:     { title: 'Experience',     html: r => r.experience.length ? expBlocks(r.experience) : '' },
   education:      { title: 'Education',       html: r => r.education.length ? eduBlocks(r.education) : '' },
-  skills:         { title: 'Skills',          html: (r, cls) => { const h = skillsHTML(r.skills); return h || ''; } },
+  skills:         { title: 'Skills',          html: (r, cls) => { const h = skillsHTML(r.skills, false, r.customize?.skillsLayout); return h || ''; } },
   projects:       { title: 'Projects',        html: r => r.projects.length ? projBlocks(r.projects) : '' },
   certifications: { title: 'Certifications',  html: r => r.certifications.length ? listBlocks(r.certifications, ['name','issuer','date']) : '' },
   awards:         { title: 'Awards',          html: r => r.awards.length ? listBlocks(r.awards, ['name','issuer','date']) : '' },
@@ -1211,6 +1266,216 @@ function tGoogledocs(r, accent) {
     </div>`;
 }
 
+// ===== Notion (Technology) =====
+// Clean Notion-aesthetic: monospace section labels, inline code pills for skills,
+// minimal color, toggle-style dividers.
+function tNotion(r, accent) {
+  const c = accent || '#2f3437';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-notion { font-family: var(--app-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); color: #37352f; padding: calc(5.5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height: 100%; }
+      .t-notion .n-name { font-size: 240%; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; color: #37352f; }
+      .t-notion .n-sub { font-size: 95%; color: #787774; margin-top: 2px; }
+      .t-notion .n-contact { font-size: 80%; color: #9b9a97; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 1% 3%; }
+      .t-notion .n-contact span { background: #f1f1ef; border-radius: 3px; padding: 1px 6px; font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 90%; }
+      .t-notion .n-divider { height: 1px; background: #e3e2e0; margin: calc(3.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
+      .t-notion h2 { font-size: 88%; font-weight: 600; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; color: #9b9a97; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); }
+      .t-notion h2:first-child { margin-top: 0; }
+      .t-notion .t-entry { margin-bottom: calc(2.4% * var(--app-space,1)); padding-left: 2%; border-left: 2px solid #e3e2e0; }
+      .t-notion .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 600; font-size: 95%; color: #37352f; }
+      .t-notion .t-entry-date { font-weight: 400; font-size: 85%; color: #9b9a97; font-family: "SFMono-Regular", Menlo, Consolas, monospace; white-space: nowrap; padding-left: 3%; }
+      .t-notion .t-entry-sub { color: #787774; font-size: 84%; margin-top: .3%; }
+      .t-notion .t-entry-desc { font-size: 88%; margin-top: 1%; color: #37352f; }
+      .t-notion .summary { font-size: 90%; line-height: 1.6; color: #37352f; }
+      .t-notion .sk-pill { background: #f1f1ef; border-radius: 3px; padding: 1px 7px; font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 85%; color: #eb5757; }
+      .t-notion .sk-wrap, .t-notion .sk-group { display: flex; flex-wrap: wrap; gap: 4px 5px; }
+      .t-notion .sk-label { font-weight: 600; font-size: 84%; color: #787774; margin-right: 4px; }
+    </style>
+    <div class="t-notion" style="${st}">
+      <div class="n-name">${esc(p.fullName)}</div>
+      ${r.experience[0]&&r.experience[0].title ? `<div class="n-sub">${esc(r.experience[0].title)}</div>` : ''}
+      <div class="n-contact">
+        ${[p.email,p.phone,p.location,p.linkedin,p.github,p.website].filter(Boolean).map(v => `<span>${esc(v)}</span>`).join('')}
+      </div>
+      <div class="n-divider"></div>
+      ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ===== Sidebar (Creative) =====
+// Full-height dark left sidebar (28%) with name, contact, skills, education.
+// Main column has experience and other sections.
+function tSidebar(r, accent) {
+  const c = accent || '#6d4dfc';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const initials = (p.fullName || '').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  return `
+    <style>
+      .t-sidebar { font-family: var(--app-font); color: #1f2937; min-height: var(--app-page-h, 1048px); display: grid; grid-template-columns: 28% 72%; }
+      .t-sidebar .sb { background: #111827; color: #e5e7eb; padding: calc(7% * var(--app-margin,1)) calc(5% * var(--app-margin,1)); }
+      .t-sidebar .sb-avatar { width: 64px; height: 64px; border-radius: 50%; background: ${c}; display: flex; align-items: center; justify-content: center; font-size: 140%; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 5%; }
+      .t-sidebar .sb-name { font-size: 135%; font-weight: 800; color: #fff; line-height: 1.15; letter-spacing: -.01em; }
+      .t-sidebar .sb-role { font-size: 78%; color: ${c}; margin-top: 1.5%; font-weight: 600; text-transform: var(--app-upper, uppercase); letter-spacing: .08em; }
+      .t-sidebar .sb h3 { font-size: 72%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .14em; color: ${c}; margin: calc(7% * var(--app-space,1)) 0 3%; padding-bottom: 2%; border-bottom: 1px solid #1f2937; }
+      .t-sidebar .sb .item { font-size: 78%; margin-bottom: 3%; color: #d1d5db; line-height: 1.5; }
+      .t-sidebar .sb .item strong { color: #fff; }
+      .t-sidebar .sb .sk-pill { display: inline-block; background: rgba(255,255,255,.08); border-radius: 4px; padding: 2px 8px; font-size: 85%; margin: 1px 2px; color: #e5e7eb; }
+      .t-sidebar .sb .sk-wrap, .t-sidebar .sb .sk-group { display: flex; flex-wrap: wrap; gap: 3px; }
+      .t-sidebar .sb .sk-label { font-weight: 600; font-size: 82%; color: ${c}; width: 100%; margin-bottom: 2px; }
+      .t-sidebar .main { padding: calc(6% * var(--app-margin,1)) calc(5.5% * var(--app-margin,1)); }
+      .t-sidebar h2 { color: ${c}; font-size: 100%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .1em; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); border-bottom: 2px solid ${c}; padding-bottom: 1%; }
+      .t-sidebar .main > h2:first-child { margin-top: 0; }
+      .t-sidebar .t-entry { margin-bottom: calc(3% * var(--app-space,1)); }
+      .t-sidebar .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 700; font-size: 93%; }
+      .t-sidebar .t-entry-date { color: #6b7280; font-weight: 400; font-size: 86%; white-space: nowrap; }
+      .t-sidebar .t-entry-sub { color: #6b7280; font-size: 83%; margin-top: .3%; }
+      .t-sidebar .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-sidebar .summary { font-size: 88%; line-height: 1.55; }
+    </style>
+    <div class="t-sidebar" style="${st}">
+      <div class="sb">
+        <div class="sb-avatar">${initials}</div>
+        <div class="sb-name">${esc(p.fullName)}</div>
+        ${r.experience[0]&&r.experience[0].title ? `<div class="sb-role">${esc(r.experience[0].title)}</div>` : ''}
+        <h3>Contact</h3>
+        ${p.email ? `<div class="item">${esc(p.email)}</div>` : ''}
+        ${p.phone ? `<div class="item">${esc(p.phone)}</div>` : ''}
+        ${p.location ? `<div class="item">${esc(p.location)}</div>` : ''}
+        ${p.linkedin ? `<div class="item">${esc(p.linkedin)}</div>` : ''}
+        ${p.github ? `<div class="item">${esc(p.github)}</div>` : ''}
+        ${p.website ? `<div class="item">${esc(p.website)}</div>` : ''}
+        ${skillsHTML(r.skills,true) ? `<h3>Skills</h3><div class="item">${skillsHTML(r.skills,true)}</div>` : ''}
+        ${r.education.length ? `<h3>Education</h3>${r.education.map(e => `<div class="item"><strong>${esc(e.school)}</strong><br>${esc(e.degree)} ${esc(e.field)}${e.gpa ? '<br>GPA ' + esc(e.gpa) : ''}</div>`).join('')}` : ''}
+      </div>
+      <div class="main">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${orderedBody(r, { only: MAIN_COLUMN_KEYS })}
+      </div>
+    </div>`;
+}
+
+// ===== Federal (Industry) =====
+// US government resume format: detailed, no-frills, dense text, clear hierarchy.
+// Longer format with supervisor-ready detail fields.
+function tFederal(r, accent) {
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-federal { font-family: var(--app-font, "Times New Roman", Times, serif); color: #000; padding: calc(4.5% * var(--app-margin,1)) calc(6% * var(--app-margin,1)); height: 100%; font-size: 95%; }
+      .t-federal .f-name { font-size: 175%; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: .02em; }
+      .t-federal .f-contact { text-align: center; font-size: 88%; margin-top: 4px; color: #333; }
+      .t-federal .f-rule { border: none; border-top: 2px solid #000; margin: 2.5% 0; }
+      .t-federal h2 { font-size: 105%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .06em; margin: calc(3.5% * var(--app-space,1)) 0 calc(1.2% * var(--app-space,1)); border-bottom: 1px solid #000; padding-bottom: .8%; color: #000; }
+      .t-federal .t-entry { margin-bottom: calc(3.5% * var(--app-space,1)); }
+      .t-federal .t-entry-head { font-weight: 700; font-size: 98%; color: #000; }
+      .t-federal .t-entry-head { display: flex; justify-content: space-between; align-items: baseline; }
+      .t-federal .t-entry-date { font-weight: 400; font-size: 88%; color: #333; white-space: nowrap; }
+      .t-federal .t-entry-sub { font-size: 88%; color: #333; margin-top: .2%; }
+      .t-federal .t-entry-desc { font-size: 90%; margin-top: 1%; line-height: 1.55; }
+      .t-federal .summary { font-size: 90%; line-height: 1.6; }
+    </style>
+    <div class="t-federal" style="${st}">
+      <div class="f-name">${esc(p.fullName)}</div>
+      <div class="f-contact">${[p.email, p.phone, p.location].filter(Boolean).map(esc).join(' | ')}</div>
+      ${p.linkedin||p.website ? `<div class="f-contact">${[p.linkedin,p.website].filter(Boolean).map(esc).join(' | ')}</div>` : ''}
+      <hr class="f-rule">
+      ${p.summary ? `<h2>Professional Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r)}
+    </div>`;
+}
+
+// ===== Academic / CV (Industry) =====
+// Scholarly multi-page format: serif, publications prominent, dense, institutional.
+function tAcademic(r, accent) {
+  const c = accent || '#1e3a5f';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  return `
+    <style>
+      .t-academic { font-family: var(--app-font, Georgia, "Times New Roman", serif); color: #1a1a1a; padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height: 100%; }
+      .t-academic .a-name { font-size: 200%; font-weight: 400; text-align: center; letter-spacing: .04em; color: ${c}; }
+      .t-academic .a-title { font-size: 95%; text-align: center; color: #555; margin-top: 2px; font-style: italic; }
+      .t-academic .a-contact { text-align: center; font-size: 82%; margin-top: 6px; color: #666; }
+      .t-academic .a-contact span:not(:last-child)::after { content: "  |  "; color: #ccc; }
+      .t-academic .a-rule { border: none; border-top: 1px solid ${c}; margin: 3% 0 2%; }
+      .t-academic h2 { font-size: 105%; font-weight: 400; font-variant: small-caps; letter-spacing: .08em; color: ${c}; margin: calc(4% * var(--app-space,1)) 0 calc(1.5% * var(--app-space,1)); border-bottom: 0.5px solid ${c}44; padding-bottom: 1%; }
+      .t-academic .t-entry { margin-bottom: calc(2.5% * var(--app-space,1)); }
+      .t-academic .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 700; font-size: 95%; color: #1a1a1a; }
+      .t-academic .t-entry-date { font-weight: 400; font-size: 88%; color: #666; font-style: italic; white-space: nowrap; padding-left: 3%; }
+      .t-academic .t-entry-sub { color: #555; font-size: 86%; font-style: italic; margin-top: .3%; }
+      .t-academic .t-entry-desc { font-size: 89%; margin-top: 1%; line-height: 1.55; }
+      .t-academic .summary { font-size: 90%; line-height: 1.6; font-style: italic; }
+    </style>
+    <div class="t-academic" style="${st}">
+      <div class="a-name">${esc(p.fullName)}</div>
+      ${r.experience[0]&&r.experience[0].title ? `<div class="a-title">${esc(r.experience[0].title)}</div>` : ''}
+      <div class="a-contact">${[p.email,p.phone,p.location,p.linkedin,p.website].filter(Boolean).map(v => `<span>${esc(v)}</span>`).join('')}</div>
+      <hr class="a-rule">
+      ${p.summary ? `<h2>Research Interests</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+      ${orderedBody(r, { titles: { experience: 'Academic & Professional Experience', projects: 'Research Projects', awards: 'Honors & Awards', publications: 'Publications' } })}
+    </div>`;
+}
+
+// ===== Infographic (Creative) =====
+// Visually bold: accent-colored header band, skill bars, icon-driven contact,
+// timeline-style experience with colored dots.
+function tInfographic(r, accent) {
+  const c = accent || '#6d4dfc';
+  const p = r.personal;
+  const st = customizeStyleAttr(r.customize, r._marginsKey);
+  const allSkills = (r.skills?.categories||[]).flatMap(cat => cat.items);
+  return `
+    <style>
+      .t-infographic { font-family: var(--app-font); color: #1f2937; height: 100%; }
+      .t-infographic .ig-header { background: ${c}; color: #fff; padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)) calc(4% * var(--app-margin,1)); position: relative; overflow: hidden; }
+      .t-infographic .ig-header::after { content: ""; position: absolute; right: -4%; top: -20%; width: 40%; height: 140%; background: rgba(255,255,255,.06); border-radius: 50%; }
+      .t-infographic .ig-name { font-size: 220%; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; position: relative; z-index: 1; }
+      .t-infographic .ig-role { font-size: 85%; font-weight: 600; opacity: .88; margin-top: 1.5%; letter-spacing: .04em; position: relative; z-index: 1; }
+      .t-infographic .ig-contact { display: flex; flex-wrap: wrap; gap: 2% 4%; font-size: 78%; margin-top: 3%; opacity: .9; position: relative; z-index: 1; }
+      .t-infographic .ig-body { padding: calc(4% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); }
+      .t-infographic h2 { font-size: 92%; font-weight: 700; text-transform: var(--app-upper, uppercase); letter-spacing: .12em; color: ${c}; margin: calc(4% * var(--app-space,1)) 0 calc(1.8% * var(--app-space,1)); display: flex; align-items: center; gap: 2%; }
+      .t-infographic h2::after { content: ""; flex: 1; height: 1.5px; background: ${c}22; }
+      .t-infographic .ig-body > h2:first-child { margin-top: 0; }
+      .t-infographic .t-entry { margin-bottom: calc(2.8% * var(--app-space,1)); padding-left: 3.5%; border-left: 2px solid ${c}33; position: relative; }
+      .t-infographic .t-entry::before { content: ""; position: absolute; left: -5px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: ${c}; }
+      .t-infographic .t-entry-head { display:flex; justify-content:space-between; align-items:baseline; font-weight: 700; font-size: 94%; }
+      .t-infographic .t-entry-date { font-weight: 400; font-size: 84%; color: #6b7280; white-space: nowrap; }
+      .t-infographic .t-entry-sub { color: #6b7280; font-size: 83%; margin-top: .3%; }
+      .t-infographic .t-entry-desc { font-size: 87%; margin-top: 1%; }
+      .t-infographic .summary { font-size: 88%; line-height: 1.55; }
+      .t-infographic .ig-skills { display: flex; flex-direction: column; gap: 6px; margin-top: 1%; }
+      .t-infographic .ig-skill-row { display: flex; align-items: center; gap: 3%; }
+      .t-infographic .ig-skill-name { font-size: 82%; width: 28%; text-align: right; color: #374151; }
+      .t-infographic .ig-skill-bar { flex: 1; height: 7px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+      .t-infographic .ig-skill-fill { height: 100%; background: ${c}; border-radius: 4px; }
+      .t-infographic .sk-wrap, .t-infographic .sk-group { display: flex; flex-wrap: wrap; gap: 4px 5px; }
+      .t-infographic .sk-pill { background: ${c}11; border: 1px solid ${c}33; border-radius: 4px; padding: 2px 8px; font-size: 82%; color: ${c}; font-weight: 500; }
+      .t-infographic .sk-label { font-weight: 600; font-size: 84%; color: ${c}; width: 100%; margin-bottom: 2px; }
+    </style>
+    <div class="t-infographic" style="${st}">
+      <div class="ig-header">
+        <div class="ig-name">${esc(p.fullName)}</div>
+        ${r.experience[0]&&r.experience[0].title ? `<div class="ig-role">${esc(r.experience[0].title)}</div>` : ''}
+        <div class="ig-contact">
+          ${[p.email,p.phone,p.location,p.linkedin].filter(Boolean).map(v => `<span>${esc(v)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="ig-body">
+        ${p.summary ? `<h2>Summary</h2><div class="summary">${esc(p.summary)}</div>` : ''}
+        ${allSkills.length ? `<h2>Skills</h2><div class="ig-skills">${allSkills.slice(0,8).map((s,i) => {
+          const w = Math.max(45, 95 - i * 6);
+          return `<div class="ig-skill-row"><div class="ig-skill-name">${esc(s)}</div><div class="ig-skill-bar"><div class="ig-skill-fill" style="width:${w}%"></div></div></div>`;
+        }).join('')}</div>` : ''}
+        ${orderedBody(r, { exclude: ['skills'] })}
+      </div>
+    </div>`;
+}
+
 const TEMPLATE_RENDERERS = {
   harvard: tHarvard, stanford: tStanford, jake: tJake,
   consulting: tConsulting, faang: tFaang,
@@ -1220,7 +1485,8 @@ const TEMPLATE_RENDERERS = {
   ivory: tIvory, timeline: tTimeline, cascade: tCascade, deedy: tDeedy,
   twocolumn: tTwocolumn, healthcare: tHealthcare, sales: tSales, ats: tAts,
   wharton: tWharton, mit: tMit, googledocs: tGoogledocs,
-  plain: tPlain
+  plain: tPlain,
+  notion: tNotion, sidebar: tSidebar, federal: tFederal, academic: tAcademic, infographic: tInfographic
 };
 
 // Public API: render any template
@@ -1234,13 +1500,20 @@ const SHARED_TEMPLATE_CSS = `<style>
 .t-bullets li:last-child { margin-bottom: 0; }
 .t-bullets li::before { content: var(--app-bullet, '•'); position: absolute; left: .12em; top: 0; opacity: .65; }
 .t-bullets strong { font-weight: 700; }
+.sk-comma { font-size: 88%; line-height: 1.6; }
+.sk-comma-group { font-size: 88%; line-height: 1.6; margin-bottom: .3em; }
+.sk-comma-group .sk-label { font-weight: 700; }
+.sk-bars { display: flex; flex-direction: column; gap: 5px; }
+.sk-bar-row { display: flex; align-items: center; gap: 2%; }
+.sk-bar-name { font-size: 82%; width: 26%; text-align: right; color: inherit; opacity: .75; }
+.sk-bar-track { flex: 1; height: 6px; background: rgba(128,128,128,.15); border-radius: 3px; overflow: hidden; }
+.sk-bar-fill { height: 100%; border-radius: 3px; background: currentColor; opacity: .55; }
 </style>`;
 
 function renderTemplate(templateId, resume, mini, accent, marginsKey) {
   const fn = TEMPLATE_RENDERERS[templateId] || tModern;
   const data = withFallback(resume, mini, marginsKey);
-  // Accent is interpolated into template <style> blocks; force it to a valid hex so
-  // tampered stored/cloud JSON can't inject CSS (or break out of the <style>).
+  _dateFmt = (data.customize && data.customize.dateFormat) || '';
   const safeAccent = /^#[0-9a-fA-F]{3,8}$/.test(accent || "") ? accent : "#6d4dfc";
   return SHARED_TEMPLATE_CSS + fn(data, safeAccent);
 }

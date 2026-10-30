@@ -5,7 +5,7 @@
 Applio is a 100% free AI resume builder that helps job seekers build ATS-optimized resumes, tailor them to any job description, and get more interviews. Every feature is free — no credit card, no watermark, no paywall.
 
 ## Key Features
-- 26 ATS-friendly resume templates (free, customizable)
+- 31 ATS-friendly resume templates (free, customizable)
 - AI resume tailoring to any job description (grounded in real experience)
 - Free ATS resume checker (0-100 score, matched/missing keywords, exact fixes)
 - AI cover letter generator (tailored to job + resume)

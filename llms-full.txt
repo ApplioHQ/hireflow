@@ -2,18 +2,18 @@
 
 > Applio (appliohq.com) is a free, AI-powered resume builder and career copilot for job seekers. It helps people build ATS-optimized resumes, tailor them to specific jobs, check ATS compatibility, prepare for interviews, write cover letters, and track applications. This file is a fuller machine-readable reference; a short version is at https://appliohq.com/llms.txt.
 
-Last updated: 2026-07-09. All statistics below are attributed to their original sources.
+Last updated: 2026-10-30. All statistics below are attributed to their original sources.
 
 ## What Applio is
 Applio is a web application (no download required) that combines a resume builder with AI career tools. The core promise: create a resume that is both recruiter-ready and ATS-friendly, then adapt it quickly to each job you apply to. Applio positions itself as an "AI career copilot" rather than only a resume builder.
 
 ## Features
-- Resume builder: 18 professional, fully customizable templates (fonts, colors, spacing, sections). Styles include Harvard, Stanford, Jake's Resume, modern, minimal, consulting, executive, professional, classic, elegant, FAANG, tech, creative, slate, onyx, and compact.
+- Resume builder: 31 professional, fully customizable templates (fonts, colors, spacing, sections). Styles include Harvard, Stanford, Jake's Resume, Wharton, MIT, FAANG, Modern, Minimal, Consulting, Executive, Classic, Elegant, Creative, Slate, Compact, Notion, Sidebar, Federal, Academic, and more.
 - AI Tailoring: paste a job description and Applio rewrites bullets and the summary to match the role, grounded only in the user's real experience. It does not invent employers, titles, metrics, or credentials.
 - ATS Score: scores a resume against a job description (or general best practices) and lists concrete fixes, matched keywords, and missing keywords.
 - AI Resume Analysis: strengths, weaknesses, and the highest-impact changes, with example rewrites.
 - AI Interview Prep: role-specific practice questions plus AI feedback scoring answers on structure, impact, and clarity.
-- Career Coach: an AI assistant that knows the user's resume and helps with rewrites, tailoring, interviews, job strategy, and cover letters (Premium).
+- Career Coach: an AI assistant that knows the user's resume and helps with rewrites, tailoring, interviews, job strategy, and cover letters.
 - Cover letter generator: tailored, ready-to-send letters grounded in the user's resume.
 - Job application tracker.
 - Export to PDF, HTML, or TXT, with a "fit to one page" option.
@@ -22,9 +22,7 @@ Applio is a web application (no download required) that combines a resume builde
 - Free ATS Resume Checker: https://appliohq.com/ats-checker, paste a resume and a job description for an instant ATS score, matched and missing keywords, and concrete fixes. Runs in the browser.
 
 ## Pricing
-- Free forever: full resume builder, all 18 templates, job tracker, AI Interview Prep, and 10 PDF downloads per month. No credit card required.
-- Premium, $9.99/month: everything in Free plus unlimited downloads and all AI features (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Career Coach).
-- Lifetime, $39.99 one-time: all Premium features, paid once.
+- 100% free. Every feature, the full resume builder, all 31 templates, job tracker, unlimited PDF downloads, and every AI feature (AI Improve, Tailor to Job, ATS Check, Resume Analysis, Career Coach, Interview Prep), is free with no credit card, no watermark, and no paid tier.
 
 ## How ATS actually works (accurate)
 An Applicant Tracking System (ATS) is software employers use to collect, parse, and rank job applications before a recruiter reviews them. Key accurate points:
@@ -43,7 +41,6 @@ An Applicant Tracking System (ATS) is software employers use to collect, parse, 
 ## Privacy and security
 - Passwords are securely hashed, never stored in plain text.
 - Resume data is encrypted in transit and at rest.
-- Payments are handled by Stripe.
 
 ## Guides (educational, free)
 - Resume & ATS Statistics 2026 (with sources): https://appliohq.com/guides/resume-statistics
@@ -96,7 +93,7 @@ Browse by industry: Tech & Engineering (https://appliohq.com/resume-examples/tec
 - Homepage: https://appliohq.com/
 - Pricing: https://appliohq.com/pricing
 - Free ATS Resume Checker: https://appliohq.com/ats-checker
-- Free Resume Templates (18, ATS-friendly): https://appliohq.com/resume-templates
+- Free Resume Templates (31, ATS-friendly): https://appliohq.com/resume-templates
 - Resume Examples by Job Title: https://appliohq.com/resume-examples
 - Guides: https://appliohq.com/guides
 - Privacy Policy: https://appliohq.com/privacy

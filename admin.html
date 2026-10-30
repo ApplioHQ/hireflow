@@ -235,7 +235,14 @@
 
   <!-- ============================ OVERVIEW ============================ -->
   <section class="band" id="overview">
-    <div class="band-hd"><h2>Overview</h2><span class="band-note">Top-line product health</span></div>
+    <div class="band-hd">
+      <h2>Overview</h2><span class="band-note">Top-line product health</span>
+      <div class="period-sel" id="period-sel" style="margin-left:12px;">
+        <button class="period-btn" data-days="7" onclick="setPeriod(7)">7D</button>
+        <button class="period-btn active" data-days="30" onclick="setPeriod(30)">30D</button>
+        <button class="period-btn" data-days="90" onclick="setPeriod(90)">90D</button>
+      </div>
+    </div>
 
     <!-- KPI cards (free product: no revenue/paid metrics) -->
     <div class="kpi-grid" id="kpi-grid" style="margin-bottom:18px;">
@@ -249,11 +256,11 @@
 
     <div class="dash-grid">
       <div class="section-card">
-        <div class="section-hd"><div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Signups</h2><div class="sub">Last 30 days</div></div></div>
+        <div class="section-hd"><div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Signups</h2><div class="sub" id="chart-signups-period">Last 30 days</div></div></div>
         <div class="section-bd"><div class="chart-wrap" id="chart-signups"></div><div class="chart-labels" id="chart-signups-labels"></div></div>
       </div>
       <div class="section-card">
-        <div class="section-hd"><div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg></span>Page Views</h2><div class="sub">Last 7 days</div></div></div>
+        <div class="section-hd"><div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg></span>Page Views</h2><div class="sub" id="chart-pv-period">Last 7 days</div></div></div>
         <div class="section-bd"><div class="chart-wrap" id="chart-pv"></div><div class="chart-labels" id="chart-pv-labels"></div></div>
       </div>
     </div>
@@ -373,10 +380,27 @@
 
   <!-- ============================ USERS + FEEDBACK ============================ -->
   <section class="band" id="users">
-    <div class="band-hd"><h2>Users &amp; Feedback</h2><span class="band-note">Aggregate only — individual emails stay private</span></div>
+    <div class="band-hd"><h2>Users &amp; Feedback</h2><span class="band-note">Emails stay masked on screen; search or delete an account below</span></div>
 
     <div class="section-card">
-      <div class="section-hd"><div><h2>Users</h2><div class="sub" id="user-summary">Loading…</div></div></div>
+      <div class="section-hd">
+        <div><h2>Users</h2><div class="sub" id="user-summary">Loading…</div></div>
+        <input type="text" id="user-search" placeholder="Search masked email or plan…" oninput="onUserSearch(this.value)" style="padding:7px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12.5px;min-width:220px;">
+      </div>
+      <div class="section-bd" style="max-height:60vh;overflow-y:auto;">
+        <table class="user-table" id="users-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Signed up</th>
+              <th>Plan</th>
+              <th>Last active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"><tr><td colspan="5" style="color:var(--muted);">Loading…</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="section-card">
@@ -404,6 +428,7 @@
           <div class="ctrl-card">
             <h3>System Status</h3>
             <div id="status-readout" style="font-size:13px; line-height:1.7;">Loading…</div>
+            <div id="audit-log"></div>
           </div>
           <div class="ctrl-card">
             <h3>Disable AI globally</h3>
@@ -555,7 +580,9 @@ async function refresh() {
     renderUsers();
     renderStatus(r[1]);
   });
-  var results = await Promise.allSettled([usersAndStatus, loadAnalytics(), loadFeedback(), loadExcludedIps()]);
+  var panels = [usersAndStatus, loadAnalytics(), loadFeedback(), loadExcludedIps()];
+  if (ROLE === 'super') panels.push(loadAuditLog());
+  var results = await Promise.allSettled(panels);
 
   var failed = results.filter(function (r) { return r.status === 'rejected'; });
   var upd = document.getElementById('analytics-updated');
@@ -573,9 +600,20 @@ async function refresh() {
 }
 
 // ─────────────── Hero cards + charts ───────────────
+var PERIOD_DAYS = 30;
+function setPeriod(days) {
+  if (days === PERIOD_DAYS) return;
+  PERIOD_DAYS = days;
+  document.querySelectorAll('#period-sel .period-btn').forEach(function (b) { b.classList.toggle('active', +b.dataset.days === days); });
+  loadAnalytics();
+}
+
 async function loadAnalytics() {
   try {
-    var d = await apiGet('/admin/analytics');
+    var d = await apiGet('/admin/analytics?days=' + PERIOD_DAYS);
+    var periodLabel = 'Last ' + PERIOD_DAYS + ' days';
+    var sLbl = document.getElementById('chart-signups-period'); if (sLbl) sLbl.textContent = periodLabel;
+    var pLbl = document.getElementById('chart-pv-period'); if (pLbl) pLbl.textContent = periodLabel;
     renderHeroCards(d);
     renderDailyBreakdown(d.dailyBreakdown || []);
     renderAreaChart('chart-signups', 'chart-signups-labels', d.signupsByDay, '#6d4dfc');
@@ -850,18 +888,26 @@ function renderOutcomes(d) {
 }
 
 // ─── Testimonials (from the consent-first /testimonial system) ───
+var TST_LIMIT = 50;
+var TST_TOTAL = 0;
+function loadMoreTestimonials() { TST_LIMIT += 50; renderTestimonials(); }
 async function renderTestimonials() {
   var body = document.getElementById('testimonials-body');
   var cnt = document.getElementById('tst-count');
   if (!body) return;
   var data;
-  try { data = await apiGet('/admin/testimonials'); }
+  try { data = await apiGet('/admin/testimonials?limit=' + TST_LIMIT); }
   catch (e) { body.innerHTML = '<div style="padding:16px 20px;color:var(--danger);font-size:13px;">Couldn\'t load testimonials: ' + esc(e.message) + '</div>'; return; }
+  TST_TOTAL = data.total || 0;
   // Only show ones with an actual quote (skip declined/withdrawn/empty).
   var list = (data.testimonials || []).filter(function (t) { return t.quote && String(t.quote).trim(); });
   var publishable = list.filter(function (t) { return t.publishable; }).length;
-  if (cnt) cnt.textContent = list.length + ' with a quote · ' + publishable + ' approved to publish · ✓ = cleared to feature';
+  if (cnt) cnt.textContent = (TST_TOTAL > (data.testimonials || []).length ? 'Showing ' + (data.testimonials || []).length + ' most recent of ' + TST_TOTAL + ' · ' : '')
+    + list.length + ' with a quote · ' + publishable + ' approved to publish · ✓ = cleared to feature';
   if (!list.length) { body.innerHTML = '<div style="padding:16px 20px;color:var(--muted);font-size:13px;">No testimonials yet. They appear here when users share one after a win, or approve one on their testimonial page.</div>'; return; }
+  var more = TST_TOTAL > (data.testimonials || []).length
+    ? '<div style="text-align:center;padding:6px 0 4px;"><button class="btn btn-ghost btn-sm" onclick="loadMoreTestimonials()">Load more (' + (TST_TOTAL - (data.testimonials || []).length) + ' more)</button></div>'
+    : '';
   body.innerHTML = '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px;">' + list.map(function (t) {
     var anon = t.attribution === 'anonymous';
     var who = anon ? 'Anonymous' : [esc(t.name || 'Someone'), t.title ? esc(t.title) : '', t.company ? esc(t.company) : ''].filter(Boolean).join(' · ');
@@ -876,7 +922,7 @@ async function renderTestimonials() {
       + '<strong style="color:var(--text);font-weight:700;">' + who + '</strong> ' + feature
       + (when ? '<span style="margin-left:auto;">' + when + '</span>' : '')
       + '</div></div>';
-  }).join('') + '</div>';
+  }).join('') + '</div>' + more;
 }
 
 // ─── Exports ───
@@ -983,12 +1029,42 @@ function _maskEmail(e) {
   return e[0] + '•••@' + (dn ? dn[0] : '') + '•••' + tld;
 }
 
-// Individual users are never displayed in the admin. We only show aggregate
-// counts. Emails are still stored/logged in KV but never sent to this page.
+var USER_SEARCH = '';
+var _USER_ROWS = [];   // current filtered+sorted view, indexed for deleteUserRow()
+function onUserSearch(v) { USER_SEARCH = v; renderUsers(); }
+
 function renderUsers() {
   var total = ALL_USERS.length;
   var el = document.getElementById('user-summary');
   if (el) el.textContent = total.toLocaleString() + ' total accounts · everything free';
+
+  var tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  var q = USER_SEARCH.trim().toLowerCase();
+  var rows = ALL_USERS.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+  if (q) rows = rows.filter(function (u) {
+    return _maskEmail(u.email).toLowerCase().indexOf(q) >= 0 || (u.plan || '').toLowerCase().indexOf(q) >= 0;
+  });
+  _USER_ROWS = rows;
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-tbl">No matching users.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(function (u, i) {
+    return '<tr>'
+      + '<td class="user-email">' + esc(_maskEmail(u.email)) + '</td>'
+      + '<td>' + fmtDate(u.createdAt) + '</td>'
+      + '<td>' + esc(u.plan || 'free') + '</td>'
+      + '<td>' + fmtDate(u.lastSeen) + '</td>'
+      + '<td><button class="btn btn-danger btn-sm" onclick="deleteUserRow(' + i + ')">Delete</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function deleteUserRow(i) {
+  var u = _USER_ROWS[i];
+  if (!u) return;
+  var ok = await confirmDialog({ title:'Delete this user?', body:'This permanently removes ' + esc(_maskEmail(u.email)) + ' and their resume data. This cannot be undone.', confirmText:'Delete user', cancelText:'Cancel', danger:true });
+  if (!ok) return;
+  try { await apiPost('/admin/users/delete', { email: u.email }); toast('User deleted', { type: 'success' }); refresh(); }
+  catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
 
 // ─────────────── Status + controls ───────────────
@@ -1007,6 +1083,28 @@ function renderStatus(s) {
   r.innerHTML = '<div>' + ai + '</div><div>' + m + '</div><div>' + a + '</div>';
 }
 
+var _AUDIT_ACTION_LABELS = {
+  ai_disable: 'Disabled AI', ai_enable: 'Re-enabled AI',
+  maintenance_on: 'Took site offline', maintenance_off: 'Brought site online',
+  admin_access_off: 'Disabled ADMIN tier', admin_access_on: 'Enabled ADMIN tier',
+};
+async function loadAuditLog() {
+  try { renderAuditLog((await apiGet('/admin/audit-log')).log || []); }
+  catch (e) {}
+}
+function renderAuditLog(log) {
+  var el = document.getElementById('audit-log');
+  if (!el) return;
+  if (!log.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-top:10px;">No actions logged yet.</div>'; return; }
+  el.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:14px;margin-bottom:6px;">Recent actions</div>'
+    + log.slice(0, 8).map(function (e) {
+        var label = _AUDIT_ACTION_LABELS[e.action] || esc(e.action);
+        var mins = e.params && e.params.minutes ? ' (' + e.params.minutes + 'm)' : '';
+        return '<div style="font-size:11.5px;color:var(--muted);padding:2px 0;">'
+          + esc(_maskEmail(e.actor)) + ' · ' + label + mins + ' · ' + _fbDate(e.ts) + '</div>';
+      }).join('');
+}
+
 async function setAdminAccessFromPanel(enabled) {
   if (!enabled) {
     var ok = await confirmDialog({ title:'Disable ADMIN tier?', body:'All ADMIN users will be signed out immediately.', confirmText:'Disable ADMIN', cancelText:'Cancel', danger:true });
@@ -1019,6 +1117,10 @@ async function setAdminAccessFromPanel(enabled) {
 async function setAI(minutesOverride) {
   var m = minutesOverride !== undefined ? minutesOverride : parseInt(document.getElementById('ai-mins').value, 10);
   if (!minutesOverride && (!m || m < 1)) return toast('Enter a number of minutes', { type: 'warn' });
+  if (!minutesOverride) {
+    var ok = await confirmDialog({ title:'Disable AI for everyone?', body:'All AI endpoints will be blocked for every user for ' + m + ' minutes. You bypass the block.', confirmText:'Disable AI', cancelText:'Cancel', danger:true });
+    if (!ok) return;
+  }
   try { var res = await apiPost('/admin/ai-disable', { minutes: m }); toast(res.aiDisabledUntil ? 'AI disabled for ' + m + ' min' : 'AI re-enabled', { type: 'success' }); refresh(); }
   catch (e) { toast('Failed: ' + e.message, { type: 'error' }); }
 }
@@ -1083,16 +1185,20 @@ function setFbFilter(f) {
   renderFeedback();
 }
 
+var FB_LIMIT = 50;
+var FB_TOTAL = 0;
 async function loadFeedback() {
   try {
-    var data = await apiGet('/feedback/list');
+    var data = await apiGet('/feedback/list?limit=' + FB_LIMIT);
     ALL_FEEDBACK = Array.isArray(data.feedback) ? data.feedback : [];
+    FB_TOTAL = data.total || ALL_FEEDBACK.length;
     renderFeedback();
   } catch (e) {
     document.getElementById('fb-count').textContent = '';
     document.getElementById('fb-body').innerHTML = '<div style="color:var(--danger);font-size:13px;">Couldn\'t load feedback: ' + esc(e.message) + '</div>';
   }
 }
+function loadMoreFeedback() { FB_LIMIT += 50; loadFeedback(); }
 
 function renderFeedback() {
   var body = document.getElementById('fb-body');
@@ -1100,7 +1206,8 @@ function renderFeedback() {
   var down = ALL_FEEDBACK.filter(function(f){return f.rating==='down';}).length;
   var withMsg = ALL_FEEDBACK.filter(function(f){return (f.message||'').trim();}).length;
   document.getElementById('fb-count').innerHTML =
-    ALL_FEEDBACK.length + ' total · <span style="color:#22c55e;">' + up + ' 👍</span> · <span style="color:#ef4444;">' + down + ' 👎</span> · ' + withMsg + ' with message';
+    (FB_TOTAL > ALL_FEEDBACK.length ? 'Showing ' + ALL_FEEDBACK.length + ' most recent of ' + FB_TOTAL : ALL_FEEDBACK.length + ' total')
+    + ' · <span style="color:#22c55e;">' + up + ' 👍</span> · <span style="color:#ef4444;">' + down + ' 👎</span> · ' + withMsg + ' with message';
   var list = ALL_FEEDBACK.filter(function(f) {
     if (FB_FILTER === 'all') return true;
     if (FB_FILTER === 'msg') return (f.message || '').trim();
@@ -1122,7 +1229,9 @@ function renderFeedback() {
       + (where ? '<span>📍 ' + where + '</span>' : '')
       + '<span>🕓 ' + _fbDate(f.ts) + '</span>'
       + '</div></div></div></div>';
-  }).join('');
+  }).join('') + (FB_TOTAL > ALL_FEEDBACK.length
+    ? '<div style="text-align:center;padding:6px 0 4px;"><button class="btn btn-ghost btn-sm" onclick="loadMoreFeedback()">Load more (' + (FB_TOTAL - ALL_FEEDBACK.length) + ' more)</button></div>'
+    : '');
 }
 
 init();

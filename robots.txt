@@ -11,6 +11,9 @@ Disallow: /login
 Disallow: /success
 Disallow: /testimonial
 Disallow: /email-preferences
+Disallow: /autopilot
+Disallow: /skill-gap
+Disallow: /match
 # Internal renderer used by the template PNG generator script — no user value
 Disallow: /preview-shot
 # Operational data, never for crawlers

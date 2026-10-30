@@ -163,6 +163,7 @@ export default {
       if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
+      if (path === "/admin/audit-log")         return json(await adminAuditLog(req, env), 200, cors);
       if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
       if (path === "/admin/excluded-ips")      return json(await adminExcludedIps(req, env), 200, cors);
       if (path === "/referral/code" && req.method === "POST") return json(await referralGetCode(req, env), 200, cors);
@@ -911,11 +912,15 @@ async function _readAllUserRecords(env) {
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
   const records = await _readAllUserRecords(env);
-  // Privacy: individual users are never displayed in the admin, so we never send
-  // emails (or any per-user PII) to the client. Emails remain stored/logged in KV.
-  // We return only the plan for each record, which is all the admin needs to show
-  // aggregate counts (total users, paid users).
-  const users = records.map(u => ({ plan: u.plan || "free" }));
+  // Emails are sent to the client (same precedent as /feedback/list) so the admin
+  // can mask-display and target a delete call; admin.html never renders the raw
+  // address, only _maskEmail(u.email).
+  const users = records.map(u => ({
+    email: u.email || "",
+    plan: u.plan || "free",
+    createdAt: u.createdAt || 0,
+    lastSeen: u.lastSeen || u.createdAt || 0,
+  }));
   return { users, total: users.length };
 }
 
@@ -954,6 +959,11 @@ async function adminAnalytics(req, env) {
   await requireAdmin(req, env);
   const now = Date.now();
   const DAY = 86400000;
+  // Period selector for the two Overview charts (signups + page views). Wired to
+  // the .period-sel control in admin.html; anything else not passed here (daily
+  // breakdown, hero KPIs) intentionally keeps its own fixed window.
+  const reqDays = parseInt(new URL(req.url).searchParams.get("days"), 10);
+  const chartDays = [7, 30, 90].includes(reqDays) ? reqDays : 30;
 
   const plans = { free: 0, premium: 0, lifetime: 0 };
   let total = 0, totalDownloads = 0;
@@ -971,10 +981,13 @@ async function adminAnalytics(req, env) {
   // is one-time revenue, reported separately so the two aren't conflated.
   const PREMIUM_MO = 9.99, LIFETIME_ONCE = 39.99;
 
-  // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
-  const signupsByDay = {};
-  for (let i = 29; i >= 0; i--) {
-    signupsByDay[tzDay(now - i * DAY)] = 0;
+  // Pre-seed the last 90 days to 0 so the sparkline is continuous. Seeded wider
+  // than any chartDays choice (7/30/90) so dailyBreakdown's fixed 30-day lookups
+  // below stay correct regardless of which period the chart response is sliced to.
+  const SIGNUPS_SEED_DAYS = 90;
+  const signupsByDayFull = {};
+  for (let i = SIGNUPS_SEED_DAYS - 1; i >= 0; i--) {
+    signupsByDayFull[tzDay(now - i * DAY)] = 0;
   }
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
@@ -1042,7 +1055,7 @@ async function adminAnalytics(req, env) {
       else if (age <= 14 * DAY) prev7Signups++;
       if (age <= 30 * DAY) last30Signups++;
       const day = tzDay(created);
-      if (day in signupsByDay) signupsByDay[day]++;
+      if (day in signupsByDayFull) signupsByDayFull[day]++;
     }
     // Dormant: joined more than 7 days ago and never downloaded anything.
     if (created && now - created > 7 * DAY && dl === 0) dormant++;
@@ -1086,11 +1099,14 @@ async function adminAnalytics(req, env) {
   const pageViewsToday = await num(`stats:pv:${todayStr}`);
   const visitorsToday = await num(`stats:uv:${todayStr}`);
   let pageViewsLast7 = 0;
-  const pvByDay = {};
   for (let i = 6; i >= 0; i--) {
+    pageViewsLast7 += await num(`stats:pv:${tzDay(now - i * DAY)}`);
+  }
+  // Page-views chart: window follows the same period selector as the signups chart.
+  const pvByDay = {};
+  for (let i = chartDays - 1; i >= 0; i--) {
     const day = tzDay(now - i * DAY);
-    const v = await num(`stats:pv:${day}`);
-    pvByDay[day] = v; pageViewsLast7 += v;
+    pvByDay[day] = await num(`stats:pv:${day}`);
   }
 
   // AI feature usage (real successful uses, from _bumpAiUsage on the /ai/ endpoints).
@@ -1239,11 +1255,15 @@ async function adminAnalytics(req, env) {
     ]);
     return {
       day,
-      signups: signupsByDay[day] || 0,
+      signups: signupsByDayFull[day] || 0,
       visitors, pageviews, aiUses,
       exports: pdf + gdoc + print,
     };
   }));
+
+  // Chart response: slice the full seeded window down to the requested period.
+  const signupsByDay = {};
+  Object.keys(signupsByDayFull).slice(-chartDays).forEach(k => { signupsByDay[k] = signupsByDayFull[k]; });
 
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
@@ -1263,7 +1283,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, dailyBreakdown, attribution, onboarding, channels, geoCountry, geoCity,
+    signupsByDay, chartDays, dailyBreakdown, attribution, onboarding, channels, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,
@@ -1281,40 +1301,65 @@ async function adminDeleteUser(req, env) {
   return { ok: true, email };
 }
 
-async function adminSetAIDisabled(req, env) {
+// Audit trail for the highest-blast-radius admin actions (AI kill switch,
+// maintenance mode, ADMIN tier access). Single KV list, read-modify-write like
+// trackPageview's counters: fine here too, since these are rare human-triggered
+// actions, not high-frequency writes. Capped so the log can't grow unbounded.
+const AUDIT_LOG_MAX = 50;
+async function recordAudit(env, actor, action, params) {
+  let log = [];
+  try { log = JSON.parse(await env.HIREFLOW_KV.get("audit:log") || "[]"); } catch { log = []; }
+  log.push({ actor, action, params: params || {}, ts: Date.now() });
+  if (log.length > AUDIT_LOG_MAX) log = log.slice(-AUDIT_LOG_MAX);
+  await env.HIREFLOW_KV.put("audit:log", JSON.stringify(log));
+}
+
+async function adminAuditLog(req, env) {
   await requireAdmin(req, env, true);
+  let log = [];
+  try { log = JSON.parse(await env.HIREFLOW_KV.get("audit:log") || "[]"); } catch { log = []; }
+  return { log: log.slice().reverse() };
+}
+
+async function adminSetAIDisabled(req, env) {
+  const payload = await requireAdmin(req, env, true);
   const { minutes } = await req.json();
   const m = parseInt(minutes, 10);
   if (m && m > 0) {
     const until = Math.floor(Date.now()/1000) + (m * 60);
     await env.HIREFLOW_KV.put("system:ai_disabled_until", String(until));
+    await recordAudit(env, payload.email, "ai_disable", { minutes: m });
     return { ok: true, aiDisabledUntil: until };
   }
   await env.HIREFLOW_KV.delete("system:ai_disabled_until");
+  await recordAudit(env, payload.email, "ai_enable", {});
   return { ok: true, aiDisabledUntil: null };
 }
 
 async function adminSetMaintenance(req, env) {
-  await requireAdmin(req, env, true);
+  const payload = await requireAdmin(req, env, true);
   const { minutes } = await req.json();
   const m = parseInt(minutes, 10);
   if (m && m > 0) {
     const until = Math.floor(Date.now()/1000) + (m * 60);
     await env.HIREFLOW_KV.put("system:maintenance_until", String(until));
+    await recordAudit(env, payload.email, "maintenance_on", { minutes: m });
     return { ok: true, maintenanceUntil: until };
   }
   await env.HIREFLOW_KV.delete("system:maintenance_until");
+  await recordAudit(env, payload.email, "maintenance_off", {});
   return { ok: true, maintenanceUntil: null };
 }
 
 async function adminSetAdminAccess(req, env) {
-  await requireAdmin(req, env, true);
+  const payload = await requireAdmin(req, env, true);
   const { enabled } = await req.json();
   if (enabled === false) {
     await env.HIREFLOW_KV.put("system:admin_disabled", "1");
   } else {
     await env.HIREFLOW_KV.delete("system:admin_disabled");
   }
+  await recordAudit(env, payload.email, enabled === false ? "admin_access_off" : "admin_access_on", {});
   return { ok: true, adminEnabled: enabled !== false };
 }
 
@@ -1641,6 +1686,8 @@ function canPublishTestimonial(doc, channel) {
 // publish them MANUALLY on the approved channels. There is no auto-publish anywhere.
 async function adminListTestimonials(req, env) {
   await requireAdmin(req, env);
+  const url = new URL(req.url);
+  const limit = Math.max(1, Math.min(500, parseInt(url.searchParams.get("limit"), 10) || 50));
   const out = [];
   let cursor;
   do {
@@ -1654,7 +1701,8 @@ async function adminListTestimonials(req, env) {
     }
   } while (cursor);
   out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  return { testimonials: out };
+  const total = out.length;
+  return { testimonials: out.slice(0, limit), total };
 }
 
 // ============ Job tracker (cross-device sync of the application pipeline) ============
@@ -2137,15 +2185,30 @@ async function saveFeedback(req, env) {
 
 async function listFeedback(req, env) {
   await requireAdmin(req, env);
-  const list = await env.HIREFLOW_KV.list({ prefix: "feedback:", limit: 1000 });
+  const url = new URL(req.url);
+  const limit = Math.max(1, Math.min(500, parseInt(url.searchParams.get("limit"), 10) || 50));
+  // Keys are feedback:<ts>:<email> with a fixed-width ts, so KV.list() prefix scan
+  // returns them oldest-first (lexicographic order == chronological order). List
+  // every key name (cheap) but only fetch the values for the most recent `limit`
+  // of them, so a growing feedback inbox doesn't turn every admin refresh into an
+  // ever-larger fetch-everything pass.
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "feedback:", cursor, limit: 1000 });
+    for (const k of page.keys) keys.push(k.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  const total = keys.length;
+  const recentKeys = keys.slice(-limit);
   const feedback = [];
-  for (const k of list.keys) {
-    const raw = await env.HIREFLOW_KV.get(k.name);
+  for (const name of recentKeys) {
+    const raw = await env.HIREFLOW_KV.get(name);
     if (!raw) continue;
     try { feedback.push(JSON.parse(raw)); } catch {}
   }
   feedback.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-  return { feedback };
+  return { feedback, total };
 }
 
 // ============ Weekly "log your win" email nudge (cron-driven) ============

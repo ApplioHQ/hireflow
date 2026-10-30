@@ -52,22 +52,24 @@
 }
 </script>
 <style>
-  .ac-wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+  .ac-wrap { max-width: 860px; margin: 0 auto; padding: 48px 20px 80px; }
 
   /* Hero */
-  .ac-hero { text-align: center; margin-bottom: 24px; position: relative; }
-  .ac-hero::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(109,77,252,.1) 0%, transparent 70%); pointer-events: none; }
-  .ac-hero h1 { font-size: clamp(28px, 5vw, 38px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 12px; position: relative; }
-  .ac-hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; line-height: 1.55; }
-  .ac-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #c2b8fd; background: rgba(109,77,252,.1); border: 1px solid rgba(109,77,252,.22); border-radius: var(--r-full); padding: 5px 14px; margin-bottom: 16px; }
-  .ac-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .ac-hero { text-align: center; margin-bottom: 28px; position: relative; }
+  .ac-hero::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 600px; height: 360px; background: radial-gradient(ellipse, rgba(109,77,252,.08) 0%, transparent 70%); pointer-events: none; }
+  .ac-hero h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.12; margin-bottom: 14px; position: relative; }
+  .ac-hero p { color: var(--muted); font-size: var(--fs-base); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+  .ac-badge { display: inline-flex; align-items: center; gap: 7px; font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: #c2b8fd; background: rgba(109,77,252,.08); border: 1px solid rgba(109,77,252,.18); border-radius: var(--r-full); padding: 5px 14px; margin-bottom: 18px; }
+  .ac-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: ac-pulse 2s ease-in-out infinite; }
+  @keyframes ac-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 
   /* Trust bar */
-  .ac-trust { display: flex; justify-content: center; gap: 32px; padding: 16px 20px; margin-bottom: 24px; border-radius: var(--r-md); background: var(--bg-1); border: 1px solid var(--border); }
-  .ac-trust-item { text-align: center; }
-  .ac-trust-num { font-size: 17px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-  .ac-trust-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  @media (max-width: 560px) { .ac-trust { flex-direction: column; gap: 12px; } }
+  .ac-trust { display: flex; justify-content: center; gap: 40px; padding: 18px 24px; margin-bottom: 28px; border-radius: var(--r-lg); background: var(--bg-1); border: 1px solid var(--border); }
+  .ac-trust-item { text-align: center; position: relative; }
+  .ac-trust-item + .ac-trust-item::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); width: 1px; height: 28px; background: var(--border); }
+  .ac-trust-num { font-size: var(--fs-md); font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .ac-trust-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  @media (max-width: 560px) { .ac-trust { flex-direction: column; gap: 14px; } .ac-trust-item + .ac-trust-item::before { display: none; } }
 
   /* Input grid */
   .ac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -78,16 +80,16 @@
   .ac-optional { display: inline-block; font-size: 10px; color: var(--muted); background: rgba(154,163,199,.1); padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-weight: 500; }
 
   /* Upload zone */
-  .ac-upload { border: 1.5px dashed var(--border); border-radius: var(--r-sm); padding: 18px; text-align: center; margin-bottom: 8px; cursor: pointer; transition: border-color var(--dur) var(--ease); }
-  .ac-upload:hover, .ac-upload.rf-dragover { border-color: var(--accent); background: rgba(109,77,252,.06); }
-  .ac-upload-ico { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(109,77,252,.08); margin-bottom: 8px; }
+  .ac-upload { border: 1.5px dashed var(--border); border-radius: var(--r-md); padding: 22px 18px; text-align: center; margin-bottom: 8px; cursor: pointer; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+  .ac-upload:hover, .ac-upload.rf-dragover { border-color: var(--accent); background: rgba(109,77,252,.05); }
+  .ac-upload-ico { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: rgba(109,77,252,.08); margin-bottom: 10px; }
   .ac-upload-ico svg { width: 18px; height: 18px; color: #c2b8fd; }
-  .ac-upload-txt { font-size: 13px; font-weight: 600; }
-  .ac-upload-txt .rf-pick { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font: inherit; font-weight: 600; padding: 0; }
-  .ac-upload-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .ac-formats { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
-  .ac-fmt { font-size: 10px; font-weight: 600; color: var(--muted); background: rgba(154,163,199,.08); padding: 2px 8px; border-radius: 4px; }
-  .ac-or { font-size: 11px; color: var(--muted); text-align: center; margin: 4px 0; text-transform: uppercase; letter-spacing: .08em; }
+  .ac-upload-txt { font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+  .ac-upload-txt .rf-pick { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font: inherit; font-weight: var(--fw-semibold); padding: 0; }
+  .ac-upload-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .ac-formats { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+  .ac-fmt { font-size: 10px; font-weight: var(--fw-semibold); color: var(--muted); background: rgba(154,163,199,.08); padding: 3px 9px; border-radius: var(--r-xs); }
+  .ac-or { font-size: 11px; color: var(--muted); text-align: center; margin: 6px 0; text-transform: uppercase; letter-spacing: .1em; }
 
   /* JD hint */
   .ac-jd-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 10px 12px; background: rgba(109,77,252,.05); border-radius: var(--r-sm); border: 1px solid rgba(109,77,252,.1); }
@@ -100,26 +102,28 @@
   .ac-ta-tall { min-height: 280px; }
 
   /* "What we score" strip */
-  .ac-dims { margin-top: 28px; }
-  .ac-dims-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; text-align: center; }
-  .ac-dims-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .ac-dims { margin-top: 32px; }
+  .ac-dims-title { font-size: 11px; font-weight: var(--fw-bold); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 16px; text-align: center; }
+  .ac-dims-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
   @media (max-width: 640px) { .ac-dims-grid { grid-template-columns: 1fr 1fr; } }
-  .ac-dim { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 14px; text-align: center; }
-  .ac-dim-ico { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
-  .ac-dim-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .ac-dim-desc { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .ac-dim { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px 14px; text-align: center; transition: border-color var(--dur) var(--ease); }
+  .ac-dim:hover { border-color: rgba(109,77,252,.3); }
+  .ac-dim-ico { width: 38px; height: 38px; border-radius: 10px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+  .ac-dim-name { font-size: var(--fs-sm); font-weight: var(--fw-bold); margin-bottom: 4px; }
+  .ac-dim-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
   /* Score preview teaser */
-  .ac-preview { display: flex; justify-content: center; padding: 20px 0 0; margin-top: 8px; }
-  .ac-preview-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; display: flex; align-items: center; gap: 18px; max-width: 420px; width: 100%; }
+  .ac-preview { display: flex; justify-content: center; padding: 24px 0 0; margin-top: 8px; }
+  .ac-preview-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px 24px; display: flex; align-items: center; gap: 20px; max-width: 440px; width: 100%; transition: border-color var(--dur) var(--ease); }
+  .ac-preview-card:hover { border-color: rgba(245,158,11,.3); }
   .ac-preview-ring { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
   .ac-preview-ring svg { width: 72px; height: 72px; }
   .ac-preview-mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .ac-preview-num { font-size: 22px; font-weight: 800; color: var(--warning); }
+  .ac-preview-num { font-size: var(--fs-xl); font-weight: 800; color: var(--warning); }
   .ac-preview-sub { font-size: 9px; color: var(--muted); }
-  .ac-preview-txt .ac-preview-verdict { font-size: 14px; font-weight: 700; color: var(--warning); margin-bottom: 4px; }
-  .ac-preview-txt .ac-preview-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
-  .ac-preview-txt .ac-preview-link { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+  .ac-preview-txt .ac-preview-verdict { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--warning); margin-bottom: 4px; }
+  .ac-preview-txt .ac-preview-desc { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .ac-preview-txt .ac-preview-link { font-size: 11px; color: var(--accent); font-weight: var(--fw-semibold); margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; }
 
   /* ===== Result styles (unchanged logic) ===== */
   .ac-score-num { font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -161,6 +165,13 @@
   .ac-seo h3 { font-size: 17px; font-weight: 700; margin: 22px 0 6px; }
   .ac-seo p { color: var(--muted); line-height: 1.7; font-size: 15px; margin-bottom: 10px; }
   .ac-seo ul { color: var(--muted); line-height: 1.7; font-size: 15px; padding-left: 20px; }
+
+  /* More tools grid */
+  .ac-more { margin-top: 48px; }
+  .ac-more h2 { font-size: var(--fs-lg); font-weight: 800; margin-bottom: 16px; }
+  .ac-more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sp-3); }
+  .ac-more-link { display: block; padding: 14px 16px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); font-size: var(--fs-sm); font-weight: var(--fw-semibold); text-decoration: none; transition: border-color var(--dur) var(--ease); }
+  .ac-more-link:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body class="app-body-scroll">
@@ -188,8 +199,8 @@
 
   <div class="ac-trust">
     <div class="ac-trust-item">
-      <div class="ac-trust-num">142,000+</div>
-      <div class="ac-trust-label">Resumes checked</div>
+      <div class="ac-trust-num">100% free</div>
+      <div class="ac-trust-label">No sign-up, no limits</div>
     </div>
     <div class="ac-trust-item">
       <div class="ac-trust-num">4 dimensions</div>
@@ -318,15 +329,15 @@
     <a href="login?mode=signup" class="btn btn-primary btn-lg" style="margin-top:8px;">Build my resume free →</a>
   </section>
 
-  <section style="margin-top: 48px;">
-    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 14px;">More free resume tools</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
-      <a href="/tools/resume-scorer" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Resume Scorer</a>
-      <a href="/tools/resume-bullet-generator" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Bullet Generator</a>
-      <a href="/tools/resume-summary-generator" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Summary Generator</a>
-      <a href="/tools/resume-skills-generator" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Skills Generator</a>
-      <a href="/tools/resume-tailor" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Resume Tailoring</a>
-      <a href="/tools/resume-job-match" style="display:block;padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-weight:600;text-decoration:none;">Job Match</a>
+  <section class="ac-more">
+    <h2>More free resume tools</h2>
+    <div class="ac-more-grid">
+      <a href="/tools/resume-scorer" class="ac-more-link">Resume Scorer</a>
+      <a href="/tools/resume-bullet-generator" class="ac-more-link">Bullet Generator</a>
+      <a href="/tools/resume-summary-generator" class="ac-more-link">Summary Generator</a>
+      <a href="/tools/resume-skills-generator" class="ac-more-link">Skills Generator</a>
+      <a href="/tools/resume-tailor" class="ac-more-link">Resume Tailoring</a>
+      <a href="/tools/resume-job-match" class="ac-more-link">Job Match</a>
     </div>
   </section>
 </main>

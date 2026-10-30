@@ -1,0 +1,33 @@
+{
+ "id": "T7",
+ "agent": "hermes",
+ "session_id": "local-98f9a09d58805f3da603a2ebd8220f98a891a8d93d7fb9f318404d55cc1cd9d9",
+ "messages": [
+  {
+   "role": "user",
+   "text": "what are all the skills that i downloaded onto claude",
+   "time": ""
+  },
+  {
+   "time": "2026-10-30T15:59:25",
+   "role": "agent",
+   "agent": "hermes",
+   "text": "\n> skills_list\n\n\nYou have **102 skills** loaded in your current Hermes profile (default). They're organized by category:\n\n| Category | Count | Skills |\n|----------|-------|--------|\n| **claude-code-imports** | 35 | Cloudflare (workers, durable-objects, wrangler, etc.), Next.js, shadcn/ui, Radix, Magic UI, Kokonut UI, Vercel patterns, sandbox, agents-sdk, and more |\n| **software-development** | 11 | codebase-inspection, github, systematic-debugging, test-driven-development, simplify-code, spike, node-inspect-debugpy, etc. |\n| **productivity** | 13 | notion, google-workspace, airtable, docx, xlsx, pdf, powerpoint, meeting-action-items, etc. |\n| **autonomous-ai-agents** | 5 | claude-code, codex, opencode, computer-use, hermes-agent |\n| **creative** | 8 | claude-design, architecture-diagram, popular-web-designs, p5js, manim-video, etc. |\n| **research** | 4 | arxiv, competitor-news-monitor, grounded-citations, llm-wiki |\n| **apple** | 4 | apple-notes, apple-reminders, findmy, imessage |\n| **media** | 3 | youtube-content, gif-search, songsee |\n| **email** | 2 | email-inbox-triage, himalaya |\n| **web** | 1 | blocked-page-recovery |\n| **note-taking** | 1 | obsidian |\n| **social-media** | 1 | xurl |\n| **plugin** | 1 | agent-importers:openclaw-migration |\n| **projects** | 1 | applio |\n\nRun `skill_view(name='<skill-name>')` to load any skill's full content and linked references.\n\n> write_file agent_state/handoff.md\n\n> read_file agent_state/handoff.md\n\n> write_file agent_state/handoff.md\n\n\nDone. You have **102 Hermes skills** loaded in your current profile (default), spanning 14 categories \u2014 mainly `claude-code-imports` (35), `software-development` (11), `productivity` (13), and `autonomous-ai-agents` (5). The full list is in the output above.\n\nNote: This is a **Hermes** session, not Claude Code. These are Hermes skills in the active profile (`default`). If you meant something else (Claude Code's built-in tools, a different profile, etc.), let me know.\n[128921 tokens]\n\n",
+   "live": false
+  },
+  {
+   "time": "2026-10-30T16:00:05",
+   "role": "result",
+   "ok": true,
+   "reason": "",
+   "files": [
+    "agent_state/handoff.md"
+   ],
+   "check": "(no output)",
+   "log": "2026-10-30-T7.md"
+  }
+ ],
+ "sessions": {
+  "hermes": "local-98f9a09d58805f3da603a2ebd8220f98a891a8d93d7fb9f318404d55cc1cd9d9"
+ }
+}

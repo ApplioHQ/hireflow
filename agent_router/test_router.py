@@ -1,6 +1,7 @@
 """Tests for router.py using fake agents in a throwaway git repo. Run: python3 -m unittest agent_router/test_router.py"""
 import contextlib
 import io
+import json
 import subprocess
 import sys
 import tempfile
@@ -34,7 +35,9 @@ GOOD_AGENT = textwrap.dedent("""\
 """)
 
 
-class RouterTest(unittest.TestCase):
+class RepoCase(unittest.TestCase):
+    """Throwaway git repo with agent_state/ and fake agents."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.repo = Path(self.tmp.name)
@@ -78,6 +81,8 @@ class RouterTest(unittest.TestCase):
     def handoff(self):
         return (self.repo / "agent_state/handoff.md").read_text()
 
+
+class RouterTest(RepoCase):
     def test_dry_run_builds_prompt_and_changes_nothing(self):
         before = (self.repo / "agent_state/tasks.md").read_text()
         code, out = self.run_router(self.cfg(), dry_run=True)
@@ -165,10 +170,92 @@ class RouterTest(unittest.TestCase):
         code, _ = self.run_router(self.cfg(), wanted="T1")
         self.assertIn("already done", str(code))
 
+    def test_git_status_sees_second_edit_of_modified_file(self):
+        target = self.repo / "agent.py"
+        target.write_text("# edit 1\n")
+        before = router.git_status(self.repo)
+        target.write_text("# edit 2\n")
+        self.assertNotEqual(router.git_status(self.repo), before)
+
     def test_pipes_in_notes_do_not_break_table(self):
         router.write_row(self.repo / "agent_state/tasks.md", "T1", notes="a | b")
         self.assertEqual(self.rows()["T1"]["notes"], "a / b")
         self.assertEqual(len(self.rows()), 3)
+
+
+# Fake agent that emits Claude Code style stream-json, edits a file and writes handoff.md.
+STREAM_AGENT = textwrap.dedent("""\
+    import sys, json, pathlib, os
+    sys.stdin.read()
+    repo = os.getcwd()
+    def emit(e): print(json.dumps(e), flush=True)
+    emit({"type": "system", "subtype": "init"})
+    emit({"type": "assistant", "message": {"content": [
+        {"type": "text", "text": "Working on it"},
+        {"type": "tool_use", "name": "Edit", "input": {"file_path": repo + "/s.js"}}]}})
+    pathlib.Path("s.js").write_text("var s = 1;\\n")
+    pathlib.Path("agent_state/handoff.md").write_text("Task: s\\nStatus: done\\n")
+    emit({"type": "result", "total_cost_usd": 0.1234})
+""")
+
+
+class StreamingTest(RepoCase):
+    def test_parse_claude_events(self):
+        line = json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "text", "text": "hi"},
+            {"type": "tool_use", "name": "Read", "input": {"file_path": f"{self.repo}/a.js"}}]}})
+        self.assertEqual(router.parse_line(line, self.repo), "hi\n\n> Read a.js\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "result", "total_cost_usd": 0.5}), self.repo),
+                         "\n[cost $0.50]\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "rate_limit_event"}), self.repo), "")
+
+    def test_parse_hermes_events(self):
+        self.assertEqual(router.parse_line(json.dumps({"type": "text", "text": "ap"}), self.repo), "ap")
+        tool = json.dumps({"type": "tool_use", "name": "read_file", "input": {"path": f"{self.repo}/x"}})
+        self.assertEqual(router.parse_line(tool, self.repo), "\n> read_file x\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "result", "tokens": {"total": 9}}), self.repo),
+                         "\n[9 tokens]\n")
+        self.assertEqual(router.parse_line("Session: abc\n", self.repo), "Session: abc\n")
+
+    def test_long_tool_args_are_shortened(self):
+        out = router.tool_line("Bash", {"command": "x" * 300}, self.repo)
+        self.assertLess(len(out), 120)
+
+    def test_output_is_streamed_to_echo(self):
+        (self.repo / "stream.py").write_text(STREAM_AGENT)
+        cfg = self.cfg(claude=[sys.executable, "stream.py"])
+        cfg["agents"]["claude"]["format"] = "stream-json"
+        seen = []
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = router.run(cfg, echo=seen.append)
+        self.assertEqual(code, 0, out.getvalue())
+        streamed = "".join(seen)
+        self.assertIn("Working on it", streamed)
+        self.assertIn("> Edit s.js", streamed)
+        self.assertIn("[cost $0.12]", streamed)
+        self.assertNotIn('"type"', streamed)  # raw JSON never shown
+        log = next((self.repo / "agent_state/log").glob("*-T1.md")).read_text()
+        self.assertIn("> Edit s.js", log)
+
+    def test_ctrl_c_stops_agent_and_blocks_task(self):
+        slow = [sys.executable, "-c", "import sys,time; sys.stdin.read(); print('started', flush=True); time.sleep(30)"]
+
+        def interrupt(text):
+            raise KeyboardInterrupt
+
+        code, out = self.run_router(self.cfg(claude=slow), echo=interrupt)
+        self.assertEqual(code, 1)
+        self.assertEqual(self.rows()["T1"]["status"], "blocked")
+        self.assertIn("stopped by user", self.rows()["T1"]["notes"])
+
+    def test_timeout_blocks_task(self):
+        slow = [sys.executable, "-c", "import sys,time; sys.stdin.read(); time.sleep(30)"]
+        cfg = self.cfg(claude=slow)
+        cfg["agent_timeout"] = 1
+        code, _ = self.run_router(cfg)
+        self.assertEqual(code, 1)
+        self.assertIn("timed out", self.handoff())
 
 
 if __name__ == "__main__":

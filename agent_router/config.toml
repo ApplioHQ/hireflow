@@ -11,14 +11,31 @@ check_timeout = 600
 # Seconds an agent may run before it is stopped and the task is marked blocked.
 agent_timeout = 1800
 
+# Relay mode in the app (both agents on one task): most turns before giving up without an approval.
+relay_max_turns = 4
+
+# Auto (the default in the app and CLI): the answer agent replies to anything that needs no code
+# changes, and hands requests that do need code to the code agent.
+[auto]
+answer = "hermes"
+code = "claude"
+
 # Each agent is a command run from the repo root. The prompt goes to stdin,
 # or to a temp file if the command contains {prompt_file}.
+# format = "stream-json" turns the agent's JSON events into live readable progress.
 
 [agents.claude]
 # acceptEdits lets Claude Code edit files without prompting; shell commands stay blocked.
-command = ["claude", "-p", "--permission-mode", "acceptEdits"]
+command = ["claude", "-p", "--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose"]
+format = "stream-json"
+# Added when you reply to a task in the app, so the agent continues its earlier session.
+resume = ["--resume", "{session_id}"]
 
 [agents.hermes]
 # Hermes may stop at approval prompts when run non-interactively. If it can't write files,
 # add "--yolo" here (it skips all of Hermes's approval checks, so only do it knowingly).
-command = ["hermes", "chat", "-Q", "--oneshot", "--query-file", "{prompt_file}"]
+command = ["hermes", "chat", "-Q", "--oneshot", "--format", "stream-json", "--query-file", "{prompt_file}"]
+format = "stream-json"
+resume = ["--resume", "{session_id}"]
+# The current Hermes model can't see images. On Auto, messages with an attached image go to Claude.
+vision = false

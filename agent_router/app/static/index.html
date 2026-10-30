@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Applio Agents</title>
+<meta name="theme-color" content="#1f1e1d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="/icon-192.png" alt="" width="24" height="24">
+      <span>Applio Agents</span>
+    </div>
+    <button class="new-task" id="new-task" type="button">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      New task
+    </button>
+    <div class="list-label">Tasks</div>
+    <nav class="task-list" id="task-list" aria-label="Tasks"></nav>
+    <div class="side-foot">
+      <div class="repo" id="repo"></div>
+      <div class="side-links">
+        <button type="button" data-panel="handoff">Handoff</button>
+        <button type="button" data-panel="context">Decisions</button>
+        <button type="button" data-panel="diff">Changes</button>
+      </div>
+      <button type="button" class="install" id="install" hidden>Install app</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="head" id="head"></header>
+    <section class="messages" id="messages" aria-live="polite"></section>
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="composer-box">
+        <textarea id="input" rows="1" placeholder="Describe a task..."></textarea>
+        <div class="composer-row">
+          <div class="agent-pick" id="agent-pick" role="radiogroup" aria-label="Agent"></div>
+          <span class="composer-note" id="composer-note"></span>
+          <button type="button" class="ghost" id="queue-btn">Add to queue</button>
+          <button type="submit" class="send" id="send-btn" aria-label="Send">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <aside class="panel" id="panel" hidden>
+    <div class="panel-head">
+      <h2 id="panel-title"></h2>
+      <button type="button" class="icon-btn" id="panel-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>

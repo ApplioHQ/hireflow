@@ -1,0 +1,97 @@
+{
+ "id": "T6",
+ "agent": "claude",
+ "session_id": "fa10fd16-30b0-458b-82a8-bdaf0fc9f71d",
+ "messages": [
+  {
+   "role": "user",
+   "text": "go through our entire seo and find thing to improve",
+   "time": ""
+  },
+  {
+   "time": "2026-10-30T14:42:20",
+   "role": "agent",
+   "agent": "hermes",
+   "text": "\n> search_files seo|meta|og:|twitter:|robots|sitemap|structured|schema|llms\\.txt\n\n> search_files \\.html$\n\n> search_files .\n\n> search_files .\n\n> terminal ls -la\n\n> read_file robots.txt\n\n> read_file llms.txt\n\n> read_file llms-full.txt\n\n> read_file sitemap.xml\n\n> read_file index.html\n\n> read_file ats-checker.html\n\n> read_file pricing.html\n\n> read_file resume-templates.html\n\n> read_file guides/what-is-an-ats.html\n\n> terminal ls -la .well-known/\n\n> read_file .well-known/ai-plugin.json\n\n> read_file .well-known/security.txt\n\n> read_file resume-examples/software-engineer.html\n\n> read_file compare.html\n\n> search_files openapi\\.yaml\n\n> terminal ls -la tools/\n\n> read_file tools/index.html\n\n> read_file tools/resume-tailor.html\n\n> terminal find . -name \"openapi.yaml\" -o -name \"openapi.json\" 2>/dev/null\n\n> read_file manifest.json\n\n> terminal ls -la resume-templates/\n\n> read_file resume-templates/index.html\n\n> read_file resume-templates/harvard.html\n\n> read_file cover-letter-generator.html\n\n> read_file salary.html\n\n> read_file resume-examples/index.html\n\n\nBased on my review of the entire codebase, here's what I found and what needs improvement:\n\n## Current SEO Strengths\n- **Comprehensive meta tags** on most pages (title, description, canonical, OG, Twitter)\n- **Rich structured data** (SoftwareApplication, Article, FAQPage, BreadcrumbList, CollectionPage, WebApplication, HowTo, Organization, WebSite)\n- **llms.txt + llms-full.txt** for GEO/AI crawlers\n- **ai-plugin.json** for ChatGPT plugin discovery- **security.txt** in .well-known\n- **Sitemap.xml** with 2000+ URLs, proper priorities, lastmod dates- **Robots.txt** allows AI crawlers while blocking auth pages\n- **PWA manifest** with proper icons\n\n## Issues to Fix\n\n### 1. **Missing openapi.yaml** (Critical)\n`.well-known/ai-plugin.json` references `https://appliohq.com/.well-known/openapi.yaml` but this file **doesn't exist**. Either create it or remove the reference.\n\n### 2. **salary.html missing basic SEO** (High)\n- No `<meta name=\"description\">`\n- No Open Graph tags (og:title, og:description, og:image)\n- No Twitter Card tags\n- No canonical URL\n- No FAQPage, BreadcrumbList, or ItemList schema### 3. **Inconsistent template counts** (Medium)\n- index.html structured data: \"31 templates\" \u2713\n- resume-templates/index.html: \"31 templates\" \u2713  - llms-full.txt: \"18 templates\" \u2717 (outdated)\n- Memory/previous docs: \"26 templates\" \u2717### 4. **Missing WebSite SearchAction schema** (Medium)\nAdd to index.html for Google Sitelinks Search Box:\n```json\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"WebSite\",\n  \"url\": \"https://appliohq.com/\",\n  \"potentialAction\": {\n    \"@type\": \"SearchAction\",\n    \"target\": \"https://appliohq.com/search?q={search_term_string}\",\n    \"query-input\": \"required name=search_term_string\"\n  }\n}\n```\n\n### 5. **Missing hreflang on all pages** (Low)\nOnly index.html has hreflang. Add to every page if keeping x-default.\n\n### 6. **Missing robots meta on auth pages** (Low)\nAdd `<meta name=\"robots\" content=\"noindex, nofollow\">` to login.html, dashboard.html, editor.html, etc. (currently only blocked via robots.txt)\n\n### 7. **og:image using logo.jpeg instead of screenshots** (Low)\nSeveral pages (cover-letter-generator.html, resume-examples/software-engineer.html, etc.) use `logo.jpeg` instead of page-specific screenshots. Create/verify:\n- `/img/screens/cover-letter.png`\n- `/img/screens/resume-examples.png`\n- etc.\n\n### 8. **Speakable schema only on some guide pages** (Low)\nAdd `speakable` to more high-value content pages (ATS checker, tools hub, templates).\n\n### 9. **Missing AggregateRating on more pages** (Low)\nOnly index.html and salary.html have it. Add to ats-checker.html, resume-templates/, cover-letter-generator.html.\n\n### 10. **Date freshness** (Low)\nMany pages have `datePublished`/`dateModified` from 2026-07. Update to recent dates or remove if not maintaining.\n\n---\n\n## Quick Wins Priority Order1. **Create openapi.yaml** or fix ai-plugin.json reference2. **Add full SEO to salary.html** (description, OG, Twitter, canonical, schemas)\n3. **Update llms-full.txt template count** to 314. **Add SearchAction schema to index.html**\n5. **Add noindex meta to auth/dashboard pages**\n6. **Audit og:image URLs** \u2014 replace logo.jpeg with real screenshots\n\nWant me to create the openapi.yaml or fix salary.html first?\n[664549 tokens]\n\n",
+   "live": false,
+   "step": "auto"
+  },
+  {
+   "time": "2026-10-30T14:44:16",
+   "role": "result",
+   "ok": true,
+   "reason": "",
+   "files": [],
+   "check": "",
+   "log": "2026-10-30-T6.md",
+   "answer": true
+  },
+  {
+   "time": "2026-10-30T15:27:36",
+   "role": "user",
+   "text": "yes"
+  },
+  {
+   "time": "2026-10-30T15:27:36",
+   "role": "agent",
+   "agent": "hermes",
+   "text": "This needs code changes, so I'm handing it to Claude.",
+   "live": false,
+   "step": "route"
+  },
+  {
+   "time": "2026-10-30T15:27:43",
+   "role": "agent",
+   "agent": "claude",
+   "text": "I'll verify the current state of the files before implementing the quick-win SEO fixes Hermes identified, since I shouldn't act on an unverified summary.\n\n> Bash ls && echo \"---\" && find . -maxdepth 1 -iname \"*.html\" | head -30\nGood, this worktree does contain the full site, not just agent_router. Let me verify the specific claims before fixing.\n\n> Bash echo \"=== salary.html head (first 60 lines) ===\" sed -n '1,60p' salary.html echo \"=== grep openap...\n\n> Bash echo \"=== index.html WebSite schema block ===\" sed -n '90,115p' index.html echo \"=== count templa...\n\n> Bash grep -n \"pathname ===\" worker/worker.js | head -40\n\n> Bash grep -n \"url.pathname\\|case '/\\|=== '/\\|startsWith('/\" worker/worker.js | head -60\n\n> Bash sed -n '70,200p' worker/worker.js | grep -n \"path ===\"\n\n> Bash echo \"=== robots.txt ===\" cat robots.txt echo \"=== check which pages already have robots meta noi...\n\n> Bash for f in autopilot.html skill-gap.html connect.html match.html; do echo \"=== $f ===\" sed -n '1,10...\n\n> Bash for f in autopilot.html skill-gap.html connect.html match.html; do echo \"=== FILE: $f ===\"; sed -...\n\n> Read autopilot.html\n\n> Read skill-gap.html\n\n> Read connect.html\n\n> Read match.html\n\n> Bash grep -ln \"requireAuth\\|redirectIfNotLoggedIn\\|checkAuth\\|login.html\" autopilot.html skill-gap.htm...\n\n> Bash grep -n \"auth\\|login\\|token\" autopilot.html | head -10 echo \"---sitemap check---\" grep -n \"autopi...\n\n> Bash grep -n \"script src\\|auth.js\" autopilot.html skill-gap.html match.html | head -20 echo \"--- check...\n\n> Bash grep -n \"appshell.js\\|acctcenter.js\" dashboard.html editor.html profile.html 2>/dev/null | head -10\nConfirmed: `autopilot.html`, `skill-gap.html`, `match.html` use the same authenticated app-shell scripts as `dashboard.html`/`editor.html` but were missed from both `robots.txt` and per-page noindex meta. `connect.html` is a genuine public marketing page and should stay indexed. Now implementing the verified fixes.\n\n> Read robots.txt\n\n> Read .well-known/ai-plugin.json\n\n> Read llms-full.txt\n\n> Read index.html\n\n> Bash grep -n \"Premium\\|Lifetime\\|\\$9.99\\|\\$39.99\\|price\\|Price\" pricing.html | head -20\n\n> Bash echo \"=== llms.txt ===\" cat llms.txt echo \"=== llms-full.txt full pricing section and surrounding...\n\n> Bash wc -l llms-full.txt grep -n \"paywall\\|watermark\\|credit card\\|trial\\|downloads per month\\|plan\" l...\n\n> Read llms-full.txt\n\n> Bash grep -n \"data-name=\\|tpl-name\\|<h3\\|template-name\" resume-templates/index.html | head -40 echo \"-...\n\n> Bash ls resume-templates/*.html | sed 's#resume-templates/##;s#\\.html##' | grep -v '^index$'\n\n> Bash grep -n \"tpl-card\\|data-template\\|data-tpl\\|<article\\|<div class=\\\"card\" resume-templates/index.h...\n\n> Bash grep -c \"data-tpl=\" resume-templates/index.html grep -o 'data-tpl=\"[a-z]*\"' resume-templates/inde...\n\n> Bash grep -n \"template-card\" resume-templates/index.html echo \"---visible text mentions in resume-temp...\n\n> Bash find . -iname \"*template*\" -path \"*/js/*\" 2>/dev/null grep -rln \"TEMPLATES\\s*=\\|templateList\\|TEM...\n\n> Bash grep -n \"^\\s*[a-z]*:\\s*{\" js/templates.js | head -40 echo \"---count top level template keys---\" g...\n\n> Bash grep -n \"function renderTemplate\\|case '\" js/templates.js | head -60\n\n> Bash sed -n '1513,1560p' js/templates.js\n\n> Bash grep -n \"TEMPLATE_RENDERERS\\s*=\" js/templates.js\n\n> Read js/templates.js\n\n> Bash find . -iname \"*search*\" -maxdepth 1 grep -rln \"site search\\|searchAction\\|q={search_term\" . --in...\n\n> Read dashboard.html\n\n> Read autopilot.html\n\n> Read skill-gap.html\n\n> Read match.html\nPattern confirmed (dashboard.html: just `<meta name=\"robots\" content=\"noindex, nofollow\">` after viewport, no description/canonical needed). Now implementing all fixes.\n\n> Edit autopilot.html\n\n> Edit skill-gap.html\n\n> Edit match.html\n\n> Edit robots.txt\nNow `ai-plugin.json` \u2014 removing the dangling `openapi.yaml` reference rather than fabricating a spec that would need to document internal/admin endpoints.\n\n> Edit .well-known/ai-plugin.json\n\n> Edit salary.html\nNow the WebSite schema in index.html \u2014 only add SearchAction if a real search endpoint exists. Since it doesn't, I'll skip that item (flagging it as not applicable rather than fabricating a fake schema). Now fixing `llms.txt` and `llms-full.txt`.\n\n> Edit llms.txt\n\n> Edit llms-full.txt\n\n> Edit llms-full.txt\n\n> Edit llms-full.txt\n\n> Edit llms-full.txt\n\n> Edit llms-full.txt\n\n> Edit llms-full.txt\n\n> Bash cat llms-full.txt | head -30 echo \"=== npm run check ===\" npm run check 2>&1 | tail -20\n\n> Bash npm run check 2>&1\nCheck passes silently (no JS files touched anyway \u2014 all edits were HTML/txt/json/robots.txt). Let's do a final `git diff --stat` to confirm scope.\n\n> Bash git status --short | grep -v \"^M admin.html\\|^M agent_router\\|^M agent_state\\|^M js/config.js\\|^M...\n\n> Write agent_state/handoff.md\n\n> Read agent_state/context.md\n\n> Edit agent_state/context.md\nTask complete. Summary of what I verified and fixed on T6:\n\n**Verified Hermes's audit against the actual code** (not all claims held up \u2014 e.g. index.html's \"31 templates\" was already correct, confirmed against `js/templates.js`'s `TEMPLATE_RENDERERS`, which genuinely has 31 entries).\n\n**Fixed (real, verified issues):**\n- `llms.txt` / `llms-full.txt`: corrected stale template counts (26/18 \u2192 31) and removed a dead Premium/Lifetime pricing section describing paid plans that no longer exist \u2014 this was feeding AI assistants factually wrong pricing for a site that's 100% free.\n- `salary.html`: added the missing description, canonical, OG, and Twitter Card meta tags.\n- `.well-known/ai-plugin.json`: removed the `api` field pointing to a nonexistent `openapi.yaml`, rather than fabricating a spec that would have to document internal/admin worker endpoints.\n- `autopilot.html`, `skill-gap.html`, `match.html` + `robots.txt`: added `noindex, nofollow` and Disallow entries \u2014 these are authenticated app pages (same app-shell scripts as dashboard/editor) that had been missed from the existing exclusion pattern.\n\n**Skipped intentionally:** the WebSite SearchAction schema Hermes suggested \u2014 Applio has no actual site-search feature, so adding it would be fabricated structured data.\n\n**Left open for a human decision** (noted in handoff.md): og:image screenshots (needs real assets, not a text fix), hreflang expansion, speakable/AggregateRating expansion, stale date freshness on guide pages, and a minor product question (the `plain` template exists in the renderer but isn't shown in the public template gallery).\n\nAll changes are uncommitted, `npm run check` passes, and `agent_state/handoff.md` + `context.md` are updated for the router/next agent.\n\n[cost $1.32]\n",
+   "live": false
+  },
+  {
+   "time": "2026-10-30T15:32:31",
+   "role": "result",
+   "ok": true,
+   "reason": "",
+   "files": [
+    ".well-known/ai-plugin.json",
+    "agent_state/context.md",
+    "agent_state/handoff.md",
+    "autopilot.html",
+    "llms-full.txt",
+    "llms.txt",
+    "match.html",
+    "robots.txt",
+    "salary.html",
+    "skill-gap.html"
+   ],
+   "check": "(no output)",
+   "log": "2026-10-30-T6-3.md"
+  },
+  {
+   "time": "2026-10-30T15:35:02",
+   "role": "user",
+   "text": "push automatically from now on"
+  },
+  {
+   "time": "2026-10-30T15:35:02",
+   "role": "agent",
+   "agent": "hermes",
+   "text": "Understood. I'll push to origin/main automatically after making changes from now on.\n[815636 tokens]\n\n",
+   "live": false,
+   "step": "auto"
+  },
+  {
+   "time": "2026-10-30T15:35:08",
+   "role": "result",
+   "ok": true,
+   "reason": "",
+   "files": [],
+   "check": "",
+   "log": "2026-10-30-T6-4.md",
+   "answer": true
+  }
+ ],
+ "sessions": {
+  "hermes": "local-6c5e20471b27ac888d96db3fb597343bde9fb7a99ef0d2a4f1ff6ef2c768c5e9",
+  "claude": "fa10fd16-30b0-458b-82a8-bdaf0fc9f71d"
+ }
+}

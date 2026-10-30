@@ -387,47 +387,63 @@ function _aiDotLoader(duration) {
 function _aiPong(canvas) {
   var W = canvas.width, H = canvas.height;
   var ctx = canvas.getContext('2d');
-  var pw = 4, ph = 24, r = 3;
-  var lx = 6, ly = H / 2 - ph / 2;
-  var rx = W - 6 - pw, ry = H / 2 - ph / 2;
-  var bx = W / 2, by = H / 2, vx = 1.8, vy = 1.2;
+  var pw = 6, ph = 36, r = 5, gap = 12;
+  var lx = gap, ly = H / 2 - ph / 2;
+  var rx = W - gap - pw, ry = H / 2 - ph / 2;
+  var bx = W / 2, by = H / 2, vx = 2.2, vy = 1.4;
   var ls = 0, rs = 0, raf = 0;
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    // center line
-    ctx.setLineDash([3, 4]);
-    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = 'rgba(255,255,255,.15)';
+    ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
     ctx.setLineDash([]);
-    // score
-    ctx.fillStyle = 'rgba(255,255,255,.25)';
-    ctx.font = '600 14px system-ui,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.font = '700 20px "Courier New",monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(ls, W / 2 - 20, 18);
-    ctx.fillText(rs, W / 2 + 20, 18);
-    // paddles
+    ctx.fillText(ls, W / 2 - 28, 26);
+    ctx.fillText(rs, W / 2 + 28, 26);
     ctx.fillStyle = '#a5b4fc';
-    ctx.fillRect(lx, ly, pw, ph);
-    ctx.fillRect(rx, ry, pw, ph);
-    // ball
-    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    _roundRect(ctx, lx, ly, pw, ph, 3);
+    _roundRect(ctx, rx, ry, pw, ph, 3);
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+  }
+  function _roundRect(c, x, y, w, h, rad) {
+    c.beginPath();
+    c.moveTo(x + rad, y); c.lineTo(x + w - rad, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + rad);
+    c.lineTo(x + w, y + h - rad);
+    c.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
+    c.lineTo(x + rad, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - rad);
+    c.lineTo(x, y + rad);
+    c.quadraticCurveTo(x, y, x + rad, y);
+    c.fill();
   }
   function tick() {
     bx += vx; by += vy;
-    // top/bottom bounce
     if (by - r <= 0) { by = r; vy = Math.abs(vy); }
     if (by + r >= H) { by = H - r; vy = -Math.abs(vy); }
-    // left paddle
-    if (bx - r <= lx + pw && by >= ly && by <= ly + ph) { vx = Math.abs(vx); bx = lx + pw + r; }
-    // right paddle
-    if (bx + r >= rx && by >= ry && by <= ry + ph) { vx = -Math.abs(vx); bx = rx - r; }
-    // score
-    if (bx < 0) { rs++; bx = W / 2; by = H / 2; vx = 1.8; vy = (Math.random() - .5) * 2.4; }
-    if (bx > W) { ls++; bx = W / 2; by = H / 2; vx = -1.8; vy = (Math.random() - .5) * 2.4; }
-    // AI paddles track ball with slight delay
-    var spd = 1.6;
-    if (by > ly + ph / 2 + 2) ly += spd; else if (by < ly + ph / 2 - 2) ly -= spd;
-    if (by > ry + ph / 2 + 2) ry += spd; else if (by < ry + ph / 2 - 2) ry -= spd;
+    if (bx - r <= lx + pw && by >= ly && by <= ly + ph) {
+      vx = Math.abs(vx) * 1.02;
+      vy += (by - (ly + ph / 2)) * 0.08;
+      bx = lx + pw + r;
+    }
+    if (bx + r >= rx && by >= ry && by <= ry + ph) {
+      vx = -Math.abs(vx) * 1.02;
+      vy += (by - (ry + ph / 2)) * 0.08;
+      bx = rx - r;
+    }
+    var maxV = 4;
+    if (Math.abs(vx) > maxV) vx = maxV * (vx > 0 ? 1 : -1);
+    if (Math.abs(vy) > maxV) vy = maxV * (vy > 0 ? 1 : -1);
+    if (bx < 0) { rs++; bx = W / 2; by = H / 2; vx = 2.2; vy = (Math.random() - .5) * 2.8; }
+    if (bx > W) { ls++; bx = W / 2; by = H / 2; vx = -2.2; vy = (Math.random() - .5) * 2.8; }
+    var spdL = 2.0, spdR = 2.2;
+    if (by > ly + ph / 2 + 3) ly += spdL; else if (by < ly + ph / 2 - 3) ly -= spdL;
+    if (by > ry + ph / 2 + 3) ry += spdR; else if (by < ry + ph / 2 - 3) ry -= spdR;
     ly = Math.max(0, Math.min(H - ph, ly));
     ry = Math.max(0, Math.min(H - ph, ry));
     draw();
@@ -465,8 +481,8 @@ window.aiLoading = function (message) {
 
   // Primary visual: Pong game
   const pongCanvas = document.createElement('canvas');
-  pongCanvas.width = 200; pongCanvas.height = 120;
-  pongCanvas.style.cssText = 'border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);';
+  pongCanvas.width = 280; pongCanvas.height = 180;
+  pongCanvas.style.cssText = 'border-radius:10px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);';
   el.appendChild(pongCanvas);
   const _pongCleanup = _aiPong(pongCanvas);
   el._pongCleanup = _pongCleanup;

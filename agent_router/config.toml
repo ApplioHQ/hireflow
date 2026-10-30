@@ -1,0 +1,24 @@
+# Router config. Paths are relative to this file.
+repo = ".."
+state_dir = "agent_state"
+
+# Runs after the agent finishes. Exit 0 = accept, anything else = mark the task blocked.
+# Applio has no test suite, so this syntax-checks every .js file git knows about,
+# including new untracked ones an agent just created (gitignored files are skipped).
+check_command = "git ls-files -co --exclude-standard -z '*.js' | xargs -0 -n1 node --check"
+check_timeout = 600
+
+# Seconds an agent may run before it is stopped and the task is marked blocked.
+agent_timeout = 1800
+
+# Each agent is a command run from the repo root. The prompt goes to stdin,
+# or to a temp file if the command contains {prompt_file}.
+
+[agents.claude]
+# acceptEdits lets Claude Code edit files without prompting; shell commands stay blocked.
+command = ["claude", "-p", "--permission-mode", "acceptEdits"]
+
+[agents.hermes]
+# Hermes may stop at approval prompts when run non-interactively. If it can't write files,
+# add "--yolo" here (it skips all of Hermes's approval checks, so only do it knowingly).
+command = ["hermes", "chat", "-Q", "--oneshot", "--query-file", "{prompt_file}"]

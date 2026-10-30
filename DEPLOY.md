@@ -76,3 +76,17 @@ up regularly and store the file **outside** the repo (never commit, it is PII):
 ```bash
 npm run backup     # → backups/kv-backup-<timestamp>.json  (gitignored)
 ```
+
+---
+
+## Syntax check
+
+Run a fast syntax-only check on every git-tracked `.js` file (skips
+`node_modules` and untracked files):
+
+```bash
+npm run check
+```
+
+This executes `scripts/check-syntax.sh`, which iterates `git ls-files '*.js'`
+and runs `node --check` on each file. Exits non-zero on any failure.

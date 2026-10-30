@@ -384,46 +384,6 @@ function _aiDotLoader(duration) {
   };
 }
 
-const _AI_DOT_FRAMES = [
-  [14, 7, 0, 8, 6, 13, 20], [14, 7, 13, 20, 16, 27, 21], [14, 20, 27, 21, 34, 24, 28],
-  [27, 21, 34, 28, 41, 32, 35], [34, 28, 41, 35, 48, 40, 42], [34, 28, 41, 35, 48, 42, 46],
-  [34, 28, 41, 35, 48, 42, 38], [34, 28, 41, 35, 48, 30, 21], [34, 28, 41, 48, 21, 22, 14],
-  [34, 28, 41, 21, 14, 16, 27], [34, 28, 21, 14, 10, 20, 27], [28, 21, 14, 4, 13, 20, 27],
-  [28, 21, 14, 12, 6, 13, 20], [28, 21, 14, 6, 13, 20, 11], [28, 21, 14, 6, 13, 20, 10],
-  [14, 6, 13, 20, 9, 7, 21],
-];
-
-function _aiDotLoader(duration) {
-  const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,10px);gap:5px;width:fit-content;';
-  const dots = [];
-  for (let i = 0; i < 49; i++) {
-    const d = document.createElement('div');
-    d.style.cssText = 'width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.12);transition:background .12s ease, box-shadow .12s ease;';
-    grid.appendChild(d);
-    dots.push(d);
-  }
-  let idx = 0, timer = null;
-  const apply = (frameIndex) => {
-    const frame = _AI_DOT_FRAMES[frameIndex]; if (!frame) return;
-    dots.forEach((d, i) => {
-      const on = frame.includes(i);
-      d.style.background = on ? '#a5b4fc' : 'rgba(255,255,255,.12)';
-      d.style.boxShadow = on ? '0 0 8px rgba(129,140,248,.7)' : 'none';
-    });
-  };
-  return {
-    el: grid,
-    start() {
-      apply(0); idx = 1;
-      timer = setInterval(() => { apply(idx); idx = (idx + 1) % _AI_DOT_FRAMES.length; }, duration || 110);
-      return timer;
-    },
-    staticFrame() { apply(0); },
-    stop() { if (timer) clearInterval(timer); },
-  };
-}
-
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)
   const existing = document.getElementById('ai-loading-overlay');

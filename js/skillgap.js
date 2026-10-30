@@ -129,7 +129,7 @@
     var relevant = Array.isArray(data.relevant) ? data.relevant : [];
     var forWhat = isJD ? 'this posting' : (esc(role) + ' roles');
     if (!missing.length) {
-      out.innerHTML = '<div class="sg-empty"><h2>No obvious gaps found</h2>'
+      out.innerHTML = '<div class="sg-empty"><h2>No skill gaps detected -- you\'re well-matched</h2>'
         + '<p>' + (isJD ? 'Your resume already covers the key skills this posting asks for. Tailor your bullets to match its language in the <a href="match" style="color:var(--accent);font-weight:600;">Best Match</a> tool.'
           : 'Your resume already covers the core skills for ' + esc(role) + '. Paste a specific job posting above for a sharper, job-specific comparison.') + '</p></div>';
       return;

@@ -1221,7 +1221,7 @@ function renderExperience() {
         <h3>${ICON('briefcase')} Experience</h3>
         <button class="ai-btn" onclick="aiImprove('experience')">${ICON('sparkle','ico ico-sm')} AI Improve</button>
       </div>
-      ${resume.experience.length === 0 ? `<div class="empty-state">No work experience added yet, add your first role to get started.</div>`
+      ${resume.experience.length === 0 ? `<div class="empty-state">Add your first role to begin.</div>`
         : `<div class="drag-list">${resume.experience.map((e,i) => itemCard('experience', i, [
             ['Job Title','title',e.title], ['Company','company',e.company],
             ['Start Date','start',e.start], ['End Date / Present','end',e.end],
@@ -1236,7 +1236,7 @@ function renderEducation() {
   return `
     <div class="section-card">
       <div class="section-head"><h3>${ICON('grad')} Education</h3></div>
-      ${resume.education.length === 0 ? `<div class="empty-state">No education added yet.</div>`
+      ${resume.education.length === 0 ? `<div class="empty-state">Add your education.</div>`
         : `<div class="drag-list">${resume.education.map((e,i) => itemCard('education', i, [
             ['School','school',e.school], ['Degree','degree',e.degree],
             ['Field of Study','field',e.field], ['GPA','gpa',e.gpa],
@@ -3674,7 +3674,7 @@ function _showAiFeedbackNudge() {
     'animation:aiOverlayIn .22s ease both', 'max-width:420px', 'width:calc(100vw - 48px)',
   ].join(';');
   el.innerHTML = `
-    <span style="font-size:20px;">✨</span>
+    ${ICON('sparkle','ico" style="font-size:20px;')}
     <div style="flex:1;min-width:0;">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">How's the AI working for you?</div>
       <div style="font-size:12px;color:var(--muted);">Takes 30 seconds. Helps us make it better.</div>
@@ -4770,8 +4770,8 @@ function renderVersions() {
   if (!versions.length) {
     document.getElementById('version-list').innerHTML =
       `<div style="text-align:center;padding:32px 16px;color:var(--muted);">
-        <div style="font-size:32px;margin-bottom:8px;">📋</div>
-        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">No versions yet</div>
+        <div style="margin-bottom:8px;color:var(--muted);">${ICON('clipboard','ico" style="width:32px;height:32px;')}</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Save a version to track your progress</div>
         <div style="font-size:12px;">Click <strong>Save</strong> to create your first snapshot.</div>
        </div>`;
     return;

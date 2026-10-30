@@ -28,7 +28,7 @@
   function refreshResumeNote() {
     var r = readResume();
     if (!r || !Object.keys(r).length) {
-      els.resumeNote.innerHTML = '⚠ No resume found. <a href="editor">Build or import your resume</a> first, Autopilot tailors it to the job.';
+      els.resumeNote.innerHTML = ICON('alert') + ' Build a resume first -- <a href="editor">open the editor</a> to get started. Autopilot tailors it to the job.';
       return false;
     }
     var nm = resumeName(r);

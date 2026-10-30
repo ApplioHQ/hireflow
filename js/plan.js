@@ -308,11 +308,11 @@ async function openBillingPortal() {
   buttons.push(`<button class="btn btn-secondary" onclick="closeAccountModal(); location.href='profile'">Edit profile</button>`);
   // Admin/super-admin: Admin Console (moved here from the topbar).
   if (isAdmin()) {
-    buttons.push(`<button class="btn btn-secondary" style="background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(139,92,246,.18));border:1px solid rgba(239,68,68,.35);color:#fca5a5;font-weight:600;" onclick="location.href='admin'">⚡ Admin Console</button>`);
+    buttons.push(`<button class="btn btn-secondary" style="background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(139,92,246,.18));border:1px solid rgba(239,68,68,.35);color:#fca5a5;font-weight:600;" onclick="location.href='admin'">${ICON('bolt')} Admin Console</button>`);
   }
   // Admin-only: a link to the feedback inbox (only the ADMIN_EMAIL account sees this).
   if (u.isAdmin) {
-    buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">📥 View user feedback</button>`);
+    buttons.push(`<button class="btn btn-secondary" onclick="location.href='feedback'">${ICON('inbox')} View user feedback</button>`);
   }
   buttons.push(`<button class="btn btn-ghost" onclick="closeAccountModal(); openFeedbackModal({context:'account_menu'})">Send Feedback</button>`);
   buttons.push(`<a class="btn btn-ghost" href="mailto:support@appliohq.com?subject=Applio%20support" style="text-align:center;text-decoration:none;" onclick="closeAccountModal()">Contact support</a>`);
@@ -399,7 +399,7 @@ function openFeedbackModal(opts = {}) {
       <div id="fb-state" style="font-size:13px;min-height:18px;margin:10px 0 0;text-align:center;color:var(--muted);"></div>
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn btn-ghost" style="flex:1;" onclick="closeFeedbackModal()">Cancel</button>
-        <button class="btn btn-primary" style="flex:1;" id="fb-submit" onclick="_submitFeedbackModal('${context}')">Submit</button>
+        <button class="btn btn-primary" style="flex:1;" id="fb-submit" onclick="_submitFeedbackModal('${context}')">Send feedback</button>
       </div>
     </div>`;
 

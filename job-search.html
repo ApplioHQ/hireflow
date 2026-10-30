@@ -173,7 +173,7 @@
 
   function renderResults(data) {
     if (!data.results || !data.results.length) {
-      area.innerHTML = '<div class="js-empty"><h3>No jobs found</h3><p>Try different keywords or a broader location.</p></div>';
+      area.innerHTML = '<div class="js-empty"><h3>No jobs match your search</h3><p>Try broader keywords or a different location.</p></div>';
       return;
     }
     var html = '<div class="js-meta"><span class="js-count">' + data.total.toLocaleString() + ' jobs found</span><span class="js-region">' + data.country + '</span></div>';

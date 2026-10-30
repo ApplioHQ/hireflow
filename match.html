@@ -269,7 +269,7 @@ function _addCandidate(){
 }
 function _useSavedResume(){
   let saved; try { saved = JSON.parse(localStorage.getItem('hf_resume') || 'null'); } catch { saved = null; }
-  if (!saved || !saved.personal) { toast('No saved resume found, build one in the Resume Builder first', {type:'warn'}); return; }
+  if (!saved || !saved.personal) { toast('Build a resume first, then come back to match it', {type:'warn'}); return; }
   if (_candidates.some(c => c.type === 'saved')) { toast('Your saved resume is already added', {type:'info'}); return; }
   const name = (saved.personal && saved.personal.fullName) ? saved.personal.fullName : 'My resume';
   _candidates.push({ label: name + ' (saved)', content: saved, type:'saved', preview: name });

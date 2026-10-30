@@ -554,7 +554,7 @@ function showExportFeedbackPrompt() {
       '<div style="font-weight:600;margin-bottom:10px;padding-right:18px;">What went wrong?</div>' +
       '<textarea id="fb-down-msg" rows="3" placeholder="Tell us what could be better…" ' +
         'style="width:100%;box-sizing:border-box;padding:8px 10px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;"></textarea>' +
-      '<button id="fb-down-submit" class="btn btn-primary btn-sm btn-block" style="margin-top:8px;">Submit</button></div>';
+      '<button id="fb-down-submit" class="btn btn-primary btn-sm btn-block" style="margin-top:8px;">Send feedback</button></div>';
     el.querySelector('[data-fb-close]').onclick = dismiss;
     const ta = el.querySelector('#fb-down-msg');
     if (ta) { ta.focus(); ta.oninput = armAutoDismiss; }

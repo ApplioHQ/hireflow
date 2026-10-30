@@ -384,73 +384,44 @@ function _aiDotLoader(duration) {
   };
 }
 
-function _aiPong(canvas) {
-  var W = canvas.width, H = canvas.height;
-  var ctx = canvas.getContext('2d');
-  var pw = 6, ph = 36, r = 5, gap = 12;
-  var lx = gap, ly = H / 2 - ph / 2;
-  var rx = W - gap - pw, ry = H / 2 - ph / 2;
-  var bx = W / 2, by = H / 2, vx = 2.2, vy = 1.4;
-  var ls = 0, rs = 0, raf = 0;
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = 'rgba(255,255,255,.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255,255,255,.35)';
-    ctx.font = '700 20px "Courier New",monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(ls, W / 2 - 28, 26);
-    ctx.fillText(rs, W / 2 + 28, 26);
-    ctx.fillStyle = '#a5b4fc';
-    _roundRect(ctx, lx, ly, pw, ph, 3);
-    _roundRect(ctx, rx, ry, pw, ph, 3);
-    ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff'; ctx.fill();
+const _AI_DOT_FRAMES = [
+  [14, 7, 0, 8, 6, 13, 20], [14, 7, 13, 20, 16, 27, 21], [14, 20, 27, 21, 34, 24, 28],
+  [27, 21, 34, 28, 41, 32, 35], [34, 28, 41, 35, 48, 40, 42], [34, 28, 41, 35, 48, 42, 46],
+  [34, 28, 41, 35, 48, 42, 38], [34, 28, 41, 35, 48, 30, 21], [34, 28, 41, 48, 21, 22, 14],
+  [34, 28, 41, 21, 14, 16, 27], [34, 28, 21, 14, 10, 20, 27], [28, 21, 14, 4, 13, 20, 27],
+  [28, 21, 14, 12, 6, 13, 20], [28, 21, 14, 6, 13, 20, 11], [28, 21, 14, 6, 13, 20, 10],
+  [14, 6, 13, 20, 9, 7, 21],
+];
+
+function _aiDotLoader(duration) {
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,10px);gap:5px;width:fit-content;';
+  const dots = [];
+  for (let i = 0; i < 49; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = 'width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.12);transition:background .12s ease, box-shadow .12s ease;';
+    grid.appendChild(d);
+    dots.push(d);
   }
-  function _roundRect(c, x, y, w, h, rad) {
-    c.beginPath();
-    c.moveTo(x + rad, y); c.lineTo(x + w - rad, y);
-    c.quadraticCurveTo(x + w, y, x + w, y + rad);
-    c.lineTo(x + w, y + h - rad);
-    c.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
-    c.lineTo(x + rad, y + h);
-    c.quadraticCurveTo(x, y + h, x, y + h - rad);
-    c.lineTo(x, y + rad);
-    c.quadraticCurveTo(x, y, x + rad, y);
-    c.fill();
-  }
-  function tick() {
-    bx += vx; by += vy;
-    if (by - r <= 0) { by = r; vy = Math.abs(vy); }
-    if (by + r >= H) { by = H - r; vy = -Math.abs(vy); }
-    if (bx - r <= lx + pw && by >= ly && by <= ly + ph) {
-      vx = Math.abs(vx) * 1.02;
-      vy += (by - (ly + ph / 2)) * 0.08;
-      bx = lx + pw + r;
-    }
-    if (bx + r >= rx && by >= ry && by <= ry + ph) {
-      vx = -Math.abs(vx) * 1.02;
-      vy += (by - (ry + ph / 2)) * 0.08;
-      bx = rx - r;
-    }
-    var maxV = 4;
-    if (Math.abs(vx) > maxV) vx = maxV * (vx > 0 ? 1 : -1);
-    if (Math.abs(vy) > maxV) vy = maxV * (vy > 0 ? 1 : -1);
-    if (bx < 0) { rs++; bx = W / 2; by = H / 2; vx = 2.2; vy = (Math.random() - .5) * 2.8; }
-    if (bx > W) { ls++; bx = W / 2; by = H / 2; vx = -2.2; vy = (Math.random() - .5) * 2.8; }
-    var spdL = 2.0, spdR = 2.2;
-    if (by > ly + ph / 2 + 3) ly += spdL; else if (by < ly + ph / 2 - 3) ly -= spdL;
-    if (by > ry + ph / 2 + 3) ry += spdR; else if (by < ry + ph / 2 - 3) ry -= spdR;
-    ly = Math.max(0, Math.min(H - ph, ly));
-    ry = Math.max(0, Math.min(H - ph, ry));
-    draw();
-    raf = requestAnimationFrame(tick);
-  }
-  raf = requestAnimationFrame(tick);
-  return function () { cancelAnimationFrame(raf); };
+  let idx = 0, timer = null;
+  const apply = (frameIndex) => {
+    const frame = _AI_DOT_FRAMES[frameIndex]; if (!frame) return;
+    dots.forEach((d, i) => {
+      const on = frame.includes(i);
+      d.style.background = on ? '#a5b4fc' : 'rgba(255,255,255,.12)';
+      d.style.boxShadow = on ? '0 0 8px rgba(129,140,248,.7)' : 'none';
+    });
+  };
+  return {
+    el: grid,
+    start() {
+      apply(0); idx = 1;
+      timer = setInterval(() => { apply(idx); idx = (idx + 1) % _AI_DOT_FRAMES.length; }, duration || 110);
+      return timer;
+    },
+    staticFrame() { apply(0); },
+    stop() { if (timer) clearInterval(timer); },
+  };
 }
 
 window.aiLoading = function (message) {
@@ -479,14 +450,16 @@ window.aiLoading = function (message) {
       @keyframes aiStepIn    { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
     </style>`;
 
-  // Primary visual: Pong game
-  const pongCanvas = document.createElement('canvas');
-  pongCanvas.width = 280; pongCanvas.height = 180;
-  pongCanvas.style.cssText = 'border-radius:10px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);';
-  el.appendChild(pongCanvas);
-  const _pongCleanup = _aiPong(pongCanvas);
-  el._pongCleanup = _pongCleanup;
+  // Primary visual: animated dot-loader (7x7 grid snake)
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dots = _aiDotLoader(110);
+  el.appendChild(dots.el);
+  if (reduce) {
+    dots.staticFrame();
+  } else {
+    const dotTimer = dots.start();
+    el._aiTimers.push(dotTimer);
+  }
 
   const msg = document.createElement('div');
   msg.id = 'ai-loading-msg';
@@ -547,7 +520,6 @@ window.aiLoadingDone = function () {
   const el = document.getElementById('ai-loading-overlay');
   if (!el) return;
   if (el._siriCleanup) { try { el._siriCleanup(); } catch (e) {} el._siriCleanup = null; }
-  if (el._pongCleanup) { try { el._pongCleanup(); } catch (e) {} el._pongCleanup = null; }
   _clearAiTimers(el);
   el.style.animation = 'aiOverlayIn .15s ease reverse both';
   setTimeout(() => el.remove(), 150);

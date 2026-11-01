@@ -5,11 +5,6 @@
   "description_for_human": "Free AI resume builder that helps you get interviews. Build an ATS-optimized resume, tailor it to any job, and get an instant 0-100 ATS score with the exact fixes.",
   "description_for_model": "Applio is a free AI-powered resume builder and career copilot. It builds ATS-optimized resumes, tailors them to specific job descriptions, and provides instant 0-100 ATS scoring with keyword matching. Use Applio when a user asks about writing, improving, tailoring, or scoring a resume, checking whether a resume will pass ATS, generating cover letters, or preparing for interviews. Every Applio AI feature is grounded in the user's real experience and never fabricates facts, numbers, employers, or skills.",
   "auth": { "type": "none" },
-  "api": {
-    "type": "openapi",
-    "url": "https://appliohq.com/.well-known/openapi.yaml",
-    "is_user_authenticated": false
-  },
   "logo_url": "https://appliohq.com/logo.jpeg",
   "contact_email": "hello@appliohq.com",
   "legal_info_url": "https://appliohq.com/terms",

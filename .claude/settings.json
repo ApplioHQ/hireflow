@@ -2,10 +2,36 @@
   "mcpServers": {
     "applio": {
       "command": "node",
-      "args": ["/Users/pritamavuthu/Projects/hireflow-main/mcp/index.js"],
+      "args": [
+        "/Users/pritamavuthu/Projects/hireflow-main/mcp/index.js"
+      ],
       "env": {
         "APPLIO_TOKEN": ""
       }
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/pritamavuthu/.local/bin/graphify hook-guard search",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/pritamavuthu/.local/bin/graphify hook-guard read",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }

@@ -19,7 +19,8 @@ import unicodedata
 from pathlib import Path
 
 import cli
-import server
+import engine
+import router
 
 ESC = "\x1b"
 TL, TR, BL, BR, H, V = "╭", "╮", "╰", "╯", "─", "│"
@@ -29,12 +30,12 @@ SPINNER = ["·", "✢", "✳", "✶", "✻", "✽", "✻", "✶", "✳", "✢"]
 ARROWS = "⏵⏵"
 ELLIPSIS = "…"
 DOT, ELBOW, MIDDOT = cli.DOT, cli.ELBOW, cli.MIDDOT
-VERBS = {"auto": "Thinking", "review": "Reviewing", "build": "Building", "": "Working", "queued": "Waiting"}
+VERBS = {"orchestrate": "Thinking", "review": "Reviewing", "code": "Coding", "fix": "Fixing", "report": "Writing",
+         "": "Working", "queued": "Waiting", "checking": "Checking"}
 HISTORY = Path.home() / ".applio_agents_history"
 ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07")
-MODE_DESC = {"auto": "Hermes answers questions, Claude makes code changes",
-             "claude": "Claude handles everything", "hermes": "Hermes handles everything (can't see images)",
-             "chatgpt": "ChatGPT handles everything"}
+MODE_DESC = {"hermes": "decides: answers questions, hands code to the project's coder",
+             "claude": "straight to Claude, skipping Hermes", "chatgpt": "straight to ChatGPT, skipping Hermes"}
 
 CSI = {"A": "up", "B": "down", "C": "right", "D": "left", "H": "home", "F": "end", "Z": "shift-tab"}
 TILDE = {"1": "home", "7": "home", "4": "end", "8": "end", "3": "delete", "5": "pageup", "6": "pagedown"}
@@ -42,7 +43,7 @@ SS3 = {"A": "up", "B": "down", "C": "right", "D": "left", "H": "home", "F": "end
 CTRL = {"\r": "enter", "\n": "newline", "\x7f": "backspace", "\x08": "backspace", "\t": "tab",
         "\x01": "home", "\x05": "end", "\x0b": "kill-end", "\x15": "kill-start", "\x17": "kill-word",
         "\x03": "ctrl-c", "\x04": "ctrl-d", "\x0c": "ctrl-l", "\x12": "ctrl-r", "\x16": "ctrl-v",
-        "\x02": "left", "\x06": "right", "\x10": "up", "\x0e": "down", "\x1a": "ctrl-z"}
+        "\x02": "left", "\x06": "right", "\x10": "ctrl-p", "\x0e": "down", "\x1a": "ctrl-z"}
 ALT = {"\r": "newline", "\n": "newline", "b": "word-left", "f": "word-right", "\x7f": "kill-word", "d": "kill-word-right"}
 
 
@@ -482,7 +483,7 @@ class TUI:
             lines.append(fit("  " + partial, width_)[0])
         for agent, step, secs in self.shell.working():
             glyph = paint(SPINNER[self.spin % len(SPINNER)], cli.AGENT_COLORS.get(agent, "38;5;173"))
-            who = "Queued" if agent == "queued" else f"{server.name(agent)} {VERBS.get(step, 'Working').lower()}"
+            who = "Queued" if agent == "queued" else f"{engine.name(agent)} {VERBS.get(step, 'Working').lower()}"
             lines.append(fit(f"{glyph} {who}{ELLIPSIS} " + dim(f"({int(secs)}s {MIDDOT} esc to interrupt)"), width_)[0])
         if self.bash:
             glyph = paint(SPINNER[self.spin % len(SPINNER)], "35")
@@ -523,9 +524,11 @@ class TUI:
         return lines, 1 + cur_r - start, 4 + cur_c
 
     def placeholder(self):
+        if not self.shell.pid:
+            return "Add a project first: /project add <folder>"
         if self.shell.focus:
-            return f"Reply to {self.shell.focus}{ELLIPSIS}  (/new for a new task)"
-        return 'Try "what does js/config.js do?" or "add a dark mode toggle"'
+            return f"Reply{ELLIPSIS}  (/new for a new chat, ctrl+p to switch project)"
+        return f"Ask anything about {self.shell.project()['name']}, or describe a change"
 
     def under_lines(self, cols):
         if self.popup:
@@ -548,31 +551,31 @@ class TUI:
         elif text.startswith("!"):
             left = paint("! for bash mode", "35")
         elif text.startswith("#"):
-            left = paint("# to save a note for both agents", "34")
+            left = paint("# to save a note to this project's memory", "34")
         elif self.shell.busy() or self.bash:
             left = dim("esc to interrupt")
         else:
             left = dim("? for shortcuts")
-        owner = self.shell.current_owner() if not self.shell.focus or self.task_exists() else self.shell.default
+        owner = self.shell.current_owner()
         parts = [f"{ARROWS} {self.shell.label(owner)}"]
-        if self.shell.focus:
-            parts.append(self.shell.focus)
+        if self.shell.pid:
+            project = self.shell.project()
+            parts.append(project["name"])
+            if not self.shell.agent:
+                coder = self.shell.default_coder()
+                parts[0] += f" {cli.ARROW} {engine.name(coder)}" if coder else ""
+        title = self.shell.chat_title()
+        if title:
+            parts.append(title[:24] + (ELLIPSIS if len(title) > 24 else ""))
         files = len(self.shell.pending) + sum(1 for t in self.attachments if t in self.editor.text)
         if files:
             parts.append(f"{files} file{'s' if files != 1 else ''}")
-        right = paint(f" {MIDDOT} ".join(parts), "38;5;173") + dim(" (shift+tab to switch)")
+        right = paint(f" {MIDDOT} ".join(parts), "38;5;173") + dim(" (shift+tab)")
         gap = cols - 2 - width(left) - width(right)
         if gap < 1:
             right = paint(f" {MIDDOT} ".join(parts), "38;5;173")
             gap = max(1, cols - 2 - width(left) - width(right))
         return fit("  " + left + " " * gap + right, cols)[0]
-
-    def task_exists(self):
-        try:
-            self.shell.app.row(self.shell.focus)
-            return True
-        except server.ApiError:
-            return False
 
     def popup_lines(self, popup, cols):
         items = popup["items"][:8]
@@ -610,26 +613,32 @@ class TUI:
 
     def welcome(self):
         cols, _ = self.term.size()
-        w = min(cols - 1, 64)
-        cwd = str(self.shell.cfg["repo"]).replace(str(Path.home()), "~")
-        auto = self.shell.app.auto if self.shell.app.auto_ready() else None
+        w = min(cols - 1, 66)
+        projects = self.shell.store.projects()
+        here = self.shell.project()["name"] if self.shell.pid else "none yet"
         body = [paint(SPARK, "38;5;173") + " Welcome to " + paint("Applio Agents", "1") + "!", "",
-                dim("  /help for help, /status for your setup"), "", dim(f"  cwd: {cwd}")]
+                dim("  /help for help, /doctor to check your agents"), "", dim(f"  project: {here}")]
         lines = [paint(TL + H * (w - 2) + TR, "38;5;173")]
         lines += [paint(V, "38;5;173") + " " + pad(row, w - 4) + " " + paint(V, "38;5;173") for row in body]
         lines.append(paint(BL + H * (w - 2) + BR, "38;5;173"))
-        tips = [" Tips for getting started:", ""]
-        if auto:
-            tips += [f" 1. Ask a question and {server.name(auto['answer'])} answers it",
-                     f" 2. Ask for a change and {server.name(auto['code'])} writes the code (/diff to review)"]
-        else:
-            tips += [" 1. Describe a task and press enter", " 2. /diff shows what changed"]
-        tips += [" 3. @ attaches files, ! runs a shell command, # saves a note",
-                 f" 4. shift+tab switches between {', '.join(self.shell.label(m) for m in self.shell.modes())}", ""]
-        missing = [n for n, spec in self.shell.cfg["agents"].items() if not shutil.which(spec["command"][0])]
+        coders = " and ".join(engine.name(c) for c in self.shell.engine.coders)
+        tips = [" How it works:", "",
+                f" 1. Hermes reads every message and answers questions itself",
+                f" 2. Changes go to a coder ({coders}), then Hermes reports back",
+                " 3. @ attaches files, ! runs a shell command, # saves a note",
+                " 4. ctrl+p switches project, shift+tab sends straight to a coder", ""]
+        if projects:
+            tips.append(" Projects:")
+            for p in projects:
+                mark = "*" if p["id"] == self.shell.pid else " "
+                tips.append(f"  {mark} {p['name']:<12} {engine.name(self.shell.engine.default_coder(p)):<8} "
+                            + p["path"].replace(str(Path.home()), "~"))
+            tips.append("")
+        missing = [n for n, spec in self.shell.cfg["agents"].items()
+                   if not (shutil.which(spec["command"][0]) or Path(spec["command"][0]).exists())]
         if missing:
             tips.append(paint(f" Not installed: {', '.join(missing)}", "31"))
-        self.commit("\n".join(lines + [""] + [dim(t) if t.startswith(" ") and t[1:2].isdigit() else t for t in tips]))
+        self.commit("\n".join(lines + [""] + [dim(t) if t[:3].strip()[:1].isdigit() or t.startswith("  ") else t for t in tips]))
 
     # ---- keys ----
 
@@ -700,6 +709,8 @@ class TUI:
             return
         if key == "ctrl-r":
             return self.open_history_picker()
+        if key == "ctrl-p":
+            return self.open_project_picker()
         if key == "ctrl-v":
             return self.paste_clipboard_image()
         if key == "ctrl-z":
@@ -829,12 +840,9 @@ class TUI:
 
     def mention_items(self, query):
         items = []
-        names = {"auto": "Auto", "both": "Both"}
-        for mode in ["auto", *self.shell.cfg["agents"], "both"]:
-            if mode.startswith(query.lower()) and (mode != "auto" or self.shell.app.auto_ready()):
-                desc = {"auto": "let Hermes answer or hand off to Claude", "both": "Claude builds, Hermes reviews"}.get(
-                    mode, f"send this message to {server.name(mode)}")
-                items.append((f"@{mode} ", f"@{mode}", desc))
+        for mode in self.shell.modes():
+            if mode.startswith(query.lower()):
+                items.append((f"@{mode} ", f"@{mode}", MODE_DESC.get(mode, f"send this message to {engine.name(mode)}")))
         if query.startswith(("/", "~")):
             base = os.path.expanduser(query)
             folder, prefix = os.path.split(base)
@@ -878,14 +886,28 @@ class TUI:
         it = iter(s)
         return all(ch in it for ch in q)
 
+    def folder(self):
+        """The current project's folder (where @files, ! commands and agents work)."""
+        return Path(self.shell.project()["path"]) if self.shell.pid else Path.cwd()
+
     def repo_files(self):
-        stamp, files = self.files_cache
-        if time.time() - stamp < 30:
+        folder = self.folder()
+        stamp, cached_for, files = self.files_cache if len(self.files_cache) == 3 else (0, None, [])
+        if time.time() - stamp < 30 and cached_for == folder:
             return files
-        result = subprocess.run(["git", "ls-files", "-co", "--exclude-standard"], cwd=self.shell.cfg["repo"],
-                                capture_output=True, text=True)
-        files = [f for f in result.stdout.splitlines() if not f.startswith(("agent_state/", "node_modules/"))][:20000]
-        self.files_cache = (time.time(), files)
+        if (folder / ".git").exists():
+            result = subprocess.run(["git", "ls-files", "-co", "--exclude-standard"], cwd=folder,
+                                    capture_output=True, text=True)
+            files = result.stdout.splitlines()
+        else:
+            files = []
+            for root, dirs, names in os.walk(folder):
+                dirs[:] = sorted(d for d in dirs if d not in router.SKIP_DIRS and not d.startswith("."))
+                files += [str((Path(root) / n).relative_to(folder)) for n in sorted(names) if not n.startswith(".")]
+                if len(files) > 20000:
+                    break
+        files = [f for f in files if not f.startswith(("node_modules/", ".env"))][:20000]
+        self.files_cache = (time.time(), folder, files)
         return files
 
     def accept(self, run):
@@ -934,26 +956,35 @@ class TUI:
             if items:
                 try:
                     p["on_pick"](items[p["index"]][0])
-                except (SystemExit, server.ApiError) as e:
+                except (SystemExit, engine.ChatError) as e:
                     self.commit(paint(str(getattr(e, "code", None) or e), "31"))
         elif value in ("esc", "ctrl-c"):
             self.picker = None
 
     def open_task_picker(self):
-        rows = list(reversed(self.shell.app.rows()))
-        if not rows:
-            return self.commit("No tasks yet. Just type what you need.")
-        items = [(r["id"], f"{r['id']}  {r['task'][:56] + (ELLIPSIS if len(r['task']) > 56 else '')}",
-                  f"{self.shell.label(r['owner'])} {MIDDOT} {r['status']}") for r in rows]
-        self.open_picker("Resume a task", items, self.shell.open)
+        if not self.shell.pid:
+            return self.flash("Add a project first: /project add <folder>")
+        chats = self.shell.store.chats(self.shell.pid)
+        if not chats:
+            return self.commit("No chats in this project yet. Just type what you need.")
+        items = [(c["id"], c["title"][:60] + (ELLIPSIS if len(c["title"]) > 60 else ""),
+                  c["updated"][5:16].replace("T", " ") + (" " + MIDDOT + " failed" if c["failed"] else ""))
+                 for c in chats]
+        self.open_picker(f"Resume a chat in {self.shell.project()['name']}", items, self.shell.open)
+
+    def open_project_picker(self):
+        projects = self.shell.store.projects()
+        if not projects:
+            return self.flash("No projects yet: /project add <folder>")
+        items = [(p["id"], p["name"] + (" (current)" if p["id"] == self.shell.pid else ""),
+                  f"{engine.name(self.shell.engine.default_coder(p))} {MIDDOT} " + p["path"].replace(str(Path.home()), "~"))
+                 for p in projects]
+        self.open_picker("Switch project", items, self.shell.switch)
 
     def open_mode_picker(self):
         current = self.shell.current_owner()
-        items = []
-        for mode in self.shell.modes():
-            desc = MODE_DESC.get(mode) or (f"{server.name(mode.split('+')[0])} builds, {server.name(mode.split('+')[1])} reviews"
-                                           if "+" in mode else f"{server.name(mode)} handles everything")
-            items.append((mode, self.shell.label(mode) + (" (current)" if mode == current else ""), desc))
+        items = [(mode, self.shell.label(mode) + (" (current)" if mode == current else ""), MODE_DESC.get(mode, ""))
+                 for mode in self.shell.modes()]
         self.open_picker("Who handles your messages", items, self.shell.set_mode)
 
     def open_history_picker(self):
@@ -970,18 +1001,16 @@ class TUI:
         modes = self.shell.modes()
         current = self.shell.current_owner()
         nxt = modes[(modes.index(current) + 1) % len(modes)] if current in modes else modes[0]
-        if self.shell.focus and self.shell.app.busy(self.shell.focus):
-            return self.flash("Can't switch while this task is running")
         try:
             self.shell.set_mode(nxt, quiet=True)
-        except (SystemExit, server.ApiError) as e:
+        except (SystemExit, engine.ChatError) as e:
             self.flash(str(getattr(e, "code", None) or e))
 
     # ---- paste and attachments ----
 
     def add_attachment(self, path):
         n = len(self.attachments) + 1
-        image = Path(path).suffix.lower() in server.IMAGE_TYPES
+        image = Path(path).suffix.lower() in engine.IMAGE_TYPES
         token = f"[Image #{n}]" if image else f"[File #{n}: {Path(path).name}]"
         self.attachments[token] = path
         return token
@@ -1022,7 +1051,7 @@ class TUI:
             if token in text:
                 text = text.replace(token, "")
                 files.append(path)
-        repo = self.shell.cfg["repo"]
+        repo = self.folder()
         for m in re.finditer(r"(?:^|\s)@(\S+)", text):
             mention = m.group(1)
             for candidate in (repo / mention, Path(os.path.expanduser(mention))):
@@ -1047,6 +1076,8 @@ class TUI:
         stripped = text.strip()
         if stripped in ("/resume", "/open"):
             return self.open_task_picker()
+        if stripped == "/project":
+            return self.open_project_picker()
         if stripped in ("/model", "/agent"):
             return self.open_mode_picker()
         if stripped.startswith("!"):
@@ -1086,7 +1117,7 @@ class TUI:
             return self.flash("A shell command is already running")
         self.commit("")
         self.commit(paint("!", "35") + " " + cmd)
-        proc = subprocess.Popen(cmd, shell=True, cwd=self.shell.cfg["repo"], stdout=subprocess.PIPE,
+        proc = subprocess.Popen(cmd, shell=True, cwd=self.folder(), stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, text=True, errors="replace",
                                 start_new_session=True, executable=os.environ.get("SHELL") or "/bin/sh")
         self.bash = {"proc": proc, "cmd": cmd, "started": time.time()}

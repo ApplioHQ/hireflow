@@ -1,261 +1,168 @@
-"""Tests for router.py using fake agents in a throwaway git repo. Run: python3 -m unittest agent_router/test_router.py"""
-import contextlib
-import io
+"""Tests for the shared agent-running library. Run: python3 -m unittest agent_router/test_router.py"""
 import json
 import subprocess
 import sys
 import tempfile
-import textwrap
+import time
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import router  # noqa: E402
 
-TASKS = """\
-# Task queue
 
-| ID | Task | Status | Owner | Notes |
-|----|------|--------|-------|-------|
-| T1 | Write a.js | pending | claude | first |
-| T2 | Write b.js using the handoff | pending | hermes | second |
-| T3 | Unrouted task | pending | unassigned | |
-"""
+class ParseTest(unittest.TestCase):
+    repo = Path("/repo")
 
-# Fake agent: reads the prompt (stdin or file arg), records it, writes a file and handoff.md.
-GOOD_AGENT = textwrap.dedent("""\
-    import sys, pathlib
-    prompt = pathlib.Path(sys.argv[2]).read_text() if len(sys.argv) > 2 else sys.stdin.read()
-    name = sys.argv[1]
-    pathlib.Path(f"prompt-{name}.txt").write_text(prompt)
-    pathlib.Path(f"{name}.js").write_text("var ok = 1;\\n")
-    pathlib.Path("agent_state/handoff.md").write_text(
-        f"Task: x\\nAgent: {name}\\nStatus: done\\nFor the next agent: MARKER-FROM-{name}\\n")
-    print(f"{name} finished")
-""")
+    def test_claude_events(self):
+        line = json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "text", "text": "hi"}, {"type": "tool_use", "name": "Read", "input": {"file_path": "/repo/a.js"}}]}})
+        self.assertEqual(router.parse_line(line, self.repo), "hi\n\n> Read a.js\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "result", "total_cost_usd": 0.5}), self.repo), "\n[cost $0.50]\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "rate_limit_event"}), self.repo), "")
+
+    def test_hermes_events(self):
+        self.assertEqual(router.parse_line(json.dumps({"type": "text", "text": "ap"}), self.repo), "ap")
+        tool = json.dumps({"type": "tool_use", "name": "read_file", "input": {"path": "/repo/x"}})
+        self.assertEqual(router.parse_line(tool, self.repo), "\n> read_file x\n")
+        self.assertEqual(router.parse_line(json.dumps({"type": "result", "tokens": {"total": 9}}), self.repo), "\n[9 tokens]\n")
+        self.assertEqual(router.parse_line("Session: abc\n", self.repo), "Session: abc\n")
+
+    def test_chatgpt_events(self):
+        msg = {"type": "item.completed", "item": {"type": "agent_message", "text": "done"}}
+        cmd = {"type": "item.started", "item": {"type": "command_execution", "command": "/bin/zsh -lc 'ls -la'"}}
+        edit = {"type": "item.completed", "item": {"type": "file_change", "changes": [{"path": "/repo/b.py"}]}}
+        usage = {"type": "turn.completed", "usage": {"input_tokens": 10, "output_tokens": 5}}
+        fail = {"type": "turn.failed", "error": {"message": "usage limit reached"}}
+        self.assertEqual(router.parse_line(json.dumps(msg), self.repo), "done\n")
+        self.assertEqual(router.parse_line(json.dumps(cmd), self.repo), "\n> Bash ls -la\n")
+        self.assertEqual(router.parse_line(json.dumps(edit), self.repo), "\n> Edit b.py\n")
+        self.assertEqual(router.parse_line(json.dumps(usage), self.repo), "\n[15 tokens]\n")
+        self.assertEqual(router.parse_line(json.dumps(fail), self.repo), "\nError: usage limit reached\n")
+
+    def test_session_ids(self):
+        self.assertEqual(router.session_in('{"type": "system", "session_id": "s1"}'), "s1")
+        self.assertEqual(router.session_in('{"type": "thread.started", "thread_id": "t1"}'), "t1")
+        self.assertEqual(router.session_in("session_id: local-abc\n"), "local-abc")
+        self.assertIsNone(router.session_in("plain text"))
+
+    def test_long_tool_args_are_shortened(self):
+        self.assertLess(len(router.tool_line("Bash", {"command": "x" * 300}, self.repo)), 120)
 
 
-class RepoCase(unittest.TestCase):
-    """Throwaway git repo with agent_state/ and fake agents."""
-
+class RunAgentTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.repo = Path(self.tmp.name)
-        state = self.repo / "agent_state"
-        (state / "log").mkdir(parents=True)
-        (state / "tasks.md").write_text(TASKS)
-        (state / "context.md").write_text("- CONTEXT-MARKER\n")
-        (state / "handoff.md").write_text("Task: none\nFor the next agent: SEED-HANDOFF\n")
-        (self.repo / "agent.py").write_text(GOOD_AGENT)
-        subprocess.run(["git", "init", "-q"], cwd=self.repo, check=True)
-        subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
-        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
-                       cwd=self.repo, check=True)
-        self.claude = [sys.executable, "agent.py", "claude"]               # prompt via stdin
-        self.hermes = [sys.executable, "agent.py", "hermes", "{prompt_file}"]  # prompt via file
-        self.check = "git ls-files -co --exclude-standard -z '*.js' | xargs -0 -n1 node --check"
+        self.dir = Path(self.tmp.name)
+        script = ("import sys, json\nprompt = sys.stdin.read()\n"
+                  "print(json.dumps({'args': sys.argv[1:], 'prompt': prompt}), flush=True)\n"
+                  "print(json.dumps({'type': 'system', 'session_id': 'new-sess'}), flush=True)\n")
+        (self.dir / "echo.py").write_text(script)
+        self.cfg = {"repo": self.dir, "agent_timeout": 60, "agents": {
+            "a": {"command": [sys.executable, str(self.dir / "echo.py")], "resume": ["--resume", "{session_id}"],
+                  "add_dir": ["--add-dir", "{dir}"]},
+            "b": {"command": [sys.executable, str(self.dir / "echo.py"), "fresh"],
+                  "resume_command": [sys.executable, str(self.dir / "echo.py"), "resume", "{session_id}"]}}}
 
     def tearDown(self):
         self.tmp.cleanup()
 
-    def cfg(self, claude=None, hermes=None, check=None):
-        return {
-            "repo": self.repo, "state": self.repo / "agent_state",
-            "check_command": check or self.check, "agent_timeout": 60,
-            "agents": {"claude": {"command": claude or self.claude},
-                       "hermes": {"command": hermes or self.hermes}},
-        }
+    def first_json(self, out):
+        return json.loads(out.splitlines()[0])
 
-    def run_router(self, cfg, **kw):
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            try:
-                code = router.run(cfg, **kw)
-            except SystemExit as e:
-                code = e.code
-        return code, out.getvalue()
-
-    def rows(self):
-        return {r["id"]: r for r in router.read_tasks(self.repo / "agent_state/tasks.md")[2]}
-
-    def handoff(self):
-        return (self.repo / "agent_state/handoff.md").read_text()
-
-
-class RouterTest(RepoCase):
-    def test_dry_run_builds_prompt_and_changes_nothing(self):
-        before = (self.repo / "agent_state/tasks.md").read_text()
-        code, out = self.run_router(self.cfg(), dry_run=True)
-        self.assertEqual(code, 0)
-        for marker in ["T1 -> claude", "Write a.js", "CONTEXT-MARKER", "SEED-HANDOFF",
-                       "Do not commit, push, or deploy", "| T2 |"]:
-            self.assertIn(marker, out)
-        self.assertEqual((self.repo / "agent_state/tasks.md").read_text(), before)
-
-    def test_success_marks_done_and_writes_log(self):
-        code, out = self.run_router(self.cfg())
-        self.assertEqual(code, 0, out)
-        self.assertEqual(self.rows()["T1"]["status"], "done")
-        self.assertIn("MARKER-FROM-claude", self.handoff())
-        self.assertIn("Router: check passed", self.handoff())
-        log = next((self.repo / "agent_state/log").glob("*-T1.md")).read_text()
-        self.assertIn("Result: done", log)
-        self.assertIn("claude.js", log)
-        self.assertIn("Agent wrote handoff.md: yes", log)
-
-    def test_second_agent_receives_first_agents_handoff(self):
-        self.assertEqual(self.run_router(self.cfg())[0], 0)
-        code, out = self.run_router(self.cfg())
-        self.assertEqual(code, 0, out)
-        self.assertEqual(self.rows()["T2"]["status"], "done")
-        hermes_prompt = (self.repo / "prompt-hermes.txt").read_text()
-        self.assertIn("MARKER-FROM-claude", hermes_prompt)
-        self.assertIn("| T1 | Write a.js | done |", hermes_prompt)
-
-    def test_agent_that_skips_handoff_gets_fallback(self):
-        lazy = [sys.executable, "-c", "import sys; sys.stdin.read(); print('LAZY-OUTPUT')"]
-        code, out = self.run_router(self.cfg(claude=lazy))
-        self.assertEqual(code, 0, out)
-        self.assertIn("did not write handoff.md", out)
-        self.assertIn("LAZY-OUTPUT", self.handoff())
-        self.assertIn("Status: done", self.handoff())
-
-    def test_failed_check_blocks_task(self):
-        bad = [sys.executable, "-c",
-               "import sys,pathlib; sys.stdin.read(); pathlib.Path('bad.js').write_text('var = ;')"]
-        code, out = self.run_router(self.cfg(claude=bad))
-        self.assertEqual(code, 1)
-        self.assertEqual(self.rows()["T1"]["status"], "blocked")
-        self.assertIn("Status: blocked", self.handoff())
-        self.assertIn("SyntaxError", self.handoff())
-        self.assertIn("SEED-HANDOFF", self.handoff())  # previous notes survive a failure
-
-    def test_missing_agent_cli_blocks_task(self):
-        code, out = self.run_router(self.cfg(claude=["no-such-agent-cli"]))
-        self.assertEqual(code, 1)
-        self.assertEqual(self.rows()["T1"]["status"], "blocked")
-        self.assertIn("command not found", self.handoff())
-
-    def test_failing_agent_exit_code_blocks_task(self):
-        crash = [sys.executable, "-c", "import sys; sys.stdin.read(); sys.exit(3)"]
-        code, _ = self.run_router(self.cfg(claude=crash))
-        self.assertEqual(code, 1)
-        self.assertIn("agent exited 3", self.rows()["T1"]["notes"])
-
-    def test_in_progress_task_stops_new_runs(self):
-        router.write_row(self.repo / "agent_state/tasks.md", "T1", status="in_progress")
-        code, out = self.run_router(self.cfg())
-        self.assertIn("in_progress", str(code))
-
-    def test_unassigned_tasks_are_skipped(self):
-        for t in ["T1", "T2"]:
-            router.write_row(self.repo / "agent_state/tasks.md", t, status="done")
-        code, _ = self.run_router(self.cfg())
-        self.assertIn("no owner", str(code))
-        code, out = self.run_router(self.cfg(), agent_override="claude", dry_run=True)
-        self.assertIn("T3 -> claude", out)
-
-    def test_new_task_text_is_added_and_run(self):
-        code, out = self.run_router(self.cfg(), wanted="Brand new task", agent_override="hermes")
-        self.assertEqual(code, 0, out)
-        row = self.rows()["T4"]
-        self.assertEqual((row["task"], row["owner"], row["status"]), ("Brand new task", "hermes", "done"))
-
-    def test_new_task_without_agent_is_refused(self):
-        code, _ = self.run_router(self.cfg(), wanted="Brand new task")
-        self.assertIn("--agent", str(code))
-
-    def test_done_task_is_not_rerun(self):
-        router.write_row(self.repo / "agent_state/tasks.md", "T1", status="done")
-        code, _ = self.run_router(self.cfg(), wanted="T1")
-        self.assertIn("already done", str(code))
-
-    def test_git_status_sees_second_edit_of_modified_file(self):
-        target = self.repo / "agent.py"
-        target.write_text("# edit 1\n")
-        before = router.git_status(self.repo)
-        target.write_text("# edit 2\n")
-        self.assertNotEqual(router.git_status(self.repo), before)
-
-    def test_pipes_in_notes_do_not_break_table(self):
-        router.write_row(self.repo / "agent_state/tasks.md", "T1", notes="a | b")
-        self.assertEqual(self.rows()["T1"]["notes"], "a / b")
-        self.assertEqual(len(self.rows()), 3)
-
-
-# Fake agent that emits Claude Code style stream-json, edits a file and writes handoff.md.
-STREAM_AGENT = textwrap.dedent("""\
-    import sys, json, pathlib, os
-    sys.stdin.read()
-    repo = os.getcwd()
-    def emit(e): print(json.dumps(e), flush=True)
-    emit({"type": "system", "subtype": "init"})
-    emit({"type": "assistant", "message": {"content": [
-        {"type": "text", "text": "Working on it"},
-        {"type": "tool_use", "name": "Edit", "input": {"file_path": repo + "/s.js"}}]}})
-    pathlib.Path("s.js").write_text("var s = 1;\\n")
-    pathlib.Path("agent_state/handoff.md").write_text("Task: s\\nStatus: done\\n")
-    emit({"type": "result", "total_cost_usd": 0.1234})
-""")
-
-
-class StreamingTest(RepoCase):
-    def test_parse_claude_events(self):
-        line = json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "text", "text": "hi"},
-            {"type": "tool_use", "name": "Read", "input": {"file_path": f"{self.repo}/a.js"}}]}})
-        self.assertEqual(router.parse_line(line, self.repo), "hi\n\n> Read a.js\n")
-        self.assertEqual(router.parse_line(json.dumps({"type": "result", "total_cost_usd": 0.5}), self.repo),
-                         "\n[cost $0.50]\n")
-        self.assertEqual(router.parse_line(json.dumps({"type": "rate_limit_event"}), self.repo), "")
-
-    def test_parse_hermes_events(self):
-        self.assertEqual(router.parse_line(json.dumps({"type": "text", "text": "ap"}), self.repo), "ap")
-        tool = json.dumps({"type": "tool_use", "name": "read_file", "input": {"path": f"{self.repo}/x"}})
-        self.assertEqual(router.parse_line(tool, self.repo), "\n> read_file x\n")
-        self.assertEqual(router.parse_line(json.dumps({"type": "result", "tokens": {"total": 9}}), self.repo),
-                         "\n[9 tokens]\n")
-        self.assertEqual(router.parse_line("Session: abc\n", self.repo), "Session: abc\n")
-
-    def test_long_tool_args_are_shortened(self):
-        out = router.tool_line("Bash", {"command": "x" * 300}, self.repo)
-        self.assertLess(len(out), 120)
-
-    def test_output_is_streamed_to_echo(self):
-        (self.repo / "stream.py").write_text(STREAM_AGENT)
-        cfg = self.cfg(claude=[sys.executable, "stream.py"])
-        cfg["agents"]["claude"]["format"] = "stream-json"
+    def test_prompt_streams_and_session_is_captured(self):
         seen = []
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = router.run(cfg, echo=seen.append)
-        self.assertEqual(code, 0, out.getvalue())
-        streamed = "".join(seen)
-        self.assertIn("Working on it", streamed)
-        self.assertIn("> Edit s.js", streamed)
-        self.assertIn("[cost $0.12]", streamed)
-        self.assertNotIn('"type"', streamed)  # raw JSON never shown
-        log = next((self.repo / "agent_state/log").glob("*-T1.md")).read_text()
-        self.assertIn("> Edit s.js", log)
+        code, out, session = router.run_agent(self.cfg, "a", "hello", echo=seen.append)
+        self.assertEqual((code, session), (0, "new-sess"))
+        self.assertEqual(self.first_json(out)["prompt"], "hello")
+        self.assertTrue(seen)
 
-    def test_ctrl_c_stops_agent_and_blocks_task(self):
-        slow = [sys.executable, "-c", "import sys,time; sys.stdin.read(); print('started', flush=True); time.sleep(30)"]
+    def test_resume_flags_extra_dirs_and_cwd(self):
+        sub = self.dir / "proj"
+        sub.mkdir()
+        code, out, _ = router.run_agent(self.cfg, "a", "x", session_id="old", cwd=sub, extra_dirs=[self.dir / "att"])
+        self.assertEqual(self.first_json(out)["args"], ["--resume", "old", "--add-dir", str(self.dir / "att")])
 
-        def interrupt(text):
-            raise KeyboardInterrupt
+    def test_resume_command_replaces_the_command(self):
+        _, out, _ = router.run_agent(self.cfg, "b", "x", session_id="old")
+        self.assertEqual(self.first_json(out)["args"], ["resume", "old"])
+        _, out, _ = router.run_agent(self.cfg, "b", "x")
+        self.assertEqual(self.first_json(out)["args"], ["fresh"])
 
-        code, out = self.run_router(self.cfg(claude=slow), echo=interrupt)
-        self.assertEqual(code, 1)
-        self.assertEqual(self.rows()["T1"]["status"], "blocked")
-        self.assertIn("stopped by user", self.rows()["T1"]["notes"])
+    def test_missing_command(self):
+        self.cfg["agents"]["a"]["command"] = ["no-such-agent-cli"]
+        code, out, _ = router.run_agent(self.cfg, "a", "x")
+        self.assertEqual(code, 127)
+        self.assertIn("command not found", out)
 
-    def test_timeout_blocks_task(self):
-        slow = [sys.executable, "-c", "import sys,time; sys.stdin.read(); time.sleep(30)"]
-        cfg = self.cfg(claude=slow)
-        cfg["agent_timeout"] = 1
-        code, _ = self.run_router(cfg)
-        self.assertEqual(code, 1)
-        self.assertIn("timed out", self.handoff())
+    def test_stop_from_another_thread(self):
+        (self.dir / "slow.py").write_text("import sys, time\nsys.stdin.read()\nprint('started', flush=True)\ntime.sleep(30)\n")
+        self.cfg["agents"]["a"]["command"] = [sys.executable, str(self.dir / "slow.py")]
+        control = {}
+        import threading
+
+        def stopper():
+            while "proc" not in control:
+                time.sleep(0.05)
+            time.sleep(0.3)
+            control["stopped"] = True
+            control["proc"].kill()
+        threading.Thread(target=stopper).start()
+        code, out, _ = router.run_agent(self.cfg, "a", "x", control=control)
+        self.assertEqual(code, 130)
+        self.assertIn("stopped by user", out)
+
+    def test_timeout(self):
+        (self.dir / "slow.py").write_text("import sys, time\nsys.stdin.read()\ntime.sleep(30)\n")
+        self.cfg["agents"]["a"]["command"] = [sys.executable, str(self.dir / "slow.py")]
+        self.cfg["agent_timeout"] = 1
+        code, out, _ = router.run_agent(self.cfg, "a", "x")
+        self.assertEqual(code, 124)
+        self.assertIn("timed out", out)
+
+
+class FilesTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_snapshot_without_git(self):
+        (self.dir / "a.py").write_text("1")
+        (self.dir / "__pycache__").mkdir()
+        before = router.snapshot(self.dir)
+        (self.dir / "a.py").write_text("22")
+        (self.dir / "b.py").write_text("new")
+        (self.dir / "__pycache__" / "x.pyc").write_text("ignored")
+        self.assertEqual(router.changed_files(before, router.snapshot(self.dir)), ["a.py", "b.py"])
+
+    def test_snapshot_with_git_sees_second_edit(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.dir, check=True)
+        (self.dir / "a.js").write_text("1")
+        first = router.snapshot(self.dir)
+        (self.dir / "a.js").write_text("2")
+        self.assertEqual(router.changed_files(first, router.snapshot(self.dir)), ["a.js"])
+
+    def test_scratch_copy_is_separate(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.dir, check=True)
+        (self.dir / "a.js").write_text("original")
+        copy = router.scratch_copy(self.dir)
+        self.assertEqual((copy / "a.js").read_text(), "original")
+        self.assertTrue((copy / ".git").exists())  # git status still works in the copy
+        (copy / "a.js").write_text("changed in copy")
+        (copy / "new.js").write_text("x")
+        self.assertEqual((self.dir / "a.js").read_text(), "original")
+        self.assertFalse((self.dir / "new.js").exists())
+        router.remove_scratch(copy)
+        self.assertFalse(copy.exists())
+
+    def test_run_check(self):
+        self.assertEqual(router.run_check("", self.dir), (0, ""))
+        self.assertEqual(router.run_check("echo fine", self.dir)[0], 0)
+        code, out = router.run_check("echo broken >&2; exit 3", self.dir)
+        self.assertEqual((code, out), (3, "broken"))
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Chat with Claude and Hermes from the terminal. Start it with: npm run agents
+"""Chat with your agents from the terminal. Start it with: npm run agents
 
-In a real terminal this opens the full interface (tui.py). When input or output is piped it falls back
-to a plain line-by-line mode with the same commands.
+Hermes reads every message: it answers questions itself and hands code to a coder (Claude or ChatGPT),
+working in the current project's folder. In a real terminal this opens the full interface (tui.py);
+when input or output is piped it falls back to a plain line-by-line mode with the same commands.
 """
 import datetime as dt
-import json
 import os
 import re
 import shutil
@@ -17,70 +17,67 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE / "app"))
+import engine  # noqa: E402
 import router  # noqa: E402
-import server  # noqa: E402
 
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 AGENT_COLORS = {"claude": "38;5;173", "hermes": "38;5;75", "chatgpt": "38;5;36"}
-STATUS_COLORS = {"done": "32", "blocked": "31", "in_progress": "33", "pending": "36", "running": "33", "queued": "36"}
 MENTION = re.compile(r"^\s*@(\w+)\s*(.*)$", re.S)
-LEGACY = re.compile(r"^\s*(claude|hermes|both|auto)\s*:\s*(.+)$", re.S | re.I)
 PASTE_HELP = "Copy a screenshot with Cmd+Ctrl+Shift+4 (or copy an image), then /paste."
+IMAGE_TYPES = engine.IMAGE_TYPES
 
 # Glyphs (escaped so this file stays plain ASCII)
 DOT = "⏺"
 ELBOW = "⎿"
 MIDDOT = "·"
+ARROW = "→"
 
-REVIEW_REQUEST = ("Review the uncommitted changes in this repo (look at git status and git diff). List concrete "
-                  "problems: bugs, risky or unintended changes, missing pieces. Be specific and brief. "
-                  "Do not change any files.")
+REVIEW_REQUEST = ("Review the uncommitted changes in this project. List concrete problems: bugs, risky or "
+                  "unintended changes, missing pieces. Be specific and brief. Do not change any files.")
 
 COMMANDS = {  # name -> (description, takes an argument)
     "help": ("Show help and commands", False),
-    "new": ("Start a new task", False),
-    "clear": ("Start a new task (same as /new)", False),
-    "resume": ("Switch to an earlier task", False),
-    "open": ("Switch to a task by ID", True),
-    "tasks": ("List tasks", False),
-    "model": ("Choose who handles messages: auto, claude, hermes, chatgpt, both", False),
-    "agent": ("Same as /model", False),
+    "new": ("Start a new chat in this project", False),
+    "clear": ("Start a new chat (same as /new)", False),
+    "resume": ("Open an earlier chat in this project", False),
+    "chats": ("List chats in this project", False),
+    "project": ("Switch project, or /project add <folder>, /project coder <name>", False),
+    "model": ("Who handles messages: Hermes (decides) or a coder directly", False),
     "attach": ("Attach a file to your next message", True),
     "paste": ("Attach the image on your clipboard", False),
-    "run": ("Run the current task (if pending or blocked)", False),
-    "reset": ("Set the current blocked task back to pending", False),
     "review": ("Ask for a review of the uncommitted changes", False),
-    "diff": ("Show uncommitted changes (/diff full for all)", False),
-    "status": ("Repo, agents, logins and what's running", False),
+    "diff": ("Show this project's uncommitted changes (/diff full for all)", False),
+    "doctor": ("Agents, logins, limits and projects", False),
+    "status": ("Same as /doctor", False),
+    "memory": ("What the agents remember about this project", False),
     "cost": ("Estimated agent usage from the logs", False),
-    "handoff": ("Show the latest handoff note", False),
-    "context": ("Show the decisions log", False),
-    "log": ("Show a task's latest log", False),
-    "export": ("Save the current task's conversation to a file", False),
+    "search": ("Search all chats in every project", True),
+    "rename": ("Rename this chat", True),
+    "pin": ("Pin or unpin this chat", False),
+    "archive": ("Archive this chat", False),
+    "export": ("Save this chat to a markdown file", False),
     "exit": ("Exit", False),
-    "quit": ("Exit", False),
 }
 
 HELP = """\
-Just type. On Auto, Hermes answers questions and hands code changes to Claude
-(messages with screenshots go to Claude, since Hermes can't see images).
-After a task runs you stay in it: type again to follow up, or /new to start another.
+Just type. Hermes answers questions itself and hands code changes to the project's coder
+({coders}), then reports back. Your chat stays open: type again to follow up, /new for another.
 
-  @claude @hermes @chatgpt      pick who handles this message (in a task, hands it over)
-  @both @auto                   Claude builds and Hermes reviews / let Auto decide
-  @path                         attach a file; dragging a file in or /paste also attaches
-  !command                      run a shell command in the repo
-  #note                         save a note to agent_state/context.md for both agents
+  @claude @chatgpt   send this message straight to a coder (skips Hermes)
+  @hermes            let Hermes decide (the default)
+  @path              attach a file; dragging a file in, ctrl+v or /paste also attach
+  !command           run a shell command in the project folder
+  #note              save a note to this project's memory for every agent
 
 Commands:
 {commands}"""
 
 SHORTCUTS = [
     ("enter", "send"), ("\\+enter / option+enter", "new line"),
-    ("shift+tab", "switch agent"), ("esc", "stop the agent / close menu"),
-    ("up / down", "message history"), ("ctrl+r", "search history"), ("ctrl+v", "paste a screenshot"),
-    ("ctrl+c", "clear input (twice to exit)"), ("ctrl+d", "exit"), ("ctrl+l", "redraw the screen"),
+    ("shift+tab", "Hermes or a coder"), ("ctrl+p", "switch project"),
+    ("esc", "stop / close menu"), ("up / down", "message history"),
+    ("ctrl+r", "search history"), ("ctrl+v", "paste a screenshot"),
+    ("ctrl+c", "clear input (twice to exit)"), ("ctrl+d", "exit"),
     ("/", "commands"), ("@", "files and agents"), ("!", "shell command"), ("#", "save a note"),
 ]
 
@@ -123,8 +120,7 @@ def extract_files(line):
                 continue
         out.append(line[i])
         i += 1
-    text = re.sub(r"[ \t]{2,}", " ", "".join(out)).strip()
-    return text, files
+    return re.sub(r"[ \t]{2,}", " ", "".join(out)).strip(), files
 
 
 def clipboard_image():
@@ -142,79 +138,91 @@ def clipboard_image():
 
 
 class Watch:
-    """What has been shown so far of one task's thread."""
+    """What has been shown so far of one chat."""
 
-    def __init__(self, task_id, seen):
-        self.task_id = task_id
-        self.seen = seen      # messages before this index were already on screen
-        self.printed = {}     # message index -> characters shown (-1 = finished route message)
-        self.partial = {}     # message index -> unfinished line
+    def __init__(self, pid, cid, seen):
+        self.pid, self.cid, self.seen = pid, cid, seen
+        self.printed = {}   # message index -> characters shown
+        self.partial = {}   # message index -> unfinished line
         self.queued_note = False
         self.started = time.time()
 
 
 class Shell:
-    """Commands and conversation logic shared by the full terminal UI and the plain line mode.
+    """Projects, chats and commands, shared by the terminal UI and the plain line mode.
 
     Nothing here blocks on an agent: submit() starts work and pump() shows whatever is new.
     """
 
-    def __init__(self, cfg, poll=0.15, out=None):
-        router.say = lambda *args: None  # this shell draws its own output
-        self.app = server.App(cfg)
+    def __init__(self, cfg, poll=0.15, out=None, store=None, cwd=None):
+        self.engine = engine.Engine(cfg, store)
+        self.engine.ensure_defaults()
+        self.store = self.engine.store
         self.cfg = cfg
-        self.state = cfg["state"]
         self.poll = poll
         self.out = out or (lambda text="": print(text, flush=True))
-        self.focus = None
-        self.default = "auto" if self.app.auto_ready() else next(iter(cfg["agents"]))
-        self.hinted = False
-        self.pending = []  # files attached with /attach or /paste, sent with the next message
+        start = self.store.project_for_path(cwd or os.environ.get("INIT_CWD") or os.getcwd())
+        projects = self.store.projects()
+        self.pid = (start or (projects[0] if projects else {})).get("id")
+        self.focus = None     # current chat id
+        self.agent = None     # None = Hermes decides; otherwise a coder name
+        self.pending = []     # files attached with /attach or /paste, sent with the next message
         self.watches = []
-        self.last_agent = {}  # task -> agent of the last message shown (to print headers only on change)
+        self.hinted = False
         self.handlers = {
-            "new": self.new, "clear": self.new, "open": self.open, "resume": self.open, "tasks": self.tasks,
-            "agent": self.agent, "model": self.agent, "run": self.run, "reset": self.reset, "diff": self.diff,
-            "handoff": lambda a: self.show_file("handoff.md"), "context": lambda a: self.show_file("context.md"),
-            "log": self.log, "help": self.help, "attach": self.attach, "paste": self.paste,
-            "status": self.status, "cost": self.cost, "review": self.review, "export": self.export,
-            "quit": lambda a: False, "exit": lambda a: False,
+            "help": self.help, "new": self.new, "clear": self.new, "resume": self.resume, "chats": self.chats,
+            "open": self.resume, "project": self.project_cmd, "model": self.model, "agent": self.model,
+            "attach": self.attach, "paste": self.paste, "review": self.review, "diff": self.diff,
+            "doctor": self.doctor, "status": self.doctor, "memory": self.memory, "cost": self.cost,
+            "search": self.search, "rename": self.rename, "pin": self.pin, "archive": self.archive,
+            "export": self.export, "exit": lambda a: False, "quit": lambda a: False,
         }
-        self.commands = self.handlers  # kept for older callers
 
     # ---- naming ----
 
-    def resolve(self, word):
-        """Map what the user typed (auto, claude, hermes, both) to an owner the app accepts."""
-        word = word.lower()
-        if word == "both":
-            word = "relay"
-        try:
-            return self.app.check_agent(word)
-        except server.ApiError as e:
-            raise SystemExit(str(e))
+    def project(self):
+        if not self.pid:
+            raise SystemExit("No project yet. Add one with /project add <folder>.")
+        return self.store.project(self.pid)
 
-    def label(self, owner):
-        return server.name(owner) if owner != "auto" else "Auto"
+    def label(self, agent):
+        return engine.name(agent or self.engine.orchestrator)
 
     def modes(self):
-        """Choices for who handles messages, in Shift+Tab order."""
-        choices = []
-        if self.app.auto_ready():
-            choices.append("auto")
-        choices += list(self.cfg["agents"])
-        if len(self.cfg["agents"]) >= 2:
-            choices.append(self.resolve("both"))
-        return choices
+        """Who handles messages, in Shift+Tab order: Hermes first, then each coder directly."""
+        return [self.engine.orchestrator, *self.engine.coders]
 
     def current_owner(self):
-        return self.app.row(self.focus)["owner"] if self.focus else self.default
+        return self.agent or self.engine.orchestrator
+
+    @property
+    def default(self):
+        return self.current_owner()
+
+    def set_mode(self, agent, quiet=False):
+        agent = (agent or "").lower()
+        if agent not in self.modes():
+            raise SystemExit(f"Choose one of: {', '.join(self.modes())}.")
+        self.agent = None if agent == self.engine.orchestrator else agent
+        if not quiet:
+            self.out(f"Messages go to {self.label(agent)}" + ("" if self.agent else " (it answers or hands code to a coder)") + ".")
+
+    def default_coder(self):
+        return self.engine.default_coder(self.project()) if self.pid else None
 
     def prompt(self):
         files = f" [{len(self.pending)} file{'s' if len(self.pending) != 1 else ''}]" if self.pending else ""
-        if self.focus:
-            return f"{self.focus}{files} > "
-        return f"new{files} > " if self.default == "auto" else f"new ({self.label(self.default)}){files} > "
+        name = self.project()["name"] if self.pid else "no project"
+        who = "" if not self.agent else f" ({self.label(self.agent)})"
+        return f"{name}{who}{files} > "
+
+    def chat_title(self):
+        if not self.focus:
+            return ""
+        try:
+            return self.store.chat(self.pid, self.focus)["title"]
+        except engine.ChatError:
+            return ""
 
     # ---- input ----
 
@@ -247,43 +255,33 @@ class Shell:
                 raise SystemExit("Write a message after the agent name.")
             self.send(text, agent, files)
             self.pending = []
-        except (SystemExit, server.ApiError) as e:
+        except (SystemExit, engine.ChatError) as e:
             self.out(paint(str(getattr(e, "code", None) or e), "31"))
         return True
 
     def split_mention(self, line):
-        m = MENTION.match(line) or LEGACY.match(line)
-        if m and (m.group(1).lower() in ("auto", "both") or m.group(1).lower() in self.cfg["agents"]):
-            return self.resolve(m.group(1)), m.group(2).strip()
+        m = MENTION.match(line)
+        if m and m.group(1).lower() in self.modes():
+            return m.group(1).lower(), m.group(2).strip()
         return None, line
 
     def send(self, text, agent=None, files=None):
+        project = self.project()
+        target = agent if agent is not None else self.agent
+        if target == self.engine.orchestrator:
+            target = None
         if files:
             self.out(dim(f"  {ELBOW} attached: " + ", ".join(Path(f).name for f in files)))
-            target = agent or self.current_owner()
-            images = [f for f in files if Path(f).suffix.lower() in server.IMAGE_TYPES]
-            if images and target in self.cfg["agents"] and not self.app.sees_images(target):
-                self.out(paint(f"  {server.name(target)} can't see images. Use Auto or @claude for screenshots.", "33"))
         if self.focus is None:
-            self.focus = self.app.new_task(agent or self.default, text, files=files)
-            seen = 1  # the request itself
+            self.focus = self.engine.new_chat(project["id"], text, files, target)
+            seen = 1
         else:
-            row = self.app.row(self.focus)
-            seen = len(self.app.threads.get(self.focus, row["task"])["messages"])
-            if agent and agent != row["owner"]:
-                self.app.set_owner(self.focus, agent)
-                self.out(dim(f"  {ELBOW} {self.focus} now goes to {self.label(agent)}"))
-            if row["status"] == "pending":
-                if files:
-                    self.app.threads.ensure(self.focus, row["owner"], row["task"])
-                    self.app.threads.attach(self.focus, self.app.save_attachments(self.focus, files))
-                self.app.run_task(self.focus)
-            else:
-                self.app.reply(self.focus, text, files)
-        self.watch(self.focus, seen)
+            seen = len(self.store.chat(project["id"], self.focus)["messages"]) + 1
+            self.engine.send(project["id"], self.focus, text, files, target)
+        self.watch(project["id"], self.focus, seen)
 
-    def watch(self, task_id, seen=0, printed=None, partial=None):
-        w = Watch(task_id, seen)
+    def watch(self, pid, cid, seen=0, printed=None, partial=None):
+        w = Watch(pid, cid, seen)
         if printed is not None:
             w.printed, w.partial = printed, partial
         self.watches.append(w)
@@ -295,32 +293,27 @@ class Shell:
         return bool(self.watches)
 
     def pump(self):
-        """Show anything new in watched threads. Returns True while any watched task is still working."""
+        """Show anything new in watched chats. Returns True while any is still working."""
         for w in list(self.watches):
-            busy = self.app.busy(w.task_id)
-            thread = self.app.threads.get(w.task_id, "")
-            for i, m in enumerate(thread["messages"]):
+            busy = self.engine.busy(w.pid, w.cid)
+            chat = self.store.chat(w.pid, w.cid)
+            for i, m in enumerate(chat["messages"]):
                 if i < w.seen or m["role"] == "user":
                     continue
-                if m["role"] == "result":
-                    if i not in w.printed:
-                        w.printed[i] = 0
-                        self.print_result(m)
-                    continue
-                self.print_agent(w.task_id, i, m, w.printed, w.partial)
-            blocker = self.blocking(w.task_id)
-            if not w.queued_note and blocker:
+                self.print_message(i, m, w.printed, w.partial)
+            blocker = self.engine.waiting_behind(w.pid, w.cid)
+            if blocker and not w.queued_note:
                 w.queued_note = True
-                self.out(dim(f"  {ELBOW} queued, starts when {blocker} finishes"))
-            if not busy and not any(m.get("live") for m in thread["messages"]):
+                self.out(dim(f"  {ELBOW} queued behind another chat in this project"))
+            if not busy and not any(m.get("live") for m in chat["messages"]):
                 self.watches.remove(w)
                 if not self.hinted:
                     self.hinted = True
-                    self.out(dim("  Reply to follow up on this task, or /new to start another."))
+                    self.out(dim("  Reply to follow up in this chat, or /new to start another."))
         return bool(self.watches)
 
     def wait(self):
-        """Line mode: keep showing output until watched tasks finish. Ctrl-C stops them."""
+        """Line mode: keep showing output until watched chats finish. Ctrl-C stops them."""
         try:
             while self.pump():
                 time.sleep(self.poll)
@@ -334,60 +327,74 @@ class Shell:
         stopped = []
         for w in self.watches:
             try:
-                self.app.stop(w.task_id)
-                stopped.append(w.task_id)
-            except server.ApiError:
+                self.engine.stop(w.pid, w.cid)
+                stopped.append(w.cid)
+            except engine.ChatError:
                 pass
         return stopped
 
     def working(self):
-        """(agent, step, seconds) for each agent currently producing output, for a status line."""
+        """(agent, step, seconds) for each agent producing output now, for the spinner."""
         items = []
         for w in self.watches:
-            thread = self.app.threads.get(w.task_id, "")
-            live = next((m for m in reversed(thread["messages"]) if m.get("live")), None)
+            chat = self.store.chat(w.pid, w.cid)
+            live = next((m for m in reversed(chat["messages"]) if m.get("live")), None)
             if live:
                 try:
                     started = dt.datetime.fromisoformat(live["time"]).timestamp()
                 except (KeyError, ValueError):
                     started = w.started
                 items.append((live.get("agent") or "agent", live.get("step") or "", max(0, time.time() - started)))
-            elif self.app.busy(w.task_id):
+            elif self.engine.status(w.pid, w.cid) == "queued":
                 items.append(("queued", "", time.time() - w.started))
+            elif self.engine.busy(w.pid, w.cid):
+                items.append(("checking", "", time.time() - w.started))
         return items
 
-    def blocking(self, task_id):
-        """The task a queued task is waiting behind, if it is actually waiting."""
-        with self.app.lock:
-            for lane in self.app.lanes:
-                if task_id in lane.queued and lane.current not in (None, task_id):
-                    return lane.current
-        return None
+    def live_partial(self):
+        for w in self.watches:
+            for text in w.partial.values():
+                if text and not re.match(r"^\W*(DELEGATE|REVIEW|BRIEF):", text):
+                    return text
+        return ""
 
-    def queued_ids(self):
-        with self.app.lock:
-            return [t for lane in self.app.lanes for t in lane.queued]
-
-    def print_agent(self, task_id, i, m, printed, partial):
+    def print_message(self, i, m, printed, partial):
+        if m["role"] == "result":
+            if i not in printed:
+                printed[i] = 0
+                self.print_result(m)
+            return
+        if m["role"] == "note":
+            if i not in printed:
+                printed[i] = 0
+                self.out(dim(f"  {ELBOW} {m['text']}"))
+            return
+        if m["role"] != "agent":
+            return
         agent = m.get("agent") or "agent"
+        step = m.get("step") or ""
+        if step == "delegate" or (step == "orchestrate" and m.get("live")):
+            if step == "delegate" and printed.get(i) != -1:
+                printed[i] = -1
+                partial[i] = ""
+                self.out("")
+                self.out(paint(DOT, AGENT_COLORS["hermes"]) + " " + paint("Hermes", "1") + " " + ARROW + " "
+                         + paint(engine.name(m.get("coder", "")), "1;" + AGENT_COLORS.get(m.get("coder"), "0"))
+                         + (dim("  (with review)") if m.get("review") else ""))
+                brief = " ".join((m.get("brief") or "").split())
+                if brief:
+                    self.out(dim(f"  {ELBOW} {brief[:200]}{'...' if len(brief) > 200 else ''}"))
+            return
         if i not in printed:
             printed[i] = 0
             partial[i] = ""
-            step = {"build": f"builds, turn {m.get('turn')}", "review": f"reviews, turn {m.get('turn')}"}.get(m.get("step"), "")
-            if self.last_agent.get(task_id) != (agent, m.get("turn")) or step:
-                self.out("")
-                self.out(paint(DOT, AGENT_COLORS.get(agent, "0")) + " " + paint(server.name(agent), "1")
-                         + (dim(f"  {MIDDOT} {step}") if step else ""))
-            self.last_agent[task_id] = (agent, m.get("turn"))
-        text = m.get("text", "")
-        if m.get("step") == "route" and not m.get("live"):
-            if printed[i] != -1:
-                printed[i] = -1
-                partial[i] = ""
-                self.out(dim(f"  {ELBOW} {text}"))
-            return
+            label = {"code": "coding", "fix": "fixing the check", "review": "reviewing", "report": ""}.get(step, "")
+            self.out("")
+            self.out(paint(DOT, AGENT_COLORS.get(agent, "0")) + " " + paint(engine.name(agent), "1")
+                     + (dim(f"  {MIDDOT} {label}") if label else ""))
         if printed[i] == -1:
             return
+        text = m.get("text", "")
         new = text[printed[i]:]
         printed[i] = len(text)
         lines = (partial[i] + new).split("\n")
@@ -398,17 +405,9 @@ class Shell:
             self.print_line(partial[i])
             partial[i] = ""
 
-    def live_partial(self):
-        """The unfinished line an agent is typing right now (shown in the live area by the UI)."""
-        for w in self.watches:
-            for i, text in w.partial.items():
-                if text and router.WANTS_CODE.match(text) is None:
-                    return text
-        return ""
-
     def print_line(self, line):
-        if router.WANTS_CODE.match(line):
-            return  # shown as "handing it to Claude" once routing finishes
+        if re.match(r"^\W*(DELEGATE|REVIEW|BRIEF):", line):
+            return
         tool = re.match(r"^> (\S+)\s*(.*)$", line)
         if tool:
             arg = f"({tool.group(2)})" if tool.group(2) else ""
@@ -421,84 +420,125 @@ class Shell:
             self.out("")
 
     def print_result(self, m):
-        files = [f for f in m.get("files", []) if f and not f.startswith("agent_state/")]
+        files = [f for f in m.get("files", []) if f]
         changed = f" {MIDDOT} changed {', '.join(files)}" if files else ""
         lead = f"  {ELBOW} "
-        if m.get("relay") == "agreed":
-            self.out(lead + paint("Both agents agree: done", "32") + dim(f" {MIDDOT} {m.get('text', '')}"))
-        elif m.get("relay") == "agent_failed":
-            self.out(lead + paint(f"Stopped: {m.get('reason')}", "31") + dim(f" {MIDDOT} {m.get('text') or 'see /log'}"))
-            self.out(dim("     Fix the cause, then /run to try again."))
-        elif m.get("relay"):
-            self.out(lead + paint(f"No agreement: {m.get('reason')}", "31") + dim(f" {MIDDOT} reply with directions or /run"))
-        elif m.get("answer"):
-            if not m.get("ok"):
-                self.out(lead + paint(f"Stopped: {m.get('reason')}", "31"))
-            elif files:
+        if m.get("answer"):
+            if files:
                 self.out(lead + paint(f"Changed files while answering: {', '.join(files)}", "33"))
-        elif m.get("step"):
-            if m.get("approved"):
-                self.out(lead + paint("Approved, check passed", "32"))
-            elif m.get("ok"):
-                self.out(lead + paint("Check passed", "32") + dim(changed))
-            else:
-                self.out(lead + paint(f"Check failed: {m.get('reason')}", "31"))
         elif m.get("ok"):
-            self.out(lead + paint("Done, check passed", "32") + dim(changed + f" {MIDDOT} /diff to review"))
+            check = " check passed" if m.get("checked", True) else ""
+            self.out(lead + paint(f"Done{',' + check if check else ''}", "32")
+                     + dim(f" {MIDDOT} {engine.name(m['agent'])}" if m.get("agent") else "") + dim(changed))
         else:
-            self.out(lead + paint(f"Blocked: {m.get('reason') or 'see log'}", "31"))
-            check = (m.get("check") or "").strip()
-            if check and check != "skipped: agent failed":
-                for line in check.splitlines()[-8:]:
-                    self.out(dim("     " + line))
-            self.out(dim("     Reply with how to fix it, or /run to try again."))
+            self.out(lead + paint(f"Not finished: {m.get('reason') or 'see the log'}", "31") + dim(changed))
+            for line in (m.get("check") or "").strip().splitlines()[-8:]:
+                self.out(dim("     " + line))
 
-    # ---- notes and shell commands (used by the UI's # and ! modes) ----
+    # ---- notes (the UI's # mode) ----
 
     def remember(self, note):
-        note = " ".join(note.split())
-        if not note:
+        if not " ".join(note.split()):
             raise SystemExit("Write the note after #.")
-        path = self.state / "context.md"
-        with path.open("a") as f:
-            f.write(f"- {dt.date.today()} (you): {note}\n")
-        self.out(dim(f"  {ELBOW} Saved to agent_state/context.md, so both agents will see it."))
+        self.store.remember(self.project()["id"], "you", note)
+        self.out(dim(f"  {ELBOW} Saved to {self.project()['name']}'s memory, so every agent will see it."))
 
     # ---- commands ----
 
     def help(self, arg):
         width = max(len(n) for n in COMMANDS) + 2
-        lines = [f"  /{name:<{width}}{desc}" for name, (desc, _) in COMMANDS.items() if name not in ("quit", "agent", "clear")]
-        self.out(HELP.format(commands="\n".join(lines)))
+        lines = [f"  /{n:<{width}}{d}" for n, (d, _) in COMMANDS.items() if n not in ("clear", "status")]
+        self.out(HELP.format(commands="\n".join(lines),
+                             coders=" or ".join(engine.name(c) for c in self.engine.coders)))
 
     def new(self, arg):
         self.focus = None
         if arg:
             self.submit(arg)
         else:
-            self.out(dim("New task. Type what you need."))
+            self.out(dim(f"New chat in {self.project()['name']}. Type what you need."))
 
-    def open(self, arg):
+    def chats(self, arg):
+        chats = self.store.chats(self.project()["id"])
+        if not chats:
+            self.out("No chats in this project yet. Just type what you need.")
+            return
+        for k, c in enumerate(chats[:20], start=1):
+            status = self.engine.status(self.pid, c["id"])
+            mark = paint("*", "1") if c["id"] == self.focus else " "
+            flag = paint(f" {status}", "33") if status != "idle" else (paint(" failed", "31") if c["failed"] else "")
+            self.out(f" {mark}{k:>2}. {c['title'][:70]}{flag}" + dim(f"  {c['updated'][5:16].replace('T', ' ')}"))
+        self.out(dim("  /resume <number> opens one"))
+
+    def resume(self, arg):
+        chats = self.store.chats(self.project()["id"])
         if not arg:
-            return self.tasks("")
-        row = self.app.row(arg.upper())
-        self.focus = row["id"]
-        thread = self.app.threads.get(row["id"], row["task"])
-        self.out(paint(f"{row['id']}  {row['task']}", "1") + dim(f"  ({self.label(row['owner'])}, {row['status']})"))
+            return self.chats("")
+        if arg.isdigit() and 1 <= int(arg) <= len(chats):
+            cid = chats[int(arg) - 1]["id"]
+        else:
+            cid = next((c["id"] for c in chats if c["id"] == arg or c["title"].lower().startswith(arg.lower())), None)
+        if not cid:
+            raise SystemExit(f"No chat matching '{arg}'. See /chats.")
+        self.open(cid)
+
+    def open(self, cid, pid=None):
+        if pid:
+            self.pid = pid
+        chat = self.store.chat(self.pid, cid)
+        self.focus = cid
+        self.out(paint(chat["title"], "1") + dim(f"  ({self.project()['name']})"))
         printed, partial = {}, {}
-        self.last_agent.pop(row["id"], None)
-        for i, m in enumerate(thread["messages"]):
+        for i, m in enumerate(chat["messages"]):
             if m["role"] == "user":
-                if i:
-                    self.out("")
+                self.out("")
                 self.out(dim("> " + m["text"]))
-            elif m["role"] == "agent":
-                self.print_agent(row["id"], i, m, printed, partial)
             else:
-                printed[i] = 0
-                self.print_result(m)
-        if self.app.busy(row["id"]):
-            self.watch(row["id"], 1, printed, partial)
+                self.print_message(i, m, printed, partial)
+        if self.engine.busy(self.pid, cid):
+            self.watch(self.pid, cid, 0, printed, partial)
+
+    def project_cmd(self, arg):
+        words = arg.split(maxsplit=1)
+        if not words or words[0] == "list":
+            for p in self.store.projects():
+                mark = paint("*", "1") if p["id"] == self.pid else " "
+                coder = engine.name(self.engine.default_coder(p))
+                self.out(f" {mark} {p['name']:<14} {coder:<9}" + dim(p["path"]))
+            self.out(dim("  /project <name> switches, /project add <folder> adds one, /project coder <name> sets the coder"))
+            return
+        if words[0] == "add":
+            if len(words) < 2:
+                raise SystemExit("Usage: /project add <folder>")
+            project = self.store.add_project(unescape_path(words[1]))
+            self.switch(project["id"])
+            self.out(f"Added {project['name']} ({project['path']}). Coder: {engine.name(project['coders'][0])}. "
+                     + (f"Check: {project['check']}" if project["check"] else "No check found; set one in the app."))
+            return
+        if words[0] == "coder":
+            coder = (words[1] if len(words) > 1 else "").lower()
+            if coder not in self.engine.coders:
+                raise SystemExit(f"Coders: {', '.join(self.engine.coders)}.")
+            p = self.project()
+            self.store.update_project(p["id"], coders=[coder] + [c for c in self.engine.coders if c != coder])
+            self.out(f"{p['name']} now codes with {engine.name(coder)}.")
+            return
+        match = next((p for p in self.store.projects() if p["id"] == arg.lower() or p["name"].lower() == arg.lower()), None)
+        if not match:
+            raise SystemExit(f"No project '{arg}'. See /project list.")
+        self.switch(match["id"])
+
+    def switch(self, pid):
+        self.pid = pid
+        self.focus = None
+        p = self.store.project(pid)
+        self.out(f"Now in {p['name']} ({p['path']}). Coder: {engine.name(self.engine.default_coder(p))}.")
+
+    def model(self, arg):
+        if not arg:
+            self.out(f"Messages go to {self.label(self.current_owner())}. Options: {', '.join(self.modes())}.")
+            return
+        self.set_mode(arg)
 
     def attach(self, arg):
         if arg == "clear":
@@ -506,10 +546,8 @@ class Shell:
             self.out("Attachments cleared.")
             return
         if not arg:
-            if self.pending:
-                self.out("Attached for your next message: " + ", ".join(Path(f).name for f in self.pending))
-            else:
-                self.out("Nothing attached. Drag a file in, use @path or /attach <path>, or /paste a screenshot.")
+            self.out(("Attached for your next message: " + ", ".join(Path(f).name for f in self.pending)) if self.pending
+                     else "Nothing attached. Drag a file in, use @path or /attach <path>, or /paste a screenshot.")
             return
         path = unescape_path(arg)
         if not os.path.isfile(path):
@@ -526,155 +564,103 @@ class Shell:
         self.pending.append(path)
         self.out(f"Attached the clipboard image ({Path(path).stat().st_size // 1024} KB). It goes with your next message.")
 
-    def tasks(self, arg):
-        rows = self.app.rows()
-        if not rows:
-            self.out("No tasks yet. Just type what you need.")
-            return
-        snap = self.app.snapshot()
-        live = {snap["current"]: "running", snap["quick"]["current"]: "running"}
-        live.update({t: "queued" for t in snap["queued"] + snap["quick"]["queued"]})
-        for r in rows[-20:]:
-            status = live.get(r["id"], r["status"])
-            text = r["task"] if len(r["task"]) <= 60 else r["task"][:57] + "..."
-            mark = paint("*", "1") if r["id"] == self.focus else " "
-            self.out(f" {mark}{r['id']:<4} {paint(f'{status:<11}', STATUS_COLORS.get(status, '0'))} "
-                     f"{self.label(r['owner']):<16} {text}")
-        if len(rows) > 20:
-            self.out(dim(f"  ({len(rows) - 20} older tasks in agent_state/tasks.md)"))
-
-    def agent(self, arg):
-        if not arg:
-            who = self.label(self.current_owner())
-            self.out(f"{'This task goes to' if self.focus else 'New tasks go to'} {who}. "
-                     f"Options: {', '.join(['auto', *self.cfg['agents'], 'both'])}.")
-            return
-        self.set_mode(self.resolve(arg))
-
-    def set_mode(self, owner, quiet=False):
-        """Who handles messages: the default for new tasks, and the current task's owner if in one."""
-        if self.focus:
-            self.app.set_owner(self.focus, owner)
-        self.default = owner
-        if not quiet:
-            self.out(f"{self.focus} now goes to {self.label(owner)}." if self.focus else f"New tasks go to {self.label(owner)}.")
-
-    def run(self, arg):
-        if not self.focus:
-            raise SystemExit("Open a task first (/resume or /open <ID>).")
-        seen = len(self.app.threads.get(self.focus, "")["messages"])
-        self.app.run_task(self.focus)
-        self.watch(self.focus, seen)
-
-    def reset(self, arg):
-        if not self.focus:
-            raise SystemExit("Open a task first (/resume or /open <ID>).")
-        self.app.reset(self.focus)
-        self.out(f"{self.focus} is pending again. /diff shows anything the failed run left behind; /run to retry.")
-
     def review(self, arg):
-        if not self.app.diff()["status"].strip():
-            raise SystemExit("No uncommitted changes to review.")
         self.focus = None
-        self.send(REVIEW_REQUEST if not arg else f"{REVIEW_REQUEST} Focus on: {arg}",
-                  self.resolve("auto") if self.app.auto_ready() else None)
+        self.send(REVIEW_REQUEST + (f" Focus on: {arg}" if arg else ""), None)
 
     def diff(self, arg):
-        data = self.app.diff()
+        data = self.engine.diff(self.project()["id"])
+        if not data["git"]:
+            self.out("This project isn't a git repository, so there's no diff. Result lines list the files each coder changed.")
+            return
         self.out(data["status"].rstrip() or "No uncommitted changes.")
         if not data["status"]:
             return
-        args = ["git", "diff"] if arg == "full" else ["git", "diff", "--stat"]
-        if arg == "full" and COLOR:
-            args = ["git", "-c", "color.ui=always", "diff"]
-        out = subprocess.run(args, cwd=self.cfg["repo"], capture_output=True, text=True,
-                             encoding="utf-8", errors="replace").stdout
+        args = ["git", "-c", f"color.ui={'always' if COLOR else 'never'}", "diff"] if arg == "full" else ["git", "diff", "--stat"]
+        out = subprocess.run(args, cwd=self.project()["path"], capture_output=True, encoding="utf-8", errors="replace").stdout
         self.out(out.rstrip())
         if arg != "full":
             self.out(dim("/diff full for the whole diff"))
 
-    def status(self, arg):
-        auth = "unknown"
-        if shutil.which("claude"):
-            try:
-                result = subprocess.run(["claude", "auth", "status"], capture_output=True, text=True, timeout=8)
-                info = json.loads(result.stdout or "{}")
-                auth = (f"logged in ({info.get('subscriptionType') or info.get('authMethod')})"
-                        if info.get("loggedIn") else "NOT logged in (run: claude auth login)")
-            except (subprocess.TimeoutExpired, ValueError, OSError):
-                pass
-        snap = self.app.snapshot()
-        rows = self.app.rows()
-        counts = {}
-        for r in rows:
-            counts[r["status"]] = counts.get(r["status"], 0) + 1
-        self.out(paint("Applio Agents", "1"))
-        self.out(f"  repo      {self.cfg['repo']}  ({snap['branch'] or '?'})")
-        self.out(f"  handles   {self.label(self.current_owner())}" + (f"  (in {self.focus})" if self.focus else ""))
-        if snap["auto"]:
-            self.out(f"  auto      {server.name(snap['auto']['answer'])} answers, {server.name(snap['auto']['code'])} codes")
-        for name, spec in self.cfg["agents"].items():
-            installed = "installed" if shutil.which(spec["command"][0]) else paint("NOT installed", "31")
-            extra = f", {auth}" if name == "claude" else ""
-            extra += ", can't see images" if not spec.get("vision", True) else ""
-            self.out(f"  {name:<9} {installed}{extra}")
-        running = [t for t in (snap["current"], snap["quick"]["current"]) if t]
-        self.out(f"  running   {', '.join(running) or 'nothing'}"
-                 + (f"  (queued: {', '.join(snap['queued'] + snap['quick']['queued'])})" if snap["queued"] or snap["quick"]["queued"] else ""))
-        self.out(f"  tasks     " + ", ".join(f"{n} {s}" for s, n in counts.items()))
+    def doctor(self, arg):
+        data = self.engine.doctor()
+        self.out(paint("Agents", "1"))
+        for a in data["agents"]:
+            state = "installed" if a["installed"] else paint("NOT installed", "31")
+            extra = ", ".join(x for x in (a["login"], a["limited"] and paint(a["limited"], "31")) if x)
+            self.out(f"  {a['name']:<9} {a['role']:<13} {state}" + (f", {extra}" if extra else ""))
+        self.out(paint("Projects", "1"))
+        for p in data["projects"]:
+            where = "" if p["exists"] else paint(" (folder missing)", "31")
+            self.out(f"  {p['name']:<14} {engine.name(p['coders'][0]):<9}" + dim(p["path"]) + where
+                     + dim(f"  check: {p['check'] or 'none'}"))
+
+    def memory(self, arg):
+        self.out(self.store.memory(self.project()["id"]))
 
     def cost(self, arg):
-        per_task, total = {}, 0.0
-        for log in (self.state / "log").glob("*.md"):
-            spent = sum(float(x) for x in re.findall(r"\[cost \$([\d.]+)\]", log.read_text()))
-            task_id = re.match(r"\d{4}-\d{2}-\d{2}-(T\d+)", log.name)
-            if spent and task_id:
-                per_task[task_id.group(1)] = per_task.get(task_id.group(1), 0) + spent
+        total, per_project = 0.0, {}
+        for p in self.store.projects():
+            for log in (self.store.project_dir(p["id"]) / "logs").glob("*.md"):
+                spent = sum(float(x) for x in re.findall(r"\[cost \$([\d.]+)\]", log.read_text()))
+                per_project[p["name"]] = per_project.get(p["name"], 0) + spent
                 total += spent
-        if not per_task:
-            self.out("No Claude usage recorded in the logs yet. Hermes runs on a free model.")
+        if not total:
+            self.out("No Claude usage recorded yet. Hermes runs on a free model; ChatGPT uses your ChatGPT plan.")
             return
-        self.out(f"Estimated Claude usage: ${total:.2f} across {len(per_task)} tasks")
-        for task_id, spent in sorted(per_task.items(), key=lambda kv: -kv[1])[:8]:
-            self.out(f"  {task_id:<5} ${spent:.2f}")
-        self.out(dim("On a Claude plan this counts toward your usage limit; it isn't billed per task. "
-                     "Hermes runs on a free model."))
+        self.out(f"Estimated Claude usage: ${total:.2f}")
+        for name, spent in sorted(per_project.items(), key=lambda kv: -kv[1]):
+            if spent:
+                self.out(f"  {name:<14} ${spent:.2f}")
+        self.out(dim("On a Claude plan this counts toward your usage limit; it isn't billed per chat."))
+
+    def search(self, arg):
+        if not arg:
+            raise SystemExit("Usage: /search <words>")
+        hits = self.store.search(arg)
+        if not hits:
+            self.out("No matches.")
+        for h in hits[:15]:
+            self.out(f"  {h['project']:<10} {h['title'][:50]:<52}" + dim(h["snippet"][:60]))
+
+    def rename(self, arg):
+        if not self.focus or not arg:
+            raise SystemExit("Open a chat first, then /rename <new name>.")
+        self.store.update_chat(self.pid, self.focus, title=arg)
+        self.out(f"Renamed to {arg}.")
+
+    def pin(self, arg):
+        if not self.focus:
+            raise SystemExit("Open a chat first.")
+        pinned = not self.store.chat(self.pid, self.focus).get("pinned")
+        self.store.update_chat(self.pid, self.focus, pinned=pinned)
+        self.out("Pinned." if pinned else "Unpinned.")
+
+    def archive(self, arg):
+        if not self.focus:
+            raise SystemExit("Open a chat first.")
+        self.store.update_chat(self.pid, self.focus, archived=True)
+        self.focus = None
+        self.out("Archived. New chat started.")
 
     def export(self, arg):
-        task_id = (arg or self.focus or "").upper()
-        if not task_id:
-            raise SystemExit("Open a task first, or /export <ID>.")
-        row = self.app.row(task_id)
-        thread = self.app.threads.get(task_id, row["task"])
-        parts = [f"# {task_id}: {row['task']}\n"]
-        for m in thread["messages"]:
+        if not self.focus:
+            raise SystemExit("Open a chat first.")
+        chat = self.store.chat(self.pid, self.focus)
+        parts = [f"# {chat['title']}\n"]
+        for m in chat["messages"]:
             if m["role"] == "user":
                 parts.append(f"**You:** {m['text']}\n")
-            elif m["role"] == "agent":
-                parts.append(f"**{server.name(m.get('agent') or 'agent')}:**\n\n{m.get('text', '').strip()}\n")
-            elif m["role"] == "result":
-                parts.append(f"_Result: {'ok' if m.get('ok') else 'blocked'} {m.get('reason') or ''}_\n")
-        path = self.state / "exports" / f"{task_id}.md"
-        path.parent.mkdir(exist_ok=True)
+            elif m["role"] == "agent" and m.get("step") != "delegate":
+                parts.append(f"**{engine.name(m.get('agent', 'agent'))}:**\n\n{m.get('text', '').strip()}\n")
+            elif m.get("step") == "delegate":
+                parts.append(f"_Hermes handed this to {engine.name(m.get('coder', ''))}._\n")
+            elif m["role"] in ("note", "result"):
+                parts.append(f"_{m.get('text') or ('Done' if m.get('ok') else 'Not finished: ' + (m.get('reason') or ''))}_\n")
+        path = self.store.project_dir(self.pid) / "exports" / f"{self.focus}.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("\n".join(parts))
-        self.out(f"Saved {path.relative_to(self.cfg['repo'])}")
-
-    def show_file(self, name):
-        path = self.state / name
-        self.out(path.read_text().rstrip() if path.exists() else f"(no {name})")
-
-    def log(self, arg):
-        task_id = (arg or self.focus or "").upper()
-        log_dir = self.state / "log"
-        if task_id:
-            candidates = [*log_dir.glob(f"*-{task_id}.md"), *log_dir.glob(f"*-{task_id}-*.md")]
-        else:
-            candidates = list(log_dir.glob("*.md"))
-        if not candidates:
-            self.out("No logs yet.")
-            return
-        text = max(candidates, key=lambda p: p.stat().st_mtime).read_text()
-        self.out(text.split("## Prompt sent")[0].rstrip())
+        self.out(f"Saved {path}")
 
 
 def line_mode(shell):
@@ -683,7 +669,7 @@ def line_mode(shell):
         import readline  # noqa: F401  (history and editing for input())
     except ImportError:
         pass
-    shell.out(paint("Applio Agents", "1") + dim(f"  {shell.cfg['repo'].name}"))
+    shell.out(paint("Applio Agents", "1") + dim(f"  {shell.project()['name'] if shell.pid else 'no project'}"))
     shell.out("Just type. /help for commands.")
     while True:
         try:

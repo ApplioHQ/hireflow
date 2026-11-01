@@ -1,5 +1,4 @@
 """Tests for the terminal UI, driven with a fake terminal. Run: python3 -m unittest agent_router/test_tui.py"""
-import json
 import re
 import sys
 import time
@@ -8,12 +7,9 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent / "app"))
 import cli  # noqa: E402
-import router  # noqa: E402
 import tui  # noqa: E402
-from test_app import SESSION_AGENT  # noqa: E402
-from test_router import RepoCase  # noqa: E402
+from test_engine import EngineCase  # noqa: E402
 
 ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07")
 
@@ -43,31 +39,13 @@ class FakeTerminal:
         self.written.append(text)
 
 
-ORIGINAL_SAY = router.say
-
-
-class TuiCase(RepoCase):
+class TuiCase(EngineCase):
     def setUp(self):
         super().setUp()
-        (self.repo / "sess.py").write_text(SESSION_AGENT)
-        cfg = self.cfg(claude=[sys.executable, "sess.py", "claude"], hermes=[sys.executable, "sess.py", "hermes"])
-        for spec in cfg["agents"].values():
-            spec["resume"] = ["--resume", "{session_id}"]
-        cfg["agents"]["hermes"]["vision"] = False
-        self.shell = cli.Shell(cfg, poll=0.02)
+        self.shell = cli.Shell(self.cfg, poll=0.02, store=self.store, cwd=self.applio)
+        self.engine = self.shell.engine
         self.term = FakeTerminal()
         self.ui = tui.TUI(self.shell, self.term, history_path=Path(self.tmp.name) / "history")
-
-    def tearDown(self):
-        router.say = ORIGINAL_SAY
-        super().tearDown()
-
-    def plan(self, plan):
-        (self.repo / ".git/plan.json").write_text(json.dumps(plan))
-
-    def runs(self, name):
-        path = self.repo / f".git/runs-{name}.jsonl"
-        return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
     def type(self, text):
         for event in self.ui.keys.feed(text.encode()):
@@ -77,7 +55,7 @@ class TuiCase(RepoCase):
         for event in self.ui.keys.feed(raw):
             self.ui.handle(event)
 
-    def settle(self, timeout=10):
+    def settle(self, timeout=15):
         end = time.time() + timeout
         while time.time() < end:
             self.ui.tick()
@@ -88,13 +66,15 @@ class TuiCase(RepoCase):
         self.fail("agents did not finish")
 
     def screen(self):
-        """Everything committed to scrollback so far, without color codes."""
         self.ui.render()
         return plain("".join(self.term.written))
 
     def live(self):
         lines, row, col = self.ui.build_live(*self.term.size())
         return [plain(line) for line in lines], row, col
+
+    def chat_messages(self):
+        return self.store.chat(self.shell.pid, self.shell.focus)["messages"]
 
 
 class KeysTest(unittest.TestCase):
@@ -180,13 +160,20 @@ class LayoutTest(TuiCase):
         self.ui.welcome()
         out = self.screen()
         self.assertIn("Welcome to Applio Agents!", out)
-        self.assertIn("Hermes answers it", out)
+        self.assertIn("Hermes reads every message", out)
+        self.assertIn("Applio", out)
+        self.assertIn("Stockbot", out)
         lines, row, col = self.live()
         self.assertTrue(lines[0].startswith(tui.TL))
-        self.assertIn("> Try", lines[1])
+        self.assertIn("> Ask anything about Applio", lines[1])
         self.assertIn("? for shortcuts", lines[-1])
-        self.assertIn("Auto", lines[-1])
+        self.assertIn("Hermes", lines[-1])
+        self.assertIn("Claude", lines[-1])  # Applio's coder shown in the footer
         self.assertTrue(all(tui.width(l) < self.term.cols for l in lines))
+
+    def test_starts_in_the_project_for_the_current_folder(self):
+        shell = cli.Shell(self.cfg, store=self.store, cwd=self.stockbot)
+        self.assertEqual(shell.pid, "stockbot")
 
     def test_typing_and_cursor(self):
         self.type("hello")
@@ -197,12 +184,11 @@ class LayoutTest(TuiCase):
     def test_long_input_wraps_inside_box(self):
         self.term.cols = 30
         self.type("x" * 60)
-        lines, row, col = self.live()
-        box = [l for l in lines if l.startswith(tui.V)]
-        self.assertGreaterEqual(len(box), 3)
+        lines, _, _ = self.live()
+        self.assertGreaterEqual(len([l for l in lines if l.startswith(tui.V)]), 3)
         self.assertTrue(all(tui.width(l) < 30 for l in lines))
 
-    def test_bash_and_memory_modes_change_the_prompt(self):
+    def test_bash_and_memory_modes(self):
         self.type("!ls")
         lines, _, _ = self.live()
         self.assertIn("! ls", lines[1])
@@ -214,74 +200,68 @@ class LayoutTest(TuiCase):
     def test_shortcuts_panel(self):
         self.type("?")
         lines, _, _ = self.live()
-        self.assertTrue(any("shift+tab" in l for l in lines))
-        self.type("a")  # any key closes it
+        self.assertTrue(any("switch project" in l for l in lines))
+        self.type("a")
         self.assertFalse(self.ui.show_shortcuts)
 
 
 class MenuTest(TuiCase):
-    def test_command_menu_filters_and_runs(self):
-        self.type("/st")
-        self.assertEqual(self.ui.popup["kind"], "command")
-        labels = [i[1] for i in self.ui.popup["items"]]
-        self.assertEqual(labels[0], "/status")
-        lines, _, _ = self.live()
-        self.assertTrue(any("/status" in l and "Repo" in l for l in lines))
+    def test_command_menu(self):
+        self.type("/do")
+        self.assertEqual(self.ui.popup["items"][0][1], "/doctor")
         self.key(b"\r")
-        self.assertIn("handles", self.screen())
+        out = self.screen()
+        self.assertIn("orchestrator", out)
+        self.assertIn("Stockbot", out)
 
-    def test_tab_completes_commands_that_take_arguments(self):
+    def test_tab_completes_commands_with_arguments(self):
         self.type("/atta")
         self.key(b"\t")
         self.assertEqual(self.ui.editor.text, "/attach ")
-        self.assertIsNone(self.ui.popup)
 
-    def test_escape_closes_menu(self):
-        self.type("/h")
-        self.key(b"\x1b")
-        self.ui.handle(("key", "esc"))
-        self.assertIsNone(self.ui.popup)
-
-    def test_mention_menu_lists_agents_and_files(self):
-        self.type("look at @ag")
-        labels = [i[1] for i in self.ui.popup["items"]]
-        self.assertIn("@agent.py", labels)
+    def test_mention_menu(self):
+        self.type("look at @ind")
+        self.assertIn("@index.js", [i[1] for i in self.ui.popup["items"]])
         self.ui.editor.set("")
-        self.type("@cl")
-        self.assertEqual(self.ui.popup["items"][0][1], "@claude")
+        self.type("@ch")
+        self.assertEqual(self.ui.popup["items"][0][1], "@chatgpt")
         self.key(b"\t")
-        self.assertEqual(self.ui.editor.text, "@claude ")
+        self.assertEqual(self.ui.editor.text, "@chatgpt ")
 
-    def test_mode_picker(self):
-        self.type("/model")
-        self.ui.popup = None
+    def test_mode_picker_and_shift_tab(self):
+        self.ui.run_line("/model")
+        self.type("chatgpt")
         self.key(b"\r")
-        self.assertIsNotNone(self.ui.picker)
-        lines, _, _ = self.live()
-        self.assertTrue(any("Who handles" in l for l in lines))
-        self.type("claude")
-        self.key(b"\r")
-        self.assertEqual(self.shell.default, "claude")
-
-    def test_task_picker_opens_task(self):
-        self.ui.run_line("/resume")
-        self.type("T2")
-        self.key(b"\r")
-        self.assertEqual(self.shell.focus, "T2")
-        self.assertIn("T2  Write b.js", self.screen())
-
-    def test_shift_tab_cycles_modes(self):
+        self.assertEqual(self.shell.agent, "chatgpt")
         seen = []
-        for _ in range(4):
+        for _ in range(3):
             self.key(b"\x1b[Z")
-            seen.append(self.shell.default)
-        self.assertEqual(seen, ["claude", "hermes", "claude+hermes", "auto"])
-        self.key(b"\x1b[Z")
-        self.assertIn("Claude", self.live()[0][-1])
+            seen.append(self.shell.current_owner())
+        self.assertEqual(seen, ["hermes", "claude", "chatgpt"])
+
+    def test_project_picker_with_ctrl_p(self):
+        self.key(b"\x10")
+        self.assertIsNotNone(self.ui.picker)
+        self.type("stock")
+        self.key(b"\r")
+        self.assertEqual(self.shell.pid, "stockbot")
+        self.assertIn("Now in Stockbot", self.screen())
+        self.assertIn("Stockbot", self.live()[0][-1])
+
+    def test_chat_picker_opens_a_chat(self):
+        self.plan({"hermes": ["say first answer"]})
+        self.type("first question")
+        self.key(b"\r")
+        self.settle()
+        self.ui.run_line("/new")
+        self.ui.run_line("/resume")
+        self.key(b"\r")
+        self.assertIsNotNone(self.shell.focus)
+        self.assertIn("first answer", self.screen())
 
 
 class FlowTest(TuiCase):
-    def test_question_streams_and_echoes(self):
+    def test_question_answered_by_hermes(self):
         self.plan({"hermes": ["say It sets the API URL."]})
         self.type("what does config.js do?")
         self.key(b"\r")
@@ -290,20 +270,46 @@ class FlowTest(TuiCase):
         self.assertIn("> what does config.js do?", out)
         self.assertIn("Hermes", out)
         self.assertIn("It sets the API URL.", out)
-        self.assertEqual(self.shell.focus, "T4")
         self.assertIn("what does config.js do?", self.ui.history)
 
-    def test_spinner_while_working(self):
-        self.type("SLOW job")
+    def test_handoff_coding_and_report(self):
+        self.plan({"hermes": ["delegate claude", "say Claude added a.js."], "claude": ["write a.js var a = 1;"]})
+        self.type("add a.js")
         self.key(b"\r")
-        time.sleep(0.4)
+        self.settle()
+        out = self.screen()
+        self.assertIn("Hermes \u2192 Claude", out)
+        self.assertIn("Do the thing carefully.", out)
+        self.assertIn("Done, check passed", out)
+        self.assertIn("Claude added a.js.", out)
+        self.assertNotIn("DELEGATE:", out)
+
+    def test_follow_up_stays_in_the_chat(self):
+        self.plan({"hermes": ["say one", "say two"]})
+        self.type("first")
+        self.key(b"\r")
+        self.settle()
+        self.type("second")
+        self.key(b"\r")
+        self.settle()
+        self.assertEqual(len(self.store.chats("applio")), 1)
+        self.assertEqual([m["text"] for m in self.chat_messages() if m["role"] == "user"], ["first", "second"])
+
+    def test_spinner_and_escape_stops(self):
+        self.plan({"hermes": ["delegate claude"], "claude": ["slow"]})
+        self.type("slow job")
+        self.key(b"\r")
+        deadline = time.time() + 5
+        while time.time() < deadline and not self.runs("claude"):
+            self.ui.tick()
+            time.sleep(0.05)
         self.ui.tick()
         lines, _, _ = self.live()
         self.assertTrue(any("esc to interrupt" in l for l in lines))
         self.ui.handle(("key", "esc"))
         self.settle()
         self.assertIn("Interrupted by user", self.screen())
-        self.assertEqual(self.rows()["T4"]["status"], "blocked")
+        self.assertEqual(self.chat_messages()[-1]["reason"], "stopped by you")
 
     def test_messages_typed_while_busy_are_queued(self):
         self.plan({"hermes": ["say first", "say second"]})
@@ -312,14 +318,13 @@ class FlowTest(TuiCase):
         self.type("second question")
         self.key(b"\r")
         self.assertEqual(len(self.ui.queue), 1)
-        lines, _, _ = self.live()
-        self.assertTrue(any("queued: second question" in l for l in lines))
+        self.assertTrue(any("queued: second question" in l for l in self.live()[0]))
         self.settle()
         self.assertIn("second", self.screen())
         self.assertEqual(len(self.runs("hermes")), 2)
 
-    def test_pasted_file_becomes_an_attachment(self):
-        self.plan({"claude": ["say A login page."]})
+    def test_pasted_screenshot_reaches_the_coder(self):
+        self.plan({"hermes": ["delegate claude", "say ok"], "claude": ["say A login page."]})
         shot = Path(self.tmp.name) / "Screen Shot.png"
         shot.write_bytes(b"\x89PNG")
         self.key(b"\x1b[200~" + str(shot).replace(" ", "\\ ").encode() + b"\x1b[201~")
@@ -328,7 +333,6 @@ class FlowTest(TuiCase):
         self.key(b"\r")
         self.settle()
         self.assertIn("Screen Shot.png", self.runs("claude")[0]["prompt"])
-        self.assertEqual(self.rows()["T4"]["task"], "what is this?")
 
     def test_big_paste_collapses_and_expands(self):
         self.plan({"hermes": ["say ok"]})
@@ -340,24 +344,29 @@ class FlowTest(TuiCase):
 
     def test_at_file_mention_attaches(self):
         self.plan({"hermes": ["say ok"]})
-        self.ui.editor.set("explain @agent.py please")
+        self.ui.editor.set("explain @index.js please")
         self.key(b"\r")
         self.settle()
-        self.assertIn("agent_state/attachments/T4/agent.py", self.runs("hermes")[0]["prompt"])
+        self.assertIn("index.js", self.runs("hermes")[0]["prompt"].split("ATTACHED FILES")[1])
 
-    def test_bash_mode_runs_a_command(self):
-        self.ui.editor.set("!echo hello-from-bash")
+    def test_direct_mention_skips_hermes(self):
+        self.plan({"chatgpt": ["write a.js var a = 1;"], "hermes": ["say done"]})
+        self.type("@chatgpt add a.js")
         self.key(b"\r")
         self.settle()
-        out = self.screen()
-        self.assertIn("! echo hello-from-bash", out)
-        self.assertIn("hello-from-bash", out.split("! echo hello-from-bash", 1)[1])
+        self.assertEqual(self.chat_messages()[1]["agent"], "chatgpt")
 
-    def test_memory_mode_saves_a_note(self):
+    def test_bash_runs_in_the_project_folder(self):
+        self.ui.editor.set("!pwd")
+        self.key(b"\r")
+        self.settle()
+        self.assertIn(str(self.applio.resolve()), self.screen())
+
+    def test_memory_note(self):
         self.ui.editor.set("# always use plain hyphens")
         self.key(b"\r")
-        self.assertIn("(you): always use plain hyphens", (self.repo / "agent_state/context.md").read_text())
-        self.assertIn("Saved to agent_state/context.md", self.screen())
+        self.assertIn("(you): always use plain hyphens", self.store.memory_path("applio").read_text())
+        self.assertIn("Saved to Applio's memory", self.screen())
 
     def test_multiline_input(self):
         self.type("line one\\")
@@ -386,16 +395,6 @@ class FlowTest(TuiCase):
         self.key(b"\x03")
         self.assertFalse(self.ui.running)
 
-    def test_exit_while_working_stops_and_records_the_task(self):
-        self.type("SLOW job")
-        self.key(b"\r")
-        time.sleep(0.4)
-        self.ui.tick()
-        self.ui.stop_before_exit()
-        self.assertFalse(self.shell.busy())
-        self.assertEqual(self.rows()["T4"]["status"], "blocked")
-        self.assertIn("Stopping running work before exit", self.screen())
-
     def test_clipboard_image_with_ctrl_v(self):
         shot = Path(self.tmp.name) / "clip.png"
         shot.write_bytes(b"\x89PNG")
@@ -407,13 +406,23 @@ class FlowTest(TuiCase):
         self.assertIn("No image on the clipboard", self.ui.flash_text)
 
     def test_commands_print_into_scrollback(self):
-        self.ui.run_line("/tasks")
+        self.ui.run_line("/project")
+        self.ui.picker = None
+        self.ui.run_line("/project list")
         self.ui.run_line("/cost")
         self.ui.run_line("/help")
         out = self.screen()
-        self.assertIn("T1", out)
+        self.assertIn("Stockbot", out)
         self.assertIn("No Claude usage", out)
         self.assertIn("/resume", out)
+
+    def test_project_coder_and_add(self):
+        self.ui.run_line("/project coder chatgpt")
+        self.assertEqual(self.store.project("applio")["coders"][0], "chatgpt")
+        other = Path(self.tmp.name) / "newproj"
+        other.mkdir()
+        self.ui.run_line(f"/project add {other}")
+        self.assertEqual(self.shell.pid, "newproj")
 
     def test_export(self):
         self.plan({"hermes": ["say exported answer"]})
@@ -421,7 +430,20 @@ class FlowTest(TuiCase):
         self.key(b"\r")
         self.settle()
         self.ui.run_line("/export")
-        self.assertIn("exported answer", (self.repo / "agent_state/exports/T4.md").read_text())
+        path = self.store.project_dir("applio") / "exports" / f"{self.shell.focus}.md"
+        self.assertIn("exported answer", path.read_text())
+
+    def test_exit_while_working_stops_the_chat(self):
+        self.plan({"hermes": ["delegate claude"], "claude": ["slow"]})
+        self.type("slow job")
+        self.key(b"\r")
+        deadline = time.time() + 5
+        while time.time() < deadline and not self.runs("claude"):
+            self.ui.tick()
+            time.sleep(0.05)
+        self.ui.stop_before_exit()
+        self.assertFalse(self.shell.busy())
+        self.assertIn("Stopping running work before exit", self.screen())
 
     def test_render_keeps_cursor_bookkeeping(self):
         self.type("hello")

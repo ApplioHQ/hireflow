@@ -14,6 +14,9 @@ let pollTimer = null;
 let installPrompt = null;
 let collapsed = {};
 let searchResults = null;
+let attachments = [];  // {id, name, size, path, url, uploading, error}
+const MAX_FILE = 25 * 1024 * 1024;
+const IMAGE = /\.(png|jpe?g|gif|webp)$/i;
 try { collapsed = JSON.parse(localStorage.getItem("collapsed") || "{}"); } catch { collapsed = {}; }
 
 // ---- helpers ----
@@ -237,7 +240,15 @@ function renderResult(m) {
 
 function renderMessage(m) {
   if (m.role === "user") {
-    const files = (m.files || []).map((f) => `<span class="attachment" title="${esc(f)}">${esc(f.split("/").pop())}</span>`).join("");
+    const { pid, cid } = route();
+    const files = (m.files || []).map((f) => {
+      const fileName = f.split("/").pop();
+      if (IMAGE.test(fileName)) {
+        const src = `/api/attachment?project=${encodeURIComponent(pid)}&chat=${encodeURIComponent(cid)}&name=${encodeURIComponent(fileName)}`;
+        return `<a class="attachment-image" href="${esc(src)}" target="_blank" rel="noopener" title="${esc(fileName)}"><img src="${esc(src)}" alt="${esc(fileName)}" loading="lazy"></a>`;
+      }
+      return `<span class="attachment" title="${esc(f)}">${esc(fileName)}</span>`;
+    }).join("");
     return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}</div>`;
   }
   if (m.role === "note") return `<div class="note">${esc(m.text)}</div>`;
@@ -272,6 +283,77 @@ function renderMessages(force) {
   renderComposer();
 }
 
+// ---- attachments ----
+
+function renderChips() {
+  const box = $("#chips");
+  box.hidden = attachments.length === 0;
+  box.innerHTML = attachments.map((a) => `
+    <div class="chip${a.error ? " chip-error" : ""}" title="${esc(a.error || a.name)}">
+      ${a.url ? `<img src="${esc(a.url)}" alt="">` : `<span class="chip-icon">${esc((a.name.split(".").pop() || "file").slice(0, 4))}</span>`}
+      <span class="chip-name">${esc(a.name)}</span>
+      <span class="chip-meta">${a.uploading ? "uploading..." : a.error ? "failed" : esc(sizeLabel(a.size))}</span>
+      <button type="button" class="chip-remove" data-remove="${esc(a.id)}" aria-label="Remove ${esc(a.name)}">&times;</button>
+    </div>`).join("");
+  renderComposer();
+}
+
+function sizeLabel(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+async function attach(file, pasted = false) {
+  let name = file.name || "attachment";
+  if (pasted && /^image\.(png|jpe?g)$/i.test(name)) {
+    const t = new Date();
+    name = `screenshot-${t.getHours()}${String(t.getMinutes()).padStart(2, "0")}${String(t.getSeconds()).padStart(2, "0")}.png`;
+  }
+  const item = { id: Math.random().toString(36).slice(2), name, size: file.size, path: "", uploading: true, error: "",
+    url: IMAGE.test(name) || (file.type || "").startsWith("image/") ? URL.createObjectURL(file) : "" };
+  attachments.push(item);
+  if (file.size > MAX_FILE) {
+    item.uploading = false;
+    item.error = "Files can be up to 25 MB.";
+    renderChips();
+    return;
+  }
+  renderChips();
+  try {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "X-Agents": "1", "X-Filename": encodeURIComponent(name), "Content-Type": "application/octet-stream" },
+      body: file,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
+    item.path = data.path;
+    item.size = data.size;
+  } catch (e) {
+    item.error = e.message.includes("fetch") ? "Can't reach the app server." : e.message;
+  } finally {
+    item.uploading = false;
+    renderChips();
+  }
+}
+
+function removeAttachment(id) {
+  const item = attachments.find((a) => a.id === id);
+  attachments = attachments.filter((a) => a.id !== id);
+  if (item) {
+    if (item.url) URL.revokeObjectURL(item.url);
+    if (item.path) api("/api/uploads/discard", { files: [item.path] }).catch(() => {});
+  }
+  renderChips();
+}
+
+function clearAttachments() {
+  attachments.forEach((a) => a.url && URL.revokeObjectURL(a.url));
+  attachments = [];
+  renderChips();
+}
+
 // ---- composer ----
 
 function renderComposer() {
@@ -290,8 +372,11 @@ function renderComposer() {
   const busy = chat && isBusy(pid, cid);
   input.disabled = Boolean(busy) || !p;
   input.placeholder = busy ? "Working. You can send another message when it finishes." : chat ? "Reply..." : "Ask anything or describe a change...";
+  $("#attach-btn").disabled = input.disabled;
   $("#composer-note").textContent = !p ? "" : pickedAgent ? `Goes straight to ${nameOf(pickedAgent)}` : `Hermes answers, or hands code to ${nameOf(defaultCoder(p))}`;
-  $("#send-btn").disabled = input.disabled;
+  const uploading = attachments.some((a) => a.uploading);
+  $("#send-btn").disabled = input.disabled || uploading;
+  if (uploading) $("#composer-note").textContent = "Uploading attachments...";
 }
 
 function autosize() {
@@ -302,19 +387,25 @@ function autosize() {
 
 async function send() {
   const input = $("#input");
-  const text = input.value.trim();
+  if (attachments.some((a) => a.uploading)) { toast("Still uploading. Send again in a moment."); return; }
+  const failed = attachments.filter((a) => a.error);
+  if (failed.length) { toast(`Remove the attachment that failed: ${failed[0].name}`); return; }
+  const files = attachments.map((a) => a.path);
+  let text = input.value.trim();
+  if (!text && files.length) text = files.length === 1 ? "Take a look at the attached file." : "Take a look at the attached files.";
   if (!text || input.disabled) return;
   const { pid, cid } = route();
   $("#send-btn").disabled = true;
   try {
     if (chat) {
-      await api("/api/chats/send", { project: pid, chat: cid, text, agent: pickedAgent });
+      await api("/api/chats/send", { project: pid, chat: cid, text, agent: pickedAgent, files });
     } else {
       const target = $("#project-pick").value || currentProject()?.id;
-      const res = await api("/api/chats", { project: target, text, agent: pickedAgent });
+      const res = await api("/api/chats", { project: target, text, agent: pickedAgent, files });
       go(target, res.chat);
     }
     input.value = "";
+    clearAttachments();
     autosize();
     await refresh(true);
   } catch (e) {
@@ -448,6 +539,8 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (el.dataset.new) { go(el.dataset.new); $("#input").focus(); return; }
+  if (el.id === "attach-btn") { $("#file-input").click(); return; }
+  if (el.dataset.remove) { removeAttachment(el.dataset.remove); return; }
   if (el.dataset.delete) { const [p, c] = el.dataset.delete.split("|"); deleteChat(p, c); return; }
   if (el.dataset.settings) { openPanel("settings", el.dataset.settings); return; }
   if (el.dataset.panel) { openPanel(el.dataset.panel); return; }
@@ -504,6 +597,39 @@ $("#search").addEventListener("input", (e) => {
 $("#project-pick").addEventListener("change", (e) => go(e.target.value));
 $("#scrim").addEventListener("click", () => $(".app").classList.remove("nav-open"));
 $("#input").addEventListener("input", autosize);
+$("#file-input").addEventListener("change", (e) => {
+  [...e.target.files].forEach((f) => attach(f));
+  e.target.value = "";
+  $("#input").focus();
+});
+$("#input").addEventListener("paste", (e) => {
+  const files = [...(e.clipboardData?.files || [])];
+  if (!files.length) return;
+  e.preventDefault();  // a pasted screenshot becomes an attachment, not text
+  files.forEach((f) => attach(f, true));
+});
+let dragDepth = 0;
+const mainEl = document.querySelector(".main");
+mainEl.addEventListener("dragenter", (e) => {
+  if (![...(e.dataTransfer?.types || [])].includes("Files")) return;
+  e.preventDefault();
+  dragDepth += 1;
+  $("#composer-box").classList.add("dragging");
+});
+mainEl.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) e.preventDefault(); });
+mainEl.addEventListener("dragleave", () => {
+  dragDepth = Math.max(0, dragDepth - 1);
+  if (!dragDepth) $("#composer-box").classList.remove("dragging");
+});
+mainEl.addEventListener("drop", (e) => {
+  if (!e.dataTransfer?.files?.length) return;
+  e.preventDefault();
+  dragDepth = 0;
+  $("#composer-box").classList.remove("dragging");
+  if ($("#input").disabled) { toast("Wait for this chat to finish, then attach."); return; }
+  [...e.dataTransfer.files].forEach((f) => attach(f));
+  $("#input").focus();
+});
 $("#input").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
 });

@@ -2,12 +2,15 @@
 """Local web app for Applio Agents. Start it with: npm run app (then open http://localhost:4747)."""
 import argparse
 import json
+import re
+import secrets
+import shutil
 import sys
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
@@ -17,6 +20,7 @@ import router  # noqa: E402
 STATIC = HERE / "static"
 PORT = 4747
 MAX_BODY = 200_000
+MAX_UPLOAD = engine.MAX_ATTACHMENT
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
          ".css": "text/css; charset=utf-8", ".json": "application/manifest+json",
          ".png": "image/png", ".svg": "image/svg+xml"}
@@ -58,6 +62,8 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         query = {k: v[0] for k, v in parse_qs(url.query).items()}
         try:
+            if url.path == "/api/attachment":
+                return self.attachment(query)
             if url.path.startswith("/api/"):
                 return self.send(200, self.get_api(url.path, query))
             return self.static(url.path)
@@ -85,6 +91,16 @@ class Handler(BaseHTTPRequestHandler):
             return eng.doctor()
         raise ApiError(404, "not found")
 
+    def attachment(self, q):
+        """Serve an image a user attached to a chat (for thumbnails), and nothing outside that chat's folder."""
+        folder = self.engine.store.attachments_dir(q.get("project", ""), q.get("chat", "")).resolve()
+        file = (folder / Path(q.get("name", "")).name).resolve()
+        if folder not in file.parents or not file.is_file() or file.suffix.lower() not in IMAGE_TYPES:
+            return self.send(404, b"not found", "text/plain")
+        ctype = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}.get(
+            file.suffix.lower(), "image/png")
+        self.send(200, file.read_bytes(), ctype, "private, max-age=3600")
+
     def static(self, path):
         file_name = "index.html" if path in ("/", "/index.html") else path.lstrip("/")
         if file_name in ICONS:
@@ -105,6 +121,8 @@ class Handler(BaseHTTPRequestHandler):
                 or (origin and origin not in (f"http://localhost:{self.port}", f"http://127.0.0.1:{self.port}"))):
             return self.send(403, {"error": "forbidden"})
         length = int(self.headers.get("Content-Length") or 0)
+        if urlparse(self.path).path == "/api/upload":
+            return self.upload(length)
         if length > MAX_BODY:
             return self.send(413, {"error": "too large"})
         try:
@@ -120,14 +138,62 @@ class Handler(BaseHTTPRequestHandler):
         except engine.ChatError as e:
             self.send(400, {"error": str(e)})
 
+    def uploads_dir(self):
+        return self.engine.store.home / "uploads"
+
+    def upload(self, length):
+        """Store one file the page attached (raw bytes, name in X-Filename) until it is sent with a message."""
+        if length > MAX_UPLOAD:
+            return self.send(413, {"error": "Files can be up to 25 MB."})
+        raw_name = unquote(self.headers.get("X-Filename") or "")
+        file_name = re.sub(r"[^\w.\- ]+", "_", Path(raw_name).name).strip(" .") or "attachment"
+        folder = self.uploads_dir() / secrets.token_hex(8)
+        folder.mkdir(parents=True, exist_ok=True)
+        dest = folder / file_name[:120]
+        remaining = length
+        with dest.open("wb") as f:
+            while remaining > 0:
+                chunk = self.rfile.read(min(remaining, 1 << 20))
+                if not chunk:
+                    break
+                f.write(chunk)
+                remaining -= len(chunk)
+        self.send(200, {"path": str(dest), "name": dest.name, "size": dest.stat().st_size})
+
+    def uploaded_files(self, b):
+        """Paths from the page must be files it uploaded, never arbitrary files on the Mac."""
+        files = b.get("files") or []
+        root = self.uploads_dir().resolve()
+        if not isinstance(files, list):
+            raise ApiError(400, "files must be a list")
+        checked = []
+        for f in files:
+            path = Path(str(f)).resolve()
+            if root not in path.parents or not path.is_file():
+                raise ApiError(400, "Attach files with the attach button, drag and drop, or paste.")
+            checked.append(str(path))
+        return checked
+
+    def discard_uploads(self, files):
+        for f in files:  # copied into the chat already
+            shutil.rmtree(Path(f).parent, ignore_errors=True)
+
     def post_api(self, path, b):
         eng = self.engine
         pid, cid = str(b.get("project", "")), str(b.get("chat", ""))
         agent = b.get("agent") or None
         if path == "/api/chats":
-            return {"chat": eng.new_chat(pid, str(b.get("text", "")), agent=agent)}
+            files = self.uploaded_files(b)
+            chat = eng.new_chat(pid, str(b.get("text", "")), files, agent=agent)
+            self.discard_uploads(files)
+            return {"chat": chat}
         if path == "/api/chats/send":
-            eng.send(pid, cid, str(b.get("text", "")), agent=agent)
+            files = self.uploaded_files(b)
+            eng.send(pid, cid, str(b.get("text", "")), files, agent=agent)
+            self.discard_uploads(files)
+            return {"ok": True}
+        if path == "/api/uploads/discard":
+            self.discard_uploads(self.uploaded_files(b))
             return {"ok": True}
         if path == "/api/chats/stop":
             return {"result": eng.stop(pid, cid)}
@@ -154,6 +220,10 @@ class Handler(BaseHTTPRequestHandler):
 def make_server(cfg, port=PORT, store=None):
     eng = engine.Engine(cfg, store)
     eng.ensure_defaults()
+    stale = eng.store.home / "uploads"
+    for folder in stale.glob("*") if stale.exists() else []:  # attachments that were never sent
+        if time.time() - folder.stat().st_mtime > 86400:
+            shutil.rmtree(folder, ignore_errors=True)
     handler = type("BoundHandler", (Handler,), {"engine": eng, "port": port})
     server = ThreadingHTTPServer(("127.0.0.1", port), handler)
     handler.port = server.server_address[1]

@@ -132,6 +132,70 @@ class ServerTest(EngineCase):
         self.assertEqual(self.post("/api/projects/update", {"project": "other", "coders": ["gpt9"]})[0], 400)
         self.assertEqual(self.post("/api/projects/update", {"project": "other", "coders": []})[0], 400)
 
+    def upload(self, name, data, headers=None):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        h = {"Host": f"localhost:{self.port}", "X-Agents": "1", "X-Filename": name,
+             "Content-Type": "application/octet-stream"}
+        h.update(headers or {})
+        conn.request("POST", "/api/upload", data, h)
+        res = conn.getresponse()
+        body = json.loads(res.read() or b"{}")
+        conn.close()
+        return res.status, body
+
+    def test_upload_then_send_with_the_file(self):
+        status, up = self.upload("Screen%20Shot%201.png", b"\x89PNG data")
+        self.assertEqual((status, up["name"], up["size"]), (200, "Screen Shot 1.png", 9))
+        self.assertTrue(Path(up["path"]).exists())
+        self.plan({"hermes": ["delegate claude", "say ok"], "claude": ["say It's a login form."]})
+        status, body = self.post("/api/chats", {"project": "applio", "text": "What's this?", "files": [up["path"]]})
+        self.assertEqual(status, 200, body)
+        self.wait()
+        cid = body["chat"]
+        saved = self.store.attachments_dir("applio", cid) / "Screen Shot 1.png"
+        self.assertTrue(saved.exists())
+        self.assertFalse(Path(up["path"]).exists())  # the upload is moved into the chat
+        self.assertIn(str(saved), self.runs("claude")[0]["prompt"])
+        self.assertEqual(self.get_chat("applio", cid)["messages"][0]["files"], [str(saved)])
+        status, image = self.request("GET", f"/api/attachment?project=applio&chat={cid}&name=Screen%20Shot%201.png")
+        self.assertEqual((status, image), (200, b"\x89PNG data"))
+
+    def test_reply_with_a_file(self):
+        self.plan({"hermes": ["say hi", "say got it"]})
+        cid = self.post("/api/chats", {"project": "applio", "text": "hello"})[1]["chat"]
+        self.wait()
+        _, up = self.upload("notes.txt", b"some notes")
+        self.assertEqual(self.post("/api/chats/send", {"project": "applio", "chat": cid, "text": "see file",
+                                                       "files": [up["path"]]})[0], 200)
+        self.wait()
+        self.assertIn("notes.txt", self.runs("hermes")[1]["prompt"])
+
+    def test_upload_names_are_cleaned_and_size_is_limited(self):
+        status, up = self.upload("..%2F..%2Fevil%3Cname%3E.png", b"x")
+        self.assertEqual(status, 200)
+        self.assertEqual(up["name"], "evil_name_.png")
+        self.assertIn("/uploads/", up["path"])
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        conn.putrequest("POST", "/api/upload", skip_host=True)
+        for k, v in {"Host": f"localhost:{self.port}", "X-Agents": "1", "X-Filename": "big.bin",
+                     "Content-Length": str(server.MAX_UPLOAD + 1)}.items():
+            conn.putheader(k, v)
+        conn.endheaders()
+        self.assertEqual(conn.getresponse().status, 413)
+        conn.close()
+        self.assertEqual(self.upload("a.png", b"x", headers={"X-Agents": ""})[0], 403)
+
+    def test_only_uploaded_files_can_be_attached(self):
+        status, body = self.post("/api/chats", {"project": "applio", "text": "x", "files": [str(self.applio / "index.js")]})
+        self.assertEqual(status, 400)
+        self.assertEqual(self.store.chats("applio"), [])
+
+    def test_discard_and_attachment_limits(self):
+        _, up = self.upload("drop.png", b"x")
+        self.assertEqual(self.post("/api/uploads/discard", {"files": [up["path"]]})[0], 200)
+        self.assertFalse(Path(up["path"]).exists())
+        self.assertEqual(self.request("GET", "/api/attachment?project=applio&chat=x&name=..%2F..%2Fprojects.json")[0], 404)
+
     def test_diff_memory_search_doctor(self):
         self.plan({"hermes": ["delegate claude", "say ok"], "claude": ["decide Keep it simple"]})
         cid = self.post("/api/chats", {"project": "applio", "text": "Add d.js"})[1]["chat"]

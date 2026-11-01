@@ -289,3 +289,28 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .task-row:hover .row-delete, .row-delete:focus-visible { opacity: 1; }
 .row-delete:hover { background: var(--bad-bg); color: var(--bad); }
 @media (hover: none) { .row-delete { opacity: .6; } }
+
+/* ---- attachments in the composer ---- */
+.composer-box { position: relative; }
+.attach-btn { padding: 5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 0 8px; }
+.chip {
+  display: flex; align-items: center; gap: 8px; max-width: 260px; padding: 4px 6px 4px 4px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+}
+.chip img, .chip-icon { width: 36px; height: 36px; border-radius: 7px; object-fit: cover; flex: none; }
+.chip-icon { display: grid; place-items: center; background: var(--code); color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; }
+.chip-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.chip-meta { font-size: 11px; color: var(--faint); white-space: nowrap; }
+.chip-error { border-color: var(--bad); }
+.chip-error .chip-meta { color: var(--bad); }
+.chip-remove { border: 0; background: none; color: var(--faint); font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 6px; }
+.chip-remove:hover { color: var(--bad); background: var(--bad-bg); }
+.drop-hint { display: none; }
+.composer-box.dragging { border-color: var(--accent); border-style: dashed; }
+.composer-box.dragging .drop-hint {
+  display: grid; place-items: center; position: absolute; inset: 0; border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent); color: var(--accent); font-weight: 500; z-index: 2;
+}
+
+.attachment-image img { display: block; max-width: 220px; max-height: 160px; border-radius: 10px; border: 1px solid var(--line); object-fit: cover; }

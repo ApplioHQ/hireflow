@@ -116,7 +116,7 @@ function renderAgentText(text) {
       continue;
     }
     if (line.trim().startsWith("```")) { flush(); code = []; continue; }
-    if (/^\W*(DELEGATE|REVIEW):/.test(line)) continue;
+    if (/^\W*(DELEGATE|REVIEW|TITLE):/.test(line)) continue;
     const tool = line.match(/^> (\S+)\s*(.*)$/);
     if (tool) {
       flush();
@@ -152,11 +152,14 @@ function renderSidebar() {
   nav.innerHTML = state.projects.map((p) => {
     const open = !collapsed[p.id];
     const chats = open ? p.chats.slice(0, 40).map((c) => `
-      <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
-        <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
-        <span class="task-text"><span class="task-title">${c.pinned ? "&#9733; " : ""}${esc(c.title)}</span>
-        <span class="task-meta">${esc(ago(c.updated))}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
-      </button>`).join("") : "";
+      <div class="task-row">
+        <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
+          <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
+          <span class="task-text"><span class="task-title">${c.pinned ? "&#9733; " : ""}${esc(c.title)}</span>
+          <span class="task-meta">${esc(ago(c.updated))}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
+        </button>
+        <button type="button" class="row-delete" data-delete="${esc(p.id)}|${esc(c.id)}" title="Delete chat" aria-label="Delete ${esc(c.title)}">&times;</button>
+      </div>`).join("") : "";
     return `<div class="project${p.id === active ? " current" : ""}">
       <div class="project-row">
         <button type="button" class="project-name" data-toggle="${esc(p.id)}" title="${esc(p.path)}">
@@ -191,6 +194,7 @@ function renderHead() {
   actions.push(`<button type="button" class="btn" data-action="rename">Rename</button>`);
   actions.push(`<button type="button" class="btn" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>`);
   actions.push(`<button type="button" class="btn" data-panel="diff">Changes</button>`);
+  actions.push(`<button type="button" class="btn danger" data-action="delete">Delete</button>`);
   $("#head").innerHTML = `${menu}<div class="head-title"><h1 title="${esc(chat.title)}">${esc(chat.title)}</h1>
     <div class="head-meta"><span>${esc(p.name)}</span><span class="muted">${esc(p.path)}</span>
     ${status !== "idle" ? `<span class="pill running">${esc(status)}</span>` : ""}</div></div>
@@ -403,6 +407,19 @@ async function refresh(force = false) {
   pollTimer = setTimeout(refresh, state.running.length ? 800 : 4000);
 }
 
+async function deleteChat(pid, cid) {
+  const summary = chatSummary(pid, cid);
+  const title = summary ? summary.title : "this chat";
+  if (isBusy(pid, cid)) { toast("Stop the chat before deleting it."); return; }
+  if (!confirm(`Delete "${title}"? This can't be undone.`)) return;
+  try {
+    await api("/api/chats/delete", { project: pid, chat: cid });
+    if (route().cid === cid) go(pid);
+    toast("Chat deleted.");
+    await refresh(true);
+  } catch (err) { toast(err.message); }
+}
+
 // ---- events ----
 
 document.addEventListener("click", async (e) => {
@@ -431,6 +448,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
   if (el.dataset.new) { go(el.dataset.new); $("#input").focus(); return; }
+  if (el.dataset.delete) { const [p, c] = el.dataset.delete.split("|"); deleteChat(p, c); return; }
   if (el.dataset.settings) { openPanel("settings", el.dataset.settings); return; }
   if (el.dataset.panel) { openPanel(el.dataset.panel); return; }
   if (el.dataset.agent !== undefined && el.closest("#agent-pick")) { pickedAgent = el.dataset.agent; renderComposer(); $("#input").focus(); return; }
@@ -447,6 +465,8 @@ document.addEventListener("click", async (e) => {
     } else if (action === "archive") {
       await api("/api/chats/update", { project: pid, chat: cid, archived: !chat.archived });
       if (!chat.archived) go(pid);
+    } else if (action === "delete") {
+      return deleteChat(pid, cid);
     } else if (action === "rename") {
       const title = prompt("Chat name:", chat.title);
       if (title && title.trim()) await api("/api/chats/update", { project: pid, chat: cid, title: title.trim() });

@@ -32,6 +32,8 @@ REVIEW = re.compile(r"(?mi)^\W*REVIEW:\s*(yes|no)")
 BRIEF = re.compile(r"(?mis)^\W*BRIEF:\s*\n?(.*)")
 DECISION = re.compile(r"(?m)^\W*DECISION:\s*(.+)$")
 APPROVED = re.compile(r"(?m)^\W*APPROVED\W*$")
+FILLER = {"please", "pls", "plz", "can", "could", "would", "you", "u", "i", "want", "need", "to", "help", "me",
+          "hey", "hi", "just", "the", "a", "an", "tldr", "my", "our", "some", "go", "through"}
 
 STOCKBOT_NOTES = ("This folder runs a live trading bot. Never run the bot, its schedulers, or anything that "
                   "places, cancels or simulates orders. Never open, print or copy .env or any API keys.")
@@ -124,6 +126,12 @@ Decide:
 Do not commit, push, or deploy.{notes}
 """
 
+NAME_CHAT = """Name this chat in 2 to 5 words, like "Stripe webhook fix" or "Dark mode toggle". Reply with only the
+name, nothing else, and don't use any tools.
+
+The first message: {text}
+"""
+
 REPORT = """The coding for the user's last message is finished. Tell the user what happened in one to three
 short sentences: what changed, whether the check passed, and anything they should do next (such as
 review the changes). Do not change any files, and do not repeat this block.
@@ -134,6 +142,20 @@ Check: {check}
 The coder's final message:
 {output}
 """
+
+
+def quick_title(text):
+    """A short chat name from a message, used until Hermes names the chat."""
+    words = [w.strip(".,!?;:-/'\"") for w in re.findall(r"[A-Za-z0-9][\w.+#/'-]*", text)]
+    words = [w for w in words if w]
+    kept = [w for w in words if w.lower() not in FILLER] or words
+    title = " ".join(kept[:5])[:60]
+    return (title[:1].upper() + title[1:]) if title else "New chat"
+
+
+def clean_title(raw):
+    title = " ".join(raw.strip().strip("*_`\"'").split())
+    return title.rstrip(".:")[:60]
 
 
 def name(agent):
@@ -282,11 +304,11 @@ class Store:
         tmp.write_text(json.dumps(self.cache[(pid, cid)], indent=1))
         tmp.replace(path)
 
-    def create_chat(self, pid, title, cid=None):
+    def create_chat(self, pid, title, cid=None, auto_title=False):
         cid = cid or f"{dt.datetime.now():%Y%m%d-%H%M%S}-{secrets.token_hex(2)}"
         chat = {"id": cid, "project": pid, "title": " ".join(title.split())[:80] or "New chat",
                 "created": now(), "updated": now(), "pinned": False, "archived": False,
-                "sessions": {}, "messages": []}
+                "auto_title": auto_title, "sessions": {}, "messages": []}
         with self.lock:
             self.cache[(pid, cid)] = chat
             self._save(pid, cid)
@@ -320,7 +342,18 @@ class Store:
             for key in ("title", "pinned", "archived"):
                 if fields.get(key) is not None:
                     chat[key] = " ".join(str(fields[key]).split())[:80] if key == "title" else bool(fields[key])
+            if fields.get("title") is not None:
+                chat["auto_title"] = False  # the user named it; keep their name
             self._save(pid, cid)
+
+    def name_chat(self, pid, cid, title):
+        """Give the chat a name from Hermes, unless the user already named it."""
+        title = clean_title(title)
+        with self.lock:
+            chat = self._load(pid, cid)
+            if title and chat.get("auto_title"):
+                chat["title"], chat["auto_title"] = title, False
+                self._save(pid, cid)
 
     def delete_chat(self, pid, cid):
         with self.lock:
@@ -452,6 +485,8 @@ class Engine:
         self.orchestrator = orch.get("agent", "hermes")
         self.coders = [c for c in orch.get("coders", ["claude", "chatgpt"]) if c in cfg["agents"]]
         self.report_enabled = orch.get("report", True)
+        namer = orch.get("namer", self.orchestrator)  # the agent that names new chats
+        self.namer = namer if namer in cfg["agents"] else None
         self.unavailable = {}  # agent -> (until timestamp, reason): skipped after a usage-limit failure
 
     # ---- setup ----
@@ -562,9 +597,23 @@ class Engine:
         for raw in files or []:
             if not Path(raw).expanduser().is_file():
                 raise ChatError(f"Can't attach {raw}: not a file")
-        cid = self.store.create_chat(project["id"], text)
+        cid = self.store.create_chat(project["id"], quick_title(text), auto_title=True)
         self.send(project["id"], cid, text, files, agent)
+        if self.namer:
+            threading.Thread(target=self.name_chat, args=(project["id"], cid, text), daemon=True).start()
         return cid
+
+    def name_chat(self, pid, cid, text):
+        """Ask the naming agent for a short chat name (in the background; the quick name stays if it fails)."""
+        self.store.home.mkdir(parents=True, exist_ok=True)
+        code, output, _ = router.run_agent(self.cfg, self.namer, NAME_CHAT.format(text=" ".join(text.split())[:500]),
+                                           cwd=self.store.home)
+        lines = [l.strip() for l in output.splitlines()
+                 if l.strip() and not l.strip().startswith(("[", ">", "{")) and not l.lower().startswith("session")]
+        if code == 0 and lines:
+            title = clean_title(lines[0].split("name:", 1)[-1] if lines[0].lower().startswith("name:") else lines[0])
+            if 1 <= len(title.split()) <= 6:
+                self.store.name_chat(pid, cid, title)
 
     def send(self, pid, cid, text, files=(), agent=None):
         self.store.project(pid)

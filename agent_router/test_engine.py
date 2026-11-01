@@ -77,12 +77,13 @@ class EngineCase(unittest.TestCase):
         agent = str(self.control / "agent.py")
         self.cfg = {
             "repo": root / "tool", "agent_timeout": 60, "check_timeout": 60,
-            "orchestrator": {"agent": "hermes", "coders": ["claude", "chatgpt"], "report": True},
+            "orchestrator": {"agent": "hermes", "coders": ["claude", "chatgpt"], "report": True, "namer": "namer"},
             "agents": {
                 "hermes": {"command": [sys.executable, agent, "hermes"], "resume": ["--resume", "{session_id}"],
                            "vision": False},
                 "claude": {"command": [sys.executable, agent, "claude"], "resume": ["--resume", "{session_id}"],
                            "add_dir": ["--add-dir", "{dir}"]},
+                "namer": {"command": [sys.executable, agent, "namer"]},
                 "chatgpt": {"command": [sys.executable, agent, "chatgpt"],
                             "resume_command": [sys.executable, agent, "chatgpt", "resume", "{session_id}"]},
             },
@@ -301,6 +302,39 @@ class OrchestrationTest(EngineCase):
         self.assertIn("(Claude): Use plain hyphens", self.store.memory_path("applio").read_text())
         self.chat("applio", "What did we decide?")
         self.assertIn("Use plain hyphens", self.runs("hermes")[-1]["prompt"])
+
+    def wait_for_title(self, pid, cid, timeout=10):
+        end = time.time() + timeout
+        while time.time() < end and self.store.chat(pid, cid).get("auto_title"):
+            time.sleep(0.05)
+        return self.store.chat(pid, cid)["title"]
+
+    def test_new_chats_get_a_short_name(self):
+        self.plan({"namer": ["say Cookie basics"], "hermes": ["say Cookies are small files a site stores."]})
+        cid = self.engine.new_chat("applio", "what are cookies in a website. tldr")
+        self.assertEqual(self.store.chat("applio", cid)["title"], "What are cookies in website")  # until named
+        self.assertEqual(self.wait_for_title("applio", cid), "Cookie basics")
+        self.wait()
+        self.assertIn("what are cookies", self.runs("namer")[0]["prompt"])
+        self.assertNotIn("Name this chat", self.runs("hermes")[0]["prompt"])
+
+    def test_a_bad_name_keeps_the_quick_one(self):
+        self.plan({"namer": ["say Here is a much too long name for a chat that rambles on"], "hermes": ["say ok"]})
+        cid = self.engine.new_chat("applio", "add dark mode")
+        self.wait()
+        time.sleep(0.5)
+        self.assertEqual(self.store.chat("applio", cid)["title"], "Add dark mode")
+
+    def test_your_own_name_is_kept(self):
+        cid = self.store.create_chat("applio", "Quick name", auto_title=True)
+        self.store.update_chat("applio", cid, title="My name")
+        self.store.name_chat("applio", cid, "Hermes name")
+        self.assertEqual(self.store.chat("applio", cid)["title"], "My name")
+
+    def test_quick_titles(self):
+        self.assertEqual(engine.quick_title("Add a dark mode toggle to settings please"), "Add dark mode toggle settings")
+        self.assertEqual(engine.quick_title("?!"), "New chat")
+        self.assertEqual(engine.clean_title(' "Stripe webhook fix." '), "Stripe webhook fix")
 
     def test_unknown_agent_and_empty_message(self):
         with self.assertRaises(engine.ChatError):

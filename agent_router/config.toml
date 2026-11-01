@@ -13,6 +13,8 @@ agent = "hermes"
 coders = ["claude", "chatgpt"]
 # After a coder finishes, Hermes writes a short update for you.
 report = true
+# Hermes also names each new chat in a few words (set namer = "" to keep quick names only).
+namer = "hermes"
 # Hermes always works in a throwaway copy of the project, so it can read everything but never change
 # the real files; only the coders edit.
 

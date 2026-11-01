@@ -141,7 +141,8 @@ class ServerTest(EngineCase):
         self.assertIn("Keep it simple", self.request("GET", "/api/memory?project=applio")[1]["text"])
         self.assertEqual(self.request("GET", "/api/search?q=d.js")[1]["results"][0]["chat"], cid)
         doctor = self.request("GET", "/api/doctor")[1]
-        self.assertEqual([a["role"] for a in doctor["agents"]], ["orchestrator", "coder", "coder"])
+        roles = {a["agent"]: a["role"] for a in doctor["agents"]}
+        self.assertEqual((roles["hermes"], roles["claude"], roles["chatgpt"]), ("orchestrator", "coder", "coder"))
         self.assertEqual([p["name"] for p in doctor["projects"]], ["Applio", "Stockbot"])
 
 

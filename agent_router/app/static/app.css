@@ -279,3 +279,13 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .settings input, .settings select { padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-size: 13px; }
 .settings .btn { justify-self: start; }
 .panel-body h3 { font-size: 13px; margin: 4px 0 8px; color: var(--muted); font-weight: 600; }
+
+.task-row { position: relative; }
+.task-row .task { padding-right: 30px; }
+.row-delete {
+  position: absolute; right: 4px; top: 6px; width: 24px; height: 24px; border: 0; border-radius: 6px;
+  background: none; color: var(--faint); font-size: 16px; line-height: 1; opacity: 0;
+}
+.task-row:hover .row-delete, .row-delete:focus-visible { opacity: 1; }
+.row-delete:hover { background: var(--bad-bg); color: var(--bad); }
+@media (hover: none) { .row-delete { opacity: .6; } }

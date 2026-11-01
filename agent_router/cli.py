@@ -55,6 +55,7 @@ COMMANDS = {  # name -> (description, takes an argument)
     "rename": ("Rename this chat", True),
     "pin": ("Pin or unpin this chat", False),
     "archive": ("Archive this chat", False),
+    "delete": ("Delete this chat (or /delete <number> from /chats)", False),
     "export": ("Save this chat to a markdown file", False),
     "exit": ("Exit", False),
 }
@@ -169,13 +170,14 @@ class Shell:
         self.pending = []     # files attached with /attach or /paste, sent with the next message
         self.watches = []
         self.hinted = False
+        self.confirm_delete = (None, 0)  # chat waiting for a second /delete, and when it was asked
         self.handlers = {
             "help": self.help, "new": self.new, "clear": self.new, "resume": self.resume, "chats": self.chats,
             "open": self.resume, "project": self.project_cmd, "model": self.model, "agent": self.model,
             "attach": self.attach, "paste": self.paste, "review": self.review, "diff": self.diff,
             "doctor": self.doctor, "status": self.doctor, "memory": self.memory, "cost": self.cost,
             "search": self.search, "rename": self.rename, "pin": self.pin, "archive": self.archive,
-            "export": self.export, "exit": lambda a: False, "quit": lambda a: False,
+            "export": self.export, "delete": self.delete, "exit": lambda a: False, "quit": lambda a: False,
         }
 
     # ---- naming ----
@@ -354,7 +356,7 @@ class Shell:
     def live_partial(self):
         for w in self.watches:
             for text in w.partial.values():
-                if text and not re.match(r"^\W*(DELEGATE|REVIEW|BRIEF):", text):
+                if text and not re.match(r"^\W*(DELEGATE|REVIEW|BRIEF|TITLE):", text):
                     return text
         return ""
 
@@ -406,7 +408,7 @@ class Shell:
             partial[i] = ""
 
     def print_line(self, line):
-        if re.match(r"^\W*(DELEGATE|REVIEW|BRIEF):", line):
+        if re.match(r"^\W*(DELEGATE|REVIEW|BRIEF|TITLE):", line):
             return
         tool = re.match(r"^> (\S+)\s*(.*)$", line)
         if tool:
@@ -642,6 +644,27 @@ class Shell:
         self.store.update_chat(self.pid, self.focus, archived=True)
         self.focus = None
         self.out("Archived. New chat started.")
+
+    def delete(self, arg):
+        chats = self.store.chats(self.project()["id"], archived=True)
+        if arg.isdigit() and 1 <= int(arg) <= len(chats):
+            target = chats[int(arg) - 1]
+        elif arg:
+            raise SystemExit(f"No chat number {arg}. See /chats.")
+        else:
+            target = next((c for c in chats if c["id"] == self.focus), None)
+        if not target:
+            raise SystemExit("Open a chat first, or /delete <number> from /chats.")
+        waiting, asked = self.confirm_delete
+        if waiting != target["id"] or time.time() - asked > 30:
+            self.confirm_delete = (target["id"], time.time())
+            self.out(paint(f"Delete \"{target['title']}\"? This can't be undone. Type /delete{' ' + arg if arg else ''} again to confirm.", "33"))
+            return
+        self.confirm_delete = (None, 0)
+        self.engine.delete_chat(self.pid, target["id"])
+        if self.focus == target["id"]:
+            self.focus = None
+        self.out(f"Deleted \"{target['title']}\".")
 
     def export(self, arg):
         if not self.focus:

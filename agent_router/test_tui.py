@@ -424,6 +424,28 @@ class FlowTest(TuiCase):
         self.ui.run_line(f"/project add {other}")
         self.assertEqual(self.shell.pid, "newproj")
 
+    def test_delete_asks_first(self):
+        self.plan({"hermes": ["say one", "say two"]})
+        self.type("first chat")
+        self.key(b"\r")
+        self.settle()
+        cid = self.shell.focus
+        self.ui.run_line("/delete")
+        self.assertIn("again to confirm", self.screen())
+        self.assertTrue(self.store.chat_path("applio", cid).exists())
+        self.ui.run_line("/delete")
+        self.assertFalse(self.store.chat_path("applio", cid).exists())
+        self.assertIsNone(self.shell.focus)
+        self.type("second chat")
+        self.key(b"\r")
+        self.settle()
+        self.ui.run_line("/new")
+        self.ui.run_line("/delete 1")
+        self.ui.run_line("/delete 1")
+        self.assertEqual(self.store.chats("applio"), [])
+        self.ui.run_line("/delete 5")
+        self.assertIn("No chat number 5", self.screen())
+
     def test_export(self):
         self.plan({"hermes": ["say exported answer"]})
         self.type("a question")

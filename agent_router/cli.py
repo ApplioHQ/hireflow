@@ -692,7 +692,7 @@ def line_mode(shell):
         import readline  # noqa: F401  (history and editing for input())
     except ImportError:
         pass
-    shell.out(paint("Applio Agents", "1") + dim(f"  {shell.project()['name'] if shell.pid else 'no project'}"))
+    shell.out(paint("Agents", "1") + dim(f"  {shell.project()['name'] if shell.pid else 'no project'}"))
     shell.out("Just type. /help for commands.")
     while True:
         try:

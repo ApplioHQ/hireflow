@@ -1,4 +1,4 @@
-# Applio Agents config: which agents exist and how they work together.
+# Agents config: which agents exist and how they work together.
 # Projects (folders the agents work in) and chats live in ~/.applio-agents/, not here.
 repo = ".."
 

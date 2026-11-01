@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local web app for Applio Agents. Start it with: npm run app (then open http://localhost:4747)."""
+"""Local web app for Agents. Start it with: npm run app (then open http://localhost:4747)."""
 import argparse
 import json
 import re
@@ -24,7 +24,6 @@ MAX_UPLOAD = engine.MAX_ATTACHMENT
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
          ".css": "text/css; charset=utf-8", ".json": "application/manifest+json",
          ".png": "image/png", ".svg": "image/svg+xml"}
-ICONS = {"icon-192.png", "icon-512.png", "icon-maskable-192.png", "icon-maskable-512.png"}
 IMAGE_TYPES = engine.IMAGE_TYPES
 name = engine.name
 
@@ -103,12 +102,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def static(self, path):
         file_name = "index.html" if path in ("/", "/index.html") else path.lstrip("/")
-        if file_name in ICONS:
-            file = self.engine.cfg["repo"] / file_name
-        else:
-            file = (STATIC / file_name).resolve()
-            if STATIC.resolve() not in file.parents:
-                return self.send(404, b"not found", "text/plain")
+        file = (STATIC / file_name).resolve()
+        if STATIC.resolve() not in file.parents:
+            return self.send(404, b"not found", "text/plain")
         if not file.is_file():
             return self.send(404, b"not found", "text/plain")
         self.send(200, file.read_bytes(), TYPES.get(file.suffix, "application/octet-stream"), "no-cache")
@@ -242,7 +238,7 @@ def main(argv=None):
         print(f"Port {args.port} is busy. Is the app already running? Open http://localhost:{args.port}")
         return 1
     url = f"http://localhost:{args.port}"
-    print(f"Applio Agents running at {url}  (Ctrl-C to stop)")
+    print(f"Agents running at {url}  (Ctrl-C to stop)")
     if not args.no_open:
         webbrowser.open(url)
     try:

@@ -17,7 +17,6 @@ class ServerTest(EngineCase):
     def setUp(self):
         super().setUp()
         (self.cfg["repo"]).mkdir(exist_ok=True)
-        (self.cfg["repo"] / "icon-192.png").write_bytes(b"\x89PNG fake")
         self.server = server.make_server(self.cfg, 0, self.store)
         self.port = self.server.server_address[1]
         self.engine = self.server.RequestHandlerClass.engine
@@ -53,8 +52,9 @@ class ServerTest(EngineCase):
     def test_page_and_icons(self):
         status, body = self.request("GET", "/")
         self.assertEqual(status, 200)
-        self.assertIn(b"Applio Agents", body)
-        self.assertEqual(self.request("GET", "/icon-192.png")[1], b"\x89PNG fake")
+        self.assertIn(b"Agents", body)
+        self.assertEqual(self.request("GET", "/icon-192.png")[0], 200)  # served from the static folder
+        self.assertEqual(self.request("GET", "/logo.svg")[0], 200)
         self.assertEqual(self.request("GET", "/../engine.py")[0], 404)
 
     def test_security(self):

@@ -1,7 +1,7 @@
 {
-  "name": "Applio Agents",
+  "name": "Agents",
   "short_name": "Agents",
-  "description": "Give coding tasks to Claude Code and Hermes on the Applio repo.",
+  "description": "Chat with your coding agents. Hermes orchestrates; Claude and ChatGPT write the code.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

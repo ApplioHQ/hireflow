@@ -466,7 +466,7 @@ class TUI:
         if up > 0:
             out.append(f"\x1b[{up}A")
         out.append("\r" + (f"\x1b[{cur_col}C" if cur_col else ""))
-        title = f"Applio Agents{' - ' + self.shell.focus if self.shell.focus else ''}"
+        title = f"Agents{' - ' + self.shell.focus if self.shell.focus else ''}"
         if title != self.title:
             self.title = title
             out.append(f"\x1b]0;{title}\x07")
@@ -616,7 +616,7 @@ class TUI:
         w = min(cols - 1, 66)
         projects = self.shell.store.projects()
         here = self.shell.project()["name"] if self.shell.pid else "none yet"
-        body = [paint(SPARK, "38;5;173") + " Welcome to " + paint("Applio Agents", "1") + "!", "",
+        body = [paint(SPARK, "38;5;173") + " Welcome to " + paint("Agents", "1") + "!", "",
                 dim("  /help for help, /doctor to check your agents"), "", dim(f"  project: {here}")]
         lines = [paint(TL + H * (w - 2) + TR, "38;5;173")]
         lines += [paint(V, "38;5;173") + " " + pad(row, w - 4) + " " + paint(V, "38;5;173") for row in body]

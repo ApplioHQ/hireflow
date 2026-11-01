@@ -159,7 +159,7 @@ class LayoutTest(TuiCase):
     def test_welcome_and_box(self):
         self.ui.welcome()
         out = self.screen()
-        self.assertIn("Welcome to Applio Agents!", out)
+        self.assertIn("Welcome to Agents!", out)
         self.assertIn("Hermes reads every message", out)
         self.assertIn("Applio", out)
         self.assertIn("Stockbot", out)

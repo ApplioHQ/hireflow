@@ -1,4 +1,4 @@
-# Applio Agents
+# Agents
 
 Chat with your coding agents across project folders. Hermes orchestrates; Claude and ChatGPT write the code.
 Python 3.11+ standard library only.

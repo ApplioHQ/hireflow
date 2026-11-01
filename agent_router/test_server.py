@@ -147,7 +147,7 @@ class ServerTest(EngineCase):
         status, up = self.upload("Screen%20Shot%201.png", b"\x89PNG data")
         self.assertEqual((status, up["name"], up["size"]), (200, "Screen Shot 1.png", 9))
         self.assertTrue(Path(up["path"]).exists())
-        self.plan({"hermes": ["delegate claude", "say ok"], "claude": ["say It's a login form."]})
+        self.plan({"claude": ["say It's a login form."]})  # an image routes straight to a coder
         status, body = self.post("/api/chats", {"project": "applio", "text": "What's this?", "files": [up["path"]]})
         self.assertEqual(status, 200, body)
         self.wait()

@@ -615,8 +615,11 @@ class Engine:
             if 1 <= len(title.split()) <= 6:
                 self.store.name_chat(pid, cid, title)
 
+    def orchestrator_sees_images(self):
+        return self.cfg["agents"][self.orchestrator].get("vision", True)
+
     def send(self, pid, cid, text, files=(), agent=None):
-        self.store.project(pid)
+        project = self.store.project(pid)
         agent = self.check_agent(agent)
         text = str(text).strip()
         if not text:
@@ -626,7 +629,15 @@ class Engine:
         saved = self.store.save_attachments(pid, cid, files)
         self.store.add(pid, cid, {"role": "user", "text": text, **({"files": saved} if saved else {})})
         job = {"project": pid, "chat": cid, "text": text, "files": saved, "agent": agent}
-        if agent:  # the user picked a coder: skip Hermes's routing
+        if not agent and not self.orchestrator_sees_images() \
+                and any(Path(f).suffix.lower() in IMAGE_TYPES for f in saved):
+            # The orchestrator can't see images, so an image message goes straight to a coder (who can),
+            # instead of Hermes stalling to ask what to do.
+            agent = self.default_coder(project)
+            self.store.add(pid, cid, {"role": "note",
+                                      "text": f"That has an image {name(self.orchestrator)} can't see, "
+                                              f"so it goes straight to {name(agent)}."})
+        if agent:  # a coder was picked, or an image routed one in: skip Hermes's routing
             job.update(coder=agent, brief=text, review=False)
             self.lane(pid, "code").submit(job)
         else:

@@ -284,17 +284,29 @@ class OrchestrationTest(EngineCase):
         with self.assertRaises(engine.ChatError):
             self.engine.send("applio", cid, "again")
 
-    def test_attachments_reach_the_coder(self):
+    def test_image_attachment_goes_straight_to_a_coder(self):
         shot = Path(self.tmp.name) / "shot.png"
         shot.write_bytes(b"\x89PNG")
-        self.plan({"hermes": ["delegate claude", "say done"], "claude": ["say It's a login page."]})
+        self.plan({"claude": ["say It's a login page."]})
         cid, msgs = self.chat("applio", "What's wrong here?", files=[str(shot)])
         saved = self.store.attachments_dir("applio", cid) / "shot.png"
         self.assertTrue(saved.exists())
-        self.assertIn("can't see", self.runs("hermes")[0]["prompt"])
+        steps = [m.get("step") for m in msgs if m["role"] == "agent"]
+        self.assertEqual(steps[0], "code")        # the coder runs first; Hermes did not orchestrate
+        self.assertNotIn("orchestrate", steps)
+        self.assertTrue(any(m["role"] == "note" and "goes straight to Claude" in m.get("text", "") for m in msgs))
         claude = self.runs("claude")[0]
         self.assertIn(str(saved), claude["prompt"])
         self.assertEqual(claude["args"][-2:], ["--add-dir", str(saved.parent)])
+
+    def test_text_attachment_still_goes_through_hermes(self):
+        notes = Path(self.tmp.name) / "notes.txt"
+        notes.write_text("some notes")
+        self.plan({"hermes": ["say I read your notes."]})
+        cid, msgs = self.chat("applio", "What's in this?", files=[str(notes)])
+        steps = [m.get("step") for m in msgs if m["role"] == "agent"]
+        self.assertEqual(steps[0], "answer")      # Hermes can read text files itself
+        self.assertFalse(any("goes straight to" in m.get("text", "") for m in msgs if m["role"] == "note"))
 
     def test_decisions_are_remembered_for_later(self):
         self.plan({"hermes": ["delegate claude", "say ok", "say noted"], "claude": ["decide Use plain hyphens"]})

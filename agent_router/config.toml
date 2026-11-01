@@ -39,3 +39,10 @@ format = "stream-json"
 resume = ["--resume", "{session_id}"]
 # The current Hermes model can't see images. On Auto, messages with an attached image go to Claude.
 vision = false
+
+[agents.chatgpt]
+# ChatGPT through the Codex CLI that ships inside the ChatGPT app, signed in with your ChatGPT account.
+# workspace-write lets it edit files in this repo; it can't touch anything outside it.
+command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "--json", "-s", "workspace-write", "-"]
+resume_command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "resume", "--json", "-c", "sandbox_mode=\"workspace-write\"", "{session_id}", "-"]
+format = "stream-json"

@@ -22,7 +22,7 @@ import router  # noqa: E402
 import server  # noqa: E402
 
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
-AGENT_COLORS = {"claude": "38;5;173", "hermes": "38;5;75"}
+AGENT_COLORS = {"claude": "38;5;173", "hermes": "38;5;75", "chatgpt": "38;5;36"}
 STATUS_COLORS = {"done": "32", "blocked": "31", "in_progress": "33", "pending": "36", "running": "33", "queued": "36"}
 MENTION = re.compile(r"^\s*@(\w+)\s*(.*)$", re.S)
 LEGACY = re.compile(r"^\s*(claude|hermes|both|auto)\s*:\s*(.+)$", re.S | re.I)
@@ -44,7 +44,7 @@ COMMANDS = {  # name -> (description, takes an argument)
     "resume": ("Switch to an earlier task", False),
     "open": ("Switch to a task by ID", True),
     "tasks": ("List tasks", False),
-    "model": ("Choose who handles messages: auto, claude, hermes, both", False),
+    "model": ("Choose who handles messages: auto, claude, hermes, chatgpt, both", False),
     "agent": ("Same as /model", False),
     "attach": ("Attach a file to your next message", True),
     "paste": ("Attach the image on your clipboard", False),
@@ -67,7 +67,8 @@ Just type. On Auto, Hermes answers questions and hands code changes to Claude
 (messages with screenshots go to Claude, since Hermes can't see images).
 After a task runs you stay in it: type again to follow up, or /new to start another.
 
-  @claude @hermes @both @auto   pick who handles this message (in a task, hands it over)
+  @claude @hermes @chatgpt      pick who handles this message (in a task, hands it over)
+  @both @auto                   Claude builds and Hermes reviews / let Auto decide
   @path                         attach a file; dragging a file in or /paste also attaches
   !command                      run a shell command in the repo
   #note                         save a note to agent_state/context.md for both agents
@@ -425,6 +426,9 @@ class Shell:
         lead = f"  {ELBOW} "
         if m.get("relay") == "agreed":
             self.out(lead + paint("Both agents agree: done", "32") + dim(f" {MIDDOT} {m.get('text', '')}"))
+        elif m.get("relay") == "agent_failed":
+            self.out(lead + paint(f"Stopped: {m.get('reason')}", "31") + dim(f" {MIDDOT} {m.get('text') or 'see /log'}"))
+            self.out(dim("     Fix the cause, then /run to try again."))
         elif m.get("relay"):
             self.out(lead + paint(f"No agreement: {m.get('reason')}", "31") + dim(f" {MIDDOT} reply with directions or /run"))
         elif m.get("answer"):
@@ -543,7 +547,7 @@ class Shell:
         if not arg:
             who = self.label(self.current_owner())
             self.out(f"{'This task goes to' if self.focus else 'New tasks go to'} {who}. "
-                     "Options: auto, claude, hermes, both.")
+                     f"Options: {', '.join(['auto', *self.cfg['agents'], 'both'])}.")
             return
         self.set_mode(self.resolve(arg))
 

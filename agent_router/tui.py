@@ -33,7 +33,8 @@ VERBS = {"auto": "Thinking", "review": "Reviewing", "build": "Building", "": "Wo
 HISTORY = Path.home() / ".applio_agents_history"
 ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07")
 MODE_DESC = {"auto": "Hermes answers questions, Claude makes code changes",
-             "claude": "Claude handles everything", "hermes": "Hermes handles everything (can't see images)"}
+             "claude": "Claude handles everything", "hermes": "Hermes handles everything (can't see images)",
+             "chatgpt": "ChatGPT handles everything"}
 
 CSI = {"A": "up", "B": "down", "C": "right", "D": "left", "H": "home", "F": "end", "Z": "shift-tab"}
 TILDE = {"1": "home", "7": "home", "4": "end", "8": "end", "3": "delete", "5": "pageup", "6": "pagedown"}
@@ -624,7 +625,7 @@ class TUI:
         else:
             tips += [" 1. Describe a task and press enter", " 2. /diff shows what changed"]
         tips += [" 3. @ attaches files, ! runs a shell command, # saves a note",
-                 " 4. shift+tab switches between Auto, Claude, Hermes and Both", ""]
+                 f" 4. shift+tab switches between {', '.join(self.shell.label(m) for m in self.shell.modes())}", ""]
         missing = [n for n, spec in self.shell.cfg["agents"].items() if not shutil.which(spec["command"][0])]
         if missing:
             tips.append(paint(f" Not installed: {', '.join(missing)}", "31"))

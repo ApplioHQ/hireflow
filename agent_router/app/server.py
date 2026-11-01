@@ -27,7 +27,7 @@ TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=u
          ".css": "text/css; charset=utf-8", ".json": "application/manifest+json",
          ".png": "image/png", ".svg": "image/svg+xml"}
 REPO_ICONS = {"icon-192.png", "icon-512.png", "icon-maskable-192.png", "icon-maskable-512.png"}
-NAMES = {"claude": "Claude", "hermes": "Hermes"}
+NAMES = {"claude": "Claude", "hermes": "Hermes", "chatgpt": "ChatGPT"}
 APPROVED = re.compile(r"(?m)^\W*APPROVED\W*$")
 MAX_REVIEW_DIFF = 30_000
 MAX_ATTACHMENT = 25_000_000
@@ -538,6 +538,14 @@ class App:
             approved = bool(turn > 1 and result["ok"] and not code_files and APPROVED.search(result["output"]))
             self.threads.finish(task_id, agent, result, {"turn": turn, "step": step, "approved": approved})
             if result["stopped"]:
+                return
+            if result["reason"].startswith("agent exited"):
+                # The agent itself failed (usage limit, crash, login): nothing new to review, so stop here.
+                last = next((l.strip() for l in reversed(result["output"].splitlines())
+                             if l.strip() and not l.strip().startswith("[")), "")
+                self.threads.add(task_id, {"role": "result", "ok": False, "relay": "agent_failed", "files": [],
+                                           "check": "", "log": "", "reason": f"{name(agent)} failed",
+                                           "text": last[:300]})
                 return
             if approved:
                 self.threads.add(task_id, {"role": "result", "ok": True, "relay": "agreed", "files": [],

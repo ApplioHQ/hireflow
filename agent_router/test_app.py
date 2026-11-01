@@ -44,6 +44,9 @@ SESSION_AGENT = textwrap.dedent("""\
         if kind == "route":
             print("ROUTE: CODE", flush=True)
             sys.exit(0)
+        if kind == "crash":
+            print(action[6:] or "agent crashed", flush=True)
+            sys.exit(1)
         if kind in ("write", "edit-approve"):
             pathlib.Path(rest[0]).write_text(rest[1] + "\\n")
         if kind == "bad":
@@ -60,6 +63,25 @@ SESSION_AGENT = textwrap.dedent("""\
     print(f"{name} did the work", flush=True)
     pathlib.Path(f"{name}.js").write_text("var ok = 1;\\n")
     pathlib.Path("agent_state/handoff.md").write_text(f"Task: x\\nAgent: {name}\\nStatus: done\\n")
+""")
+
+
+# Fake ChatGPT: prints `codex exec --json` style events, edits a file and writes handoff.md.
+CODEX_AGENT = textwrap.dedent("""\
+    import sys, json, pathlib
+    args = sys.argv[1:]
+    prompt = sys.stdin.read()
+    with pathlib.Path(".git/runs-chatgpt.jsonl").open("a") as f:
+        f.write(json.dumps({"args": args, "prompt": prompt}) + "\\n")
+    def emit(e): print(json.dumps(e), flush=True)
+    emit({"type": "thread.started", "thread_id": "thread-chatgpt"})
+    emit({"type": "item.completed", "item": {"type": "agent_message", "text": "Writing g.js now."}})
+    emit({"type": "item.started", "item": {"type": "command_execution", "command": "/bin/zsh -lc ls"}})
+    emit({"type": "item.completed", "item": {"type": "command_execution", "command": "/bin/zsh -lc ls", "aggregated_output": "x"}})
+    pathlib.Path("g.js").write_text("var g = %d;\\n" % len(prompt))
+    emit({"type": "item.completed", "item": {"type": "file_change", "changes": [{"path": "g.js", "kind": "add"}]}})
+    pathlib.Path("agent_state/handoff.md").write_text("Task: g\\nAgent: chatgpt\\nStatus: done\\n")
+    emit({"type": "turn.completed", "usage": {"input_tokens": 40, "output_tokens": 2}})
 """)
 
 
@@ -330,6 +352,20 @@ class AppTest(RepoCase):
         self.assertEqual([m.get("relay") for m in msgs if m.get("relay")], ["agreed", "agreed"])
         self.assertEqual(self.rows()[task_id]["owner"], "claude+hermes")
 
+    def test_relay_stops_when_the_builder_fails(self):
+        task_id, msgs = self.relay({"claude": ["crash You've hit your weekly limit"], "hermes": ["approve"]})
+        self.assertEqual(self.runs("hermes"), [])  # the reviewer never runs
+        self.assertEqual(self.rows()[task_id]["status"], "blocked")
+        self.assertEqual(msgs[-1]["relay"], "agent_failed")
+        self.assertEqual(msgs[-1]["reason"], "Claude failed")
+        self.assertIn("weekly limit", msgs[-1]["text"])
+
+    def test_relay_stops_when_the_reviewer_fails(self):
+        task_id, msgs = self.relay({"claude": ["write a.js var a = 1;"], "hermes": ["crash model unavailable"]})
+        self.assertEqual(self.rows()[task_id]["status"], "blocked")
+        self.assertEqual((msgs[-1]["relay"], msgs[-1]["reason"]), ("agent_failed", "Hermes failed"))
+        self.assertEqual(len(self.runs("claude")), 1)
+
     def test_relay_owner_choices(self):
         self.assertEqual(self.post("/api/tasks/T3/owner", {"agent": "hermes+claude"})[0], 200)
         self.assertEqual(self.rows()["T3"]["owner"], "hermes+claude")
@@ -481,6 +517,52 @@ class AppTest(RepoCase):
         with self.assertRaises(server.ApiError):
             self.app.new_task("auto", "look", files=["/no/such/file.png"])
         self.assertEqual(len(self.rows()), 3)
+
+    # ---- ChatGPT (Codex CLI event format) ----
+
+    def add_chatgpt(self):
+        (self.repo / "codex.py").write_text(CODEX_AGENT)
+        self.app.cfg["agents"]["chatgpt"] = {
+            "command": [sys.executable, "codex.py", "exec", "--json", "-"],
+            "resume_command": [sys.executable, "codex.py", "exec", "resume", "--json", "{session_id}", "-"],
+            "format": "stream-json"}
+
+    def test_chatgpt_task_streams_and_passes_the_check(self):
+        self.add_chatgpt()
+        status, body = self.post("/api/tasks", {"agent": "chatgpt", "text": "Write g.js"})
+        self.assertEqual(status, 200, body)
+        self.wait()
+        msgs = self.request("GET", f"/api/threads/{body['id']}")[1]["messages"]
+        text = msgs[1]["text"]
+        self.assertIn("Writing g.js now.", text)
+        self.assertIn("> Bash ls", text)
+        self.assertIn("> Edit g.js", text)
+        self.assertIn("[42 tokens]", text)
+        self.assertNotIn('"type"', text)
+        self.assertTrue(msgs[2]["ok"])
+        self.assertIn("g.js", msgs[2]["files"])
+        self.assertEqual(self.rows()[body["id"]]["owner"], "chatgpt")
+
+    def test_chatgpt_reply_uses_the_resume_command(self):
+        self.add_chatgpt()
+        self.post("/api/tasks", {"agent": "chatgpt", "text": "Write g.js"})
+        self.wait()
+        self.post("/api/tasks/T4/reply", {"text": "Make it 2"})
+        self.wait()
+        first, second = self.runs("chatgpt")
+        self.assertEqual(first["args"][:2], ["exec", "--json"])
+        self.assertEqual(second["args"][:4], ["exec", "resume", "--json", "thread-chatgpt"])
+        self.assertIn("Make it 2", second["prompt"])
+
+    def test_chatgpt_can_pair_with_claude_in_a_relay(self):
+        self.add_chatgpt()
+        (self.repo / ".git/plan.json").write_text(json.dumps({"claude": ["approve"]}))
+        status, _ = self.post("/api/tasks", {"agent": "chatgpt+claude", "text": "Write g.js"})
+        self.assertEqual(status, 200)
+        self.wait()
+        msgs = self.request("GET", "/api/threads/T4")[1]["messages"]
+        self.assertEqual(msgs[-1]["relay"], "agreed")
+        self.assertEqual([m["agent"] for m in msgs if m["role"] == "agent"], ["chatgpt", "claude"])
 
     def test_handoff_context_and_diff(self):
         self.assertIn("SEED-HANDOFF", self.request("GET", "/api/files/handoff")[1]["text"])

@@ -27,7 +27,7 @@ REQUIRED_COLUMNS = ["id", "task", "status", "owner", "notes"]
 TAIL = 4000  # chars of agent/check output kept in handoff and logs
 
 SYSTEM_PROMPT = """\
-You are working on the Applio codebase alongside another AI agent. You coordinate only
+You are working on the Applio codebase alongside other AI agents. You coordinate only
 through the files in agent_state/. The router that started you assigns tasks and checks results.
 
 Before starting the task:
@@ -210,11 +210,35 @@ def parse_line(line, repo):
         return event.get("text", "")
     if kind == "tool_use":  # Hermes
         return tool_line(event.get("name"), event.get("input"), repo)
+    if kind in ("item.started", "item.completed"):  # ChatGPT (Codex CLI)
+        return codex_item(kind, event.get("item") or {}, repo)
+    if kind == "turn.completed" and isinstance(event.get("usage"), dict):
+        usage = event["usage"]
+        return f"\n[{usage.get('input_tokens', 0) + usage.get('output_tokens', 0)} tokens]\n"
+    if kind in ("turn.failed", "error"):
+        error = event.get("error") or {}
+        message = error.get("message") if isinstance(error, dict) else str(error)
+        return f"\nError: {message or event.get('message') or 'unknown error'}\n"
     if kind == "result":
         if "total_cost_usd" in event:
             return f"\n[cost ${event['total_cost_usd']:.2f}]\n"
         if isinstance(event.get("tokens"), dict):
             return f"\n[{event['tokens'].get('total', '?')} tokens]\n"
+    return ""
+
+
+def codex_item(kind, item, repo):
+    """Readable text for one item event from `codex exec --json`."""
+    item_type = item.get("type")
+    if item_type == "agent_message" and kind == "item.completed":
+        return item.get("text", "") + "\n"
+    if item_type == "command_execution" and kind == "item.started":
+        command = re.sub(r"^/bin/(?:ba|z)?sh -lc ", "", item.get("command", ""))
+        return tool_line("Bash", {"command": command.strip("'\"")}, repo)
+    if item_type == "file_change" and kind == "item.completed":
+        return "".join(tool_line("Edit", {"path": c.get("path", "")}, repo) for c in item.get("changes") or [])
+    if item_type in ("mcp_tool_call", "web_search") and kind == "item.started":
+        return tool_line(item.get("tool") or item.get("query") or item_type, {}, repo)
     return ""
 
 
@@ -234,7 +258,11 @@ def session_in(line):
         event = json.loads(line)
     except ValueError:
         return None
-    return (event.get("session_id") or None) if isinstance(event, dict) else None
+    if not isinstance(event, dict):
+        return None
+    if event.get("type") == "thread.started":  # ChatGPT (Codex CLI)
+        return event.get("thread_id") or None
+    return event.get("session_id") or None
 
 
 def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None):
@@ -246,7 +274,9 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None):
     """
     spec = cfg["agents"][agent]
     command = list(spec["command"])
-    if session_id:
+    if session_id and spec.get("resume_command"):  # agents that resume with a different command (ChatGPT)
+        command = [part.replace("{session_id}", session_id) for part in spec["resume_command"]]
+    elif session_id:
         command += [part.replace("{session_id}", session_id) for part in spec.get("resume", [])]
     parse = spec.get("format") == "stream-json"
     uses_file = any("{prompt_file}" in part for part in command)

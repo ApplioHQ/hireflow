@@ -140,6 +140,7 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .who .badge { width: 18px; height: 18px; border-radius: 5px; display: inline-grid; place-items: center; font-size: 11px; color: #fff; }
 .badge.claude { background: #d97757; }
 .badge.hermes { background: #5b7fd6; }
+.badge.chatgpt { background: #10a37f; }
 .body p { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .body p:last-child { margin-bottom: 0; }
 .body code { background: var(--code); padding: 1px 5px; border-radius: 4px; }

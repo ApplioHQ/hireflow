@@ -14,5 +14,6 @@ The router reads and writes the table below. Columns:
 | T5 | plan 5 improvements | done | claude+hermes | done 2026-10-30 14:19, see log/ |
 | T6 | go through our entire seo and find thing to improve | done | auto | answered by hermes 2026-10-30 15:35 |
 | T7 | what are all the skills that i downloaded onto claude | done | hermes | done 2026-10-30 16:00, see log/ |
-| T8 | claude tell hermes all the skills i downloaded to you so hermes can do it too | done | claude+hermes | done 2026-10-30 17:25, see log/ |
+| T8 | claude tell hermes all the skills i downloaded to you so hermes can do it too | done | claude+hermes | done 2026-10-31 00:33, see log/ |
 | T9 | do a full geo audit | done | claude+hermes | done 2026-10-30 17:30, see log/ |
+| T10 | what are cookies in a website. tldr | done | chatgpt | done 2026-11-01 01:56, see log/ |

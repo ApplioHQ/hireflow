@@ -1,11 +1,11 @@
 "use strict";
 
 const $ = (sel) => document.querySelector(sel);
-const NAMES = { claude: "Claude", hermes: "Hermes" };
+const NAMES = { claude: "Claude", hermes: "Hermes", chatgpt: "ChatGPT" };
+const BADGES = { claude: "C", hermes: "H", chatgpt: "G" };
 const nameOf = (agent) => (agent === "auto" ? "Auto" : String(agent).split("+").map((a) => NAMES[a] || a).join(" + "));
 const isRelay = (owner) => String(owner).includes("+");
-const relayPairs = () => (state.agents.length >= 2
-  ? [`${state.agents[0]}+${state.agents[1]}`, `${state.agents[1]}+${state.agents[0]}`] : []);
+const relayPairs = () => state.agents.flatMap((a) => state.agents.filter((b) => b !== a).map((b) => `${a}+${b}`));
 const relayRoles = (owner) => {
   const [lead, reviewer] = String(owner).split("+");
   return `${nameOf(lead)} builds, ${nameOf(reviewer)} reviews, up to ${state.relay_turns || 4} turns`;
@@ -183,7 +183,7 @@ function renderHead() {
 function renderWelcome() {
   return `<div class="welcome">
     <h2>What should the agents work on?</h2>
-    <p>Ask a question or describe a change. On Auto, Hermes answers questions and hands code changes to Claude. You can also pick Claude, Hermes, or Both yourself.</p>
+    <p>Ask a question or describe a change. On Auto, Hermes answers questions and hands code changes to Claude. You can also pick Claude, Hermes, ChatGPT, or Both yourself.</p>
     <div class="welcome-tips">
       <button type="button" class="tip" data-tip="Audit sitemap.xml for URLs whose .html file no longer exists and remove them">Audit sitemap.xml for missing pages</button>
       <button type="button" class="tip" data-tip="Add a short comment block at the top of js/config.js explaining what each setting does">Document js/config.js settings</button>
@@ -194,7 +194,8 @@ function renderWelcome() {
 
 function renderRelayResult(m) {
   const ok = m.relay === "agreed";
-  const title = ok ? "Both agents agree: done" : `No agreement: ${esc(m.reason)}`;
+  let title = ok ? "Both agents agree: done" : `No agreement: ${esc(m.reason)}`;
+  if (m.relay === "agent_failed") title = `Stopped: ${esc(m.reason)}`;
   const hint = ok
     ? "Review the changes, then commit when you're happy. Reply below to ask for more."
     : "Reply below with directions, or press Run again.";
@@ -261,7 +262,7 @@ function renderThread() {
     let step = "";
     if (m.step === "route") step = `<span class="step">routing</span>`;
     else if (m.step === "build" || m.step === "review") step = `<span class="step">${m.step} - turn ${m.turn}</span>`;
-    return `<div class="msg agent"><div class="who"><span class="badge ${esc(agent)}">${esc(nameOf(agent).charAt(0))}</span>${esc(nameOf(agent))}${step}</div><div class="body">${body}</div>${working}</div>`;
+    return `<div class="msg agent"><div class="who"><span class="badge ${esc(agent)}">${esc(BADGES[agent] || nameOf(agent).charAt(0))}</span>${esc(nameOf(agent))}${step}</div><div class="body">${body}</div>${working}</div>`;
   });
   if (state.queued.includes(id) || quick().queued.includes(id)) parts.push(`<div class="working"><span class="dot queued"></span>Queued. Starts when ${esc(state.current || "the current task")} finishes.</div>`);
   if (task.status === "pending" && !isBusy(id) && thread.messages.length <= 1) parts.push(`<div class="result-hint">This task hasn't run yet. Press Run when you're ready.</div>`);

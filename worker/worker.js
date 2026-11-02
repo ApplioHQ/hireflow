@@ -149,6 +149,7 @@ export default {
       if (path === "/consent" && req.method === "POST") return json(await setConsent(req, env), 200, cors);
       if (path === "/testimonial" && req.method === "GET")  return json(await getTestimonial(req, env), 200, cors);
       if (path === "/testimonial" && req.method === "POST") return json(await setTestimonial(req, env), 200, cors);
+      if (path === "/testimonials/public" && req.method === "GET") return json(await getPublicTestimonials(env), 200, cors);
       if (path === "/admin/testimonials")              return json(await adminListTestimonials(req, env), 200, cors);
       if (path === "/jobs" && req.method === "GET")  return json(await getJobs(req, env), 200, cors);
       if (path === "/jobs" && req.method === "POST") return json(await saveJobs(req, env), 200, cors);
@@ -184,11 +185,13 @@ export default {
     }
   },
 
-  // Cron: Fridays 16:00 UTC = weekly win nudge + review nudge; daily 14:00 UTC = re-engagement drip + post-download review.
+  // Each cron gets its own job. Keeping them separate prevents a Friday event from
+  // sending every campaign at once; outreach routines remain idempotent via KV.
   // All inert until env.RESEND_API_KEY is configured.
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
-    ctx.waitUntil(runPostDownloadReviewNudge(env).catch(() => {}));
+    if (event.cron === "0 16 * * 5") ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
+    if (event.cron === "0 14 * * *") ctx.waitUntil(runPostDownloadReviewNudge(env).catch(() => {}));
+    if (event.cron === "0 9 * * *") ctx.waitUntil(runTestimonialFollowup(env).catch(() => {}));
     // Re-engagement drip disabled until ready to activate
     // ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
   },
@@ -1655,6 +1658,35 @@ async function adminListTestimonials(req, env) {
   } while (cursor);
   out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   return { testimonials: out };
+}
+
+// Public feed for Wall of Wins. It contains only the content a user explicitly
+// approved for the website channel; email, consent logs, and unpublished drafts
+// never leave KV through this endpoint.
+async function getPublicTestimonials(env) {
+  const out = [];
+  let cursor;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "testimonial:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      try {
+        const doc = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null");
+        if (!canPublishTestimonial(doc, "website")) continue;
+        out.push({
+          quote: String(doc.quote).trim(),
+          attribution: doc.attribution === "anonymous" ? "anonymous" : "name",
+          name: doc.attribution === "anonymous" ? "" : String(doc.name || "").slice(0, 120),
+          title: String(doc.title || "").slice(0, 120),
+          company: String(doc.company || "").slice(0, 120),
+          outcomeClaim: String(doc.outcomeClaim || "").slice(0, 300),
+          updatedAt: Number(doc.updatedAt || 0)
+        });
+      } catch { /* skip malformed KV documents */ }
+    }
+  } while (cursor && out.length < 100);
+  out.sort((a, b) => b.updatedAt - a.updatedAt);
+  return { testimonials: out.slice(0, 100), total: out.length };
 }
 
 // ============ Job tracker (cross-device sync of the application pipeline) ============
@@ -4700,6 +4732,63 @@ async function sendReviewEmail(env, email, flavour) {
 const REVIEW_NUDGE_MAX_SENDS = 100;
 const REVIEW_NUDGE_SCAN_CAP = 3000;
 const REVIEW_NUDGE_DELAY_MS = 7 * 86400 * 1000;
+
+// Testimonial outreach is strictly opt-in through testimonial_contact consent.
+// The email only invites private feedback; publication still needs the separate,
+// itemized approval enforced by canPublishTestimonial().
+const TESTIMONIAL_FOLLOWUP_MAX_SENDS = 100;
+const TESTIMONIAL_FOLLOWUP_SCAN_CAP = 3000;
+const TESTIMONIAL_FOLLOWUP_DELAY_MS = 7 * 86400 * 1000;
+const TESTIMONIAL_FOLLOWUP_WINDOW_MS = 48 * 3600 * 1000;
+
+async function sendTestimonialFollowupEmail(env, email) {
+  const site = (env.SITE_URL || "https://appliohq.com").replace(/\/$/, "");
+  const footer = await commercialEmailFooter(env, email, "testimonial_contact");
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;"><div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
+    <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+    <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">How is the job search going?</p>
+    <p style="margin:0 0 16px;color:#3a4150;">You asked us to check in after your first export. If Applio has been useful, we’d be grateful for a sentence about your experience.</p>
+    <p style="margin:0 0 28px;"><a href="${site}/testimonial-email" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Share private feedback &rarr;</a></p>
+    <p style="margin:0;color:#3a4150;">Nothing you write is public unless you later review and explicitly approve exactly where it can be used.</p>
+    ${footer}</div></body></html>`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ from: env.MAIL_FROM || "Applio <hello@appliohq.com>", to: [email], subject: "How is your job search going?", html }) });
+    return r.ok ? { ok: true } : { ok: false, error: `HTTP ${r.status}` };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+}
+
+async function runTestimonialFollowup(env) {
+  if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
+  const now = Date.now(); let cursor, scanned = 0, sent = 0;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      if (scanned >= TESTIMONIAL_FOLLOWUP_SCAN_CAP || sent >= TESTIMONIAL_FOLLOWUP_MAX_SENDS) { cursor = null; break; }
+      scanned++;
+      const email = k.name.slice("user:".length).toLowerCase();
+      if (!email || !email.includes("@") || await env.HIREFLOW_KV.get(`testimonial_followup_sent:${email}`)) continue;
+      let user, consent, profile;
+      try { user = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
+      try { consent = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null"); } catch { consent = null; }
+      try { profile = JSON.parse(await env.HIREFLOW_KV.get(`profile:${email}`) || "null"); } catch { profile = null; }
+      // A checked profile preference and an auditable affirmative consent are both
+      // required. Missing/legacy consent means no email.
+      if (!profile || profile.testimonialFollowupEmail !== true || !consent || !consent.testimonial_contact || consent.testimonial_contact.status !== true) continue;
+      const firstExport = Number(user && user.firstDownloadAt || 0);
+      const elapsed = now - firstExport;
+      if (!firstExport || elapsed < TESTIMONIAL_FOLLOWUP_DELAY_MS || elapsed > TESTIMONIAL_FOLLOWUP_DELAY_MS + TESTIMONIAL_FOLLOWUP_WINDOW_MS) continue;
+      if (!(await canSendOutreach(env, email, "testimonial_contact"))) continue;
+      const res = await sendTestimonialFollowupEmail(env, email);
+      if (res.ok) {
+        sent++;
+        await env.HIREFLOW_KV.put(`testimonial_followup_sent:${email}`, String(now));
+        await markOutreachSent(env, email, "testimonial_contact", 3650);
+      }
+    }
+  } while (cursor);
+  return { ok: true, scanned, sent };
+}
 
 async function runPostDownloadReviewNudge(env) {
   if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };

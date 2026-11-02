@@ -40,7 +40,7 @@
     + '</button>'
     + '<div class="acct-menu" id="acct-menu" role="menu" hidden>'
     + '<div class="acct-head"><div class="acct-avatar acct-avatar-lg" id="acct-avatar-lg">A</div>'
-    + '<div class="acct-head-text"><div class="acct-email" id="acct-email">Account</div><div class="acct-plan" id="acct-plan-label"></div></div></div>'
+    + '<div class="acct-head-text"><div class="acct-email" id="acct-email">Account</div><div class="acct-profile-meta" id="acct-profile-meta"></div><div class="acct-plan" id="acct-plan-label"></div></div></div>'
     + '<div class="acct-sep"></div>'
     + '<div class="acct-row acct-row-static"><span class="acct-row-label">Plan</span><span id="plan-pill"></span></div>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>'
@@ -85,13 +85,16 @@
   function hydrate() {
     var email = (window.CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
     var initials = email ? email.trim().charAt(0).toUpperCase() : 'A';
-    var avatar = ''; try { avatar = (JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}).avatar || ''; } catch (e) {}
+    var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (e) {}
+    var avatar = profile.avatar || '';
     ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
       var el = document.getElementById(id); if (!el) return;
       if (avatar) { el.innerHTML = '<img src="' + avatar + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'; el.style.overflow = 'hidden'; }
       else { el.textContent = initials; }
     });
     var em = document.getElementById('acct-email'); if (em) em.textContent = email || 'Account';
+    var meta = document.getElementById('acct-profile-meta');
+    if (meta) meta.textContent = [profile.role, profile.company].filter(Boolean).join(' · ');
     var admin = (typeof isAdmin === 'function' && isAdmin());
     // Applio is completely free: no plans, billing, or upgrade CTAs.
     var pl = document.getElementById('acct-plan-label'); if (pl) pl.textContent = admin ? 'Admin · full access' : 'Everything free';
@@ -99,6 +102,22 @@
     var pill = document.getElementById('plan-pill');
     if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '<span class="pill success">Free</span>';
   }
+  // Profile data is stored by the authenticated /profile API (whose server-side KV
+  // key is profile:{userId}); client code never talks to KV directly.
+  window.loadProfileCompany = function () {
+    var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (e) {}
+    return { company: profile.company || '', role: profile.role || '', companyAggregateOptIn: profile.companyAggregateOptIn === true };
+  };
+  window.saveProfileCompany = function (company, role, companyAggregateOptIn) {
+    var token = localStorage.getItem('hf_token');
+    var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (e) {}
+    profile.company = String(company || '').trim().slice(0, 120);
+    profile.role = String(role || '').trim().slice(0, 120);
+    profile.companyAggregateOptIn = companyAggregateOptIn === true;
+    if (!token || !window.HIREFLOW_CONFIG) return Promise.reject(new Error('Sign in to save your profile.'));
+    return fetch(window.HIREFLOW_CONFIG.API_URL + '/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ profile: profile }) })
+      .then(function (r) { if (!r.ok) throw new Error('Unable to save profile.'); localStorage.setItem('hf_profile', JSON.stringify(profile)); hydrate(); return profile; });
+  };
   hydrate();
   if (typeof loadCurrentUser === 'function') {
     Promise.resolve(loadCurrentUser())

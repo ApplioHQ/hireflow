@@ -94,6 +94,14 @@
       <label for="pf-location">Location <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
       <input type="text" id="pf-location" maxlength="120" placeholder="City, State">
     </div>
+    <div class="pf-field">
+      <label for="pf-company">Company <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input type="text" id="pf-company" maxlength="120" placeholder="Where you work now or most recently worked">
+    </div>
+    <div class="pf-field">
+      <label for="pf-role">Role <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input type="text" id="pf-role" maxlength="120" placeholder="e.g. Product designer">
+    </div>
     <div class="pf-field" style="margin-bottom:4px;">
       <label>Email</label>
       <div class="pf-email">
@@ -105,6 +113,15 @@
     <label class="pf-toggle-row">
       <input type="checkbox" id="pf-onresume" checked>
       Use this name and headline on new resumes
+    </label>
+    <label class="pf-toggle-row">
+      <input type="checkbox" id="pf-company-optin">
+      It’s okay to count my company anonymously in aggregate “used by” statistics
+    </label>
+    <p class="pf-hint" style="margin:0 0 8px 26px;">This never shows your name, photo, role, or testimonial publicly.</p>
+    <label class="pf-toggle-row">
+      <input type="checkbox" id="pf-testimonial-followup">
+      Email me once, about a week after my first export, to ask for optional feedback
     </label>
 
     <div class="pf-actions">
@@ -187,6 +204,10 @@
     el('pf-name').value = PROFILE.displayName || '';
     el('pf-headline').value = PROFILE.headline || '';
     el('pf-location').value = PROFILE.location || '';
+    el('pf-company').value = PROFILE.company || '';
+    el('pf-role').value = PROFILE.role || '';
+    el('pf-company-optin').checked = PROFILE.companyAggregateOptIn === true;
+    el('pf-testimonial-followup').checked = PROFILE.testimonialFollowupEmail === true;
     el('pf-onresume').checked = PROFILE.useOnResume !== false;
     avatarData = PROFILE.avatar || null;
     renderAvatar();
@@ -198,6 +219,10 @@
     PROFILE.displayName = el('pf-name').value.trim().slice(0, 80);
     PROFILE.headline = el('pf-headline').value.trim().slice(0, 120);
     PROFILE.location = el('pf-location').value.trim().slice(0, 120);
+    PROFILE.company = el('pf-company').value.trim().slice(0, 120);
+    PROFILE.role = el('pf-role').value.trim().slice(0, 120);
+    PROFILE.companyAggregateOptIn = el('pf-company-optin').checked;
+    PROFILE.testimonialFollowupEmail = el('pf-testimonial-followup').checked;
     PROFILE.useOnResume = el('pf-onresume').checked;
     if (avatarData) PROFILE.avatar = avatarData; else delete PROFILE.avatar;
     try {
@@ -208,10 +233,21 @@
       });
       if (r.status === 413) { setStatus('That photo is too large, try a smaller one.', 'err'); btn.disabled = false; return; }
       if (!r.ok) throw new Error('save failed');
+      // This is separate, auditable permission to receive a single testimonial
+      // follow-up. It does not authorize publishing anything.
+      var consentSaved = true;
+      try {
+        var consentResponse = await fetch(API + '/consent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN },
+          body: JSON.stringify({ updates: { testimonial_contact: PROFILE.testimonialFollowupEmail }, source: 'profile' })
+        });
+        consentSaved = consentResponse.ok;
+      } catch (e) { consentSaved = false; }
       // Cache for fast avatar rendering elsewhere (topbar reads this).
       try { localStorage.setItem('hf_profile', JSON.stringify(PROFILE)); } catch (e) {}
-      setStatus('Saved ✓', 'ok');
-      setTimeout(function () { if (el('pf-status').textContent === 'Saved ✓') setStatus(''); }, 3000);
+      setStatus(consentSaved ? 'Saved ✓' : 'Profile saved; email preference could not update.', consentSaved ? 'ok' : 'err');
+      setTimeout(function () { if (el('pf-status').textContent.indexOf('Saved') === 0 || el('pf-status').textContent.indexOf('Profile saved') === 0) setStatus(''); }, 4000);
     } catch (e) {
       setStatus("Couldn't save, please try again.", 'err');
     } finally { btn.disabled = false; }

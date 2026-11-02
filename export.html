@@ -416,9 +416,45 @@ async function tryExport(fmt) {
   if (fmt === 'pdf') { printFrame(); _trackExport('download_pdf'); }
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
-  // Non-blocking feedback prompt shortly after the download completes.
-  setTimeout(showExportFeedbackPrompt, 1500);
-  setTimeout(showInterviewWinPrompt, 2000);
+  // Ask once after a successful export. A submission is private by default; public
+  // use remains a separate, explicit approval in testimonial settings.
+  setTimeout(showPostExportTestimonialModal, 900);
+  setTimeout(showExportFeedbackPrompt, 2200);
+  setTimeout(showInterviewWinPrompt, 2800);
+}
+
+function _exportTestimonialCanAsk() {
+  try { var t = parseInt(localStorage.getItem('hf_export_testimonial_asked') || '0', 10); return !t || Date.now() - t > 120 * 864e5; } catch (_) { return true; }
+}
+function showPostExportTestimonialModal() {
+  if (!TOKEN || !_exportTestimonialCanAsk() || document.getElementById('export-testimonial-modal')) return;
+  try { localStorage.setItem('hf_export_testimonial_asked', String(Date.now())); } catch (_) {}
+  var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (_) {}
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay testimonial-modal-overlay'; overlay.id = 'export-testimonial-modal';
+  overlay.innerHTML = '<section class="modal testimonial-modal" role="dialog" aria-modal="true" aria-labelledby="export-testimonial-title">'
+    + '<button class="testimonial-modal-close" type="button" aria-label="Close">×</button>'
+    + '<p class="testimonial-modal-kicker">Your feedback matters</p><h2 id="export-testimonial-title">How did Applio help?</h2>'
+    + '<p>Share a line if you’d like. It stays private unless you later review and explicitly approve where it can appear.</p>'
+    + '<textarea class="testimonial-modal-field" rows="3" maxlength="1000" placeholder="Applio helped me…"></textarea>'
+    + '<div class="testimonial-modal-fields"><input class="testimonial-modal-field" data-tst-role maxlength="120" placeholder="Role (optional)"><input class="testimonial-modal-field" data-tst-company maxlength="120" placeholder="Company (optional)"></div>'
+    + '<div class="testimonial-modal-actions"><button class="btn btn-secondary" type="button" data-tst-skip>Not now</button><button class="btn btn-primary" type="button" data-tst-save>Save privately</button></div>'
+    + '</section>';
+  document.body.appendChild(overlay);
+  var fields = overlay.querySelectorAll('.testimonial-modal-field');
+  if (fields[1]) fields[1].value = profile.role || '';
+  if (fields[2]) fields[2].value = profile.company || '';
+  function close() { overlay.remove(); }
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+  overlay.querySelector('.testimonial-modal-close').onclick = close;
+  overlay.querySelector('[data-tst-skip]').onclick = close;
+  overlay.querySelector('[data-tst-save]').onclick = function () {
+    var quote = (fields[0].value || '').trim(); if (!quote) { fields[0].focus(); return; }
+    var btn = this; btn.disabled = true; btn.textContent = 'Saving…';
+    fetch(window.HIREFLOW_CONFIG.API_URL + '/testimonial', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN }, body: JSON.stringify({ action: 'revise', quote: quote, attribution: 'anonymous', title: (fields[1].value || '').trim(), company: (fields[2].value || '').trim() }) })
+      .then(function (r) { if (!r.ok) throw new Error(); overlay.querySelector('.testimonial-modal').innerHTML = '<p class="testimonial-modal-kicker">Saved privately</p><h2>Thank you.</h2><p>You can review your quote and choose exactly where it may be featured at any time.</p><div class="testimonial-modal-actions"><a class="btn btn-secondary" href="/testimonial">Review testimonial settings</a><button class="btn btn-primary" type="button" data-tst-done>Done</button></div>'; overlay.querySelector('[data-tst-done]').onclick = close; })
+      .catch(function () { btn.disabled = false; btn.textContent = 'Save privately'; });
+  };
 }
 
 // ============ Testimonial ask (fired right after a reported win) ============

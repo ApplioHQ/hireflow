@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><title>Share feedback | Applio</title>
+  <link rel="icon" href="/logo.ico"><link rel="stylesheet" href="/css/styles.css"><script src="/js/theme.js"></script>
+  <style>
+    .testimonial-page { max-width:680px; margin:0 auto; padding:72px 20px 90px; }
+    .testimonial-page h1 { font-size:clamp(28px,5vw,42px); letter-spacing:-.045em; margin:0 0 12px; }
+    .testimonial-lead { color:var(--muted); line-height:1.65; max-width:610px; margin:0 0 28px; }
+    .testimonial-card { padding:28px; }
+    .testimonial-form label { display:block; font-size:13px; font-weight:var(--fw-semibold); margin:18px 0 7px; }
+    .testimonial-form textarea,.testimonial-form input { width:100%; box-sizing:border-box; padding:12px; border:1px solid var(--border); border-radius:var(--r-sm); background:var(--bg-2); color:var(--text); font:inherit; }
+    .testimonial-form textarea:focus,.testimonial-form input:focus { outline:0; border-color:var(--accent); box-shadow:var(--ring); }
+    .testimonial-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .testimonial-check { display:flex; gap:10px; align-items:flex-start; margin-top:18px; color:var(--text); font-size:13px; line-height:1.5; cursor:pointer; }
+    .testimonial-check input { width:16px; height:16px; flex:none; margin-top:2px; accent-color:var(--accent); }
+    .testimonial-note { margin:16px 0 0; padding:12px; border-radius:var(--r-sm); background:var(--accent-ghost); color:var(--muted); font-size:12.5px; line-height:1.55; }
+    .testimonial-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+    .testimonial-status { color:var(--muted); font-size:13px; margin-right:auto; align-self:center; }
+    @media(max-width:540px){.testimonial-page{padding-top:42px}.testimonial-card{padding:20px}.testimonial-grid{grid-template-columns:1fr}.testimonial-actions{flex-wrap:wrap}.testimonial-actions .btn{width:100%}.testimonial-status{width:100%;margin-bottom:2px}}
+  </style>
+</head>
+<body class="app-body-scroll">
+  <header class="app-topbar"><a href="/dashboard" class="brand"><img src="/logo-mark.png" class="brand-logo" width="32" height="32" alt="Applio"><span>Applio</span></a><div class="topbar-right"><button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><span class="icon"></span><span class="label"></span></button><a class="btn btn-ghost btn-sm" href="/dashboard">Dashboard</a></div></header>
+  <main class="testimonial-page">
+    <p class="eyebrow">Optional feedback</p><h1>How is your job search going?</h1>
+    <p class="testimonial-lead">We’re grateful you gave Applio a try. A sentence about your experience helps us learn. Your feedback is private by default.</p>
+    <section class="section-card testimonial-card">
+      <form id="testimonial-form" class="testimonial-form">
+        <label for="quote">Your feedback</label><textarea id="quote" rows="5" maxlength="1000" required placeholder="Applio helped me…"></textarea>
+        <div class="testimonial-grid"><div><label for="title">Role <span class="muted">(optional)</span></label><input id="title" maxlength="120" placeholder="e.g. Data analyst"></div><div><label for="company">Company <span class="muted">(optional)</span></label><input id="company" maxlength="120" placeholder="e.g. Acme"></div></div>
+        <label class="testimonial-check"><input type="checkbox" id="anonymous"><span>Keep my attribution anonymous if I later approve publication.</span></label>
+        <label class="testimonial-check"><input type="checkbox" id="website"><span>I explicitly approve this exact feedback, role, and company for Applio’s public Wall of Wins website page.</span></label>
+        <p class="testimonial-note">Checking the second box is optional. If it stays unchecked, we save your feedback privately and do not publish it anywhere.</p>
+        <div class="testimonial-actions"><span class="testimonial-status" id="status" aria-live="polite"></span><a class="btn btn-ghost" href="/dashboard">Not now</a><button class="btn btn-primary" type="submit">Save feedback</button></div>
+      </form>
+    </section>
+  </main>
+  <script src="/js/config.js"></script><script src="/js/notify.js"></script><script>
+  (function(){
+    var token=localStorage.getItem('hf_token'), API=window.HIREFLOW_CONFIG.API_URL;
+    if(!token){location.href='/login?next=/testimonial-email';return;}
+    var $=function(id){return document.getElementById(id)}, form=$('testimonial-form'), status=$('status');
+    function auth(){return { 'Content-Type':'application/json', Authorization:'Bearer '+token };}
+    Promise.all([fetch(API+'/testimonial',{headers:{Authorization:'Bearer '+token}}),fetch(API+'/profile',{headers:{Authorization:'Bearer '+token}})]).then(function(rs){return Promise.all(rs.map(function(r){return r.json();}));}).then(function(data){var t=data[0].testimonial||{},p=data[1].profile||{};$('quote').value=t.quote||'';$('title').value=t.title||p.role||'';$('company').value=t.company||p.company||'';$('anonymous').checked=t.attribution==='anonymous';$('website').checked=Array.isArray(t.channels)&&t.channels.indexOf('website')>-1&&t.status==='approved';}).catch(function(){});
+    form.addEventListener('submit',function(e){e.preventDefault();var quote=$('quote').value.trim();if(!quote)return;var publish=$('website').checked, btn=form.querySelector('button[type=submit]');btn.disabled=true;status.textContent='Saving…';var body={action:publish?'approve':'revise',quote:quote,attribution:$('anonymous').checked?'anonymous':'name',title:$('title').value.trim(),company:$('company').value.trim(),channels:publish?['website']:[]};fetch(API+'/testimonial',{method:'POST',headers:auth(),body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'Could not save feedback.');});return r.json();}).then(function(){status.textContent=publish?'Saved and approved for the Wall of Wins.':'Saved privately — thank you.';btn.textContent='Saved';}).catch(function(err){status.textContent=err.message;btn.disabled=false;});});
+  })();
+  </script><script src="/js/footer.js"></script>
+</body></html>

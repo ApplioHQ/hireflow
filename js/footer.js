@@ -81,6 +81,7 @@
     +     '<a href="/guides/how-to-pass-ats">How to Pass the ATS</a>'
     +     '<a href="/guides/how-to-write-a-resume">How to Write a Resume</a>'
     +     '<a href="/interview-preparation">Interview Prep</a>'
+    +     '<a href="/wall-of-wins">Wall of Wins</a>'
     +   '</div>'
     +   '<div><h4>Compare</h4>'
     +     '<a href="/compare">Compare Resume Builders</a>'

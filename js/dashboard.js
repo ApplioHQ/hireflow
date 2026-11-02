@@ -443,7 +443,12 @@
   function hydrateAccount() {
     var acctEmail = (window.CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
     var initials = acctEmail ? acctEmail.trim().charAt(0).toUpperCase() : 'A';
-    ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = initials; });
+    var avatar = ''; try { avatar = (readJSON(PROFILE_KEY, {}) || {}).avatar || ''; } catch (e) {}
+    ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
+      var el = document.getElementById(id); if (!el) return;
+      if (avatar) { el.innerHTML = '<img src="' + avatar + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'; el.style.overflow = 'hidden'; }
+      else { el.textContent = initials; }
+    });
     var emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
     var admin = (typeof isAdmin === 'function' && isAdmin());
     var plEl = document.getElementById('acct-plan-label');
@@ -475,7 +480,11 @@
 
   // Pull the cloud profile; if it's newer than local, adopt it and re-render.
   pullProfile().then(function (adopted) {
-    if (adopted) { hydrateProfileForm(); renderWins(); renderWinRitual(); renderEmailPref(); renderGreeting(); renderNudges(); }
+    if (adopted) { hydrateProfileForm(); hydrateAccount(); renderWins(); renderWinRitual(); renderEmailPref(); renderGreeting(); renderNudges(); }
+  });
+  document.addEventListener('applio:profile-loaded', function () {
+    PROFILE = loadProfile();
+    hydrateAccount();
   });
 
   // Pull cloud jobs; if newer, the pipeline / nudges / greeting reflect them.

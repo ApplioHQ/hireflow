@@ -45,12 +45,10 @@
     + '<div class="acct-row acct-row-static"><span class="acct-row-label">Plan</span><span id="plan-pill"></span></div>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()"><span class="acct-row-label">Appearance</span><span class="acct-row-val theme-toggle"></span></button>'
     + '<button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:var(--danger-text);" onclick="closeAcctMenu(); location.href=\'admin\';"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.admin + '</span>Admin Console</span></button>'
-    // Dormant billing row: Applio is free, so hydrate() leaves this hidden unless isPaid().
-    + '<button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); if(typeof openBillingPortal===\'function\')openBillingPortal();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.card + '</span>Manage / cancel subscription</span></button>'
+    + '<a class="acct-row acct-row-btn" role="menuitem" href="profile" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.user + '</span>Edit profile</span></a>'
     + '<div class="acct-sep"></div>'
     + referRow
     + '<a class="acct-row acct-row-btn" role="menuitem" href="https://www.trustpilot.com/evaluate/appliohq.com" target="_blank" rel="noopener" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.star + '</span>Leave us a review</span></a>'
-    + '<a class="acct-row acct-row-btn" role="menuitem" href="profile" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.user + '</span>Edit profile</span></a>'
     + '<button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="if(typeof openFeedbackModal===\'function\')openFeedbackModal({context:\'' + ctx + '\'}); closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.chat + '</span>Feedback</span></button>'
     + '<a class="acct-row acct-row-btn" role="menuitem" href="mailto:support@appliohq.com?subject=Applio%20support" onclick="closeAcctMenu();"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.mail + '</span>Contact support</span></a>'
     + '<button class="acct-row acct-row-btn acct-row-danger" type="button" role="menuitem" onclick="signOut()"><span class="acct-row-main"><span class="acct-row-icon">' + ICO.out + '</span>Sign out</span></button>'
@@ -95,15 +93,18 @@
     });
     var em = document.getElementById('acct-email'); if (em) em.textContent = email || 'Account';
     var admin = (typeof isAdmin === 'function' && isAdmin());
-    var paid = (typeof isPaid === 'function' && isPaid());
     // Applio is completely free: no plans, billing, or upgrade CTAs.
     var pl = document.getElementById('acct-plan-label'); if (pl) pl.textContent = admin ? 'Admin · full access' : 'Everything free';
     var ad = document.getElementById('acct-admin-console'); if (ad) ad.style.display = admin ? '' : 'none';
-    // Dormant billing row stays hidden while Applio is free (no paying users).
-    var ms = document.getElementById('acct-manage-sub'); if (ms) ms.style.display = paid ? '' : 'none';
     var pill = document.getElementById('plan-pill');
     if (pill) pill.innerHTML = admin ? '<span class="pill success">Admin</span>' : '<span class="pill success">Free</span>';
   }
   hydrate();
-  if (typeof loadCurrentUser === 'function') Promise.resolve(loadCurrentUser()).then(hydrate).catch(function () {});
+  if (typeof loadCurrentUser === 'function') {
+    Promise.resolve(loadCurrentUser())
+      .then(function (user) { return user && typeof loadCurrentProfile === 'function' ? loadCurrentProfile() : null; })
+      .then(hydrate)
+      .catch(function () {});
+  }
+  document.addEventListener('applio:profile-loaded', hydrate);
 })();

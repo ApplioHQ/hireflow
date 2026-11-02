@@ -288,8 +288,16 @@ function hydrate() {
   // Account center identity (avatar initials, email, plan label)
   const acctEmail = (CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
   const initials = acctEmail ? acctEmail.trim().charAt(0).toUpperCase() : 'A';
+  let avatar = '';
+  try { avatar = (JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}).avatar || ''; } catch (e) {}
   ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
-    const el = document.getElementById(id); if (el) el.textContent = initials;
+    const el = document.getElementById(id); if (!el) return;
+    if (avatar) {
+      el.innerHTML = `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+      el.style.overflow = 'hidden';
+    } else {
+      el.textContent = initials;
+    }
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : 'Everything free';
@@ -5197,6 +5205,7 @@ async function _hydrateFromCloud() {
   // First-run onboarding (js/onboarding.js) now owns the welcome + import-first flow for
   // new users (no hf_onboarded). The old welcome overlay is retired.
   await loadCurrentUser();
+  if (typeof loadCurrentProfile === 'function') await loadCurrentProfile();
   await _hydrateFromCloud();
   _ensureCustomSections();
   hydrate();

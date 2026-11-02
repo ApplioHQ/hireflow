@@ -294,7 +294,7 @@ class OrchestrationTest(EngineCase):
         steps = [m.get("step") for m in msgs if m["role"] == "agent"]
         self.assertEqual(steps[0], "code")        # the coder runs first; Hermes did not orchestrate
         self.assertNotIn("orchestrate", steps)
-        self.assertTrue(any(m["role"] == "note" and "goes straight to Claude" in m.get("text", "") for m in msgs))
+        self.assertTrue(any(m["role"] == "note" and "goes to Claude" in m.get("text", "") for m in msgs))
         claude = self.runs("claude")[0]
         self.assertIn(str(saved), claude["prompt"])
         self.assertEqual(claude["args"][-2:], ["--add-dir", str(saved.parent)])
@@ -306,7 +306,21 @@ class OrchestrationTest(EngineCase):
         cid, msgs = self.chat("applio", "What's in this?", files=[str(notes)])
         steps = [m.get("step") for m in msgs if m["role"] == "agent"]
         self.assertEqual(steps[0], "answer")      # Hermes can read text files itself
-        self.assertFalse(any("goes straight to" in m.get("text", "") for m in msgs if m["role"] == "note"))
+        self.assertFalse(any("goes to" in m.get("text", "") for m in msgs if m["role"] == "note"))
+
+    def test_followup_in_an_image_chat_also_goes_to_a_coder(self):
+        shot = Path(self.tmp.name) / "shot.png"
+        shot.write_bytes(b"\x89PNG")
+        self.plan({"claude": ["say A login page.", "say Still a login page."]})
+        cid, _ = self.chat("applio", "What is this?", files=[str(shot)])
+        self.engine.send("applio", cid, "try again")  # no new image, but the chat has one
+        self.wait()
+        msgs = self.store.chat("applio", cid)["messages"]
+        follow = [m for m in msgs if m["role"] == "agent" and m.get("step") == "code"]
+        self.assertEqual(len(follow), 2)                 # the follow-up went to the coder too
+        self.assertEqual(follow[1]["agent"], "claude")
+        self.assertEqual(self.runs("claude")[1]["args"][-2:],
+                         ["--add-dir", str(self.store.attachments_dir("applio", cid))])
 
     def test_decisions_are_remembered_for_later(self):
         self.plan({"hermes": ["delegate claude", "say ok", "say noted"], "claude": ["decide Use plain hyphens"]})

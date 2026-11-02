@@ -2409,13 +2409,16 @@ function renderDashboard() {
 function _toggleResumeMenu(id) {
   const menu = document.getElementById('rb-menu-' + id);
   if (!menu) return;
+  const card = menu.closest('.rb-rr-card');
   const showing = menu.style.display !== 'none';
   // Close all menus first.
   document.querySelectorAll('.rb-rr-menu').forEach(m => m.style.display = 'none');
+  document.querySelectorAll('.rb-rr-card.rb-rr-menu-open').forEach(c => c.classList.remove('rb-rr-menu-open'));
   if (!showing) {
     menu.style.display = '';
+    if (card) card.classList.add('rb-rr-menu-open');
     // Close on outside click.
-    const close = (e) => { if (!menu.contains(e.target)) { menu.style.display = 'none'; document.removeEventListener('click', close, true); } };
+    const close = (e) => { if (!menu.contains(e.target)) { menu.style.display = 'none'; if (card) card.classList.remove('rb-rr-menu-open'); document.removeEventListener('click', close, true); } };
     setTimeout(() => document.addEventListener('click', close, true), 0);
   }
 }

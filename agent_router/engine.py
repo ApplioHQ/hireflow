@@ -67,7 +67,14 @@ BRIEF:
 ## Done when
 <how to verify the change works>
 
-Use {default} unless the user asks for a specific coder. {availability}{images}{notes}
+ROUTING RULES (follow these exactly):
+- If the user asks for a specific coder by name, use that coder.
+- Use Claude for: UI/UX design, mockups, visual changes, CSS/styling, landing pages, layout work,
+  logo/icon/image generation, frontend polish, design systems, and anything the user describes as
+  "design" or "make it look". Claude is the design specialist.
+- Use {default} for everything else: backend, logic, bug fixes, refactoring, tests, data, scripts,
+  config, APIs, and general coding. {default} is the workhorse.
+{availability}{images}{notes}
 ===== PROJECT MEMORY =====
 {memory}
 {conversation}
@@ -77,6 +84,7 @@ Use {default} unless the user asks for a specific coder. {availability}{images}{
 
 ORCHESTRATE_FOLLOWUP = """Another message from the user in this chat. Same rules as before: answer it yourself
 if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block.
+Reminder: use Claude for design/mockup/UI/visual work, {default} for everything else.
 {availability}{images}
 {text}
 """

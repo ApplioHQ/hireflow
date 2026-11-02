@@ -33,6 +33,10 @@ FAKE_AGENT = textwrap.dedent("""\
     elif kind == "delegate":
         coder, _, review = rest.partition(" ")
         print(f"DELEGATE: {coder}\\nREVIEW: {'yes' if review else 'no'}\\nBRIEF:\\nDo the thing carefully.")
+    elif kind == "multidelegate":
+        # rest is "coder1,coder2,..." - emit multiple DELEGATE blocks
+        for c in rest.split(","):
+            print(f"DELEGATE: {c.strip()}\\nREVIEW: no\\nBRIEF:\\nDo piece for {c.strip()}.\\n")
     elif kind == "write":
         path, _, content = rest.partition(" ")
         pathlib.Path(path).write_text(content + "\\n")
@@ -444,6 +448,66 @@ class StoreTest(EngineCase):
         fresh.store.save_projects([{"id": "x", "name": "X", "path": str(self.applio), "coders": ["claude"]}])
         fresh.ensure_defaults()
         self.assertEqual([p["id"] for p in fresh.store.projects()], ["x"])
+
+
+class ParseDelegationsTest(unittest.TestCase):
+    def test_single_block(self):
+        output = "DELEGATE: claude\nREVIEW: yes\nBRIEF:\nFix the bug."
+        blocks = engine.parse_delegations(output)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["coder"], "claude")
+        self.assertTrue(blocks[0]["review"])
+        self.assertEqual(blocks[0]["brief"], "Fix the bug.")
+
+    def test_multiple_blocks(self):
+        output = ("DELEGATE: chatgpt\nREVIEW: no\nBRIEF:\nDo batch 1.\n\n"
+                  "DELEGATE: claude\nREVIEW: no\nBRIEF:\nDo batch 2.")
+        blocks = engine.parse_delegations(output)
+        self.assertEqual(len(blocks), 2)
+        self.assertEqual(blocks[0]["coder"], "chatgpt")
+        self.assertEqual(blocks[0]["brief"], "Do batch 1.")
+        self.assertEqual(blocks[1]["coder"], "claude")
+        self.assertEqual(blocks[1]["brief"], "Do batch 2.")
+
+    def test_no_delegation(self):
+        self.assertEqual(engine.parse_delegations("Just a plain answer."), [])
+
+    def test_three_blocks_different_coders(self):
+        output = ("DELEGATE: chatgpt\nREVIEW: no\nBRIEF:\nPart A.\n\n"
+                  "DELEGATE: chatgpt\nREVIEW: no\nBRIEF:\nPart B.\n\n"
+                  "DELEGATE: claude\nREVIEW: yes\nBRIEF:\nPart C.")
+        blocks = engine.parse_delegations(output)
+        self.assertEqual(len(blocks), 3)
+        self.assertEqual([b["coder"] for b in blocks], ["chatgpt", "chatgpt", "claude"])
+        self.assertTrue(blocks[2]["review"])
+
+
+class MultiDelegationTest(EngineCase):
+    def test_split_across_two_coders(self):
+        self.plan({"hermes": ["multidelegate chatgpt,claude", "say Both pieces done."],
+                   "chatgpt": ["write batch1.js var b1 = 1;"],
+                   "claude": ["write batch2.js var b2 = 1;"]})
+        cid, msgs = self.chat("applio", "Batch 1 to GPT, batch 2 to Claude")
+        steps = self.steps(msgs)
+        # Hermes delegates, then notes for each piece, then code runs, results, and report.
+        delegate_msg = next(m for m in msgs if m.get("step") == "delegate")
+        self.assertIn("Splitting", delegate_msg["text"])
+        notes = [m for m in msgs if m["role"] == "note" and "Piece" in m.get("text", "")]
+        self.assertEqual(len(notes), 2)
+        self.assertEqual(notes[0]["coder"], "chatgpt")
+        self.assertEqual(notes[1]["coder"], "claude")
+        results = [m for m in msgs if m["role"] == "result"]
+        self.assertEqual(len(results), 2)
+        self.assertTrue(all(r["ok"] for r in results))
+        all_files = sorted(f for r in results for f in r["files"])
+        self.assertEqual(all_files, ["batch1.js", "batch2.js"])
+
+    def test_single_delegation_still_works(self):
+        self.plan({"hermes": ["delegate claude", "say Done."], "claude": ["write a.js var a = 1;"]})
+        cid, msgs = self.chat("applio", "Add a.js")
+        delegate_msg = next(m for m in msgs if m.get("step") == "delegate")
+        self.assertEqual(delegate_msg["text"], "Handing this to Claude.")
+        self.assertNotIn("Splitting", delegate_msg["text"])
 
 
 if __name__ == "__main__":

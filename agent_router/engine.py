@@ -32,6 +32,29 @@ REVIEW = re.compile(r"(?mi)^\W*REVIEW:\s*(yes|no)")
 BRIEF = re.compile(r"(?mis)^\W*BRIEF:\s*\n?(.*)")
 DECISION = re.compile(r"(?m)^\W*DECISION:\s*(.+)$")
 APPROVED = re.compile(r"(?m)^\W*APPROVED\W*$")
+DELEGATE_BLOCK = re.compile(r"(?mi)^\W*DELEGATE:\s*(\w+)")
+
+
+def parse_delegations(output):
+    """Parse one or more DELEGATE/REVIEW/BRIEF blocks from Hermes's output.
+
+    Returns a list of dicts: [{"coder": str, "review": bool, "brief": str}, ...]
+    """
+    splits = list(DELEGATE_BLOCK.finditer(output))
+    if not splits:
+        return []
+    blocks = []
+    for i, match in enumerate(splits):
+        start = match.start()
+        end = splits[i + 1].start() if i + 1 < len(splits) else len(output)
+        chunk = output[start:end]
+        coder = match.group(1).lower()
+        review_m = REVIEW.search(chunk)
+        review = bool(review_m and review_m.group(1).lower() == "yes")
+        brief_m = BRIEF.search(chunk)
+        brief = brief_m.group(1).strip() if brief_m else ""
+        blocks.append({"coder": coder, "review": review, "brief": brief})
+    return blocks
 BLOCKED = re.compile(r"(?m)^\W*BLOCKED:\s*(.+)$")
 FILLER = {"please", "pls", "plz", "can", "could", "would", "you", "u", "i", "want", "need", "to", "help", "me",
           "hey", "hi", "just", "the", "a", "an", "tldr", "my", "our", "some", "go", "through"}
@@ -50,6 +73,10 @@ Handle everything else yourself -- questions, explanations, plans, reviews, debu
 checking what files exist, analyzing errors, and summarizing what was done. If you can answer by reading
 files, do it yourself. When in doubt, answer yourself first.
 
+IMPORTANT: You have NO tools. Do not call delegate_task, execute_code, or any other function. Your
+ONLY way to delegate is the plain-text DELEGATE block shown below. Your ONLY way to answer is
+plain text. If you try to call a tool it will be ignored and the user's message will be lost.
+
 For each message, do exactly one of these:
 
 1. ANSWER YOURSELF (strongly preferred): If the message is a question, explanation, plan, review, status
@@ -67,6 +94,20 @@ BRIEF:
 ## Done when
 <how to verify the change works>
 
+3. SPLIT ACROSS CODERS: When the user asks for independent pieces to go to different coders, reply with
+   multiple DELEGATE blocks, one per piece. Each block is a complete DELEGATE/REVIEW/BRIEF set:
+DELEGATE: <coder1>
+REVIEW: <yes or no>
+BRIEF:
+<brief for coder1's piece>
+
+DELEGATE: <coder2>
+REVIEW: <yes or no>
+BRIEF:
+<brief for coder2's piece>
+
+The pieces run one after another. Use this ONLY when the user explicitly splits work across coders.
+
 ROUTING RULES (follow these exactly):
 - If the user asks for a specific coder by name, use that coder.
 - Use Claude for: UI/UX design, mockups, visual changes, CSS/styling, landing pages, layout work,
@@ -83,7 +124,9 @@ ROUTING RULES (follow these exactly):
 """
 
 ORCHESTRATE_FOLLOWUP = """Another message from the user in this chat. Same rules as before: answer it yourself
-if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block.
+if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block(s).
+You have NO tools -- only plain text and DELEGATE blocks. Never call delegate_task or execute_code.
+If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
 Reminder: use Claude for design/mockup/UI/visual work, {default} for everything else.
 {availability}{images}
 {text}
@@ -800,7 +843,7 @@ class Engine:
         if turn["stopped"]:
             self.store.finish_live(pid, cid)
             return self.store.add(pid, cid, {"role": "result", "ok": False, "reason": "stopped by you", "files": []})
-        delegate = DELEGATE.search(turn["output"]) if turn["code"] == 0 else None
+        delegations = parse_delegations(turn["output"]) if turn["code"] == 0 else []
         if turn["code"] != 0:
             # Hermes itself failed: don't strand the message, send it straight to the default coder.
             self.store.finish_live(pid, cid, step="note")
@@ -808,26 +851,39 @@ class Engine:
                                                               f"Sending this straight to {name(default)}."})
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
-        if not delegate and turn["files"]:
+        if not delegations and turn["files"]:
             # Hermes edited its own copy instead of delegating. Those edits are discarded; the request
             # needs a change, so it goes to a coder like any other hand-off.
             self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
                                    brief=job["text"], coder=default, review=False)
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
-        if not delegate:
+        if not delegations:
             self.store.finish_live(pid, cid, step="answer")
             return
-        coder = delegate.group(1).lower()
-        if coder not in self.coders:
-            coder = default
-        brief_match = BRIEF.search(turn["output"])
-        brief = (brief_match.group(1).strip() if brief_match else "") or job["text"]
-        review = bool(REVIEW.search(turn["output"]) and REVIEW.search(turn["output"]).group(1).lower() == "yes")
-        self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(coder)}.",
-                               brief=brief, coder=coder, review=review)
-        job.update(coder=coder, brief=brief, review=review)
-        self.lane(pid, "code").submit(job)
+        # Resolve unknown coders to the default.
+        for d in delegations:
+            if d["coder"] not in self.coders:
+                d["coder"] = default
+            if not d["brief"]:
+                d["brief"] = job["text"]
+        if len(delegations) == 1:
+            d = delegations[0]
+            self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(d['coder'])}.",
+                                   brief=d["brief"], coder=d["coder"], review=d["review"])
+            job.update(coder=d["coder"], brief=d["brief"], review=d["review"])
+            self.lane(pid, "code").submit(job)
+        else:
+            coders_involved = list(dict.fromkeys(d["coder"] for d in delegations))
+            summary = " and ".join(name(c) for c in coders_involved)
+            self.store.finish_live(pid, cid, step="delegate",
+                                   text=f"Splitting this across {summary} ({len(delegations)} pieces).")
+            for i, d in enumerate(delegations):
+                self.store.add(pid, cid, {"role": "note",
+                                          "text": f"Piece {i+1}/{len(delegations)}: {name(d['coder'])}.",
+                                          "brief": d["brief"], "coder": d["coder"]})
+                piece = {**job, "coder": d["coder"], "brief": d["brief"], "review": d["review"]}
+                self.lane(pid, "code").submit(piece)
 
     def hermes_folder(self, project, cid):
         """Hermes's own copy of the project for this chat, refreshed from the real folder before each turn.

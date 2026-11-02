@@ -57,7 +57,10 @@
     <a class="topbar-tab" href="assistant">Career Coach</a>
   </nav>
   <div class="topbar-right">
-    <button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="icon"></span>
+      <span class="label"></span>
+    </button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>

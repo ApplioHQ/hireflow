@@ -59,7 +59,10 @@
   // Initial theme label (theme.js keeps it in sync on every toggle thereafter).
   var light = document.documentElement.classList.contains('light-mode');
   var tt = document.querySelector('#acct-menu .theme-toggle');
-  if (tt) tt.textContent = light ? '🌙 Dark' : '☀️ Light';
+  if (tt) {
+    tt.innerHTML = '<span class="icon"></span><span class="label"></span>';
+    // theme.js will populate the icon and label on DOMContentLoaded
+  }
 
   // Behavior (define only if a page's own script hasn't already).
   if (typeof window.toggleAcctMenu !== 'function') window.toggleAcctMenu = function (e) {

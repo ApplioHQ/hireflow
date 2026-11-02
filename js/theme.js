@@ -1,16 +1,24 @@
-// Shared theme management, works in <head> because we target <html>not <body>
+// Shared theme management, works in <head> because we target <html> not <body>
 (function () {
+  // SVG icons for theme toggle
+  var SUN_ICON = '<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  var MOON_ICON = '<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
   function applyTheme(light) {
     document.documentElement.classList.toggle('light-mode', light);
-    // Text-label toggle buttons (export, jobs, interview, pricing, admin)
-    document.querySelectorAll('.theme-toggle').forEach(function (b) {
-      b.textContent = light ? '🌙 Dark' : '☀️ Light';
+    // Update all theme toggles (both full and icon-only variants)
+    document.querySelectorAll('.theme-toggle').forEach(function (btn) {
+      var iconEl = btn.querySelector('.icon');
+      var labelEl = btn.querySelector('.label');
+      if (iconEl) {
+        iconEl.innerHTML = light ? SUN_ICON : MOON_ICON;
+      }
+      if (labelEl) {
+        labelEl.textContent = light ? 'Light' : 'Dark';
+      }
+      // Update aria-label for accessibility
+      btn.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
     });
-    // Icon-only button (editor topbar)
-    var sun  = document.getElementById('theme-icon-sun');
-    var moon = document.getElementById('theme-icon-moon');
-    if (sun)  sun.style.display  = light ? 'none' : '';
-    if (moon) moon.style.display = light ? ''     : 'none';
   }
 
   // Apply immediately, <html> exists even in <head>
@@ -34,7 +42,7 @@
   //   nv=1 -> first ever view from this browser (unique visitor)
   //   nd=1 -> first view from this browser today
   try {
-    if (/(^|\.)appliohq\.com$/.test(location.hostname)) {
+    if (/(^|\\.)appliohq\\.com$/.test(location.hostname)) {
       var _t = new Date().toISOString().slice(0, 10);
       var _nv = localStorage.getItem('hf_seen') ? '0' : '1';
       var _nd = localStorage.getItem('hf_pv_day') === _t ? '0' : '1';
@@ -68,29 +76,29 @@
       var _ch = 'direct';
       if (_r) {
         try {
-          var _h = new URL(_r).hostname.replace(/^www\./,'');
-          if (/chat\.openai\.com|chatgpt\.com/.test(_h)) _ch='ai:chatgpt';
-          else if (/claude\.ai/.test(_h)) _ch='ai:claude';
-          else if (/perplexity\.ai/.test(_h)) _ch='ai:perplexity';
-          else if (/gemini\.google\.com|bard\.google\.com/.test(_h)) _ch='ai:gemini';
-          else if (/copilot\.microsoft\.com/.test(_h)) _ch='ai:copilot';
-          else if (/you\.com/.test(_h)) _ch='ai:you';
-          else if (/google\.\w/.test(_h)) _ch='search:google';
-          else if (/bing\.com/.test(_h)) _ch='search:bing';
-          else if (/duckduckgo\.com/.test(_h)) _ch='search:duckduckgo';
-          else if (/yahoo\.com/.test(_h)) _ch='search:yahoo';
-          else if (/t\.co|twitter\.com|x\.com/.test(_h)) _ch='social:twitter';
-          else if (/facebook\.com|l\.facebook\.com|fb\.com/.test(_h)) _ch='social:facebook';
-          else if (/instagram\.com|l\.instagram\.com/.test(_h)) _ch='social:instagram';
-          else if (/reddit\.com|old\.reddit\.com/.test(_h)) _ch='social:reddit';
-          else if (/linkedin\.com|lnkd\.in/.test(_h)) _ch='social:linkedin';
-          else if (/tiktok\.com/.test(_h)) _ch='social:tiktok';
-          else if (/youtube\.com|youtu\.be/.test(_h)) _ch='social:youtube';
-          else if (/threads\.net/.test(_h)) _ch='social:threads';
-          else if (/github\.com/.test(_h)) _ch='ref:github';
-          else if (/producthunt\.com/.test(_h)) _ch='ref:producthunt';
-          else if (/news\.ycombinator\.com/.test(_h)) _ch='ref:hackernews';
-          else if (/appliohq\.com/.test(_h)) _ch='internal';
+          var _h = new URL(_r).hostname.replace(/^www\\./,'');
+          if (/chat\\.openai\\.com|chatgpt\\.com/.test(_h)) _ch='ai:chatgpt';
+          else if (/claude\\.ai/.test(_h)) _ch='ai:claude';
+          else if (/perplexity\\.ai/.test(_h)) _ch='ai:perplexity';
+          else if (/gemini\\.google\\.com|bard\\.google\\.com/.test(_h)) _ch='ai:gemini';
+          else if (/copilot\\.microsoft\\.com/.test(_h)) _ch='ai:copilot';
+          else if (/you\\.com/.test(_h)) _ch='ai:you';
+          else if (/google\\.\\w/.test(_h)) _ch='search:google';
+          else if (/bing\\.com/.test(_h)) _ch='search:bing';
+          else if (/duckduckgo\\.com/.test(_h)) _ch='search:duckduckgo';
+          else if (/yahoo\\.com/.test(_h)) _ch='search:yahoo';
+          else if (/t\\.co|twitter\\.com|x\\.com/.test(_h)) _ch='social:twitter';
+          else if (/facebook\\.com|l\\.facebook\\.com|fb\\.com/.test(_h)) _ch='social:facebook';
+          else if (/instagram\\.com|l\\.instagram\\.com/.test(_h)) _ch='social:instagram';
+          else if (/reddit\\.com|old\\.reddit\\.com/.test(_h)) _ch='social:reddit';
+          else if (/linkedin\\.com|lnkd\\.in/.test(_h)) _ch='social:linkedin';
+          else if (/tiktok\\.com/.test(_h)) _ch='social:tiktok';
+          else if (/youtube\\.com|youtu\\.be/.test(_h)) _ch='social:youtube';
+          else if (/threads\\.net/.test(_h)) _ch='social:threads';
+          else if (/github\\.com/.test(_h)) _ch='ref:github';
+          else if (/producthunt\\.com/.test(_h)) _ch='ref:producthunt';
+          else if (/news\\.ycombinator\\.com/.test(_h)) _ch='ref:hackernews';
+          else if (/appliohq\\.com/.test(_h)) _ch='internal';
           else _ch='ref:'+_h;
         } catch(e){ _ch='ref:unknown'; }
       }

@@ -46,5 +46,5 @@ vision = false
 command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "--json", "--skip-git-repo-check", "-s", "workspace-write", "-"]
 resume_command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "resume", "--json", "--skip-git-repo-check", "-c", "sandbox_mode=\"workspace-write\"", "{session_id}", "-"]
 format = "stream-json"
-# Lets ChatGPT read attachments (images included), which are stored outside the project folder.
-add_dir = ["--add-dir", "{dir}"]
+# No add_dir: Codex reads any file by absolute path (full-disk read in workspace-write), so it sees
+# attachments without it. `codex exec resume` rejects --add-dir anyway, which crashed follow-ups.

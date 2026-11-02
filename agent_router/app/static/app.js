@@ -2,7 +2,11 @@
 
 const $ = (sel) => document.querySelector(sel);
 const NAMES = { claude: "Claude", hermes: "Hermes", chatgpt: "ChatGPT" };
-const BADGES = { claude: "C", hermes: "H", chatgpt: "G" };
+const BADGES = {
+  claude: `<svg viewBox="0 0 24 24" width="14" height="14"><path d="M15.3 3.7c-.5-.3-1.1-.1-1.4.3l-5.8 9.2-2.4-2.4c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.3 3.3c.2.2.5.3.7.3.1 0 .2 0 .3 0 .3-.1.6-.3.7-.6l6.3-10c.3-.5.1-1.1-.3-1.4z" fill="currentColor"/></svg>`,
+  hermes: `<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3L4 9v6l8 6 8-6V9l-8-6zm0 2.2L18 10v4l-6 4.5L6 14v-4l6-4.8z" fill="currentColor"/></svg>`,
+  chatgpt: `<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3a2.5 2.5 0 0 1 2.5 2.5c0 .8-.4 1.6-1 2L12 11l-1.5-1.5c-.6-.5-1-1.2-1-2A2.5 2.5 0 0 1 12 5zm-4 7.5c0-.8.4-1.5 1-2l1.5-1L12 11l1.5-1.5 1.5 1c.6.5 1 1.2 1 2A2.5 2.5 0 0 1 12 15a2.5 2.5 0 0 1-4-2.5z" fill="currentColor"/></svg>`,
+};
 const nameOf = (agent) => String(agent).split("+").map((a) => NAMES[a] || a).join(" + ");
 
 let state = { projects: [], agents: [], coders: [], orchestrator: "hermes", running: [], unavailable: {} };
@@ -103,38 +107,97 @@ function inline(text) {
   return esc(text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
 }
 
+// syntax highlighting keywords by language
+const KEYWORDS = {
+  js: /\b(const|let|var|function|return|if|else|for|while|class|import|export|from|default|new|this|async|await|try|catch|throw|typeof|instanceof|of|in|switch|case|break|continue|null|undefined|true|false)\b/g,
+  py: /\b(def|class|return|if|elif|else|for|while|import|from|as|with|try|except|raise|yield|async|await|lambda|not|and|or|is|in|None|True|False|self|print)\b/g,
+  sh: /\b(if|then|else|fi|for|do|done|while|case|esac|function|return|exit|echo|cd|ls|grep|sed|awk|cat|mkdir|rm|cp|mv|export|source)\b/g,
+  css: /\b(color|background|display|flex|grid|margin|padding|border|width|height|font|position|top|left|right|bottom|z-index|overflow|opacity|transition|transform|animation)\b/g,
+  html: /(&lt;\/?)([\w-]+)/g,
+};
+
+function detectLang(code, hint) {
+  if (hint && ["js","javascript","jsx","ts","tsx"].some(l => hint.includes(l))) return "js";
+  if (hint && ["py","python"].some(l => hint.includes(l))) return "py";
+  if (hint && ["sh","bash","zsh","shell"].some(l => hint.includes(l))) return "sh";
+  if (hint && ["css","scss","sass"].some(l => hint.includes(l))) return "css";
+  if (hint && ["html","htm","xml","svg"].some(l => hint.includes(l))) return "html";
+  if (/\b(const|let|var|=>|function\s)\b/.test(code)) return "js";
+  if (/\b(def |import |class .*:)/.test(code)) return "py";
+  if (/^\s*(#!\/|if \[|echo |cd |export )/.test(code)) return "sh";
+  return "";
+}
+
+function highlightCode(text, lang) {
+  let html = esc(text);
+  if (lang === "html") {
+    html = html.replace(KEYWORDS.html, '$1<span class="hl-tag">$2</span>');
+  } else if (KEYWORDS[lang]) {
+    html = html.replace(KEYWORDS[lang], '<span class="hl-kw">$&</span>');
+  }
+  html = html.replace(/(["'`])(?:(?!\1).)*?\1/g, '<span class="hl-str">$&</span>');
+  html = html.replace(/(\/\/.*|#(?!!).*)/gm, '<span class="hl-cmt">$&</span>');
+  return html;
+}
+
+let codeBlockId = 0;
+
 function renderAgentText(text) {
   const out = [];
   let para = [];
   let code = null;
+  let codeLang = "";
+  let tools = [];
   const flush = () => {
     const joined = para.join("\n").trim();
     if (joined) out.push(`<p>${inline(joined)}</p>`);
     para = [];
   };
+  const flushTools = () => {
+    if (!tools.length) return;
+    const id = `tools-${++codeBlockId}`;
+    const count = tools.length;
+    out.push(`<details class="tool-group"><summary class="tool-summary">${count} tool call${count > 1 ? "s" : ""}</summary><div class="tool-list">${tools.join("")}</div></details>`);
+    tools = [];
+  };
   for (const line of text.split("\n")) {
     if (code !== null) {
-      if (line.trim().startsWith("```")) { out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`); code = null; }
-      else code.push(line);
+      if (line.trim().startsWith("```")) {
+        const id = `code-${++codeBlockId}`;
+        const lang = detectLang(code.join("\n"), codeLang);
+        const highlighted = highlightCode(code.join("\n"), lang);
+        out.push(`<div class="code-block"><div class="code-head"><span class="code-lang">${esc(codeLang || lang)}</span><button type="button" class="copy-btn" data-copy="${id}">Copy</button></div><pre id="${id}"><code>${highlighted}</code></pre></div>`);
+        code = null;
+        continue;
+      }
+      code.push(line);
       continue;
     }
-    if (line.trim().startsWith("```")) { flush(); code = []; continue; }
-    if (/^\W*(DELEGATE|REVIEW|TITLE):/.test(line)) continue;
+    const fenceMatch = line.trim().match(/^```(\w*)/);
+    if (fenceMatch) { flush(); flushTools(); code = []; codeLang = fenceMatch[1] || ""; continue; }
+    if (/^\W*(DELEGATE|REVIEW|TITLE|BLOCKED):/.test(line)) continue;
     const tool = line.match(/^> (\S+)\s*(.*)$/);
     if (tool) {
       flush();
-      out.push(`<div class="tool"><span class="tool-name">${esc(tool[1])}</span><span class="tool-arg" title="${esc(tool[2])}">${esc(tool[2])}</span></div>`);
+      tools.push(`<div class="tool"><span class="tool-name">${esc(tool[1])}</span><span class="tool-arg" title="${esc(tool[2])}">${esc(tool[2])}</span></div>`);
       continue;
     }
+    if (tools.length) flushTools();
     const meta = line.match(/^\[(cost \$[\d.]+|\d+ tokens|stopped by user)\]$/);
     if (meta) { flush(); out.push(`<div class="meta-line">${esc(meta[1])}</div>`); continue; }
-    const heading = line.match(/^#{1,4}\s+(.*)$/);
-    if (heading) { flush(); out.push(`<p><strong>${inline(heading[1])}</strong></p>`); continue; }
-    if (!line.trim()) { flush(); continue; }
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    if (heading) { flush(); const tag = `h${heading[1].length + 2}`; out.push(`<${tag} class="agent-heading">${inline(heading[2])}</${tag}>`); continue; }
+    if (line.match(/^\s*[-*]\s+/)) {
+      flush();
+      out.push(`<p class="list-item">${inline(line.replace(/^\s*[-*]\s+/, ""))}</p>`);
+      continue;
+    }
+    if (!line.trim()) { flush(); flushTools(); continue; }
     para.push(line);
   }
   if (code !== null) out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`);
   flush();
+  flushTools();
   return out.join("");
 }
 
@@ -220,7 +283,10 @@ function renderWelcome() {
 }
 
 function badge(agent) {
-  return `<span class="badge ${esc(agent)}">${esc(BADGES[agent] || nameOf(agent).charAt(0))}</span>`;
+  const icon = BADGES[agent];
+  return icon
+    ? `<span class="badge ${esc(agent)}">${icon}</span>`
+    : `<span class="badge">${esc(nameOf(agent).charAt(0))}</span>`;
 }
 
 function fileUrl(pid, f) {
@@ -255,7 +321,10 @@ function renderResult(m) {
   const title = m.ok
     ? `Done${m.checked === false ? "" : ", check passed"}${m.agent ? ` - ${esc(nameOf(m.agent))}` : ""}`
     : `Not finished: ${esc(m.reason || "see the log")}`;
-  const fileList = files.length ? `<ul class="result-files">${files.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : `<div class="result-hint">No file changes.</div>`;
+  const fileList = files.length ? `<ul class="result-files">${files.map((f) => {
+    const ext = f.split(".").pop();
+    return `<li><span class="file-badge mod">M</span><span title="${esc(f)}">${esc(f)}</span></li>`;
+  }).join("")}</ul>` : `<div class="result-hint">No file changes.</div>`;
   const check = !m.ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
   return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${fileList}${previews(files)}${check}
     ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}</div>`;
@@ -284,7 +353,7 @@ function renderMessage(m) {
   const labels = { orchestrate: "deciding", code: "coding", fix: "fixing the check", review: "reviewing", report: "update" };
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";
   const body = m.text.trim() ? renderAgentText(m.text) : (m.live ? "" : `<div class="empty-agent">No output.</div>`);
-  const working = m.live ? `<div class="working"><span class="dot running"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
+  const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""}"><div class="who">${badge(agent)}${esc(nameOf(agent))}${label}</div><div class="body">${body}</div>${working}</div>`;
 }
@@ -299,10 +368,13 @@ function renderMessages(force) {
   if (!chat) box.innerHTML = renderWelcome();
   else {
     const parts = chat.messages.map(renderMessage);
-    if (chatStatus(pid, cid) === "queued") parts.push(`<div class="working"><span class="dot queued"></span>Queued behind other work in ${esc(project(pid)?.name || "")}.</div>`);
+    if (chatStatus(pid, cid) === "queued") parts.push(`<div class="working"><span class="spinner"></span>Queued behind other work in ${esc(project(pid)?.name || "")}.</div>`);
     box.innerHTML = `<div class="thread">${parts.join("")}</div>`;
   }
-  if (nearBottom || force) box.scrollTop = box.scrollHeight;
+  ensureScrollFab();
+  if ((nearBottom && !userScrolledUp) || force) box.scrollTop = box.scrollHeight;
+  const fab = document.getElementById("scroll-fab");
+  if (fab) fab.classList.toggle("visible", userScrolledUp);
   renderComposer();
 }
 
@@ -430,6 +502,7 @@ async function send() {
     input.value = "";
     clearAttachments();
     autosize();
+    requestNotifPermission();
     await refresh(true);
   } catch (e) {
     toast(e.message);
@@ -514,6 +587,7 @@ async function refresh(force = false) {
       renderHead();
     }
     renderMessages(force);
+    checkNotifications();
   } catch (e) {
     toast(e.message);
   }
@@ -535,6 +609,73 @@ async function deleteChat(pid, cid) {
 }
 
 // ---- events ----
+
+// ---- copy button handler ----
+document.addEventListener("click", (e) => {
+  const copyBtn = e.target.closest(".copy-btn");
+  if (copyBtn) {
+    const pre = document.getElementById(copyBtn.dataset.copy);
+    if (pre) {
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        copyBtn.textContent = "Copied";
+        copyBtn.classList.add("copied");
+        setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 1500);
+      });
+    }
+    return;
+  }
+});
+
+// ---- scroll-to-bottom FAB ----
+let userScrolledUp = false;
+const msgBox = $("#messages");
+
+function ensureScrollFab() {
+  if (document.getElementById("scroll-fab")) return;
+  const wrapper = msgBox.parentElement;
+  wrapper.style.position = "relative";
+  const fab = document.createElement("button");
+  fab.id = "scroll-fab";
+  fab.className = "scroll-fab";
+  fab.type = "button";
+  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 16l-6-6h12z" fill="currentColor"/></svg>';
+  fab.addEventListener("click", () => { msgBox.scrollTop = msgBox.scrollHeight; userScrolledUp = false; fab.classList.remove("visible"); });
+  wrapper.appendChild(fab);
+}
+
+msgBox.addEventListener("scroll", () => {
+  const gap = msgBox.scrollHeight - msgBox.scrollTop - msgBox.clientHeight;
+  userScrolledUp = gap > 200;
+  const fab = document.getElementById("scroll-fab");
+  if (fab) fab.classList.toggle("visible", userScrolledUp);
+});
+
+// ---- browser notifications ----
+let lastBusy = {};
+function checkNotifications() {
+  if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+    for (const p of state.projects) {
+      for (const c of p.chats) {
+        const key = `${p.id}/${c.id}`;
+        if (lastBusy[key] && c.status === "idle") {
+          new Notification(`${c.title}`, { body: `${nameOf(c.last_agent || "Agent")} finished in ${p.name}`, tag: key });
+        }
+        lastBusy[key] = ["running", "queued"].includes(c.status);
+      }
+    }
+  } else {
+    for (const p of state.projects) {
+      for (const c of p.chats) {
+        lastBusy[`${p.id}/${c.id}`] = ["running", "queued"].includes(c.status);
+      }
+    }
+  }
+}
+
+// request notification permission on first send
+function requestNotifPermission() {
+  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+}
 
 document.addEventListener("click", async (e) => {
   const el = e.target.closest("button, .tip");

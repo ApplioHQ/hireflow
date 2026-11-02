@@ -146,6 +146,38 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .body code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
 .body pre { background: var(--code); padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: 6px 0 10px; }
 .body pre code { background: none; padding: 0; }
+
+/* code blocks with header and copy */
+.code-block { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 6px 0 10px; }
+.code-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 12px; background: var(--hover); border-bottom: 1px solid var(--line); }
+.code-lang { font-family: var(--mono); font-size: 11px; color: var(--faint); text-transform: uppercase; }
+.copy-btn { border: 0; background: none; font-size: 12px; color: var(--muted); padding: 2px 8px; border-radius: 6px; cursor: pointer; }
+.copy-btn:hover { background: var(--code); color: var(--text); }
+.copy-btn.copied { color: var(--ok); }
+.code-block pre { margin: 0; border-radius: 0; border: 0; }
+
+/* syntax highlighting */
+.hl-kw { color: var(--accent); }
+.hl-str { color: var(--ok); }
+.hl-cmt { color: var(--faint); font-style: italic; }
+.hl-tag { color: var(--accent); }
+
+/* collapsible tool calls */
+.tool-group { margin: 4px 0 8px; }
+.tool-summary { font-size: 12px; color: var(--faint); cursor: pointer; padding: 4px 8px; border-radius: 6px; list-style: none; }
+.tool-summary::-webkit-details-marker { display: none; }
+.tool-summary::before { content: ""; display: inline-block; width: 0; height: 0; border: 4px solid transparent; border-left: 6px solid var(--faint); margin-right: 6px; transition: transform .15s; }
+.tool-group[open] .tool-summary::before { transform: rotate(90deg); }
+.tool-summary:hover { background: var(--hover); color: var(--muted); }
+.tool-list { padding: 4px 0 0 14px; }
+
+/* agent headings and list items */
+.agent-heading { font-size: 14px; margin: 12px 0 6px; }
+h3.agent-heading { font-size: 14px; }
+h4.agent-heading { font-size: 13px; color: var(--muted); }
+.list-item { padding-left: 16px; position: relative; }
+.list-item::before { content: ""; position: absolute; left: 4px; top: 10px; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
+
 .tool {
   display: flex; gap: 8px; align-items: baseline; font-size: 13px; color: var(--muted);
   padding: 3px 0; min-width: 0;
@@ -153,6 +185,30 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .tool-name { font-family: var(--mono); font-size: 12px; color: var(--text); background: var(--code); padding: 0 6px; border-radius: 4px; flex: none; }
 .tool-arg { font-family: var(--mono); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta-line { font-size: 12px; color: var(--faint); margin: 4px 0; }
+
+/* scroll-to-bottom FAB */
+.scroll-fab {
+  position: absolute; right: 20px; bottom: 12px; width: 36px; height: 36px;
+  border-radius: 50%; border: 1px solid var(--line); background: var(--panel);
+  box-shadow: var(--shadow); display: grid; place-items: center; cursor: pointer;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.scroll-fab.visible { opacity: 1; pointer-events: auto; }
+.scroll-fab:hover { background: var(--hover); }
+.scroll-fab svg { width: 18px; height: 18px; color: var(--muted); }
+
+/* working spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 4px; vertical-align: middle; }
+
+/* file diff mini-cards in results */
+.result-files li { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.result-files .file-badge { font-size: 10px; font-weight: 600; padding: 0 5px; border-radius: 4px; line-height: 18px; }
+.result-files .file-badge.add { background: var(--ok-bg); color: var(--ok); }
+.result-files .file-badge.mod { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+
+/* badge SVG sizing */
+.who .badge svg { display: block; }
 .working { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; margin-top: 6px; }
 .working .dot { margin-top: 0; }
 .empty-agent { color: var(--faint); font-size: 13px; }

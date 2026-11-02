@@ -132,7 +132,7 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
         command = [part.replace("{session_id}", session_id) for part in spec["resume_command"]]
     elif session_id:
         command += [part.replace("{session_id}", session_id) for part in spec.get("resume", [])]
-    if model and spec.get("model_flag"):
+    if model and spec.get("model_flag") and not session_id:
         command += [part.replace("{model}", model) for part in spec["model_flag"]]
     for folder in extra_dirs:  # folders outside cwd the agent may read (attachments), for agents that need it
         command += [part.replace("{dir}", str(folder)) for part in spec.get("add_dir", [])]

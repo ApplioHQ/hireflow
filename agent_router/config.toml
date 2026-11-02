@@ -63,4 +63,4 @@ format = "stream-json"
 # attachments without it. `codex exec resume` rejects --add-dir anyway, which crashed follow-ups.
 # Model selection: Codex uses -m flag.
 model_flag = ["-m", "{model}"]
-models = ["o3", "o4-mini", "gpt-4.1", "codex-mini"]
+models = ["o3", "gpt-4.1", "codex-mini"]

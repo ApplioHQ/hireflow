@@ -791,13 +791,28 @@ class Engine:
         return f"\n\nProject rules: {project['notes']}" if project.get("notes") else ""
 
     def conversation(self, chat, limit=6000):
-        """The chat so far as plain text, minus the newest user message (sent separately)."""
-        messages = [m for m in chat["messages"] if m["role"] in ("user", "agent") and m.get("step") != "delegate"]
+        """The chat so far as plain text, minus the newest user message (sent separately).
+
+        Includes agent results and notes so the next agent knows what the previous ones did.
+        """
+        keep = ("user", "agent", "result", "note")
+        messages = [m for m in chat["messages"] if m["role"] in keep and m.get("step") != "delegate"]
         if messages and messages[-1]["role"] == "user":
             messages = messages[:-1]
-        parts = [f"{'User' if m['role'] == 'user' else name(m.get('agent', 'agent'))}: {m.get('text', '').strip()[-2000:]}"
-                 for m in messages if m.get("text", "").strip()]
-        convo = "\n\n".join(parts)[-limit:]
+        parts = []
+        for m in messages:
+            if m["role"] == "user":
+                parts.append(f"User: {m.get('text', '').strip()[-2000:]}")
+            elif m["role"] == "result":
+                agent = name(m.get("agent", "agent"))
+                files = ", ".join(m.get("files", [])[:10]) or "none"
+                status = "succeeded" if m.get("ok") else f"failed ({m.get('reason', 'unknown')})"
+                parts.append(f"[{agent} {status}. Files changed: {files}]")
+            elif m["role"] == "note":
+                parts.append(f"[System: {m.get('text', '').strip()[:500]}]")
+            elif m.get("text", "").strip():
+                parts.append(f"{name(m.get('agent', 'agent'))}: {m.get('text', '').strip()[-2000:]}")
+        convo = "\n\n".join(p for p in parts if p)[-limit:]
         return f"\n===== CONVERSATION SO FAR =====\n{convo}\n" if convo else ""
 
     def attachment_note(self, files):

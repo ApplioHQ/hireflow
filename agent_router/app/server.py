@@ -96,6 +96,8 @@ class Handler(BaseHTTPRequestHandler):
             return {"results": eng.store.search(q.get("q", ""))}
         if path == "/api/doctor":
             return eng.doctor()
+        if path == "/api/models":
+            return eng.models_info()
         raise ApiError(404, "not found")
 
     def open_terminal(self, q):
@@ -252,6 +254,9 @@ class Handler(BaseHTTPRequestHandler):
             project = eng.store.add_project(str(b.get("path", "")), b.get("name") or None,
                                             coders=b.get("coders") or None)
             return {"project": project["id"]}
+        if path == "/api/models/set":
+            eng.set_model(str(b.get("agent", "")), b.get("model") or None)
+            return {"ok": True, "models": eng.models_info()}
         if path == "/api/projects/update":
             coders = b.get("coders")
             if coders is not None and (not isinstance(coders, list) or not coders

@@ -29,6 +29,9 @@ format = "stream-json"
 resume = ["--resume", "{session_id}"]
 # Lets Claude read attachments, which are stored outside the project folder.
 add_dir = ["--add-dir", "{dir}"]
+# Model selection: flag injected before the prompt, available models the user can pick.
+model_flag = ["--model", "{model}"]
+models = ["sonnet", "opus", "haiku"]
 
 [agents.hermes]
 # Hermes may stop at approval prompts when run non-interactively. If it can't read files,
@@ -38,6 +41,16 @@ format = "stream-json"
 resume = ["--resume", "{session_id}"]
 # The current Hermes model can't see images, so it hands screenshots to a coder.
 vision = false
+# Model selection: only free OpenRouter models allowed.
+model_flag = ["--model", "{model}"]
+models = [
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "deepseek/deepseek-chat-v3-0324:free",
+    "google/gemma-3-27b-it:free",
+    "meta-llama/llama-4-maverick:free",
+    "qwen/qwen3-235b-a22b:free",
+    "microsoft/phi-4-reasoning-plus:free",
+]
 
 [agents.chatgpt]
 # ChatGPT through the Codex CLI that ships inside the ChatGPT app, signed in with your ChatGPT account.
@@ -48,3 +61,6 @@ resume_command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/co
 format = "stream-json"
 # No add_dir: Codex reads any file by absolute path (full-disk read in workspace-write), so it sees
 # attachments without it. `codex exec resume` rejects --add-dir anyway, which crashed follow-ups.
+# Model selection: Codex uses -m flag.
+model_flag = ["-m", "{model}"]
+models = ["o3", "o4-mini", "gpt-4.1", "codex-mini"]

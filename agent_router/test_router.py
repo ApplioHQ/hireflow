@@ -89,6 +89,17 @@ class RunAgentTest(unittest.TestCase):
         _, out, _ = router.run_agent(self.cfg, "b", "x")
         self.assertEqual(self.first_json(out)["args"], ["fresh"])
 
+    def test_model_flag_injected(self):
+        self.cfg["agents"]["a"]["model_flag"] = ["--model", "{model}"]
+        _, out, _ = router.run_agent(self.cfg, "a", "x", model="opus")
+        self.assertIn("--model", self.first_json(out)["args"])
+        self.assertIn("opus", self.first_json(out)["args"])
+
+    def test_model_flag_not_injected_when_none(self):
+        self.cfg["agents"]["a"]["model_flag"] = ["--model", "{model}"]
+        _, out, _ = router.run_agent(self.cfg, "a", "x", model=None)
+        self.assertNotIn("--model", self.first_json(out)["args"])
+
     def test_missing_command(self):
         self.cfg["agents"]["a"]["command"] = ["no-such-agent-cli"]
         code, out, _ = router.run_agent(self.cfg, "a", "x")

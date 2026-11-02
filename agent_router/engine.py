@@ -563,8 +563,45 @@ class Engine:
         namer = orch.get("namer", self.orchestrator)  # the agent that names new chats
         self.namer = namer if namer in cfg["agents"] else None
         self.unavailable = {}  # agent -> (until timestamp, reason): skipped after a usage-limit failure
+        self.models = self._load_models()  # agent -> selected model override
 
     # ---- setup ----
+
+    def _models_file(self):
+        return self.store.home / "models.json"
+
+    def _load_models(self):
+        try:
+            return json.loads(self._models_file().read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def _save_models(self):
+        self._models_file().write_text(json.dumps(self.models, indent=1))
+
+    def set_model(self, agent, model):
+        spec = self.cfg["agents"].get(agent)
+        if not spec:
+            raise ChatError(f"Unknown agent '{agent}'.")
+        allowed = spec.get("models", [])
+        if model and model not in allowed:
+            raise ChatError(f"Model '{model}' not available for {agent}. Pick from: {', '.join(allowed)}")
+        if model:
+            self.models[agent] = model
+        else:
+            self.models.pop(agent, None)
+        self._save_models()
+
+    def get_model(self, agent):
+        return self.models.get(agent)
+
+    def models_info(self):
+        info = {}
+        for agent, spec in self.cfg["agents"].items():
+            allowed = spec.get("models", [])
+            if allowed:
+                info[agent] = {"models": allowed, "selected": self.models.get(agent)}
+        return info
 
     def ensure_defaults(self):
         """First run: register Applio and Stockbot if those folders exist, and bring over old task threads."""
@@ -653,7 +690,8 @@ class Engine:
             projects.append({**p, "exists": Path(p["path"]).is_dir(), "chats": chats})
         return {"projects": projects, "agents": list(self.cfg["agents"]), "coders": self.coders,
                 "orchestrator": self.orchestrator, "running": [list(k) for k in self.running()],
-                "unavailable": {a: r for a, (until, r) in self.unavailable.items() if until > time.time()}}
+                "unavailable": {a: r for a, (until, r) in self.unavailable.items() if until > time.time()},
+                "models": self.models_info()}
 
     # ---- actions ----
 
@@ -794,7 +832,8 @@ class Engine:
         dirs = [att] if att.is_dir() and any(att.iterdir()) else []  # reach this chat's attachments, past ones too
         code, output, new_session = router.run_agent(
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
-            session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs)
+            session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
+            model=self.get_model(agent))
         changed = router.changed_files(before, router.snapshot(folder))
         self.store.set_session(pid, chat_id, agent, new_session)
         stopped = code == 130

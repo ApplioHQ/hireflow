@@ -117,11 +117,13 @@ def session_in(line):
     return event.get("session_id") or None
 
 
-def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=None, extra_dirs=()):
+def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=None, extra_dirs=(),
+              model=None):
     """Run the agent CLI from the repo root, streaming its output to echo.
 
     session_id resumes an earlier session. control is a dict another thread can use to stop the run:
     it gets control["proc"], and setting control["stopped"] = True before killing marks it a user stop.
+    model overrides the agent's default model if the agent has a model_flag in config.
     Returns (exit_code, output, session_id).
     """
     spec = cfg["agents"][agent]
@@ -130,6 +132,8 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
         command = [part.replace("{session_id}", session_id) for part in spec["resume_command"]]
     elif session_id:
         command += [part.replace("{session_id}", session_id) for part in spec.get("resume", [])]
+    if model and spec.get("model_flag"):
+        command += [part.replace("{model}", model) for part in spec["model_flag"]]
     for folder in extra_dirs:  # folders outside cwd the agent may read (attachments), for agents that need it
         command += [part.replace("{dir}", str(folder)) for part in spec.get("add_dir", [])]
     parse = spec.get("format") == "stream-json"

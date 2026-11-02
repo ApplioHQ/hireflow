@@ -391,3 +391,14 @@ h4.agent-heading { font-size: 13px; color: var(--muted); }
 #term-toggle { flex: 1; border: 0; background: none; padding: 7px 6px; border-radius: 8px; font-size: 13px; color: var(--muted); }
 #term-toggle:hover { background: var(--hover); color: var(--text); }
 @media (prefers-color-scheme: light) { .term-drawer { background: #ffffff; } }
+
+/* model picker */
+.model-group { margin-bottom: 20px; }
+.model-agent { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.model-agent .who .badge { vertical-align: -2px; }
+.model-options { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.model-btn { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.15s; }
+.model-btn:hover { border-color: var(--accent); background: var(--hover); }
+.model-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+.model-btn .who .badge { width: 16px; height: 16px; }
+.btn.small { font-size: 12px; padding: 3px 10px; }

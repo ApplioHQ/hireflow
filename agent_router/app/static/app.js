@@ -550,9 +550,46 @@ function renderSettings(p) {
     <button type="submit" class="btn primary">Save</button></form>`;
 }
 
+function shortModel(m) {
+  const slash = m.lastIndexOf("/");
+  const name = slash >= 0 ? m.slice(slash + 1) : m;
+  return name.replace(/:free$/, "");
+}
+
+function renderModels(data) {
+  const agents = Object.entries(data);
+  if (!agents.length) return `<p class="muted">No agents have model options configured.</p>`;
+  return agents.map(([agent, info]) => {
+    const options = info.models.map((m) => {
+      const label = shortModel(m);
+      const active = info.selected === m;
+      return `<button type="button" class="model-btn${active ? " active" : ""}" data-set-model="${esc(agent)}|${esc(m)}">${badge(agent)} ${esc(label)}</button>`;
+    }).join("");
+    const current = info.selected ? shortModel(info.selected) : "default";
+    return `<div class="model-group">
+      <div class="model-agent">${badge(agent)} ${esc(nameOf(agent))} <span class="muted">- ${esc(current)}</span></div>
+      <div class="model-options">${options}</div>
+      ${info.selected ? `<button type="button" class="btn small" data-set-model="${esc(agent)}|">Reset to default</button>` : ""}
+    </div>`;
+  }).join("");
+}
+
+async function setModel(agent, model) {
+  try {
+    const res = await api("/api/models/set", { agent, model: model || null });
+    state.models = res.models;
+    if ($("#panel").dataset.kind === "models") {
+      $("#panel-body").innerHTML = renderModels(res.models);
+    }
+    toast(`${nameOf(agent)} model ${model ? "set to " + shortModel(model) : "reset to default"}`);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
 async function openPanel(kind, pid) {
   const p = project(pid) || (chat ? project(route().pid) : currentProject());
-  const titles = { diff: `Changes${p ? " in " + p.name : ""}`, memory: `Memory${p ? " for " + p.name : ""}`, doctor: "Agents and projects", settings: `${p ? p.name : ""} settings` };
+  const titles = { diff: `Changes${p ? " in " + p.name : ""}`, memory: `Memory${p ? " for " + p.name : ""}`, doctor: "Agents and projects", settings: `${p ? p.name : ""} settings`, models: "Agent models" };
   $("#panel-title").textContent = titles[kind];
   $("#panel-body").innerHTML = `<p class="muted">Loading...</p>`;
   $("#panel").hidden = false;
@@ -562,6 +599,7 @@ async function openPanel(kind, pid) {
     else if (kind === "memory") $("#panel-body").innerHTML = p ? `<pre>${esc((await api(`/api/memory?project=${encodeURIComponent(p.id)}`)).text)}</pre>` : "";
     else if (kind === "doctor") $("#panel-body").innerHTML = renderDoctor(await api("/api/doctor"));
     else if (kind === "settings") $("#panel-body").innerHTML = p ? renderSettings(p) : "";
+    else if (kind === "models") $("#panel-body").innerHTML = renderModels(state.models || {});
   } catch (e) {
     $("#panel-body").innerHTML = `<p class="muted">${esc(e.message)}</p>`;
   }
@@ -708,6 +746,7 @@ document.addEventListener("click", async (e) => {
   if (el.id === "attach-btn") { $("#file-input").click(); return; }
   if (el.dataset.remove) { removeAttachment(el.dataset.remove); return; }
   if (el.dataset.delete) { const [p, c] = el.dataset.delete.split("|"); deleteChat(p, c); return; }
+  if (el.dataset.setModel) { const [a, m] = el.dataset.setModel.split("|"); setModel(a, m); return; }
   if (el.dataset.settings) { openPanel("settings", el.dataset.settings); return; }
   if (el.dataset.panel) { openPanel(el.dataset.panel); return; }
   if (el.dataset.agent !== undefined && el.closest("#agent-pick")) { pickedAgent = el.dataset.agent; renderComposer(); $("#input").focus(); return; }

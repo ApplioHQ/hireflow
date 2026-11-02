@@ -10,7 +10,7 @@ check_timeout = 600
 # code work to a coder with a written brief. Each project picks its default coder (see /project).
 [orchestrator]
 agent = "hermes"
-coders = ["claude", "chatgpt"]
+coders = ["chatgpt", "claude"]
 # After a coder finishes, Hermes writes a short update for you.
 report = true
 # Hermes also names each new chat in a few words (set namer = "" to keep quick names only).

@@ -45,6 +45,8 @@ FAKE_AGENT = textwrap.dedent("""\
         print(f"Wrote {rest}.")
     elif kind == "approve":
         print("Looks right.\\nAPPROVED")
+    elif kind == "blocked":
+        print(f"I can't do this.\\nBLOCKED: {rest}")
     elif kind == "crash":
         print(rest or "crashed")
         sys.exit(1)
@@ -200,6 +202,30 @@ class OrchestrationTest(EngineCase):
         self.assertIn(("agent", "chatgpt", "review"), self.steps(msgs))
         self.assertIn("+var a = 1;", self.runs("chatgpt")[0]["prompt"])
         self.assertTrue(any(m["role"] == "note" and "ChatGPT approved" in m["text"] for m in msgs))
+
+    def test_blocked_coder_hands_to_next(self):
+        self.plan({"hermes": ["delegate claude", "say done"],
+                   "claude": ["blocked missing dependency"], "chatgpt": ["write a.js var a = 1;"]})
+        cid, msgs = self.chat("applio", "Add a.js")
+        note = next(m for m in msgs if m["role"] == "note")
+        self.assertIn("Claude is blocked (missing dependency)", note["text"])
+        self.assertIn("Handing it to ChatGPT", note["text"])
+        result = next(m for m in msgs if m["role"] == "result")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["agent"], "chatgpt")
+
+    def test_cross_chat_memory_records_changes(self):
+        self.plan({"hermes": ["delegate claude", "say done"], "claude": ["write a.js var a = 1;"]})
+        self.chat("applio", "Add a.js")
+        memory = self.store.memory("applio")
+        self.assertIn("a.js", memory)
+        self.assertIn("Add a.js", memory)
+
+    def test_report_skipped_when_no_files_changed(self):
+        self.plan({"hermes": ["delegate claude"], "claude": ["say No changes needed."]})
+        cid, msgs = self.chat("applio", "Check a.js")
+        steps = [m.get("step") for m in msgs if m["role"] == "agent"]
+        self.assertNotIn("report", steps)
 
     def test_if_hermes_fails_the_message_goes_straight_to_a_coder(self):
         self.plan({"hermes": ["crash model unavailable", "crash model unavailable"],

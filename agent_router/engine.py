@@ -32,6 +32,7 @@ REVIEW = re.compile(r"(?mi)^\W*REVIEW:\s*(yes|no)")
 BRIEF = re.compile(r"(?mis)^\W*BRIEF:\s*\n?(.*)")
 DECISION = re.compile(r"(?m)^\W*DECISION:\s*(.+)$")
 APPROVED = re.compile(r"(?m)^\W*APPROVED\W*$")
+BLOCKED = re.compile(r"(?m)^\W*BLOCKED:\s*(.+)$")
 FILLER = {"please", "pls", "plz", "can", "could", "would", "you", "u", "i", "want", "need", "to", "help", "me",
           "hey", "hi", "just", "the", "a", "an", "tldr", "my", "our", "some", "go", "through"}
 
@@ -41,17 +42,30 @@ STOCKBOT_NOTES = ("This folder runs a live trading bot. Never run the bot, its s
 ORCHESTRATE = """You are Hermes, the orchestrator for the "{project}" project ({path}). You talk with the user
 and decide who does the work. The coders are {coders}. This project's default coder is {default}.
 
-For each message from the user, do exactly one of these:
 You can read any file, but never change files yourself: you are working in a copy of the project, and any
 edit you make there is thrown away. Only the coders change the real project.
 
-1. If it needs no file changes (a question, an explanation, advice, a plan, a review that changes
-   nothing): answer it yourself, clearly and concisely.
-2. If it needs files created, edited or deleted: hand it to a coder. Reply with ONLY this block:
+IMPORTANT: Each coder call costs real usage quota. Only delegate when files MUST be created, edited or deleted.
+Handle everything else yourself -- questions, explanations, plans, reviews, debugging advice, reading code,
+checking what files exist, analyzing errors, and summarizing what was done. If you can answer by reading
+files, do it yourself. When in doubt, answer yourself first.
+
+For each message, do exactly one of these:
+
+1. ANSWER YOURSELF (strongly preferred): If the message is a question, explanation, plan, review, status
+   check, "thanks", "looks good", or anything that does not require writing/editing/deleting files.
+2. DELEGATE TO A CODER: Only if files must be created, edited or deleted. Reply with ONLY this block:
 DELEGATE: <{names}>
-REVIEW: <yes if the change is large or risky and the other coder should review it, otherwise no>
+REVIEW: <yes ONLY if the change touches payment, auth, data deletion, or more than 5 files>
 BRIEF:
-<clear instructions for the coder: the goal, the files likely involved, constraints, and how to check it>
+## Goal
+<one sentence: what the user wants>
+## Files
+<which files to create/edit/delete, be specific>
+## Constraints
+<what NOT to do, edge cases, style rules>
+## Done when
+<how to verify the change works>
 
 Use {default} unless the user asks for a specific coder. {availability}{images}{notes}
 ===== PROJECT MEMORY =====
@@ -78,7 +92,10 @@ Rules:
 - If the request turns out to need no file changes, just answer it.
 - When you finish, end with a short summary: what changed, which files, and how you checked it.
 - If you made a decision future work depends on (a library choice, an API contract, a naming
-  convention), add a line starting with "DECISION: ".{notes}
+  convention), add a line starting with "DECISION: ".
+- If you cannot complete the task (missing access, unclear requirement, dependency not installed,
+  blocked by another change), say "BLOCKED: <reason>" instead of guessing or failing silently.
+  The other coder will take over.{notes}
 ===== PROJECT MEMORY =====
 {memory}
 {conversation}
@@ -134,13 +151,17 @@ The first message: {text}
 
 REPORT = """The coding for the user's last message is finished. Tell the user what happened in one to three
 short sentences: what changed, whether the check passed, and anything they should do next (such as
-review the changes). Do not change any files, and do not repeat this block.
+review the changes). Base your summary on the actual diff below, not just the coder's description.
+Do not change any files, and do not repeat this block.
 
 Coder: {coder}
 Files changed: {files}
 Check: {check}
 The coder's final message:
 {output}
+
+===== ACTUAL DIFF =====
+{diff}
 """
 
 
@@ -498,7 +519,7 @@ class Engine:
         applio = Path("~/Projects/hireflow-main").expanduser()
         stockbot = Path("~/stockbot").expanduser()
         if applio.is_dir():
-            self.store.add_project(applio, "Applio", coders=["claude", "chatgpt"])
+            self.store.add_project(applio, "Applio", coders=["chatgpt", "claude"])
             self.import_tasks("applio")
         if stockbot.is_dir():
             self.store.add_project(stockbot, "Stockbot", coders=["chatgpt", "claude"], notes=STOCKBOT_NOTES)
@@ -834,10 +855,13 @@ class Engine:
             if turn["stopped"]:
                 return self.store.add(pid, cid, {"role": "result", "ok": False, "reason": "stopped by you",
                                                  "files": files, "agent": coder})
-            if turn["code"] == 0:
+            blocked = BLOCKED.search(turn["output"]) if turn["code"] == 0 else None
+            if turn["code"] == 0 and not blocked:
                 break
+            reason = blocked.group(1).strip() if blocked else turn["reason"]
             nxt = next((c for c in order[k + 1:] if self.available(c)), None)
-            self.store.add(pid, cid, {"role": "note", "text": f"{name(coder)} failed ({turn['reason']})."
+            verb = "is blocked" if blocked else "failed"
+            self.store.add(pid, cid, {"role": "note", "text": f"{name(coder)} {verb} ({reason})."
                                       + (f" Handing it to {name(nxt)}." if nxt else "")})
         else:
             return self.store.add(pid, cid, {"role": "result", "ok": False, "files": sorted(set(files)),
@@ -879,11 +903,18 @@ class Engine:
         ok = check_code == 0
         for decision in DECISION.findall(turn["output"]):
             self.store.remember(pid, name(coder), decision)
+        if ok and files:
+            summary = f"Changed {', '.join(files[:5])}" + (f" +{len(files)-5} more" if len(files) > 5 else "")
+            chat = self.store.chat(pid, cid)
+            user_msg = next((m["text"] for m in reversed(chat["messages"]) if m["role"] == "user"), "")
+            if user_msg:
+                summary += f" ({' '.join(user_msg.split()[:8])})"
+            self.store.remember(pid, name(coder), summary)
         self.store.add(pid, cid, {"role": "result", "ok": ok, "files": files, "agent": coder,
                                   "check": "" if ok else router.tail(check_out, 2000),
                                   "checked": bool(project.get("check")),
                                   "reason": "" if ok else "the check still fails"})
-        if self.report_enabled:
+        if self.report_enabled and (not ok or files):
             self.report(lane, project, cid, coder, files, ok, check_out, turn["output"])
 
     def report(self, lane, project, cid, coder, files, ok, check_out, output):
@@ -892,8 +923,9 @@ class Engine:
             return
         session = self.store.chat(project["id"], cid).get("sessions", {}).get(hermes)
         check = ("passed" if project.get("check") else "no check configured") if ok else f"failed:\n{router.tail(check_out, 1500)}"
+        diff = self.review_diff(project) if files else "(no changes)"
         prompt = REPORT.format(coder=name(coder), files=", ".join(files) or "none", check=check,
-                               output=router.tail(output, 3000))
+                               output=router.tail(output, 3000), diff=router.tail(diff, 4000))
         if not session:
             prompt = f'You are Hermes, the orchestrator for the "{project["name"]}" project.\n\n' + prompt
         turn = self.run_agent(lane, project, cid, hermes, prompt, "report", session=session,

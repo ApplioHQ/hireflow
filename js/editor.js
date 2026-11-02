@@ -3228,7 +3228,7 @@ function _buildFullOverlay() {
   _fullOverlay.id = 'full-preview-overlay';
   _fullOverlay.innerHTML =
     '<div class="fp-bar">' +
-      '<div class="fp-left"><span class="fp-brand"><img src="logo.jpeg" width="22" height="22" alt="">Preview</span>' +
+      '<div class="fp-left"><span class="fp-brand"><img src="logo-mark.png" width="22" height="22" alt="">Preview</span>' +
         '<span class="fp-nav" id="fp-nav"><button id="fp-prev" title="Previous page" aria-label="Previous page">‹</button>' +
         '<span class="fp-pageno" id="fp-pageno">1 page</span>' +
         '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span>' +

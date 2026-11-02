@@ -272,6 +272,11 @@ html:not(.light-mode) .theme-toggle .icon-moon { display: block; }
   width: 32px; height: 32px; border-radius: 8px;
   object-fit: cover; display: block;
 }
+/* The mark is a white glyph on transparency, so it has to flip to dark wherever
+   light mode turns the surface behind it white. The landing nav is excluded on
+   purpose: it stays dark in both themes and never loads the theme toggle. */
+html.light-mode .brand-logo,
+html.light-mode .app-footer-brand img { filter: invert(1); }
 
 /* ===== Landing ===== */
 .landing-body { background: var(--bg-0); }

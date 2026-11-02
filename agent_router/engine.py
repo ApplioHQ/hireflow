@@ -131,7 +131,11 @@ You have NO tools -- only plain text and DELEGATE blocks. Never call delegate_ta
 If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
 Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude for design/visual
 work and {default} for everything else.
-{availability}{images}
+{availability}{images}{notes}
+===== PROJECT MEMORY =====
+{memory}
+{conversation}
+===== MESSAGE FROM THE USER =====
 {text}
 """
 
@@ -161,7 +165,11 @@ Rules:
 """
 
 CODER_FOLLOWUP = """New work in this chat from Hermes, the orchestrator. Same rules as before.
-
+This is a follow-up in an ongoing conversation. The user may be referring to work you or another
+agent did earlier in this chat -- read the conversation history carefully.{notes}
+===== PROJECT MEMORY =====
+{memory}
+{conversation}
 ===== BRIEF FROM HERMES =====
 {brief}
 
@@ -790,7 +798,7 @@ class Engine:
     def project_notes(self, project):
         return f"\n\nProject rules: {project['notes']}" if project.get("notes") else ""
 
-    def conversation(self, chat, limit=6000):
+    def conversation(self, chat, limit=10000):
         """The chat so far as plain text, minus the newest user message (sent separately).
 
         Includes agent results and notes so the next agent knows what the previous ones did.
@@ -807,7 +815,9 @@ class Engine:
                 agent = name(m.get("agent", "agent"))
                 files = ", ".join(m.get("files", [])[:10]) or "none"
                 status = "succeeded" if m.get("ok") else f"failed ({m.get('reason', 'unknown')})"
-                parts.append(f"[{agent} {status}. Files changed: {files}]")
+                summary = m.get("summary", "")
+                summary_line = f" Summary: {summary}" if summary else ""
+                parts.append(f"[{agent} {status}. Files changed: {files}.{summary_line}]")
             elif m["role"] == "note":
                 parts.append(f"[System: {m.get('text', '').strip()[:500]}]")
             elif m.get("text", "").strip():
@@ -890,7 +900,7 @@ class Engine:
                   "names": " or ".join(c for c in project["coders"] if c in self.coders),
                   "availability": self.availability(project), "images": image_note,
                   "notes": self.project_notes(project), "memory": self.store.memory(pid),
-                  "conversation": "" if session else self.conversation(chat), "text": job["text"]}
+                  "conversation": self.conversation(chat), "text": job["text"]}
         template = ORCHESTRATE_FOLLOWUP if session else ORCHESTRATE
         copy = self.hermes_folder(project, cid)
         values["path"] = str(copy)
@@ -1048,10 +1058,13 @@ class Engine:
             else:
                 self.store.add(pid, cid, {"role": "note", "text": f"Auto-commit failed: {commit_out[:200]}"})
 
+        agent_summary = router.tail(turn["output"], 800).strip().split("\n")
+        agent_summary = " ".join(l.strip() for l in agent_summary[-6:] if l.strip())[:400]
         self.store.add(pid, cid, {"role": "result", "ok": ok, "files": files, "agent": coder,
                                   "check": "" if ok else router.tail(check_out, 2000),
                                   "checked": bool(project.get("check")),
                                   "committed": committed,
+                                  "summary": agent_summary,
                                   "reason": "" if ok else "the check still fails"})
         if self.report_enabled and (not ok or files):
             self.report(lane, project, cid, coder, files, ok, check_out, turn["output"])

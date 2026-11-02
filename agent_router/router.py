@@ -269,6 +269,25 @@ def git_status(repo):
     return entries
 
 
+def git_commit_and_push(repo, files, message, branch=None):
+    """Stage the given files, commit with message, and push. Returns (ok, output)."""
+    try:
+        subprocess.run(["git", "add", "--"] + files, cwd=repo, check=True, capture_output=True, text=True)
+        p = subprocess.run(["git", "commit", "-m", message], cwd=repo, capture_output=True, text=True)
+        if p.returncode != 0:
+            return False, p.stderr.strip() or p.stdout.strip()
+        if branch is None:
+            b = subprocess.run(["git", "branch", "--show-current"], cwd=repo, capture_output=True, text=True)
+            branch = b.stdout.strip() or "main"
+        push = subprocess.run(["git", "push", "origin", branch], cwd=repo, capture_output=True, text=True,
+                              timeout=120)
+        if push.returncode != 0:
+            return False, push.stderr.strip()
+        return True, p.stdout.strip()
+    except Exception as e:
+        return False, str(e)
+
+
 def tail(text, limit=TAIL):
     text = text.strip()
     return text if len(text) <= limit else "...\n" + text[-limit:]

@@ -6,6 +6,9 @@ repo = ".."
 agent_timeout = 1800
 check_timeout = 600
 
+# After a coder finishes and checks pass, automatically git commit and push the changed files.
+auto_commit = true
+
 # Hermes reads every message first. It answers anything that needs no file changes itself, and hands
 # code work to a coder with a written brief. Each project picks its default coder (see /project).
 [orchestrator]

@@ -1036,9 +1036,22 @@ class Engine:
             if user_msg:
                 summary += f" ({' '.join(user_msg.split()[:8])})"
             self.store.remember(pid, name(coder), summary)
+        committed = False
+        if ok and files and self.cfg.get("auto_commit", False):
+            chat = self.store.chat(pid, cid)
+            user_msg = next((m["text"] for m in reversed(chat["messages"]) if m["role"] == "user"), "")
+            short = " ".join(user_msg.split()[:12]) if user_msg else "agent changes"
+            commit_msg = f"{name(coder)}: {short}\n\nFiles: {', '.join(files[:10])}"
+            committed, commit_out = router.git_commit_and_push(project["path"], files, commit_msg)
+            if committed:
+                self.store.add(pid, cid, {"role": "note", "text": f"Auto-committed and pushed ({', '.join(files[:5])})."})
+            else:
+                self.store.add(pid, cid, {"role": "note", "text": f"Auto-commit failed: {commit_out[:200]}"})
+
         self.store.add(pid, cid, {"role": "result", "ok": ok, "files": files, "agent": coder,
                                   "check": "" if ok else router.tail(check_out, 2000),
                                   "checked": bool(project.get("check")),
+                                  "committed": committed,
                                   "reason": "" if ok else "the check still fails"})
         if self.report_enabled and (not ok or files):
             self.report(lane, project, cid, coder, files, ok, check_out, turn["output"])

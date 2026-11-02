@@ -904,8 +904,10 @@ class Engine:
         if turn["code"] != 0:
             # Hermes itself failed: don't strand the message, send it straight to the default coder.
             self.store.finish_live(pid, cid, step="note")
+            last = router.tail(turn["output"], 300).strip()
             self.store.add(pid, cid, {"role": "note", "text": f"{name(hermes)} failed ({turn['reason']}). "
-                                                              f"Sending this straight to {name(default)}."})
+                                                              f"Sending this straight to {name(default)}."
+                                                              + (f" Error: {last}" if last else "")})
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
         if not delegations and turn["files"]:
@@ -982,8 +984,11 @@ class Engine:
             reason = blocked.group(1).strip() if blocked else turn["reason"]
             nxt = next((c for c in order[k + 1:] if self.available(c)), None)
             verb = "is blocked" if blocked else "failed"
-            self.store.add(pid, cid, {"role": "note", "text": f"{name(coder)} {verb} ({reason})."
-                                      + (f" Handing it to {name(nxt)}." if nxt else "")})
+            changed = f" Changed: {', '.join(turn['files'][:5])}." if turn["files"] else ""
+            last_lines = router.tail(turn["output"], 500).strip()
+            context = f" Last output: {last_lines}" if last_lines and nxt else ""
+            self.store.add(pid, cid, {"role": "note", "text": f"{name(coder)} {verb} ({reason}).{changed}"
+                                      + (f" Handing it to {name(nxt)}.{context}" if nxt else "")})
         else:
             return self.store.add(pid, cid, {"role": "result", "ok": False, "files": sorted(set(files)),
                                              "reason": "no coder could finish this", "agent": coder})

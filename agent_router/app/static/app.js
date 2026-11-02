@@ -216,7 +216,7 @@ function renderSidebar() {
   }
   const strip = state.agents.length ? `<div class="agent-strip">${state.agents.map((a) => {
     const avail = !state.unavailable[a];
-    return `<span class="agent-chip">${badge(a)}<span class="status-dot ${avail ? "available" : "unavailable"}"></span></span>`;
+    return `<span class="agent-chip">${badge(a)}<span class="agent-name">${esc(nameOf(a))}</span><span class="status-dot ${avail ? "available" : "unavailable"}"></span></span>`;
   }).join("")}</div>` : "";
   const active = pid || state.projects[0]?.id;
   nav.innerHTML = strip + state.projects.map((p) => {

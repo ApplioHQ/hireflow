@@ -93,9 +93,9 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 @keyframes pulse { 50% { opacity: .35; } }
 .side-foot { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 8px; }
 .repo { font-size: 12px; color: var(--faint); padding: 0 8px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.side-links { display: flex; gap: 2px; }
+.side-links { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
 .side-links button, .install {
-  flex: 1; border: 0; background: none; padding: 7px 6px; border-radius: 8px; font-size: 13px; color: var(--muted);
+  border: 0; background: none; padding: 6px 8px; border-radius: 8px; font-size: 12px; color: var(--muted); white-space: nowrap;
 }
 .side-links button:hover, .install:hover { background: var(--hover); color: var(--text); }
 .install { width: 100%; margin-top: 4px; color: var(--accent); font-weight: 500; }
@@ -399,12 +399,14 @@ h4.agent-heading { font-size: 13px; color: var(--muted); }
 @media (prefers-color-scheme: light) { .term-drawer { background: #ffffff; } }
 
 /* agent status strip */
-.agent-strip { display: flex; gap: 6px; padding: 6px 10px; margin: 0 8px 8px; border-radius: 8px; background: var(--hover); }
-.agent-chip { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 10px; color: var(--muted); }
-.agent-chip .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.agent-strip { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; margin: 0 8px 8px; border-radius: 8px; background: var(--hover); }
+.agent-chip { display: flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 10px; color: var(--muted); }
+.agent-chip .agent-name { font-weight: 500; }
+.agent-chip .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .agent-chip .status-dot.available { background: var(--ok); }
 .agent-chip .status-dot.unavailable { background: var(--bad); }
-.agent-chip .badge { width: 14px; height: 14px; border-radius: 3px; }
+.agent-chip .badge { width: 18px; height: 18px; border-radius: 4px; }
+.agent-chip .badge img { width: 18px; height: 18px; }
 
 /* result file pills */
 .result-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }

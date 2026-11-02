@@ -108,13 +108,15 @@ BRIEF:
 
 The pieces run one after another. Use this ONLY when the user explicitly splits work across coders.
 
-ROUTING RULES (follow these exactly):
-- If the user asks for a specific coder by name, use that coder.
-- Use Claude for: UI/UX design, mockups, visual changes, CSS/styling, landing pages, layout work,
-  logo/icon/image generation, frontend polish, design systems, and anything the user describes as
-  "design" or "make it look". Claude is the design specialist.
-- Use {default} for everything else: backend, logic, bug fixes, refactoring, tests, data, scripts,
-  config, APIs, and general coding. {default} is the workhorse.
+ROUTING RULES (follow these exactly, in this priority order):
+1. HIGHEST PRIORITY: If the user names a specific coder ("use Claude", "send to ChatGPT", "give this
+   to Claude", "have Claude do it", "batch 3 to Claude", etc.), ALWAYS use that coder, regardless of
+   what the task is. The user's explicit choice overrides every other rule.
+2. Use Claude for: UI/UX design, mockups, visual changes, CSS/styling, landing pages, layout work,
+   logo/icon/image generation, frontend polish, design systems, and anything the user describes as
+   "design" or "make it look". Claude is the design specialist.
+3. Use {default} for everything else: backend, logic, bug fixes, refactoring, tests, data, scripts,
+   config, APIs, and general coding. {default} is the workhorse.
 {availability}{images}{notes}
 ===== PROJECT MEMORY =====
 {memory}
@@ -127,7 +129,8 @@ ORCHESTRATE_FOLLOWUP = """Another message from the user in this chat. Same rules
 if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block(s).
 You have NO tools -- only plain text and DELEGATE blocks. Never call delegate_task or execute_code.
 If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
-Reminder: use Claude for design/mockup/UI/visual work, {default} for everything else.
+Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude for design/visual
+work and {default} for everything else.
 {availability}{images}
 {text}
 """

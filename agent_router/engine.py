@@ -618,14 +618,6 @@ class Engine:
     def orchestrator_sees_images(self):
         return self.cfg["agents"][self.orchestrator].get("vision", True)
 
-    def chat_has_image(self, pid, cid):
-        try:
-            chat = self.store.chat(pid, cid)
-        except ChatError:
-            return False
-        return any(Path(f).suffix.lower() in IMAGE_TYPES
-                   for m in chat["messages"] if m["role"] == "user" for f in m.get("files", []))
-
     def send(self, pid, cid, text, files=(), agent=None):
         project = self.store.project(pid)
         agent = self.check_agent(agent)
@@ -634,18 +626,17 @@ class Engine:
             raise ChatError("Write a message first.")
         if self.busy(pid, cid):
             raise ChatError("This chat is still working. Wait for it, or stop it first.")
-        had_image = self.chat_has_image(pid, cid)  # an image attached earlier in this chat
         saved = self.store.save_attachments(pid, cid, files)
         self.store.add(pid, cid, {"role": "user", "text": text, **({"files": saved} if saved else {})})
         job = {"project": pid, "chat": cid, "text": text, "files": saved, "agent": agent}
-        image_now = any(Path(f).suffix.lower() in IMAGE_TYPES for f in saved)
-        if not agent and not self.orchestrator_sees_images() and (image_now or had_image):
-            # The orchestrator can't see images, so anything involving one (this message, or an image
-            # earlier in the chat that a follow-up refers to) goes to a coder who can, instead of Hermes
-            # stalling. The coder gets --add-dir to the chat's attachments, so it can open earlier images.
+        if not agent and not self.orchestrator_sees_images() \
+                and any(Path(f).suffix.lower() in IMAGE_TYPES for f in saved):
+            # The orchestrator can't see images, so a message that attaches one goes straight to a coder
+            # who can, instead of Hermes stalling. Plain follow-ups (no new image) still go to Hermes,
+            # which has the conversation history (including any description the coder already gave).
             agent = self.default_coder(project)
             self.store.add(pid, cid, {"role": "note",
-                                      "text": f"This chat has an image {name(self.orchestrator)} can't see, "
+                                      "text": f"That has an image {name(self.orchestrator)} can't see, "
                                               f"so it goes to {name(agent)}."})
         if agent:  # a coder was picked, or an image routed one in: skip Hermes's routing
             job.update(coder=agent, brief=text, review=False)

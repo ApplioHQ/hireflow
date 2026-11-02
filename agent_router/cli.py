@@ -436,6 +436,18 @@ class Shell:
             self.out(lead + paint(f"Not finished: {m.get('reason') or 'see the log'}", "31") + dim(changed))
             for line in (m.get("check") or "").strip().splitlines()[-8:]:
                 self.out(dim("     " + line))
+        self.print_previews(files)
+
+    def print_previews(self, files):
+        """Terminals can't render HTML/images, so link the ones worth viewing (cmd-click to open)."""
+        if not self.pid:
+            return
+        root = Path(self.project()["path"])
+        viewable = [f for f in files if re.search(r"\.(html?|png|jpe?g|gif|webp|svg|pdf)$", f, re.I)]
+        for f in viewable[:6]:
+            self.out(dim(f"     view: file://{(root / f).resolve()}"))
+        if viewable:
+            self.out(dim("     (HTML mockups render in the app at http://localhost:4747)"))
 
     # ---- notes (the UI's # mode) ----
 

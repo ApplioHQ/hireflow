@@ -63,6 +63,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if url.path == "/api/attachment":
                 return self.attachment(query)
+            if url.path.startswith("/pf/"):
+                return self.project_file(url.path)
             if url.path.startswith("/api/"):
                 return self.send(200, self.get_api(url.path, query))
             return self.static(url.path)
@@ -89,6 +91,32 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/doctor":
             return eng.doctor()
         raise ApiError(404, "not found")
+
+    def project_file(self, path):
+        """Serve a file from inside a project (/pf/<pid>/<relpath>), so the chat can show images and
+        render HTML mockups the agents made. Read-only, confined to the project folder, local page only."""
+        parts = path.split("/", 3)  # ["", "pf", "<pid>", "<relpath>"]
+        if len(parts) < 4 or not parts[3]:
+            return self.send(404, b"not found", "text/plain")
+        try:
+            project = self.engine.store.project(unquote(parts[2]))
+        except engine.ChatError:
+            return self.send(404, b"not found", "text/plain")
+        root = Path(project["path"]).resolve()
+        rel = unquote(parts[3].split("?")[0])
+        file = (root / rel).resolve()
+        suffix = file.suffix.lower()
+        blocked = {".env", ".pem", ".key", ".p12", ".pfx"}
+        if (root not in file.parents or ".git" in file.parts or not file.is_file()
+                or suffix in blocked or file.name == ".env" or file.name.startswith(".env")
+                or file.stat().st_size > 15_000_000):
+            return self.send(404, b"not found", "text/plain")
+        ctype = {".html": "text/html; charset=utf-8", ".htm": "text/html; charset=utf-8",
+                 ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+                 ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png",
+                 ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp",
+                 ".pdf": "application/pdf"}.get(suffix, "text/plain; charset=utf-8")
+        self.send(200, file.read_bytes(), ctype, "no-store")
 
     def attachment(self, q):
         """Serve an image a user attached to a chat (for thumbnails), and nothing outside that chat's folder."""

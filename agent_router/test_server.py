@@ -196,6 +196,22 @@ class ServerTest(EngineCase):
         self.assertFalse(Path(up["path"]).exists())
         self.assertEqual(self.request("GET", "/api/attachment?project=applio&chat=x&name=..%2F..%2Fprojects.json")[0], 404)
 
+    def test_project_file_serving_and_confinement(self):
+        (self.applio / "mock.html").write_text("<h1>Mockup</h1>")
+        (self.applio / "pic.png").write_bytes(b"\x89PNG img")
+        (self.applio / ".env").write_text("SECRET=1")
+        (self.applio.parent / "outside.txt").write_text("nope")
+        status, body = self.request("GET", "/pf/applio/mock.html")
+        self.assertEqual((status, body), (200, b"<h1>Mockup</h1>"))
+        self.assertEqual(self.request("GET", "/pf/applio/pic.png")[1], b"\x89PNG img")
+        # confinement: no escaping the project, no .env, no .git, unknown project
+        self.assertEqual(self.request("GET", "/pf/applio/..%2Foutside.txt")[0], 404)
+        self.assertEqual(self.request("GET", "/pf/applio/.env")[0], 404)
+        self.assertEqual(self.request("GET", "/pf/applio/.git/config")[0], 404)
+        self.assertEqual(self.request("GET", "/pf/nope/mock.html")[0], 404)
+        self.assertEqual(self.request("GET", "/pf/applio/missing.html")[0], 404)
+        self.assertEqual(self.request("GET", "/pf/applio/mock.html", host="evil.com")[0], 403)
+
     def test_diff_memory_search_doctor(self):
         self.plan({"hermes": ["delegate claude", "say ok"], "claude": ["decide Keep it simple"]})
         cid = self.post("/api/chats", {"project": "applio", "text": "Add d.js"})[1]["chat"]

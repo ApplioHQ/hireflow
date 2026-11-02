@@ -308,19 +308,18 @@ class OrchestrationTest(EngineCase):
         self.assertEqual(steps[0], "answer")      # Hermes can read text files itself
         self.assertFalse(any("goes to" in m.get("text", "") for m in msgs if m["role"] == "note"))
 
-    def test_followup_in_an_image_chat_also_goes_to_a_coder(self):
+    def test_text_followup_in_an_image_chat_goes_to_hermes(self):
         shot = Path(self.tmp.name) / "shot.png"
         shot.write_bytes(b"\x89PNG")
-        self.plan({"claude": ["say A login page.", "say Still a login page."]})
-        cid, _ = self.chat("applio", "What is this?", files=[str(shot)])
-        self.engine.send("applio", cid, "try again")  # no new image, but the chat has one
+        self.plan({"claude": ["say A login page."], "hermes": ["say Looked over it.", "say Here are the steps."]})
+        cid, _ = self.chat("applio", "What is this?", files=[str(shot)])  # image -> coder
+        self.engine.send("applio", cid, "give me step by step instructions")  # no image -> Hermes
         self.wait()
         msgs = self.store.chat("applio", cid)["messages"]
-        follow = [m for m in msgs if m["role"] == "agent" and m.get("step") == "code"]
-        self.assertEqual(len(follow), 2)                 # the follow-up went to the coder too
-        self.assertEqual(follow[1]["agent"], "claude")
-        self.assertEqual(self.runs("claude")[1]["args"][-2:],
-                         ["--add-dir", str(self.store.attachments_dir("applio", cid))])
+        self.assertEqual([m["role"] for m in msgs][-2:], ["user", "agent"])
+        last = msgs[-1]
+        self.assertEqual((last["agent"], last.get("step")), ("hermes", "answer"))  # Hermes handled the text follow-up
+        self.assertEqual(len([m for m in msgs if m.get("step") == "code"]), 1)      # no second coder run
 
     def test_decisions_are_remembered_for_later(self):
         self.plan({"hermes": ["delegate claude", "say ok", "say noted"], "claude": ["decide Use plain hyphens"]})

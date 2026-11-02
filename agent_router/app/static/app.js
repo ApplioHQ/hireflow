@@ -223,18 +223,41 @@ function badge(agent) {
   return `<span class="badge ${esc(agent)}">${esc(BADGES[agent] || nameOf(agent).charAt(0))}</span>`;
 }
 
+function fileUrl(pid, f) {
+  return `/pf/${encodeURIComponent(pid)}/${f.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function previewFor(pid, f) {
+  const url = fileUrl(pid, f);
+  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(f)) {
+    return `<a class="preview-img" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(f)}"><img src="${esc(url)}" alt="${esc(f)}" loading="lazy"></a>`;
+  }
+  if (/\.html?$/i.test(f)) {
+    return `<div class="preview-html"><div class="preview-bar"><span title="${esc(f)}">${esc(f.split("/").pop())}</span>
+      <a href="${esc(url)}" target="_blank" rel="noopener">Open full</a></div>
+      <iframe src="${esc(url)}" sandbox="allow-scripts allow-popups allow-forms" loading="lazy" title="${esc(f)}"></iframe></div>`;
+  }
+  return "";
+}
+
+function previews(files) {
+  const { pid } = route();
+  const made = files.map((f) => previewFor(pid, f)).filter(Boolean).slice(0, 6);
+  return made.length ? `<div class="previews">${made.join("")}</div>` : "";
+}
+
 function renderResult(m) {
   const files = (m.files || []).filter(Boolean);
   if (m.answer) {
     return files.length ? `<div class="result bad"><div class="result-title">Changed files while answering</div>
-      <ul class="result-files">${files.map((f) => `<li>${esc(f)}</li>`).join("")}</ul></div>` : "";
+      <ul class="result-files">${files.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>${previews(files)}</div>` : "";
   }
   const title = m.ok
     ? `Done${m.checked === false ? "" : ", check passed"}${m.agent ? ` - ${esc(nameOf(m.agent))}` : ""}`
     : `Not finished: ${esc(m.reason || "see the log")}`;
   const fileList = files.length ? `<ul class="result-files">${files.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : `<div class="result-hint">No file changes.</div>`;
   const check = !m.ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
-  return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${fileList}${check}
+  return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${fileList}${previews(files)}${check}
     ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}</div>`;
 }
 

@@ -13,8 +13,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import engine  # noqa: E402
+import terminal  # noqa: E402
 import router  # noqa: E402
 
 STATIC = HERE / "static"
@@ -36,8 +38,10 @@ class ApiError(Exception):
 
 class Handler(BaseHTTPRequestHandler):
     engine = None
+    terminals = None
     port = PORT
     server_version = "ApplioAgents"
+    protocol_version = "HTTP/1.1"  # needed for the WebSocket (101) upgrade; every response sets Content-Length
 
     def log_message(self, fmt, *args):
         pass
@@ -60,6 +64,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(403, {"error": "forbidden host"})
         url = urlparse(self.path)
         query = {k: v[0] for k, v in parse_qs(url.query).items()}
+        if url.path == "/ws/terminal" and terminal.is_upgrade(self.headers):
+            return self.open_terminal(query)
         try:
             if url.path == "/api/attachment":
                 return self.attachment(query)
@@ -91,6 +97,21 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/doctor":
             return eng.doctor()
         raise ApiError(404, "not found")
+
+    def open_terminal(self, q):
+        """Attach this WebSocket to the project's persistent shell. Local page only."""
+        origin = self.headers.get("Origin")
+        if origin and origin not in (f"http://localhost:{self.port}", f"http://127.0.0.1:{self.port}"):
+            return self.send(403, {"error": "forbidden"})
+        try:
+            project = self.engine.store.project(q.get("project", ""))
+        except engine.ChatError:
+            return self.send(404, b"not found", "text/plain")
+        if not Path(project["path"]).is_dir():
+            return self.send(404, b"not found", "text/plain")
+        self.close_connection = True
+        shell = self.terminals.get(project["id"], project["path"])
+        terminal.serve(self, shell)
 
     def project_file(self, path):
         """Serve a file from inside a project (/pf/<pid>/<relpath>), so the chat can show images and
@@ -248,7 +269,7 @@ def make_server(cfg, port=PORT, store=None):
     for folder in stale.glob("*") if stale.exists() else []:  # attachments that were never sent
         if time.time() - folder.stat().st_mtime > 86400:
             shutil.rmtree(folder, ignore_errors=True)
-    handler = type("BoundHandler", (Handler,), {"engine": eng, "port": port})
+    handler = type("BoundHandler", (Handler,), {"engine": eng, "port": port, "terminals": terminal.Terminals()})
     server = ThreadingHTTPServer(("127.0.0.1", port), handler)
     handler.port = server.server_address[1]
     return server
@@ -283,6 +304,7 @@ def main(argv=None):
             if not eng.running():
                 break
             time.sleep(0.1)
+        server.RequestHandlerClass.terminals.close_all()
         print("\nStopped.")
     return 0
 

@@ -542,6 +542,8 @@ document.addEventListener("click", async (e) => {
   if (el.id === "new-chat") { go(currentProject()?.id || ""); $("#input").focus(); return; }
   if (el.id === "menu-btn") { $(".app").classList.add("nav-open"); return; }
   if (el.id === "panel-close") { $("#panel").hidden = true; return; }
+  if (el.id === "term-toggle") { $("#term-drawer").hidden ? openTerminal() : closeTerminal(); return; }
+  if (el.id === "term-close") { closeTerminal(); return; }
   if (el.id === "install" && installPrompt) { installPrompt.prompt(); installPrompt = null; el.hidden = true; return; }
   if (el.id === "add-project") {
     const path = prompt("Full path of the project folder (for example /Users/you/stockbot):");
@@ -659,12 +661,75 @@ $("#input").addEventListener("keydown", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { $("#panel").hidden = true; $(".app").classList.remove("nav-open"); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#search").focus(); }
+  if (e.ctrlKey && e.key === "`") { e.preventDefault(); $("#term-drawer").hidden ? openTerminal() : closeTerminal(); }
 });
 window.addEventListener("hashchange", () => {
   chat = null;
   lastChatKey = "";
   refresh(true);
+  if (!$("#term-drawer").hidden) openTerminal();  // follow the project switch
 });
+
+// ---- interactive terminal (xterm.js over a WebSocket to the project's shell) ----
+let term = null;
+let fit = null;
+let ws = null;
+let termPid = null;
+
+function termTheme() {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  return dark
+    ? { background: "#1a1918", foreground: "#ecebe8", cursor: "#d97757", selectionBackground: "#3a3836" }
+    : { background: "#ffffff", foreground: "#1f1e1c", cursor: "#c96442", selectionBackground: "#e4e1dc" };
+}
+
+function openTerminal() {
+  const p = currentProject();
+  if (!p) { toast("Add a project folder first."); return; }
+  if (typeof Terminal === "undefined") { toast("Terminal failed to load."); return; }
+  $("#term-drawer").hidden = false;
+  if (!term) {
+    term = new Terminal({ fontSize: 13, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+      cursorBlink: true, scrollback: 8000, theme: termTheme() });
+    fit = new FitAddon.FitAddon();
+    term.loadAddon(fit);
+    term.open($("#term-body"));
+    term.onData((d) => { if (ws && ws.readyState === 1) ws.send(new TextEncoder().encode(d)); });
+    new ResizeObserver(() => fitTerm()).observe($("#term-body"));
+  }
+  $("#term-title").textContent = `Terminal - ${p.name}`;
+  connectTerm(p.id);
+  requestAnimationFrame(() => { fitTerm(); term.focus(); });
+}
+
+function closeTerminal() {
+  $("#term-drawer").hidden = true;
+  if (ws) { ws.close(); ws = null; }
+}
+
+function fitTerm() {
+  if (!term || $("#term-drawer").hidden) return;
+  try { fit.fit(); } catch { /* not mounted yet */ }
+  sendResize();
+}
+
+function sendResize() {
+  if (ws && ws.readyState === 1 && term) ws.send(JSON.stringify({ resize: [term.cols, term.rows] }));
+}
+
+function connectTerm(pid) {
+  if (ws && termPid === pid && ws.readyState <= 1) return;
+  if (ws) ws.close();
+  termPid = pid;
+  if (term) term.reset();
+  $("#term-status").textContent = "connecting...";
+  ws = new WebSocket(`ws://${location.host}/ws/terminal?project=${encodeURIComponent(pid)}`);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = () => { $("#term-status").textContent = ""; sendResize(); };
+  ws.onmessage = (e) => { if (term) term.write(new Uint8Array(e.data)); };
+  ws.onclose = () => { $("#term-status").textContent = $("#term-drawer").hidden ? "" : "disconnected - reopen to reconnect"; };
+  ws.onerror = () => { $("#term-status").textContent = "connection failed"; };
+}
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; $("#install").hidden = false; });
 window.addEventListener("appinstalled", () => { $("#install").hidden = true; });

@@ -1,0 +1,15 @@
+{
+  "name": "Applio",
+  "description": "Free AI resume builder and career copilot. Search jobs, score a resume against a job description for ATS compatibility, extract keywords, and (with an account) tailor resumes, write cover letters, and prep for interviews.",
+  "url": "https://appliohq.com/",
+  "servers": [
+    {
+      "name": "Applio MCP",
+      "url": "https://hireflow-api.pritamavuthu7.workers.dev/mcp",
+      "transport": "streamable-http",
+      "protocol": "2025-06-18",
+      "auth": "bearer-token-optional",
+      "documentation_url": "https://appliohq.com/connect"
+    }
+  ]
+}

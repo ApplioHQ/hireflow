@@ -214,8 +214,12 @@ function renderSidebar() {
       </button>`).join("") : `<div class="list-label">No matches</div>`;
     return;
   }
+  const strip = state.agents.length ? `<div class="agent-strip">${state.agents.map((a) => {
+    const avail = !state.unavailable[a];
+    return `<span class="agent-chip">${badge(a)}<span class="status-dot ${avail ? "available" : "unavailable"}"></span></span>`;
+  }).join("")}</div>` : "";
   const active = pid || state.projects[0]?.id;
-  nav.innerHTML = state.projects.map((p) => {
+  nav.innerHTML = strip + state.projects.map((p) => {
     const open = !collapsed[p.id];
     const chats = open ? p.chats.slice(0, 40).map((c) => `
       <div class="task-row">
@@ -321,12 +325,11 @@ function renderResult(m) {
   const title = m.ok
     ? `Done${m.checked === false ? "" : ", check passed"}${m.agent ? ` - ${esc(nameOf(m.agent))}` : ""}`
     : `Not finished: ${esc(m.reason || "see the log")}`;
-  const fileList = files.length ? `<ul class="result-files">${files.map((f) => {
-    const ext = f.split(".").pop();
-    return `<li><span class="file-badge mod">M</span><span title="${esc(f)}">${esc(f)}</span></li>`;
-  }).join("")}</ul>` : `<div class="result-hint">No file changes.</div>`;
+  const filePills = files.length ? `<div class="result-pills">${files.map((f) =>
+    `<span class="file-pill" title="${esc(f)}">${esc(f.split("/").pop())}</span>`
+  ).join("")}</div>` : `<div class="result-hint">No file changes.</div>`;
   const check = !m.ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
-  return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${fileList}${previews(files)}${check}
+  return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${filePills}${previews(files)}${check}
     ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}</div>`;
 }
 
@@ -347,8 +350,11 @@ function renderMessage(m) {
   if (m.role === "result") return renderResult(m);
   const agent = m.agent || "agent";
   if (m.step === "delegate") {
-    return `<div class="handoff">${badge("hermes")}<span><strong>Hermes</strong> handed this to <strong>${esc(nameOf(m.coder || ""))}</strong>${m.review ? " (with review)" : ""}</span>
-      ${m.brief ? `<details><summary>Brief</summary><div class="brief">${renderAgentText(m.brief)}</div></details>` : ""}</div>`;
+    const coder = m.coder || "";
+    const coderClass = coder.split("+")[0];
+    return `<div class="handoff to-${esc(coderClass)}">
+      <div class="handoff-head">${badge(coderClass)} Handed to ${esc(nameOf(coder))}${m.review ? " (with review)" : ""}</div>
+      ${m.brief ? `<div class="brief-text">${esc(m.brief.split("\n")[0].slice(0, 200))}</div>` : ""}</div>`;
   }
   const labels = { orchestrate: "deciding", code: "coding", fix: "fixing the check", review: "reviewing", report: "update" };
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";

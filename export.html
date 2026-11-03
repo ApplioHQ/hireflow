@@ -432,14 +432,15 @@ function showPostExportTestimonialModal() {
   var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (_) {}
   var overlay = document.createElement('div');
   overlay.className = 'modal-overlay testimonial-modal-overlay'; overlay.id = 'export-testimonial-modal';
-  overlay.innerHTML = '<section class="modal testimonial-modal" role="dialog" aria-modal="true" aria-labelledby="export-testimonial-title">'
-    + '<button class="testimonial-modal-close" type="button" aria-label="Close">×</button>'
-    + '<p class="testimonial-modal-kicker">Your feedback matters</p><h2 id="export-testimonial-title">How did Applio help?</h2>'
-    + '<p>Share a line if you’d like. It stays private unless you later review and explicitly approve where it can appear.</p>'
-    + '<textarea class="testimonial-modal-field" rows="3" maxlength="1000" placeholder="Applio helped me…"></textarea>'
-    + '<div class="testimonial-modal-fields"><input class="testimonial-modal-field" data-tst-role maxlength="120" placeholder="Role (optional)"><input class="testimonial-modal-field" data-tst-company maxlength="120" placeholder="Company (optional)"></div>'
-    + '<div class="testimonial-modal-actions"><button class="btn btn-secondary" type="button" data-tst-skip>Not now</button><button class="btn btn-primary" type="button" data-tst-save>Save privately</button></div>'
-    + '</section>';
+  overlay.innerHTML = ‘<section class="modal testimonial-modal" role="dialog" aria-modal="true" aria-labelledby="export-testimonial-title">’
+    + ‘<button class="testimonial-modal-close" type="button" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>’
+    + ‘<p class="testimonial-modal-kicker">Your resume is ready</p><h2 id="export-testimonial-title">How did Applio help?</h2>’
+    + ‘<p>A quick note helps us learn what works. This stays private unless you later choose to share it.</p>’
+    + ‘<textarea class="testimonial-modal-field" rows="3" maxlength="1000" placeholder="Applio helped me..."></textarea>’
+    + ‘<div class="testimonial-modal-fields"><input class="testimonial-modal-field" data-tst-role maxlength="120" placeholder="Role (optional)"><input class="testimonial-modal-field" data-tst-company maxlength="120" placeholder="Company (optional)"></div>’
+    + ‘<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--r-sm);background:var(--accent-ghost);margin-bottom:20px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--accent-text)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span style="font-size:var(--fs-xs);color:var(--muted);line-height:1.45;">Saved privately by default. You can review and approve publication later in your testimonial settings.</span></div>’
+    + ‘<div class="testimonial-modal-actions"><button class="btn btn-ghost" type="button" data-tst-skip>Not now</button><button class="btn btn-primary" type="button" data-tst-save>Save privately</button></div>’
+    + ‘</section>’;
   document.body.appendChild(overlay);
   var fields = overlay.querySelectorAll('.testimonial-modal-field');
   if (fields[1]) fields[1].value = profile.role || '';

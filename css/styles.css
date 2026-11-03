@@ -1674,12 +1674,12 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .testimonial-modal h2 { margin:0 28px var(--sp-2) 0; font-size:var(--fs-xl); letter-spacing:-.03em; }
 .testimonial-modal p { margin:0 0 var(--sp-5); color:var(--muted); line-height:1.55; font-size:var(--fs-sm); }
 .testimonial-modal-kicker { color:var(--accent-text)!important; font-size:var(--fs-xs)!important; font-weight:var(--fw-bold); letter-spacing:.08em; text-transform:uppercase; }
-.testimonial-modal-close { position:absolute; right:var(--sp-3); top:var(--sp-3); width:32px; height:32px; border:0; border-radius:var(--r-full); background:transparent; color:var(--muted); cursor:pointer; font-size:24px; line-height:1; }
+.testimonial-modal-close { position:absolute; right:var(--sp-3); top:var(--sp-3); width:32px; height:32px; border:0; border-radius:var(--r-full); background:transparent; color:var(--muted); cursor:pointer; display:grid; place-items:center; }
 .testimonial-modal-close:hover { background:var(--bg-2); color:var(--text); }
 .testimonial-modal-field { box-sizing:border-box; width:100%; padding:11px 12px; color:var(--text); background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-sm); font:inherit; resize:vertical; }
 .testimonial-modal-field:focus { outline:0; border-color:var(--accent); box-shadow:var(--ring); }
-.testimonial-modal-fields { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2); margin-top:var(--sp-2); }
-.testimonial-modal-actions { display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-5); }
+.testimonial-modal-fields { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2); margin:var(--sp-2) 0 var(--sp-4); }
+.testimonial-modal-actions { display:flex; justify-content:flex-end; gap:var(--sp-2); }
 @media (max-width:520px) { .testimonial-modal { padding:var(--sp-5); } .testimonial-modal-fields { grid-template-columns:1fr; } .testimonial-modal-actions { flex-direction:column-reverse; } .testimonial-modal-actions .btn { width:100%; } }
 .acct-sep { height: 1px; background: var(--border); margin: 6px 4px; }
 .acct-row {

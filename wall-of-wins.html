@@ -5,13 +5,133 @@
   <meta name="description" content="Stories from Applio users who chose to share their experience."><link rel="canonical" href="https://appliohq.com/wall-of-wins">
   <title>Wall of Wins | Applio</title><link rel="icon" href="/logo.ico"><link rel="stylesheet" href="/css/styles.css"><script src="/js/theme.js"></script>
   <style>
-    .wow-page { max-width:1180px; margin:0 auto; padding:74px 20px 90px; }.wow-hero { max-width:720px; }.wow-hero h1 { font-size:clamp(32px,5vw,54px); line-height:1.05; letter-spacing:-.055em; margin:0 0 16px; }.wow-hero p { color:var(--muted); line-height:1.65; max-width:620px; }.wow-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:42px 0 20px; }.wow-count { color:var(--muted); font-size:14px; }.wow-filter { min-width:210px; padding:10px 12px; color:var(--text); background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-sm); font:inherit; }.wow-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }.wow-card { min-height:220px; padding:22px; display:flex; flex-direction:column; }.wow-quote { color:var(--text); font-size:16px; font-weight:var(--fw-medium); line-height:1.58; margin:0; }.wow-person { margin-top:auto; padding-top:22px; color:var(--muted); font-size:13px; line-height:1.45; }.wow-person strong { display:block; color:var(--text); }.wow-empty { grid-column:1/-1; text-align:center; padding:54px 20px; border:1px dashed var(--border); border-radius:var(--r-lg); color:var(--muted); }.wow-empty h2 { color:var(--text); font-size:20px; margin:0 0 8px; }.wow-cta { margin-top:40px; padding:26px; display:flex; justify-content:space-between; gap:24px; align-items:center; }.wow-cta h2 { font-size:20px; margin:0 0 6px; }.wow-cta p { color:var(--muted); margin:0; font-size:14px; }.wow-loading { color:var(--muted); padding:30px 0; }@media(max-width:800px){.wow-grid{grid-template-columns:1fr 1fr}}@media(max-width:540px){.wow-page{padding-top:42px}.wow-grid{grid-template-columns:1fr}.wow-toolbar,.wow-cta{align-items:stretch;flex-direction:column}.wow-filter{width:100%}.wow-cta .btn{width:100%}}
+    .wow-page { max-width:1080px; margin:0 auto; padding:74px 20px 90px; }
+    .wow-hero { max-width:640px; margin-bottom:40px; }
+    .wow-hero h1 { font-size:clamp(32px,5vw,48px); line-height:1.08; letter-spacing:-.045em; font-weight:800; margin:0 0 14px; }
+    .wow-hero p { color:var(--muted); line-height:1.6; max-width:520px; font-size:14px; }
+    .wow-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+    .wow-count { color:var(--muted); font-size:var(--fs-sm); font-variant-numeric:tabular-nums; }
+    .wow-filter { min-width:180px; padding:8px 12px; color:var(--text); background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-sm); font:inherit; font-size:var(--fs-sm); }
+    .wow-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:40px; }
+    .wow-card { padding:24px; display:flex; flex-direction:column; min-height:200px; transition:border-color .14s, box-shadow .14s; }
+    .wow-card:hover { border-color:var(--accent-line); box-shadow:var(--sh-2), var(--hi); }
+    .wow-quote { font-size:var(--fs-md); font-weight:var(--fw-medium); line-height:1.55; color:var(--text); flex:1; margin:0; }
+    .wow-person { margin-top:20px; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .wow-avatar { width:32px; height:32px; border-radius:var(--r-full); background:var(--accent-soft); color:var(--accent-text); display:grid; place-items:center; font-size:var(--fs-xs); font-weight:var(--fw-bold); flex:none; }
+    .wow-person-info { min-width:0; }
+    .wow-person-name { font-size:var(--fs-sm); font-weight:var(--fw-semibold); color:var(--text); }
+    .wow-person-role { font-size:var(--fs-xs); color:var(--muted); }
+    .wow-empty { grid-column:1/-1; text-align:center; padding:48px 20px; border:1px dashed var(--border); border-radius:var(--r-lg); color:var(--muted); }
+    .wow-empty h2 { color:var(--text); font-size:var(--fs-lg); font-weight:var(--fw-semibold); margin:0 0 6px; }
+    .wow-empty p { font-size:var(--fs-sm); }
+    .wow-cta { margin-top:0; padding:24px; display:flex; justify-content:space-between; gap:20px; align-items:center; }
+    .wow-cta h2 { font-size:var(--fs-lg); font-weight:var(--fw-semibold); margin:0 0 4px; }
+    .wow-cta p { color:var(--muted); margin:0; font-size:var(--fs-sm); }
+    .wow-loading { color:var(--muted); padding:30px 0; }
+    @media(max-width:800px) { .wow-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:540px) { .wow-page { padding-top:42px; } .wow-grid { grid-template-columns:1fr; } .wow-toolbar,.wow-cta { align-items:stretch; flex-direction:column; } .wow-filter { width:100%; } .wow-cta .btn { width:100%; } }
   </style>
 </head>
 <body class="app-body-scroll">
   <header class="app-topbar"><a href="/" class="brand"><img src="/logo-mark.png" class="brand-logo" width="32" height="32" alt="Applio"><span>Applio</span></a><div class="topbar-right"><button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><span class="icon"></span><span class="label"></span></button><a class="btn btn-primary btn-sm" href="/editor">Build your resume</a></div></header>
-  <main class="wow-page"><section class="wow-hero"><p class="eyebrow">Community stories</p><h1>Wall of Wins</h1><p>Experiences shared by Applio users who explicitly chose to make them public. Every story is optional, and every person controls what is shown.</p></section><div class="wow-toolbar"><span class="wow-count" id="wow-count">Loading stories…</span><label><span class="sr-only">Filter stories by role</span><select class="wow-filter" id="wow-filter"><option value="">All roles</option></select></label></div><section class="wow-grid" id="wow-grid" aria-live="polite"><p class="wow-loading">Loading stories…</p></section><section class="section-card wow-cta"><div><h2>Have a win to share?</h2><p>Your feedback is private unless you explicitly approve it for this page.</p></div><a class="btn btn-primary" href="/testimonial-email">Share feedback</a></section></main>
-  <script src="/js/config.js"></script><script>
-  (function(){var grid=document.getElementById('wow-grid'),count=document.getElementById('wow-count'),filter=document.getElementById('wow-filter'),all=[];function text(tag,value,cls){var e=document.createElement(tag);if(cls)e.className=cls;e.textContent=value;return e;}function render(){var q=filter.value.toLowerCase(),items=all.filter(function(x){return !q||(x.title||'').toLowerCase()===q;});grid.textContent='';count.textContent=items.length+(items.length===1?' story':' stories')+' shared with permission';if(!items.length){var empty=document.createElement('div');empty.className='wow-empty';empty.append(text('h2','Stories are on their way'));empty.append(text('p','When users choose to publish their feedback, it will appear here.'));grid.append(empty);return;}items.forEach(function(x){var card=document.createElement('article');card.className='section-card wow-card';card.append(text('p','“'+x.quote+'”','wow-quote'));var who=x.attribution==='anonymous'?'Anonymous Applio user':(x.name||'Applio user');var line=[x.title,x.company].filter(Boolean).join(' · ');var person=document.createElement('div');person.className='wow-person';person.append(text('strong',who));if(line)person.append(text('span',line));if(x.outcomeClaim)person.append(text('span',x.outcomeClaim));card.append(person);grid.append(card);});}fetch(window.HIREFLOW_CONFIG.API_URL+'/testimonials/public').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(data){(data.testimonials||[]).forEach(function(x){all.push(x);if(x.title&&![].slice.call(filter.options).some(function(o){return o.value===x.title.toLowerCase();})){var o=document.createElement('option');o.value=x.title.toLowerCase();o.textContent=x.title;filter.append(o);}});render();}).catch(function(){grid.innerHTML='<div class="wow-empty"><h2>Stories are unavailable right now</h2><p>Please try again in a moment.</p></div>';count.textContent='';});filter.addEventListener('change',render);})();
-  </script><script src="/js/footer.js"></script>
-</body></html>
+  <main class="wow-page">
+    <section class="wow-hero">
+      <p class="eyebrow">Community stories</p>
+      <h1>Wall of Wins</h1>
+      <p>Real experiences from people who chose to share. Every story is optional, every word is approved by the person before it appears here.</p>
+    </section>
+    <div class="wow-toolbar">
+      <span class="wow-count" id="wow-count">Loading stories...</span>
+      <label><span class="sr-only">Filter stories by role</span><select class="wow-filter" id="wow-filter"><option value="">All roles</option></select></label>
+    </div>
+    <section class="wow-grid" id="wow-grid" aria-live="polite"><p class="wow-loading">Loading stories...</p></section>
+    <section class="section-card wow-cta">
+      <div>
+        <h2>Have a win to share?</h2>
+        <p>Your feedback is private unless you explicitly approve it for this page.</p>
+      </div>
+      <a class="btn btn-primary" href="/testimonial-email">Share feedback</a>
+    </section>
+  </main>
+  <script src="/js/config.js"></script>
+  <script>
+  (function(){
+    var grid = document.getElementById('wow-grid'),
+        count = document.getElementById('wow-count'),
+        filter = document.getElementById('wow-filter'),
+        all = [];
+
+    function text(tag, value, cls) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      e.textContent = value;
+      return e;
+    }
+
+    function render() {
+      var q = filter.value.toLowerCase(),
+          items = all.filter(function(x) { return !q || (x.title || '').toLowerCase() === q; });
+      grid.textContent = '';
+      count.textContent = items.length + (items.length === 1 ? ' story' : ' stories') + ' shared with permission';
+      if (!items.length) {
+        var empty = document.createElement('div');
+        empty.className = 'wow-empty';
+        empty.append(text('h2', 'Stories are on their way'));
+        empty.append(text('p', 'When users choose to publish their feedback, it will appear here.'));
+        grid.append(empty);
+        return;
+      }
+      items.forEach(function(x) {
+        var card = document.createElement('article');
+        card.className = 'section-card wow-card';
+
+        var q = text('p', '“' + x.quote + '”', 'wow-quote');
+        card.append(q);
+
+        var person = document.createElement('div');
+        person.className = 'wow-person';
+
+        var avatar = document.createElement('span');
+        avatar.className = 'wow-avatar';
+        var who = x.attribution === 'anonymous' ? 'Anonymous Applio user' : (x.name || 'Applio user');
+        avatar.textContent = who.charAt(0).toUpperCase();
+        person.append(avatar);
+
+        var info = document.createElement('div');
+        info.className = 'wow-person-info';
+        info.append(text('div', who, 'wow-person-name'));
+        var line = [x.title, x.company].filter(Boolean).join(' · ');
+        if (line) info.append(text('div', line, 'wow-person-role'));
+        if (x.outcomeClaim) info.append(text('div', x.outcomeClaim, 'wow-person-role'));
+        person.append(info);
+
+        card.append(person);
+        grid.append(card);
+      });
+    }
+
+    fetch(window.HIREFLOW_CONFIG.API_URL + '/testimonials/public')
+      .then(function(r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function(data) {
+        (data.testimonials || []).forEach(function(x) {
+          all.push(x);
+          if (x.title && ![].slice.call(filter.options).some(function(o) { return o.value === x.title.toLowerCase(); })) {
+            var o = document.createElement('option');
+            o.value = x.title.toLowerCase();
+            o.textContent = x.title;
+            filter.append(o);
+          }
+        });
+        render();
+      })
+      .catch(function() {
+        grid.innerHTML = '<div class="wow-empty"><h2>Stories are unavailable right now</h2><p>Please try again in a moment.</p></div>';
+        count.textContent = '';
+      });
+
+    filter.addEventListener('change', render);
+  })();
+  </script>
+  <script src="/js/footer.js"></script>
+</body>
+</html>

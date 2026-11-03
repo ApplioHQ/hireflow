@@ -73,7 +73,11 @@
 
   /* ---- Empty state ---- */
   .sw-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted); padding: 60px 20px; }
-  .sw-empty svg { width: 48px; height: 48px; color: var(--accent); margin-bottom: 16px; opacity: .85; }
+  .sw-value-icon { width:58px; height:58px; margin-bottom:16px; position:relative; display:grid; place-items:center; border-radius:17px; color:var(--accent); background:var(--bg-1); border:1px solid var(--accent-line); box-shadow:var(--sh-1),var(--hi); }
+  .sw-value-icon::before { content:""; position:absolute; inset:6px; border-radius:12px; background:var(--accent-ghost); border:1px solid var(--accent-line); }
+  .sw-value-icon > svg { width:30px; height:30px; position:relative; }
+  .sw-value-spark { position:absolute; right:-5px; top:-5px; z-index:1; width:18px; height:18px; display:grid; place-items:center; border:2px solid var(--bg-2); border-radius:50%; color:var(--on-accent); background:var(--accent); box-shadow:var(--sh-1); }
+  .sw-value-spark svg { width:9px; height:9px; fill:currentColor; stroke:none; }
   .sw-empty h4 { color: var(--text); font-size: 17px; font-weight: 700; margin-bottom: 6px; }
   .sw-empty p { font-size: 13.5px; max-width: 380px; line-height: 1.6; }
   .sw-steps { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; text-align: left; max-width: 340px; width: 100%; }
@@ -315,7 +319,7 @@ function _emptyState(){
   ];
   document.getElementById('sw-body').innerHTML =
     '<div class="sw-empty">'
-    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+    + '<div class="sw-value-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="sw-value-spark"><svg viewBox="0 0 24 24"><path d="m12 2 2 8 8 2-8 2-2 8-2-8-8-2 8-2z"/></svg></span></div>'
     + '<h4>What is this role worth?</h4>'
     + '<p>Enter a job title above to see a typical pay range, what drives it, and whether your offer is fair.</p>'
     + '<div class="sw-steps">'

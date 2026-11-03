@@ -292,6 +292,48 @@
     </div>
   </section>
 
+  <!-- ============================ PROFILE ONBOARDING ============================ -->
+  <section class="band" id="profile-onboarding">
+    <div class="band-hd"><h2>Profile Onboarding</h2><span class="band-note">Company, role, aggregate opt-in & email consent from the profile page</span></div>
+
+    <div class="section-card">
+      <div class="section-hd"><div><h2>Profile Completion</h2><span class="section-sub" id="profile-onb-sub">Users who have filled in their company, role, and consent preferences</span></div></div>
+      <div class="section-bd" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+        <div class="kpi-card" style="--kpi-accent:#6d4dfc;">
+          <div class="kpi-top"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="kpi-label">Has Company</div></div>
+          <div class="kpi-num" id="pob-has-company">0</div>
+          <div class="kpi-trend" id="pob-has-company-pct"></div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent:#8a73f8;">
+          <div class="kpi-top"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/></svg></div><div class="kpi-label">Has Role</div></div>
+          <div class="kpi-num" id="pob-has-role">0</div>
+          <div class="kpi-trend" id="pob-has-role-pct"></div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent:#f59e0b;">
+          <div class="kpi-top"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/></svg></div><div class="kpi-label">Aggregate Opt-in</div></div>
+          <div class="kpi-num" id="pob-optin">0</div>
+          <div class="kpi-trend" id="pob-optin-pct"></div>
+        </div>
+        <div class="kpi-card" style="--kpi-accent:#10b981;">
+          <div class="kpi-top"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="kpi-label">Email Consent</div></div>
+          <div class="kpi-num" id="pob-email">0</div>
+          <div class="kpi-trend" id="pob-email-pct"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="section-card">
+        <div class="section-hd"><div><h2>Top Companies</h2></div></div>
+        <div class="section-bd" id="pob-companies-bars"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-hd"><div><h2>Top Roles</h2></div></div>
+        <div class="section-bd" id="pob-roles-bars"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================ DAILY BREAKDOWN ============================ -->
   <section class="band" id="daily">
     <div class="band-hd"><h2>Daily Breakdown</h2><span class="band-note">Day-by-day: signups, visitors, AI uses &amp; exports</span></div>
@@ -584,7 +626,8 @@ async function loadAnalytics() {
     renderAttributionBars(d.attribution || {});
     renderGeoBars(d.geoCountry || {});
     renderOnboarding(d.onboarding || {});
-    renderRetention(d);
+      renderProfileOnboarding(d.onboarding || {});
+      renderRetention(d);
     renderExports(d);
     renderOutcomes(d);
     renderTestimonials();
@@ -804,6 +847,32 @@ function renderOnboarding(o) {
   _renderHBars('onb-stage-bars', o.stage || {}, '#f59e0b');
   _renderHBars('onb-challenge-bars', o.challenge || {}, '#ef4444');
   _renderHBars('onb-heard-bars', o.heardFrom || {}, '#10b981');
+}
+
+// ─── Profile Onboarding ───
+function renderProfileOnboarding(o) {
+  o = o || {};
+  var p = o.profile || {};
+  var total = p.totalUsers || 0;
+  var sub = document.getElementById('profile-onb-sub');
+  if (sub) {
+    var filled = (p.hasCompany || 0) + (p.hasRole || 0);
+    sub.textContent = 'Company: ' + (p.hasCompany || 0) + '/' + total + ' · Role: ' + (p.hasRole || 0) + '/' + total + ' · Opt-in: ' + (p.companyOptInCount || 0) + '/' + total + ' · Email consent: ' + (p.emailConsentCount || 0) + '/' + total;
+  }
+  if (total) {
+    var setKPI = function(id, val, pctId) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = val;
+      var pct = document.getElementById(pctId);
+      if (pct) pct.textContent = total ? (Math.round((val / total) * 1000) / 10) + '% of users' : '';
+    };
+    setKPI('pob-has-company', p.hasCompany || 0, 'pob-has-company-pct');
+    setKPI('pob-has-role', p.hasRole || 0, 'pob-has-role-pct');
+    setKPI('pob-optin', p.companyOptInCount || 0, 'pob-optin-pct');
+    setKPI('pob-email', p.emailConsentCount || 0, 'pob-email-pct');
+  }
+  _renderHBars('pob-companies-bars', p.topCompanies || [], '#6d4dfc');
+  _renderHBars('pob-roles-bars', p.topRoles || [], '#8a73f8');
 }
 
 // ─── Retention ───

@@ -1154,6 +1154,28 @@ async function adminAnalytics(req, env) {
     }
   }
 
+  // ---- Profile onboarding (company, role, aggregate opt-in, email consent) ----
+  const profileCompanies = {};
+  const profileRoles = {};
+  let profileCompanyOptInCount = 0;
+  let profileEmailConsentCount = 0;
+  let profileHasCompany = 0;
+  let profileHasRole = 0;
+  for (const u of records) {
+    if (u.company) {
+      profileHasCompany++;
+      const c = u.company.trim().toLowerCase();
+      if (c) profileCompanies[c] = (profileCompanies[c] || 0) + 1;
+    }
+    if (u.role) {
+      profileHasRole++;
+      const r = u.role.trim().toLowerCase();
+      if (r) profileRoles[r] = (profileRoles[r] || 0) + 1;
+    }
+    if (u.companyAggregateOptIn === true) profileCompanyOptInCount++;
+    if (u.testimonialFollowupEmail === true) profileEmailConsentCount++;
+  }
+
   // ---- Onboarding selections ----------------------------------------------
   // What users pick during the first-run flow. `category` + `attribution` come
   // from the signup form (aggregated above); stage/challenge/heardFrom come from
@@ -1222,6 +1244,16 @@ async function adminAnalytics(req, env) {
     stage: onbStage,
     challenge: onbChallenge,
     heardFrom: onbHeardFrom,
+    // Profile onboarding (company, role, aggregate opt-in, email consent)
+    profile: {
+      totalUsers: total,
+      hasCompany: profileHasCompany,
+      hasRole: profileHasRole,
+      companyOptInCount: profileCompanyOptInCount,
+      emailConsentCount: profileEmailConsentCount,
+      topCompanies: Object.entries(profileCompanies).sort((a, b) => b[1] - a[1]).slice(0, 20),
+      topRoles: Object.entries(profileRoles).sort((a, b) => b[1] - a[1]).slice(0, 20),
+    },
   };
 
   // ---- Daily breakdown (last 30 days) --------------------------------------

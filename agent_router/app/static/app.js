@@ -7,6 +7,11 @@ const BADGES = {
   hermes: `<img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/hermesagent.png" width="18" height="18" alt="" style="display:block;border-radius:3px">`,
   chatgpt: `<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M14.949 6.547a3.94 3.94 0 0 0-.348-3.273 4.11 4.11 0 0 0-4.4-1.934A4.1 4.1 0 0 0 8.423.2 4.15 4.15 0 0 0 6.305.086a4.1 4.1 0 0 0-1.891.948 4.04 4.04 0 0 0-1.158 1.753 4.1 4.1 0 0 0-1.563.679A4 4 0 0 0 .554 4.72a3.99 3.99 0 0 0 .502 4.731 3.94 3.94 0 0 0 .346 3.274 4.11 4.11 0 0 0 4.402 1.933c.382.425.852.764 1.377.995.526.231 1.095.35 1.67.346 1.78.002 3.358-1.132 3.901-2.804a4.1 4.1 0 0 0 1.563-.68 4 4 0 0 0 1.14-1.253 3.99 3.99 0 0 0-.506-4.716m-6.097 8.406a3.05 3.05 0 0 1-1.945-.694l.096-.054 3.23-1.838a.53.53 0 0 0 .265-.455v-4.49l1.366.778q.02.011.025.035v3.722c-.003 1.653-1.361 2.992-3.037 2.996m-6.53-2.75a2.95 2.95 0 0 1-.36-2.01l.095.057L5.29 12.09a.53.53 0 0 0 .527 0l3.949-2.246v1.555a.05.05 0 0 1-.022.041L6.473 13.3c-1.454.826-3.311.335-4.15-1.098m-.85-6.94A3.02 3.02 0 0 1 3.07 3.949v3.785a.51.51 0 0 0 .262.451l3.93 2.237-1.366.779a.05.05 0 0 1-.048 0L2.585 9.342a2.98 2.98 0 0 1-1.113-4.094zm11.216 2.571L8.747 5.576l1.362-.776a.05.05 0 0 1 .048 0l3.265 1.86a3 3 0 0 1 1.173 1.207 2.96 2.96 0 0 1-.27 3.2 3.05 3.05 0 0 1-1.36.997V8.279a.52.52 0 0 0-.276-.445m1.36-2.015-.097-.057-3.226-1.855a.53.53 0 0 0-.53 0L6.249 6.153V4.598a.04.04 0 0 1 .019-.04L9.533 2.7a3.07 3.07 0 0 1 3.257.139c.474.325.843.778 1.066 1.303.223.526.289 1.103.191 1.664zM5.503 8.575 4.139 7.8a.05.05 0 0 1-.026-.037V4.049c0-.57.166-1.127.476-1.607s.752-.864 1.275-1.105a3.08 3.08 0 0 1 3.234.41l-.096.054-3.23 1.838a.53.53 0 0 0-.265.455zm.742-1.577 1.758-1 1.762 1v2l-1.755 1-1.762-1z"/></svg>`,
 };
+const AVATARS = {
+  claude: `<svg viewBox="0 0 16 16" width="16" height="16" fill="#fff"><path fill-rule="evenodd" d="M9.218 2h2.402L16 12.987h-2.402zM4.379 2h2.512l4.38 10.987H8.82l-.895-2.308h-4.58l-.896 2.307H0L4.38 2.001zm2.755 6.64L5.635 4.777 4.137 8.64z"/></svg>`,
+  hermes: `<img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/hermesagent.png" width="28" height="28" alt="" style="display:block;border-radius:50%">`,
+  chatgpt: `<svg viewBox="0 0 16 16" width="16" height="16" fill="#fff"><path d="M14.949 6.547a3.94 3.94 0 0 0-.348-3.273 4.11 4.11 0 0 0-4.4-1.934A4.1 4.1 0 0 0 8.423.2 4.15 4.15 0 0 0 6.305.086a4.1 4.1 0 0 0-1.891.948 4.04 4.04 0 0 0-1.158 1.753 4.1 4.1 0 0 0-1.563.679A4 4 0 0 0 .554 4.72a3.99 3.99 0 0 0 .502 4.731 3.94 3.94 0 0 0 .346 3.274 4.11 4.11 0 0 0 4.402 1.933c.382.425.852.764 1.377.995.526.231 1.095.35 1.67.346 1.78.002 3.358-1.132 3.901-2.804a4.1 4.1 0 0 0 1.563-.68 4 4 0 0 0 1.14-1.253 3.99 3.99 0 0 0-.506-4.716m-6.097 8.406a3.05 3.05 0 0 1-1.945-.694l.096-.054 3.23-1.838a.53.53 0 0 0 .265-.455v-4.49l1.366.778q.02.011.025.035v3.722c-.003 1.653-1.361 2.992-3.037 2.996m-6.53-2.75a2.95 2.95 0 0 1-.36-2.01l.095.057L5.29 12.09a.53.53 0 0 0 .527 0l3.949-2.246v1.555a.05.05 0 0 1-.022.041L6.473 13.3c-1.454.826-3.311.335-4.15-1.098m-.85-6.94A3.02 3.02 0 0 1 3.07 3.949v3.785a.51.51 0 0 0 .262.451l3.93 2.237-1.366.779a.05.05 0 0 1-.048 0L2.585 9.342a2.98 2.98 0 0 1-1.113-4.094zm11.216 2.571L8.747 5.576l1.362-.776a.05.05 0 0 1 .048 0l3.265 1.86a3 3 0 0 1 1.173 1.207 2.96 2.96 0 0 1-.27 3.2 3.05 3.05 0 0 1-1.36.997V8.279a.52.52 0 0 0-.276-.445m1.36-2.015-.097-.057-3.226-1.855a.53.53 0 0 0-.53 0L6.249 6.153V4.598a.04.04 0 0 1 .019-.04L9.533 2.7a3.07 3.07 0 0 1 3.257.139c.474.325.843.778 1.066 1.303.223.526.289 1.103.191 1.664zM5.503 8.575 4.139 7.8a.05.05 0 0 1-.026-.037V4.049c0-.57.166-1.127.476-1.607s.752-.864 1.275-1.105a3.08 3.08 0 0 1 3.234.41l-.096.054-3.23 1.838a.53.53 0 0 0-.265.455zm.742-1.577 1.758-1 1.762 1v2l-1.755 1-1.762-1z"/></svg>`,
+};
 const nameOf = (agent) => String(agent).split("+").map((a) => NAMES[a] || a).join(" + ");
 
 let state = { projects: [], agents: [], coders: [], orchestrator: "hermes", running: [], unavailable: {} };
@@ -316,6 +321,14 @@ function previews(files) {
   return made.length ? `<div class="previews">${made.join("")}</div>` : "";
 }
 
+function avatar(agent) {
+  const key = String(agent).split("+")[0];
+  const icon = AVATARS[key];
+  return icon
+    ? `<div class="msg-avatar ${esc(key)}">${icon}</div>`
+    : `<div class="msg-avatar" style="background:var(--faint);color:#fff;font-size:12px;font-weight:600">${esc(nameOf(agent).charAt(0))}</div>`;
+}
+
 function renderResult(m) {
   const files = (m.files || []).filter(Boolean);
   if (m.answer) {
@@ -324,18 +337,25 @@ function renderResult(m) {
     return files.length ? `<div class="result bad"><div class="result-title">Changed files while answering</div>
       <ul class="result-files">${showFiles.map((f) => `<li>${esc(f)}</li>`).join("")}${moreCount > 0 ? `<li>+${moreCount} more</li>` : ""}</ul>${previews(showFiles)}</div>` : "";
   }
-  const title = m.ok
-    ? `Done${m.checked === false ? "" : ", check passed"}${m.agent ? ` - ${esc(nameOf(m.agent))}` : ""}`
-    : `Not finished: ${esc(m.reason || "see the log")}`;
+  const ok = m.ok;
   const maxPills = 12;
   const shown = files.slice(0, maxPills);
   const extra = files.length - maxPills;
   const filePills = files.length ? `<div class="result-pills">${shown.map((f) =>
     `<span class="file-pill" title="${esc(f)}">${esc(f.split("/").pop())}</span>`
-  ).join("")}${extra > 0 ? `<span class="file-pill more">+${extra} more</span>` : ""}</div>` : `<div class="result-hint">No file changes.</div>`;
-  const check = !m.ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
-  return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${filePills}${previews(files)}${check}
-    ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}</div>`;
+  ).join("")}${extra > 0 ? `<span class="file-pill more">+${extra} more</span>` : ""}</div>` : "";
+  const check = !ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
+  const statusClass = ok ? "ok" : "bad";
+  const statusText = ok
+    ? `${files.length} file${files.length !== 1 ? "s" : ""} changed`
+    : `Not finished: ${esc(m.reason || "see the log")}`;
+  const strip = `<div class="status-strip">
+    <span class="live-dot ${statusClass}"></span>
+    <span>${statusText}</span>
+    <span class="status-right ${statusClass}">${ok ? (m.checked === false ? "Done" : "Done, check passed") : "Failed"}</span>
+  </div>`;
+  return `${filePills}${previews(files)}${check}${strip}
+    ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}`;
 }
 
 function renderMessage(m) {
@@ -358,21 +378,36 @@ function renderMessage(m) {
     }).join("");
     return `<div class="note">${esc(m.text)}${shots ? `<div class="previews">${shots}</div>` : ""}</div>`;
   }
-  if (m.role === "result") return renderResult(m);
+  if (m.role === "result") {
+    const agent = m.agent || "";
+    const key = String(agent).split("+")[0];
+    return `<div class="msg agent">${avatar(agent)}<div class="msg-body">
+      <div class="msg-name">${esc(nameOf(agent))}</div>
+      <div class="body">${renderResult(m)}</div></div></div>`;
+  }
   const agent = m.agent || "agent";
   if (m.step === "delegate") {
     const coder = m.coder || "";
     const coderClass = coder.split("+")[0];
-    return `<div class="handoff to-${esc(coderClass)}">
-      <div class="handoff-head">${badge(coderClass)} Handed to ${esc(nameOf(coder))}${m.review ? " (with review)" : ""}</div>
-      ${m.brief ? `<div class="brief-text">${esc(m.brief.split("\n")[0].slice(0, 200))}</div>` : ""}</div>`;
+    const arrowSvg = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+    return `<div class="route-card">
+      <span class="route-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></span>
+      <span class="route-from">Auto</span>
+      <span class="route-arrow">${arrowSvg}</span>
+      ${badge(coderClass)}
+      <span class="route-to ${esc(coderClass)}">${esc(nameOf(coder))}</span>
+      ${m.review ? `<span class="route-reason">with review</span>` : ""}
+      ${m.brief ? `<span class="route-reason">${esc(m.brief.split("\n")[0].slice(0, 80))}</span>` : ""}
+    </div>`;
   }
   const labels = { orchestrate: "deciding", code: "coding", fix: "fixing the check", review: "reviewing", report: "update" };
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";
   const body = m.text.trim() ? renderAgentText(m.text) : (m.live ? "" : `<div class="empty-agent">No output.</div>`);
   const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
-  return `<div class="msg agent${m.step === "report" ? " report" : ""}"><div class="who">${badge(agent)}${esc(nameOf(agent))}${label}</div><div class="body">${body}</div>${working}</div>`;
+  return `<div class="msg agent${m.step === "report" ? " report" : ""}">${avatar(agent)}<div class="msg-body">
+    <div class="msg-name">${esc(nameOf(agent))} ${label}</div>
+    <div class="body">${body}</div>${working}</div></div>`;
 }
 
 function renderMessages(force) {
@@ -473,8 +508,12 @@ function renderComposer() {
   const p = chat ? project(pid) : currentProject();
   const options = [["", "Hermes"], ["auto", "Auto"], ...state.coders.map((c) => [c, nameOf(c)])];
   if (!options.some(([v]) => v === pickedAgent)) pickedAgent = "";
-  $("#agent-pick").innerHTML = options.map(([value, label]) => `<button type="button" role="radio" aria-checked="${value === pickedAgent}" data-agent="${esc(value)}"
-    title="${value === "auto" ? "Hermes picks the best coder for each prompt" : value ? `Send straight to ${esc(label)}` : "Hermes answers or hands it to a coder"}">${esc(label)}</button>`).join("");
+  const AGENT_COLORS = { "": "#5b7fd6", auto: "#c96442", claude: "#d97757", chatgpt: "#10a37f" };
+  $("#agent-pick").innerHTML = options.map(([value, label]) => {
+    const dot = `<span class="seg-dot" style="background:${AGENT_COLORS[value] || "var(--faint)"}"></span>`;
+    return `<button type="button" role="radio" aria-checked="${value === pickedAgent}" data-agent="${esc(value)}"
+    title="${value === "auto" ? "Hermes picks the best coder for each prompt" : value ? `Send straight to ${esc(label)}` : "Hermes answers or hands it to a coder"}">${dot}${esc(label)}</button>`;
+  }).join("");
   const projectPick = $("#project-pick");
   projectPick.hidden = Boolean(chat);
   if (!chat) {

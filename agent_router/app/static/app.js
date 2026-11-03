@@ -319,15 +319,20 @@ function previews(files) {
 function renderResult(m) {
   const files = (m.files || []).filter(Boolean);
   if (m.answer) {
+    const showFiles = files.slice(0, 12);
+    const moreCount = files.length - 12;
     return files.length ? `<div class="result bad"><div class="result-title">Changed files while answering</div>
-      <ul class="result-files">${files.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>${previews(files)}</div>` : "";
+      <ul class="result-files">${showFiles.map((f) => `<li>${esc(f)}</li>`).join("")}${moreCount > 0 ? `<li>+${moreCount} more</li>` : ""}</ul>${previews(showFiles)}</div>` : "";
   }
   const title = m.ok
     ? `Done${m.checked === false ? "" : ", check passed"}${m.agent ? ` - ${esc(nameOf(m.agent))}` : ""}`
     : `Not finished: ${esc(m.reason || "see the log")}`;
-  const filePills = files.length ? `<div class="result-pills">${files.map((f) =>
+  const maxPills = 12;
+  const shown = files.slice(0, maxPills);
+  const extra = files.length - maxPills;
+  const filePills = files.length ? `<div class="result-pills">${shown.map((f) =>
     `<span class="file-pill" title="${esc(f)}">${esc(f.split("/").pop())}</span>`
-  ).join("")}</div>` : `<div class="result-hint">No file changes.</div>`;
+  ).join("")}${extra > 0 ? `<span class="file-pill more">+${extra} more</span>` : ""}</div>` : `<div class="result-hint">No file changes.</div>`;
   const check = !m.ok && m.check ? `<pre class="result-check">${esc(m.check)}</pre>` : "";
   return `<div class="result ${m.ok ? "ok" : "bad"}"><div class="result-title">${title}</div>${filePills}${previews(files)}${check}
     ${files.length ? `<div class="result-actions"><button type="button" class="btn" data-panel="diff">View changes</button></div>` : ""}</div>`;

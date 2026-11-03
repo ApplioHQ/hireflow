@@ -7,55 +7,242 @@
   <link rel="stylesheet" href="css/design-system.css">
   <style>
     body { overflow:auto; }
-    .study { min-height:100vh; padding:56px 20px; display:grid; place-items:center; }
-    .study-frame { width:min(100%, 960px); }
-    .study-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; color:var(--muted); font-size:var(--fs-sm); }
-    .study-bar strong { color:var(--text); font-family:var(--font-display); font-size:var(--fs-lg); }
-    .icon-card { display:grid; grid-template-columns:1.08fr .92fr; overflow:hidden; border:1px solid var(--border); border-radius:var(--r-2xl); background:var(--bg-1); box-shadow:var(--sh-3); }
-    .icon-stage { min-height:500px; display:grid; place-items:center; position:relative; overflow:hidden; background:radial-gradient(circle at 50% 42%, var(--accent-soft), transparent 52%),var(--bg-2); }
-    .icon-stage::after { content:""; position:absolute; inset:28px; border:1px solid var(--border); border-radius:var(--r-xl); pointer-events:none; }
-    .value-icon { width:184px; height:184px; border-radius:42px; display:grid; place-items:center; position:relative; background:var(--bg-1); border:1px solid var(--accent-line); box-shadow:var(--sh-3), var(--hi); }
-    .value-icon::before { content:""; position:absolute; inset:10px; border-radius:33px; background:var(--accent-ghost); border:1px solid var(--accent-line); }
-    .value-icon svg { width:88px; height:88px; position:relative; color:var(--accent); filter:drop-shadow(0 5px 12px var(--accent-soft)); }
-    .spark { position:absolute; width:24px; height:24px; right:23px; top:22px; border-radius:var(--r-full); display:grid; place-items:center; color:var(--on-accent); background:var(--accent); border:3px solid var(--bg-1); box-shadow:var(--sh-1); }
-    .spark svg { width:12px; height:12px; filter:none; }
-    .detail { padding:52px 46px; display:flex; flex-direction:column; justify-content:center; }
-    .eyebrow { color:var(--accent-text); font-size:var(--fs-xs); font-weight:var(--fw-bold); letter-spacing:.09em; text-transform:uppercase; margin-bottom:14px; }
-    h1 { font-family:var(--font-display); font-size:var(--fs-4xl); line-height:1.12; letter-spacing:-.045em; margin-bottom:14px; }
-    .lead { color:var(--muted); font-size:var(--fs-lg); line-height:1.65; max-width:340px; }
-    .rules { list-style:none; display:grid; gap:12px; margin:30px 0; }
-    .rules li { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:var(--fs-base); }
-    .rules span { width:20px; height:20px; border-radius:var(--r-full); display:grid; place-items:center; color:var(--success-text); background:var(--success-soft); border:1px solid var(--success-line); font-size:12px; }
+    .study { min-height:100vh; padding:56px 20px 72px; display:grid; place-items:start center; }
+    .study-frame { width:min(100%, 1040px); display:grid; gap:22px; }
+    .study-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; color:var(--muted); font-size:var(--fs-sm); }
+    .study-bar strong { color:var(--text); font-family:var(--font-display); font-size:var(--fs-lg); display:block; }
+
+    /* ===== The icon itself =====
+       Every dimension inside the tile is a percentage, so one rule set renders
+       the mark correctly at 184px and at 20px without a second definition. */
+    .value-icon {
+      width:100%; aspect-ratio:1; border-radius:24%;
+      display:grid; place-items:center; position:relative;
+      background:linear-gradient(158deg, var(--accent-soft) 0%, transparent 58%), var(--bg-1);
+      border:1px solid var(--accent-line);
+      box-shadow:var(--sh-2), var(--hi);
+      transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    }
+    /* Top-light sheen. Replaces the old inset ring, which read as a stray outline. */
+    .value-icon::before {
+      content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+      background:radial-gradient(128% 86% at 50% 0%, rgba(255,255,255,.08), transparent 56%);
+    }
+    .value-icon .glyph { width:48%; height:48%; position:relative; color:var(--accent); }
+    .value-icon .spark {
+      position:absolute; top:9.5%; right:9.5%; width:14.5%; height:14.5%;
+      border-radius:var(--r-full); display:grid; place-items:center;
+      color:var(--on-accent); background:var(--accent);
+      box-shadow:0 2px 10px rgba(109,77,252,.5);
+    }
+    .value-icon .spark svg { width:58%; height:58%; }
+    /* Below roughly 32px the badge is noise, so the ladder drops it. */
+    .value-icon.no-spark .spark { display:none; }
+
+    /* ===== Hero ===== */
+    .icon-card { display:grid; grid-template-columns:1.04fr .96fr; overflow:hidden; border:1px solid var(--border); border-radius:var(--r-2xl); background:var(--bg-1); box-shadow:var(--sh-3); }
+    .icon-stage { min-height:470px; display:grid; place-items:center; position:relative; background:var(--bg-2); }
+    .stage-glow { position:absolute; width:300px; height:300px; border-radius:var(--r-full); background:radial-gradient(circle, var(--accent-soft), transparent 68%); filter:blur(14px); pointer-events:none; }
+    .hero-icon { width:186px; position:relative; }
+    .icon-stage:hover .value-icon { transform:translateY(-3px); box-shadow:var(--sh-3), var(--hi); }
+
+    .detail { padding:48px 44px; display:flex; flex-direction:column; justify-content:center; }
+    .eyebrow { color:var(--accent-text); font-size:var(--fs-xs); font-weight:var(--fw-bold); letter-spacing:.09em; text-transform:uppercase; margin-bottom:13px; }
+    .detail h1 { font-family:var(--font-display); font-size:var(--fs-4xl); line-height:1.12; letter-spacing:-.045em; margin-bottom:13px; }
+    .lead { color:var(--muted); font-size:var(--fs-lg); line-height:1.65; max-width:345px; }
+    .rules { list-style:none; display:grid; gap:11px; margin:26px 0 28px; }
+    .rules li { display:flex; align-items:flex-start; gap:10px; color:var(--muted); font-size:var(--fs-base); line-height:1.5; }
+    .rules i { flex:0 0 auto; width:19px; height:19px; margin-top:1px; border-radius:var(--r-full); display:grid; place-items:center; color:var(--success-text); background:var(--success-soft); border:1px solid var(--success-line); font-size:11px; font-style:normal; }
     .actions { display:flex; align-items:center; gap:10px; }
     .btn { text-decoration:none; cursor:pointer; }
-    @media(max-width:720px) { .study{padding:24px 14px}.icon-card{grid-template-columns:1fr}.icon-stage{min-height:310px}.detail{padding:32px 26px}.study-bar{align-items:flex-start;flex-direction:column}.value-icon{width:146px;height:146px;border-radius:34px}.value-icon::before{border-radius:26px}.value-icon svg{width:70px;height:70px} }
+
+    /* ===== Panels below the hero ===== */
+    .panels { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+    .panel { border:1px solid var(--border); border-radius:var(--r-2xl); background:var(--bg-1); box-shadow:var(--sh-1); padding:26px 26px 28px; }
+    .panel h2 { font-family:var(--font-display); font-size:var(--fs-xl); letter-spacing:-.02em; margin-bottom:5px; }
+    .panel p { color:var(--muted); font-size:var(--fs-base); line-height:1.6; margin-bottom:22px; }
+
+    /* Size ladder: the real test of an icon is whether it survives 20px. */
+    .ladder { display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap; }
+    .rung { display:grid; gap:9px; justify-items:center; }
+    .rung span { color:var(--muted); font-size:var(--fs-xs); font-variant-numeric:tabular-nums; }
+
+    /* Surface tests */
+    .surfaces { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+    .surface { border-radius:var(--r-lg); padding:20px; display:grid; gap:10px; justify-items:center; border:1px solid var(--border); }
+    .surface span { font-size:var(--fs-xs); color:var(--muted); }
+    .surface i { width:52px; display:block; font-style:normal; }
+    .s-1 { background:var(--bg-1); }
+    .s-2 { background:var(--bg-2); }
+    .s-3 { background:var(--bg-3); }
+    .s-accent { background:var(--gradient); border-color:transparent; }
+    .s-accent span { color:rgba(255,255,255,.82); }
+
+    /* Glyph alternates */
+    .alts { display:flex; gap:9px; flex-wrap:wrap; }
+    .alt { display:grid; gap:9px; justify-items:center; padding:14px 18px 12px; border-radius:var(--r-lg); border:1px solid var(--border); background:var(--bg-2); color:var(--muted); font-size:var(--fs-xs); transition:border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+    .alt i { width:46px; display:block; font-style:normal; }
+    .alt:hover { border-color:var(--accent-line); }
+    .alt[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-ghost); color:var(--text); }
+
+    @media(max-width:860px) {
+      .study { padding:24px 14px 40px; }
+      .icon-card { grid-template-columns:1fr; }
+      .icon-stage { min-height:320px; }
+      .hero-icon { width:150px; }
+      .detail { padding:32px 26px; }
+      .panels { grid-template-columns:1fr; }
+      .surfaces { grid-template-columns:1fr 1fr; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      .value-icon, .alt { transition:none; }
+      .icon-stage:hover .value-icon { transform:none; }
+    }
   </style>
 </head>
 <body>
   <main class="study">
     <div class="study-frame">
-      <div class="study-bar"><strong>Applio icon study</strong><button class="btn btn-ghost btn-sm" id="theme">Light mode</button></div>
-      <section class="icon-card" aria-label="Improved value icon mockup">
+
+      <div class="study-bar">
+        <strong>Applio icon study</strong>
+        <button class="btn btn-ghost btn-sm" id="theme">Light mode</button>
+      </div>
+
+      <section class="icon-card" aria-label="Improved value icon">
         <div class="icon-stage">
-          <div class="value-icon" aria-hidden="true">
-            <svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M55 17v62"/><path d="M41 17v62"/>
-              <path d="M68 31c-4-7-12-10-21-10-13 0-22 7-22 17 0 25 45 10 45 35 0 10-10 18-23 18-10 0-19-4-24-12"/>
-            </svg>
-            <span class="spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"/></svg></span>
+          <div class="stage-glow" aria-hidden="true"></div>
+          <div class="hero-icon">
+            <div class="value-icon" aria-hidden="true">
+              <svg class="glyph" viewBox="0 0 96 96"></svg>
+              <span class="spark"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c.55 5.15 2.85 7.45 8 8-5.15.55-7.45 2.85-8 8-.55-5.15-2.85-7.45-8-8 5.15-.55 7.45-2.85 8-8Z"/></svg></span>
+            </div>
           </div>
         </div>
         <div class="detail">
           <p class="eyebrow">Improved value icon</p>
           <h1>Clear value, without looking like a payment screen.</h1>
-          <p class="lead">The raw dollar glyph becomes a balanced icon tile: rounded geometry, one quiet accent surface, and a small sparkle that reinforces Applio being free to use.</p>
-          <ul class="rules"><li><span>✓</span>Rounded square matches Applio cards and avatar geometry</li><li><span>✓</span>One accent color preserves visual hierarchy</li><li><span>✓</span>Works cleanly on dark and light surfaces</li></ul>
+          <p class="lead">One tile, one accent surface, one badge. The sparkle carries the "free" meaning so the glyph does not have to work twice.</p>
+          <ul class="rules">
+            <li><i>&#10003;</i>Single hairline edge, so the tile reads as one object rather than two stacked rings</li>
+            <li><i>&#10003;</i>Percentage geometry, so the mark is identical at 184px and at 20px</li>
+            <li><i>&#10003;</i>Filled sparkle instead of a hairline star, which collapsed into a dot</li>
+          </ul>
           <div class="actions"><a class="btn btn-primary" href="index.html">Back to mockups</a></div>
         </div>
       </section>
+
+      <div class="panels">
+        <section class="panel">
+          <h2>Size ladder</h2>
+          <p>An icon is only as good as its smallest usable size. The badge drops below 32px, where it would turn back into a dot.</p>
+          <div class="ladder" id="ladder"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Surfaces</h2>
+          <p>The tile keeps its own background, so it stays legible on every Applio surface including the accent gradient.</p>
+          <div class="surfaces">
+            <div class="surface s-1"><i><div class="value-icon no-spark"><svg class="glyph" viewBox="0 0 96 96"></svg></div></i><span>bg-1</span></div>
+            <div class="surface s-2"><i><div class="value-icon no-spark"><svg class="glyph" viewBox="0 0 96 96"></svg></div></i><span>bg-2</span></div>
+            <div class="surface s-3"><i><div class="value-icon no-spark"><svg class="glyph" viewBox="0 0 96 96"></svg></div></i><span>bg-3</span></div>
+            <div class="surface s-accent"><i><div class="value-icon no-spark"><svg class="glyph" viewBox="0 0 96 96"></svg></div></i><span>accent</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Glyph alternates</h2>
+        <p>Three readings of the same idea. The dollar is the most literal, the tag is the most neutral, and the sparkle drops the money metaphor entirely, which may suit a product that is free in full.</p>
+        <div class="alts" id="alts"></div>
+      </section>
+
     </div>
   </main>
+
   <script>
+    /* Each glyph is stored once and stamped into every .glyph node, so the hero,
+       the ladder, the surface swatches and the alternates never drift apart. */
+    var GLYPHS = {
+      dollar: {
+        label: 'Dollar',
+        fill: false,
+        svg: '<path d="M48 13v70"/>' +
+             '<path d="M66 31c-3.5-7-10-10.6-18-10.6-10.5 0-18 5.6-18 13.6 0 9 8 12 18 14.5s18 5.6 18 14.6c0 8-7.5 13.5-18 13.5-8 0-14.5-3.5-18-10.5"/>'
+      },
+      tag: {
+        label: 'Tag',
+        fill: false,
+        svg: '<path d="M50.6 15H74a7 7 0 0 1 7 7v23.4a8 8 0 0 1-2.3 5.6L50.4 79.4a8 8 0 0 1-11.3 0L16.6 56.9a8 8 0 0 1 0-11.3L45 17.3a8 8 0 0 1 5.6-2.3Z"/>' +
+             '<circle cx="64" cy="32" r="2"/>'
+      },
+      spark: {
+        label: 'Sparkle',
+        fill: true,
+        svg: '<path d="M48 8c2.2 20.6 11.4 29.8 32 32-20.6 2.2-29.8 11.4-32 32-2.2-20.6-11.4-29.8-32-32 20.6-2.2 29.8-11.4 32-32Z"/>'
+      }
+    };
+
+    var LADDER = [64, 44, 32, 24, 20];
+    var current = 'dollar';
+
+    function paint(svg, key) {
+      var g = GLYPHS[key];
+      svg.innerHTML = g.svg;
+      if (g.fill) {
+        svg.setAttribute('fill', 'currentColor');
+        svg.setAttribute('stroke', 'none');
+      } else {
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '7');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+      }
+    }
+
+    function paintAll(key) {
+      current = key;
+      var all = document.querySelectorAll('.glyph:not([data-fixed])');
+      for (var i = 0; i < all.length; i++) paint(all[i], key);
+      var buttons = document.querySelectorAll('.alt');
+      for (var j = 0; j < buttons.length; j++) {
+        buttons[j].setAttribute('aria-pressed', String(buttons[j].dataset.key === key));
+      }
+    }
+
+    /* Size ladder */
+    var ladder = document.getElementById('ladder');
+    LADDER.forEach(function (px) {
+      var rung = document.createElement('div');
+      rung.className = 'rung';
+      rung.innerHTML =
+        '<div style="width:' + px + 'px">' +
+          '<div class="value-icon' + (px < 32 ? ' no-spark' : '') + '">' +
+            '<svg class="glyph" viewBox="0 0 96 96"></svg>' +
+            (px < 32 ? '' : '<span class="spark"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c.55 5.15 2.85 7.45 8 8-5.15.55-7.45 2.85-8 8-.55-5.15-2.85-7.45-8-8 5.15-.55 7.45-2.85 8-8Z"/></svg></span>') +
+          '</div>' +
+        '</div>' +
+        '<span>' + px + '</span>';
+      ladder.appendChild(rung);
+    });
+
+    /* Alternates. Each swatch shows its own glyph, so it stays fixed. */
+    var alts = document.getElementById('alts');
+    Object.keys(GLYPHS).forEach(function (key) {
+      var b = document.createElement('button');
+      b.className = 'alt';
+      b.type = 'button';
+      b.dataset.key = key;
+      b.setAttribute('aria-pressed', String(key === current));
+      b.innerHTML = '<i><div class="value-icon no-spark"><svg class="glyph" data-fixed viewBox="0 0 96 96"></svg></div></i><span>' + GLYPHS[key].label + '</span>';
+      paint(b.querySelector('.glyph'), key);
+      b.addEventListener('click', function () { paintAll(key); });
+      alts.appendChild(b);
+    });
+
+    paintAll(current);
+
     var button = document.getElementById('theme');
     button.addEventListener('click', function () {
       document.documentElement.classList.toggle('light-mode');

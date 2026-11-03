@@ -1,7 +1,7 @@
 "use strict";
 
 const $ = (sel) => document.querySelector(sel);
-const NAMES = { claude: "Claude", hermes: "Hermes", chatgpt: "ChatGPT" };
+const NAMES = { claude: "Claude", hermes: "Hermes", chatgpt: "ChatGPT", auto: "Auto" };
 const BADGES = {
   claude: `<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path fill-rule="evenodd" d="M9.218 2h2.402L16 12.987h-2.402zM4.379 2h2.512l4.38 10.987H8.82l-.895-2.308h-4.58l-.896 2.307H0L4.38 2.001zm2.755 6.64L5.635 4.777 4.137 8.64z"/></svg>`,
   hermes: `<img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/hermesagent.png" width="18" height="18" alt="" style="display:block;border-radius:3px">`,
@@ -466,10 +466,10 @@ function clearAttachments() {
 function renderComposer() {
   const { pid, cid } = route();
   const p = chat ? project(pid) : currentProject();
-  const options = [["", "Hermes"], ...state.coders.map((c) => [c, nameOf(c)])];
+  const options = [["", "Hermes"], ["auto", "Auto"], ...state.coders.map((c) => [c, nameOf(c)])];
   if (!options.some(([v]) => v === pickedAgent)) pickedAgent = "";
   $("#agent-pick").innerHTML = options.map(([value, label]) => `<button type="button" role="radio" aria-checked="${value === pickedAgent}" data-agent="${esc(value)}"
-    title="${value ? `Send straight to ${esc(label)}` : "Hermes answers or hands it to a coder"}">${esc(label)}</button>`).join("");
+    title="${value === "auto" ? "Hermes picks the best coder for each prompt" : value ? `Send straight to ${esc(label)}` : "Hermes answers or hands it to a coder"}">${esc(label)}</button>`).join("");
   const projectPick = $("#project-pick");
   projectPick.hidden = Boolean(chat);
   if (!chat) {
@@ -480,7 +480,7 @@ function renderComposer() {
   input.disabled = Boolean(busy) || !p;
   input.placeholder = busy ? "Working. You can send another message when it finishes." : chat ? "Reply..." : "Ask anything or describe a change...";
   $("#attach-btn").disabled = input.disabled;
-  $("#composer-note").textContent = !p ? "" : pickedAgent ? `Goes straight to ${nameOf(pickedAgent)}` : `Hermes answers, or hands code to ${nameOf(defaultCoder(p))}`;
+  $("#composer-note").textContent = !p ? "" : pickedAgent === "auto" ? "Hermes picks the best coder for this prompt" : pickedAgent ? `Goes straight to ${nameOf(pickedAgent)}` : `Hermes answers, or hands code to ${nameOf(defaultCoder(p))}`;
   const uploading = attachments.some((a) => a.uploading);
   $("#send-btn").disabled = input.disabled || uploading;
   if (uploading) $("#composer-note").textContent = "Uploading attachments...";

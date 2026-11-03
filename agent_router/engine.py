@@ -213,6 +213,37 @@ name, nothing else, and don't use any tools.
 The first message: {text}
 """
 
+AUTO_SELECT = """You are Hermes, the orchestrator for the "{project}" project ({path}). The user is in AUTO mode:
+you MUST delegate every message to a coder. Never answer yourself in auto mode.
+
+Pick the best coder for this prompt. The coders are {coders}. Rules:
+- Claude: UI/UX design, mockups, visual changes, CSS/styling, landing pages, layout work, frontend polish,
+  design systems, and anything that needs to look good. Claude is the design specialist.
+- ChatGPT: backend logic, bug fixes, refactoring, tests, scripts, config, APIs, bulk coding, data work,
+  and anything that requires large amounts of code that doesn't need visual polish.
+
+If the user names a specific coder, always use that one.
+{availability}{images}{notes}
+===== PROJECT MEMORY =====
+{memory}
+{conversation}
+===== MESSAGE FROM THE USER =====
+{text}
+
+Reply with ONLY a DELEGATE block. Do NOT answer the question yourself.
+DELEGATE: <{names}>
+REVIEW: <yes ONLY if the change touches payment, auth, data deletion, or more than 5 files>
+BRIEF:
+## Goal
+<one sentence: what the user wants>
+## Files
+<which files to create/edit/delete, be specific>
+## Constraints
+<what NOT to do, edge cases, style rules>
+## Done when
+<how to verify the change works>
+"""
+
 REPORT = """The coding for the user's last message is finished. Tell the user what happened in one to three
 short sentences: what changed, whether the check passed, and anything they should do next (such as
 review the changes). Base your summary on the actual diff below, not just the coder's description.
@@ -706,10 +737,12 @@ class Engine:
     # ---- actions ----
 
     def check_agent(self, agent):
-        if agent in (None, "", "auto", self.orchestrator):
+        if agent in (None, "", self.orchestrator):
             return None
+        if agent == "auto":
+            return "auto"
         if agent not in self.coders:
-            raise ChatError(f"Unknown agent '{agent}'. Use {', '.join([self.orchestrator, *self.coders])}.")
+            raise ChatError(f"Unknown agent '{agent}'. Use {', '.join([self.orchestrator, 'auto', *self.coders])}.")
         return agent
 
     def new_chat(self, pid, text, files=(), agent=None):
@@ -761,7 +794,10 @@ class Engine:
             self.store.add(pid, cid, {"role": "note",
                                       "text": f"That has an image {name(self.orchestrator)} can't see, "
                                               f"so it goes to {name(agent)}."})
-        if agent:  # a coder was picked, or an image routed one in: skip Hermes's routing
+        if agent == "auto":
+            job["auto"] = True
+            self.lane(pid, "chat").submit(job)
+        elif agent:  # a coder was picked, or an image routed one in: skip Hermes's routing
             job.update(coder=agent, brief=text, review=False)
             self.lane(pid, "code").submit(job)
         else:
@@ -903,7 +939,10 @@ class Engine:
                   "availability": self.availability(project), "images": image_note,
                   "notes": self.project_notes(project), "memory": self.store.memory(pid),
                   "conversation": self.conversation(chat), "text": job["text"]}
-        template = ORCHESTRATE_FOLLOWUP if session else ORCHESTRATE
+        if job.get("auto"):
+            template = AUTO_SELECT
+        else:
+            template = ORCHESTRATE_FOLLOWUP if session else ORCHESTRATE
         copy = self.hermes_folder(project, cid)
         values["path"] = str(copy)
         prompt = template.format(**values) + self.attachment_note(job["files"])
@@ -930,6 +969,11 @@ class Engine:
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
         if not delegations:
+            if job.get("auto"):
+                self.store.finish_live(pid, cid, step="delegate", text=f"Auto-routing to {name(default)}.",
+                                       brief=job["text"], coder=default, review=False)
+                job.update(coder=default, brief=job["text"], review=False)
+                return self.lane(pid, "code").submit(job)
             self.store.finish_live(pid, cid, step="answer")
             return
         # Resolve unknown coders to the default.

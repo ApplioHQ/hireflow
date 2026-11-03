@@ -795,8 +795,16 @@ class Engine:
                                       "text": f"That has an image {name(self.orchestrator)} can't see, "
                                               f"so it goes to {name(agent)}."})
         if agent == "auto":
-            job["auto"] = True
-            self.lane(pid, "chat").submit(job)
+            has_images = any(Path(f).suffix.lower() in IMAGE_TYPES for f in saved)
+            if has_images and not self.orchestrator_sees_images():
+                pick = self.auto_pick_coder(project, text)
+                self.store.add(pid, cid, {"role": "note",
+                    "text": f"Auto-routed to {name(pick)} (image attached, picked from prompt)."})
+                job.update(coder=pick, brief=text, review=False)
+                self.lane(pid, "code").submit(job)
+            else:
+                job["auto"] = True
+                self.lane(pid, "chat").submit(job)
         elif agent:  # a coder was picked, or an image routed one in: skip Hermes's routing
             job.update(coder=agent, brief=text, review=False)
             self.lane(pid, "code").submit(job)
@@ -877,6 +885,19 @@ class Engine:
         notes = [f"{name(a)} is unavailable right now ({r})." for a, (until, r) in self.unavailable.items()
                  if until > time.time() and a in project["coders"]]
         return (" " + " ".join(notes) + " Use another coder.") if notes else ""
+
+    CLAUDE_KEYWORDS = re.compile(
+        r"(?i)\b(design|mockup|mock.?up|ui|ux|css|style|styling|layout|visual|look|landing.?page|"
+        r"font|color|theme|dark.?mode|light.?mode|responsive|animation|icon|logo|favicon|brand|"
+        r"pretty|beautiful|polish|redesign|prototype|wireframe|figma)\b")
+
+    def auto_pick_coder(self, project, text):
+        """Pick the best coder from the prompt text alone (no LLM call). Used when Hermes can't see images."""
+        if self.CLAUDE_KEYWORDS.search(text):
+            claude = next((c for c in self.coders if c == "claude" and self.available(c)), None)
+            if claude:
+                return claude
+        return self.default_coder(project)
 
     def default_coder(self, project):
         coders = [c for c in project.get("coders", self.coders) if c in self.coders] or self.coders

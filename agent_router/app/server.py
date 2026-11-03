@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
+import browser  # noqa: E402
 import engine  # noqa: E402
 import terminal  # noqa: E402
 import router  # noqa: E402
@@ -69,6 +70,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if url.path == "/api/attachment":
                 return self.attachment(query)
+            if url.path == "/api/screenshot/view":
+                return self.screenshot_view(query)
             if url.path.startswith("/pf/"):
                 return self.project_file(url.path)
             if url.path.startswith("/api/"):
@@ -150,6 +153,19 @@ class Handler(BaseHTTPRequestHandler):
         ctype = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}.get(
             file.suffix.lower(), "image/png")
         self.send(200, file.read_bytes(), ctype, "private, max-age=3600")
+
+    def screenshot_view(self, q):
+        """Serve a screenshot or diff file from the screenshots directory."""
+        rel = q.get("path", "")
+        if not rel or ".." in rel:
+            return self.send(400, b"invalid path", "text/plain")
+        screenshots_dir = self.engine.store.home / "screenshots"
+        file = (screenshots_dir / rel).resolve()
+        if not file.is_file() or screenshots_dir.resolve() not in file.parents:
+            return self.send(404, b"not found", "text/plain")
+        ctype = {".png": "image/png", ".html": "text/html; charset=utf-8",
+                 ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(file.suffix.lower(), "application/octet-stream")
+        self.send(200, file.read_bytes(), ctype, "no-cache")
 
     def static(self, path):
         file_name = "index.html" if path in ("/", "/index.html") else path.lstrip("/")
@@ -262,8 +278,60 @@ class Handler(BaseHTTPRequestHandler):
             if coders is not None and (not isinstance(coders, list) or not coders
                                        or not all(c in eng.coders for c in coders)):
                 raise ApiError(400, f"Coders must be some of: {', '.join(eng.coders)}")
-            eng.store.update_project(pid, coders=coders, check=b.get("check"), name=b.get("name"))
+            eng.store.update_project(pid, coders=coders, check=b.get("check"), name=b.get("name"),
+                                     preview_url=b.get("preview_url"), preview_pages=b.get("preview_pages"))
             return {"ok": True}
+        if path == "/api/screenshot":
+            url = b.get("url", "")
+            if not url:
+                raise ApiError(400, "url is required")
+            dest_dir = eng.store.home / "screenshots"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / f"{secrets.token_hex(6)}.png"
+            shot_path, err = browser.screenshot(url, dest, b.get("width", 1280), b.get("height", 800))
+            if not shot_path:
+                raise ApiError(500, err or "screenshot failed")
+            return {"path": shot_path, "url": f"/api/screenshot/view?path={dest.name}"}
+        if path == "/api/screenshot/pages":
+            project_url = b.get("url", "")
+            pages = b.get("pages", ["/"])
+            if not project_url:
+                raise ApiError(400, "url is required")
+            dest_dir = eng.store.home / "screenshots" / secrets.token_hex(6)
+            results = browser.auto_screenshots(project_url, dest_dir, pages)
+            for r in results:
+                if r["path"]:
+                    r["view_url"] = f"/api/screenshot/view?path={Path(r['path']).parent.name}/{Path(r['path']).name}"
+            return {"results": results}
+        if path == "/api/visual-diff":
+            before_url = b.get("before", "")
+            after_url = b.get("after", "")
+            if not before_url or not after_url:
+                raise ApiError(400, "before and after URLs are required")
+            token = secrets.token_hex(4)
+            dest_dir = eng.store.home / "screenshots" / f"diff-{token}"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            before_path = dest_dir / "before.png"
+            after_path = dest_dir / "after.png"
+            browser.screenshot(before_url, before_path)
+            browser.screenshot(after_url, after_path)
+            diff_html = dest_dir / "diff.html"
+            browser.diff_side_by_side(before_path, after_path, diff_html)
+            return {"diff_url": f"/api/screenshot/view?path=diff-{token}/diff.html",
+                    "before_url": f"/api/screenshot/view?path=diff-{token}/before.png",
+                    "after_url": f"/api/screenshot/view?path=diff-{token}/after.png"}
+        if path == "/api/test-flow":
+            url = b.get("url", "")
+            steps = b.get("steps", [])
+            if not url or not steps:
+                raise ApiError(400, "url and steps are required")
+            token = secrets.token_hex(4)
+            dest_dir = eng.store.home / "screenshots" / f"flow-{token}"
+            results = browser.run_flow(url, steps, dest_dir, b.get("width", 1280), b.get("height", 800))
+            for r in results:
+                if r.get("screenshot"):
+                    r["view_url"] = f"/api/screenshot/view?path=flow-{token}/{Path(r['screenshot']).name}"
+            return {"results": results}
         raise ApiError(404, "not found")
 
 

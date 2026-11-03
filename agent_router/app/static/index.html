@@ -33,6 +33,7 @@
         <button type="button" data-panel="memory">Memory</button>
         <button type="button" data-panel="diff">Changes</button>
         <button type="button" id="term-toggle" title="Open a terminal in this project (Ctrl+`)">Terminal</button>
+        <button type="button" id="preview-toggle" title="Live preview of the project">Preview</button>
       </div>
       <button type="button" class="install" id="install" hidden>Install app</button>
     </div>
@@ -70,6 +71,29 @@
         </button>
       </div>
       <div class="term-body" id="term-body"></div>
+    </div>
+    <div class="preview-drawer" id="preview-drawer" hidden>
+      <div class="preview-head">
+        <button type="button" class="icon-btn" id="preview-back" aria-label="Back" title="Back">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <input type="text" class="preview-url" id="preview-url" placeholder="Enter URL to preview..." aria-label="Preview URL">
+        <button type="button" class="btn small" id="preview-go" title="Load URL">Go</button>
+        <button type="button" class="btn small" id="preview-screenshot" title="Take screenshot and add to chat">Screenshot</button>
+        <button type="button" class="btn small" id="preview-refresh" title="Refresh">Refresh</button>
+        <select class="preview-size" id="preview-size" aria-label="Viewport size">
+          <option value="100%|100%">Desktop</option>
+          <option value="375px|812px">iPhone</option>
+          <option value="768px|1024px">iPad</option>
+          <option value="1280px|800px">Laptop</option>
+        </select>
+        <button type="button" class="icon-btn" id="preview-close" aria-label="Close preview">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="preview-body" id="preview-body">
+        <iframe id="preview-frame" sandbox="allow-scripts allow-popups allow-forms allow-same-origin" title="Live preview"></iframe>
+      </div>
     </div>
   </main>
 

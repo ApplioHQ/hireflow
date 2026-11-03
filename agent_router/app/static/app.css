@@ -398,6 +398,16 @@ h4.agent-heading { font-size: 13px; color: var(--muted); }
 #term-toggle:hover { background: var(--hover); color: var(--text); }
 @media (prefers-color-scheme: light) { .term-drawer { background: #ffffff; } }
 
+/* live preview */
+.preview-drawer { height: 50vh; min-height: 250px; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--bg); }
+.preview-head { display: flex; align-items: center; gap: 6px; padding: 4px 6px; background: var(--side); border-bottom: 1px solid var(--line); flex: none; }
+.preview-url { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; background: var(--bg); color: var(--text); outline: none; min-width: 0; }
+.preview-url:focus { border-color: var(--accent); }
+.preview-body { flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: stretch; justify-content: center; background: #fff; }
+.preview-body iframe { border: 0; width: 100%; height: 100%; }
+.preview-size { padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; background: var(--bg); color: var(--text); }
+.btn.small { padding: 3px 8px; font-size: 11px; }
+
 /* agent status strip */
 .agent-strip { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; margin: 0 8px 8px; border-radius: 8px; background: var(--hover); }
 .agent-chip { display: flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; border-radius: 10px; color: var(--muted); }

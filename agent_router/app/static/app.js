@@ -264,6 +264,7 @@ function renderHead() {
   actions.push(`<button type="button" class="btn" data-action="rename">Rename</button>`);
   actions.push(`<button type="button" class="btn" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>`);
   actions.push(`<button type="button" class="btn" data-panel="diff">Changes</button>`);
+  actions.push(`<button type="button" class="btn" data-action="screenshot">Screenshot</button>`);
   actions.push(`<button type="button" class="btn danger" data-action="delete">Delete</button>`);
   $("#head").innerHTML = `${menu}<div class="head-title"><h1 title="${esc(chat.title)}">${esc(chat.title)}</h1>
     <div class="head-meta"><span>${esc(p.name)}</span><span class="muted">${esc(p.path)}</span>
@@ -346,7 +347,13 @@ function renderMessage(m) {
     }).join("");
     return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}</div>`;
   }
-  if (m.role === "note") return `<div class="note">${esc(m.text)}</div>`;
+  if (m.role === "note") {
+    const shots = (m.screenshots || []).map((s) => {
+      const name = s.split("/").pop();
+      return `<a class="preview-img" href="${esc(s)}" target="_blank" rel="noopener"><img src="${esc(s)}" alt="${esc(name)}" loading="lazy"></a>`;
+    }).join("");
+    return `<div class="note">${esc(m.text)}${shots ? `<div class="previews">${shots}</div>` : ""}</div>`;
+  }
   if (m.role === "result") return renderResult(m);
   const agent = m.agent || "agent";
   if (m.step === "delegate") {
@@ -495,6 +502,49 @@ async function send() {
   let text = input.value.trim();
   if (!text && files.length) text = files.length === 1 ? "Take a look at the attached file." : "Take a look at the attached files.";
   if (!text || input.disabled) return;
+  // Slash commands
+  if (text.startsWith("/screenshot")) {
+    const url = text.replace("/screenshot", "").trim() || $("#preview-url").value.trim();
+    if (!url) { toast("Usage: /screenshot <url>"); input.value = ""; autosize(); return; }
+    input.value = ""; autosize();
+    toast("Taking screenshot...");
+    try {
+      const res = await api("/api/screenshot", { url });
+      if (res.url) {
+        const resp = await fetch(res.url);
+        const blob = await resp.blob();
+        addFiles([new File([blob], `screenshot-${Date.now()}.png`, { type: "image/png" })]);
+        toast("Screenshot attached. Send a message to include it.");
+      }
+    } catch (err) { toast("Screenshot failed: " + err.message); }
+    return;
+  }
+  if (text.startsWith("/preview")) {
+    const url = text.replace("/preview", "").trim();
+    if (url) $("#preview-url").value = url;
+    input.value = ""; autosize();
+    openPreview();
+    return;
+  }
+  if (text.startsWith("/diff")) {
+    const parts = text.replace("/diff", "").trim().split(/\s+/);
+    if (parts.length < 2) { toast("Usage: /diff <before-url> <after-url>"); input.value = ""; autosize(); return; }
+    input.value = ""; autosize();
+    toast("Creating visual diff...");
+    try {
+      const res = await api("/api/visual-diff", { before: parts[0], after: parts[1] });
+      if (res.diff_url) {
+        loadPreview(res.diff_url);
+        openPreview();
+      }
+    } catch (err) { toast("Diff failed: " + err.message); }
+    return;
+  }
+  if (text.startsWith("/test-flow")) {
+    toast("Test flows coming soon. Define them in project settings.");
+    input.value = ""; autosize();
+    return;
+  }
   const { pid, cid } = route();
   $("#send-btn").disabled = true;
   try {
@@ -552,6 +602,8 @@ function renderSettings(p) {
     <label>Default coder<select name="coder">${coders.map((c) => `<option value="${esc(c)}"${c === p.coders[0] ? " selected" : ""}>${esc(nameOf(c))}</option>`).join("")}</select></label>
     <p class="muted">If the default coder hits a usage limit, the other one takes over.</p>
     <label>Check command <span class="muted">(runs after every coding turn; leave empty for none)</span><input name="check" value="${esc(p.check || "")}"></label>
+    <label>Preview URL <span class="muted">(for live preview and auto-screenshots after changes)</span><input name="preview_url" value="${esc(p.preview_url || "")}" placeholder="http://localhost:3000"></label>
+    <label>Preview pages <span class="muted">(comma-separated paths to screenshot, e.g. /,/login,/dashboard)</span><input name="preview_pages" value="${esc((p.preview_pages || []).join(", "))}" placeholder="/"></label>
     ${p.notes ? `<p class="muted">Project rules: ${esc(p.notes)}</p>` : ""}
     <button type="submit" class="btn primary">Save</button></form>`;
 }
@@ -774,6 +826,16 @@ document.addEventListener("click", async (e) => {
     } else if (action === "rename") {
       const title = prompt("Chat name:", chat.title);
       if (title && title.trim()) await api("/api/chats/update", { project: pid, chat: cid, title: title.trim() });
+    } else if (action === "screenshot") {
+      const url = prompt("URL to screenshot:", "http://localhost:3000");
+      if (url) {
+        toast("Taking screenshot...");
+        try {
+          const res = await api("/api/screenshot", { url: url.trim() });
+          if (res.url) toast("Screenshot saved");
+        } catch (err) { toast("Screenshot failed: " + err.message); }
+      }
+      return;
     }
     await refresh(true);
   } catch (err) { toast(err.message); }
@@ -789,7 +851,12 @@ document.addEventListener("submit", async (e) => {
   const first = form.coder.value;
   const coders = [first, ...state.coders.filter((c) => c !== first)];
   try {
-    await api("/api/projects/update", { project: pid, name: form.elements.name.value.trim() || p.name, coders, check: form.check.value });
+    const previewPages = (form.preview_pages?.value || "").split(",").map((s) => s.trim()).filter(Boolean);
+    await api("/api/projects/update", {
+      project: pid, name: form.elements.name.value.trim() || p.name, coders, check: form.check.value,
+      preview_url: form.preview_url?.value?.trim() || "",
+      preview_pages: previewPages.length ? previewPages : undefined,
+    });
     toast("Saved.");
     await refresh(true);
   } catch (err) { toast(err.message); }
@@ -916,6 +983,73 @@ function connectTerm(pid) {
   ws.onclose = () => { $("#term-status").textContent = $("#term-drawer").hidden ? "" : "disconnected - reopen to reconnect"; };
   ws.onerror = () => { $("#term-status").textContent = "connection failed"; };
 }
+// ---- live preview ----
+
+function openPreview() {
+  const drawer = $("#preview-drawer");
+  drawer.hidden = false;
+  const p = chat ? project(route().pid) : currentProject();
+  const url = $("#preview-url").value.trim();
+  if (!url && p) {
+    $("#preview-url").value = p.preview_url || "http://localhost:3000";
+  }
+  if ($("#preview-url").value) loadPreview($("#preview-url").value);
+}
+
+function closePreview() {
+  $("#preview-drawer").hidden = true;
+  $("#preview-frame").src = "about:blank";
+}
+
+function loadPreview(url) {
+  if (!url) return;
+  if (!url.startsWith("http")) url = "http://" + url;
+  $("#preview-url").value = url;
+  $("#preview-frame").src = url;
+}
+
+function resizePreview() {
+  const [w, h] = ($("#preview-size").value || "100%|100%").split("|");
+  const frame = $("#preview-frame");
+  frame.style.width = w;
+  frame.style.maxWidth = "100%";
+  frame.style.height = h === "100%" ? "100%" : h;
+}
+
+async function takeScreenshot() {
+  const url = $("#preview-url").value.trim();
+  if (!url) { toast("Enter a URL first"); return; }
+  toast("Taking screenshot...");
+  try {
+    const res = await api("/api/screenshot", { url });
+    if (res.url) {
+      // Add as an attachment to the current chat
+      const name = `screenshot-${new Date().toISOString().slice(11, 19).replace(/:/g, "")}.png`;
+      const resp = await fetch(res.url);
+      const blob = await resp.blob();
+      const file = new File([blob], name, { type: "image/png" });
+      addFiles([file]);
+      toast("Screenshot attached. Send a message to include it.");
+    }
+  } catch (e) {
+    toast("Screenshot failed: " + e.message);
+  }
+}
+
+// Preview event handlers
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("button, select");
+  if (!el) return;
+  if (el.id === "preview-toggle") { $("#preview-drawer").hidden ? openPreview() : closePreview(); return; }
+  if (el.id === "preview-close") { closePreview(); return; }
+  if (el.id === "preview-go") { loadPreview($("#preview-url").value.trim()); return; }
+  if (el.id === "preview-refresh") { const f = $("#preview-frame"); f.src = f.src; return; }
+  if (el.id === "preview-screenshot") { takeScreenshot(); return; }
+  if (el.id === "preview-back") { try { $("#preview-frame").contentWindow.history.back(); } catch { /* cross-origin */ } return; }
+});
+$("#preview-url").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); loadPreview(e.target.value.trim()); } });
+$("#preview-size").addEventListener("change", resizePreview);
+
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; $("#install").hidden = false; });
 window.addEventListener("appinstalled", () => { $("#install").hidden = true; });

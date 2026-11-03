@@ -19,6 +19,8 @@ import threading
 import time
 from pathlib import Path
 
+import browser
+
 import router
 
 HOME = Path(os.environ.get("APPLIO_AGENTS_HOME") or "~/.applio-agents").expanduser()
@@ -1066,8 +1068,25 @@ class Engine:
                                   "committed": committed,
                                   "summary": agent_summary,
                                   "reason": "" if ok else "the check still fails"})
+        if ok and files and project.get("preview_url"):
+            self.auto_screenshot(project, cid, files)
         if self.report_enabled and (not ok or files):
             self.report(lane, project, cid, coder, files, ok, check_out, turn["output"])
+
+    def auto_screenshot(self, project, cid, files):
+        """Take screenshots of the project's preview URL after a coder finishes."""
+        try:
+            pages = project.get("preview_pages", ["/"])
+            dest_dir = self.store.project_dir(project["id"]) / "screenshots" / cid
+            results = browser.auto_screenshots(project["preview_url"], dest_dir, pages)
+            shots = [r for r in results if r["ok"]]
+            if shots:
+                paths = [r["path"] for r in shots]
+                self.store.add(project["id"], cid, {"role": "note",
+                    "text": f"Auto-screenshot: captured {len(shots)} page(s) after changes.",
+                    "screenshots": paths})
+        except Exception:
+            pass
 
     def report(self, lane, project, cid, coder, files, ok, check_out, output):
         hermes = self.orchestrator

@@ -305,8 +305,7 @@ function previewFor(pid, f) {
   }
   if (/\.html?$/i.test(f)) {
     return `<div class="preview-html"><div class="preview-bar"><span title="${esc(f)}">${esc(f.split("/").pop())}</span>
-      <a href="${esc(url)}" target="_blank" rel="noopener">Open full</a></div>
-      <iframe src="${esc(url)}" sandbox="allow-scripts allow-popups allow-forms" loading="lazy" title="${esc(f)}"></iframe></div>`;
+      <a href="${esc(url)}" target="_blank" rel="noopener">Open full</a></div></div>`;
   }
   return "";
 }

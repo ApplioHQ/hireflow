@@ -263,18 +263,18 @@ function renderHead() {
     return;
   }
   const status = chatStatus(pid, cid);
-  const actions = [];
-  if (isBusy(pid, cid)) actions.push(`<button type="button" class="btn danger" data-action="stop">${status === "queued" ? "Cancel" : "Stop"}</button>`);
-  actions.push(`<button type="button" class="btn" data-action="pin">${chat.pinned ? "Unpin" : "Pin"}</button>`);
-  actions.push(`<button type="button" class="btn" data-action="rename">Rename</button>`);
-  actions.push(`<button type="button" class="btn" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>`);
-  actions.push(`<button type="button" class="btn" data-panel="diff">Changes</button>`);
-  actions.push(`<button type="button" class="btn" data-action="screenshot">Screenshot</button>`);
-  actions.push(`<button type="button" class="btn danger" data-action="delete">Delete</button>`);
+  const stopBtn = isBusy(pid, cid) ? `<button type="button" class="icon-btn" data-action="stop" title="${status === "queued" ? "Cancel" : "Stop"}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>` : "";
   $("#head").innerHTML = `${menu}<div class="head-title"><h1 title="${esc(chat.title)}">${esc(chat.title)}</h1>
     <div class="head-meta"><span>${esc(p.name)}</span><span class="muted">${esc(p.path)}</span>
     ${status !== "idle" ? `<span class="pill running">${esc(status)}</span>` : ""}</div></div>
-    <div class="head-actions">${actions.join("")}</div>`;
+    <div class="head-actions">${stopBtn}<button type="button" class="icon-btn" data-panel="diff" title="Changes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button><button type="button" class="icon-btn head-more" id="head-more" title="More actions"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button></div>
+    <div class="head-menu" id="head-menu" hidden>
+      <button type="button" data-action="pin">${chat.pinned ? "Unpin" : "Pin"}</button>
+      <button type="button" data-action="rename">Rename</button>
+      <button type="button" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>
+      <button type="button" data-action="screenshot">Screenshot</button>
+      <button type="button" class="bad-text" data-action="delete">Delete</button>
+    </div>`;
 }
 
 // ---- messages ----
@@ -821,6 +821,7 @@ document.addEventListener("click", async (e) => {
   if (!el || (el.type === "submit" && el.closest("form"))) return;
   if (el.id === "new-chat") { go(currentProject()?.id || ""); $("#input").focus(); return; }
   if (el.id === "menu-btn") { $(".app").classList.add("nav-open"); return; }
+  if (el.id === "head-more") { const m = $("#head-menu"); if (m) m.hidden = !m.hidden; return; }
   if (el.id === "panel-close") { $("#panel").hidden = true; return; }
   if (el.id === "term-toggle") { $("#term-drawer").hidden ? openTerminal() : closeTerminal(); return; }
   if (el.id === "term-close") { closeTerminal(); return; }
@@ -855,6 +856,7 @@ document.addEventListener("click", async (e) => {
   const action = el.dataset.action;
   const { pid, cid } = route();
   if (!action || !chat) return;
+  const hm = $("#head-menu"); if (hm) hm.hidden = true;
   try {
     if (action === "stop") {
       const res = await api("/api/chats/stop", { project: pid, chat: cid });
@@ -1093,6 +1095,7 @@ document.addEventListener("click", (e) => {
 $("#preview-url").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); loadPreview(e.target.value.trim()); } });
 $("#preview-size").addEventListener("change", resizePreview);
 
+document.addEventListener("mousedown", (e) => { const m = $("#head-menu"); if (m && !m.hidden && !e.target.closest("#head-more, #head-menu")) m.hidden = true; });
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; $("#install").hidden = false; });
 window.addEventListener("appinstalled", () => { $("#install").hidden = true; });

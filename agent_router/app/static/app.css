@@ -99,9 +99,10 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .repo { font-size: 12px; color: var(--faint); padding: 0 8px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .side-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
 .side-links button, .install {
-  border: 0; background: none; padding: 6px 4px; border-radius: 6px; font-size: 11px; color: var(--muted);
-  white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: none; padding: 8px 4px; border-radius: 8px; font-size: 10px; color: var(--muted);
+  white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 3px;
 }
+.side-links button svg { opacity: .7; flex: none; }
 .side-links button:hover, .install:hover { background: var(--hover); color: var(--text); }
 .install { width: 100%; margin-top: 4px; color: var(--accent); font-weight: 500; }
 
@@ -122,7 +123,18 @@ code, pre { font-family: var(--mono); font-size: 13px; }
   border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 0 4px;
   font-size: 12px; color: var(--muted); height: 22px;
 }
-.head-actions { display: flex; gap: 6px; flex: none; }
+.head-actions { display: flex; gap: 2px; flex: none; align-items: center; }
+.head-menu {
+  position: absolute; right: 12px; top: 44px; z-index: 10; min-width: 140px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow); padding: 4px; overflow: hidden;
+}
+.head-menu button {
+  display: block; width: 100%; text-align: left; border: 0; background: none;
+  padding: 7px 12px; border-radius: 6px; font-size: 13px;
+}
+.head-menu button:hover { background: var(--hover); }
+.head { position: relative; }
 .btn {
   border: 1px solid var(--line); background: var(--panel); border-radius: 8px;
   padding: 5px 12px; font-size: 12px; font-weight: 500;

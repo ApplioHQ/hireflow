@@ -111,6 +111,35 @@ class RunAgentTest(unittest.TestCase):
         self.assertEqual(code, 127)
         self.assertIn("command not found", out)
 
+    def test_stream_json_does_not_show_stderr_warnings(self):
+        (self.dir / "warnings.py").write_text(
+            "import json, sys\n"
+            "sys.stdin.read()\n"
+            "print('2026-11-04 WARN codex_skills: bad icon', file=sys.stderr, flush=True)\n"
+            "print(json.dumps({'type': 'item.completed', 'item': "
+            "{'type': 'agent_message', 'text': 'Done.'}}), flush=True)\n")
+        self.cfg["agents"]["a"] = {"command": [sys.executable, str(self.dir / "warnings.py")],
+                                     "format": "stream-json"}
+        seen = []
+        code, out, _ = router.run_agent(self.cfg, "a", "x", echo=seen.append)
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "Done.\n")
+        self.assertEqual(seen, ["Done.\n"])
+
+    def test_stream_json_failure_reports_stderr_error_not_warnings(self):
+        (self.dir / "failure.py").write_text(
+            "import sys\n"
+            "sys.stdin.read()\n"
+            "print('2026-11-04 WARN codex_skills: bad icon', file=sys.stderr, flush=True)\n"
+            "print('authentication failed', file=sys.stderr, flush=True)\n"
+            "sys.exit(1)\n")
+        self.cfg["agents"]["a"] = {"command": [sys.executable, str(self.dir / "failure.py")],
+                                     "format": "stream-json"}
+        code, out, _ = router.run_agent(self.cfg, "a", "x")
+        self.assertEqual(code, 1)
+        self.assertIn("Error: authentication failed", out)
+        self.assertNotIn("codex_skills", out)
+
     def test_stop_from_another_thread(self):
         (self.dir / "slow.py").write_text("import sys, time\nsys.stdin.read()\nprint('started', flush=True)\ntime.sleep(30)\n")
         self.cfg["agents"]["a"]["command"] = [sys.executable, str(self.dir / "slow.py")]

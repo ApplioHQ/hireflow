@@ -112,6 +112,13 @@ function inline(text) {
   return esc(text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
 }
 
+function hideCodexDiagnostics(text, agent) {
+  if (agent !== "chatgpt") return text;
+  return text.split("\n").filter((line) =>
+    !/^\d{4}-\d\d-\d\dT\S+\s+WARN\s+codex_(?:skills|app_server_protocol)::/.test(line)
+  ).join("\n").trim();
+}
+
 // syntax highlighting keywords by language
 const KEYWORDS = {
   js: /\b(const|let|var|function|return|if|else|for|while|class|import|export|from|default|new|this|async|await|try|catch|throw|typeof|instanceof|of|in|switch|case|break|continue|null|undefined|true|false)\b/g,
@@ -402,7 +409,8 @@ function renderMessage(m) {
   }
   const labels = { orchestrate: "deciding", code: "coding", fix: "fixing the check", review: "reviewing", report: "update" };
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";
-  const body = m.text.trim() ? renderAgentText(m.text) : (m.live ? "" : `<div class="empty-agent">No output.</div>`);
+  const visibleText = hideCodexDiagnostics(m.text, agent);
+  const body = visibleText ? renderAgentText(visibleText) : (m.live ? "" : `<div class="empty-agent">No response recorded.</div>`);
   const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""}">${avatar(agent)}<div class="msg-body">

@@ -145,7 +145,8 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
     try:
         proc = subprocess.Popen(cmd, cwd=cwd or cfg["repo"], text=True, bufsize=1,
                                 stdin=subprocess.DEVNULL if uses_file else subprocess.PIPE,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE if parse else subprocess.STDOUT)
     except FileNotFoundError:
         os.unlink(f.name)
         return 127, f"command not found: {cmd[0]}", session_id
@@ -157,6 +158,16 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
     timer.start()
     if not uses_file:
         threading.Thread(target=feed, args=(proc.stdin, prompt), daemon=True).start()
+    stderr_lines = []
+    if parse:
+        def drain_stderr():
+            for line in proc.stderr:
+                stderr_lines.append(line.rstrip())
+                if len(stderr_lines) > 50:
+                    del stderr_lines[0]
+
+        stderr_reader = threading.Thread(target=drain_stderr, daemon=True)
+        stderr_reader.start()
     shown, new_session = [], None
     try:
         for line in proc.stdout:
@@ -177,6 +188,9 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
     finally:
         timer.cancel()
         proc.stdout.close()
+        if parse:
+            stderr_reader.join(timeout=2)
+            proc.stderr.close()
         os.unlink(f.name)
     if control is not None and control.get("stopped"):
         code = 130
@@ -184,6 +198,13 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
     session = new_session or session_id
     if timed_out:
         return 124, f"agent timed out after {timeout}s\n" + "".join(shown), session
+    if code not in (0, 130) and parse and not any("Error:" in part for part in shown):
+        details = next((line for line in reversed(stderr_lines) if line and " WARN " not in line), "")
+        message = details[:300] if details else f"agent exited with code {code}"
+        error = f"\nError: {message}\n"
+        shown.append(error)
+        if echo:
+            echo(error)
     return code, "".join(shown), session
 
 

@@ -61,7 +61,14 @@ def parse_line(line, repo):
     if kind == "text":  # Hermes: text arrives in small chunks
         return event.get("text", "")
     if kind == "tool_use":  # Hermes
-        return tool_line(event.get("name"), event.get("input"), repo)
+        tool_name = event.get("name", "")
+        if tool_name == "delegate_task":
+            args = event.get("input") or {}
+            coder = args.get("task", args.get("description", ""))[:200]
+            return f"\n[delegate_task suppressed: {coder}]\n" if coder else ""
+        if tool_name == "execute_code":
+            return ""
+        return tool_line(tool_name, event.get("input"), repo)
     if kind in ("item.started", "item.completed"):  # ChatGPT (Codex CLI)
         return codex_item(kind, event.get("item") or {}, repo)
     if kind == "turn.completed" and isinstance(event.get("usage"), dict):

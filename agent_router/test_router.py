@@ -27,6 +27,12 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(router.parse_line(tool, self.repo), "\n> read_file x\n")
         self.assertEqual(router.parse_line(json.dumps({"type": "result", "tokens": {"total": 9}}), self.repo), "\n[9 tokens]\n")
         self.assertEqual(router.parse_line("Session: abc\n", self.repo), "Session: abc\n")
+        delegate = json.dumps({"type": "tool_use", "name": "delegate_task",
+                                "input": {"task": "fix the bug"}})
+        self.assertIn("suppressed", router.parse_line(delegate, self.repo))
+        self.assertNotIn("> delegate_task", router.parse_line(delegate, self.repo))
+        execute = json.dumps({"type": "tool_use", "name": "execute_code", "input": {}})
+        self.assertEqual(router.parse_line(execute, self.repo), "")
 
     def test_chatgpt_events(self):
         msg = {"type": "item.completed", "item": {"type": "agent_message", "text": "done"}}

@@ -214,7 +214,7 @@ ${ld.map(o=>`<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<
   <section class="tp-section tp-body">
     <h2>Why the ${esc(t.name)} template works</h2>
     <p>${esc(t.why)}</p>
-    <p>Every Applio template is built to pass Applicant Tracking Systems: standard section headings, a clean single flow, and real selectable text (never an image), so recruiters' software reads every line. Around 70% of resumes are filtered out before a human sees them, so a parseable layout like this one matters as much as what you write.</p>
+    <p>Every Applio template uses standard section headings, a clean reading flow, and real selectable text rather than images. Those choices help applicant tracking systems read the content of your resume accurately.</p>
   </section>
 
   <section class="tp-section tp-faq">

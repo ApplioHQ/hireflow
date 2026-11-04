@@ -18,9 +18,9 @@ const G = [
   {
     slug:'what-is-an-ats',
     title:'What Is an ATS? Applicant Tracking Systems Explained',
-    metaDesc:'An ATS (Applicant Tracking System) is software that collects and filters resumes before a recruiter reads them. Learn how it works, why ~70% of resumes get filtered out, and how to get past it.',
+    metaDesc:'An ATS (Applicant Tracking System) is software that collects and organizes resumes before a recruiter reads them. Learn how it works and how to make your resume easier to review.',
     kw:'what is an ATS',
-    answer:'An <strong>Applicant Tracking System (ATS)</strong> is software that employers use to collect, sort, and filter job applications before a human recruiter reviews them. When you apply online, your resume is parsed into a database and ranked against the job description; roughly 70% of resumes are screened out at this stage, usually for missing keywords or unparseable formatting.',
+    answer:'An <strong>Applicant Tracking System (ATS)</strong> is software that employers use to collect, sort, and organize job applications before a human recruiter reviews them. When you apply online, your resume is parsed into a database and compared with the job description; missing keywords or hard-to-read formatting can make it harder to find.',
     sections:[
       {h:'How an ATS works', html:'<p>When you submit a resume, the ATS parses it into structured fields (name, work history, skills, education), then matches that data against the job requirements. Recruiters search and filter the database by keyword, years of experience, title, and location. If your resume is hard to parse or lacks the right keywords, it ranks low or never surfaces.</p>'},
       {h:'Why resumes get rejected by an ATS', html:'<ul><li><strong>Missing keywords</strong>the skills and titles in the job description aren\'t in your resume.</li><li><strong>Unparseable formatting</strong>tables, columns, text boxes, images, or headers/footers confuse the parser.</li><li><strong>Non-standard section headings</strong>creative labels instead of "Experience," "Education," "Skills."</li><li><strong>No measurable results</strong>vague duties instead of quantified achievements.</li></ul>'},

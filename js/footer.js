@@ -109,7 +109,7 @@
     +     '<a href="/resume-examples/graphic-designer">Graphic Designer</a>'
     +     '<a href="/resume-examples/business-analyst">Business Analyst</a>'
     +     '<a href="/resume-examples/nurse-practitioner">Nurse Practitioner</a>'
-    +     '<a href="/resume-examples">All 138 resume examples →</a>'
+    +     '<a href="/resume-examples">All 142 resume examples →</a>'
     +   '</div>'
     + '</div>'
     + '<div class="app-footer-seo">'

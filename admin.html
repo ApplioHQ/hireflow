@@ -252,6 +252,8 @@
       <div class="kpi-card" style="--kpi-accent:#22c55e;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span class="kpi-label">Activation</span></div><div class="kpi-num" id="hc-activation">—</div><div class="kpi-trend" id="hc-activation-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#f59e0b;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><span class="kpi-label">Weekly Active</span></div><div class="kpi-num" id="hc-wau">—</div><div class="kpi-trend" id="hc-wau-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#14b8a6;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span><span class="kpi-label">Resumes Exported</span></div><div class="kpi-num" id="hc-exports">—</div><div class="kpi-trend" id="hc-exports-trend"></div></div>
+      <div class="kpi-card" style="--kpi-accent:#ef4444;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span><span class="kpi-label">Churn Risk (7d)</span></div><div class="kpi-num" id="hc-churn7">—</div><div class="kpi-trend" id="hc-churn7-trend"></div></div>
+      <div class="kpi-card" style="--kpi-accent:#f59e0b;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span><span class="kpi-label">Churn Risk (30d)</span></div><div class="kpi-num" id="hc-churn30">—</div><div class="kpi-trend" id="hc-churn30-trend"></div></div>
     </div>
 
     <div class="dash-grid">
@@ -663,6 +665,10 @@ function renderHeroCards(d) {
     (d.activeToday || 0) + ' today · ' + (d.stickiness || 0) + '% sticky', null);
   _setHero('hc-exports', _totalExports(d).toLocaleString(),
     _usersExported(d) + ' of ' + (d.total || 0) + ' users exported', null);
+  _setHero('hc-churn7', (d.premiumChurn7 || 0).toLocaleString(),
+    'premium subs expiring ≤7 days', d.premiumChurn7 > 0 ? 'down' : null);
+  _setHero('hc-churn30', (d.premiumChurn30 || 0).toLocaleString(),
+    'premium subs expiring ≤30 days', d.premiumChurn30 > 0 ? 'down' : null);
 }
 
 function _setHero(id, val, sub, trendClass) {

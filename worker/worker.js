@@ -976,6 +976,7 @@ async function adminAnalytics(req, env) {
   let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
   let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
   let compedPremium = 0;       // early-bird comps: active Premium but NOT paying
+  let premiumChurn7 = 0, premiumChurn30 = 0; // active premium expiring in 7/30 days
   const todayStr = tzDay(now);
   // Monthly prices (mirror the pricing page). MRR counts recurring Premium only; Lifetime
   // is one-time revenue, reported separately so the two aren't conflated.
@@ -1031,6 +1032,13 @@ async function adminAnalytics(req, env) {
       // so revenue isn't overstated. Tally them separately.
       if (u.promoEarlyBird && !u.stripeCustomerId) compedPremium++;
       else activePremiumSubs++;
+      // Churn risk: premium subs expiring soon.
+      const periodEnd = Number(u.currentPeriodEnd) || 0;
+      if (periodEnd) {
+        const daysLeft = (periodEnd * 1000 - now) / DAY;
+        if (daysLeft <= 7) premiumChurn7++;
+        else if (daysLeft <= 30) premiumChurn30++;
+      }
     }
 
     // ---- Retention / repeat usage ----
@@ -1094,35 +1102,33 @@ async function adminAnalytics(req, env) {
 
   // Anonymous website traffic (from the page-view beacon in js/theme.js).
   const num = async (key) => parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
-  const pageViews = await num("stats:pv:total");
-  const visitors = await num("stats:uv:total");
-  const pageViewsToday = await num(`stats:pv:${todayStr}`);
-  const visitorsToday = await num(`stats:uv:${todayStr}`);
-  let pageViewsLast7 = 0;
-  for (let i = 6; i >= 0; i--) {
-    pageViewsLast7 += await num(`stats:pv:${tzDay(now - i * DAY)}`);
-  }
-  // Page-views chart: window follows the same period selector as the signups chart.
+
+  // Batch all independent KV counter reads in parallel to avoid sequential
+  // round-trips that push the function past the Workers wall-clock limit.
+  const [pageViews, visitors, pageViewsToday, visitorsToday] = await Promise.all([
+    num("stats:pv:total"), num("stats:uv:total"),
+    num(`stats:pv:${todayStr}`), num(`stats:uv:${todayStr}`),
+  ]);
+
+  const last7Days = Array.from({ length: 7 }, (_, i) => tzDay(now - (6 - i) * DAY));
+  const pv7Vals = await Promise.all(last7Days.map(d => num(`stats:pv:${d}`)));
+  const pageViewsLast7 = pv7Vals.reduce((s, v) => s + v, 0);
+
+  const chartDayKeys = Array.from({ length: chartDays }, (_, i) => tzDay(now - (chartDays - 1 - i) * DAY));
+  const pvDayVals = await Promise.all(chartDayKeys.map(d => num(`stats:pv:${d}`)));
   const pvByDay = {};
-  for (let i = chartDays - 1; i >= 0; i--) {
-    const day = tzDay(now - i * DAY);
-    pvByDay[day] = await num(`stats:pv:${day}`);
-  }
+  chartDayKeys.forEach((d, i) => { pvByDay[d] = pvDayVals[i]; });
 
   // AI feature usage (real successful uses, from _bumpAiUsage on the /ai/ endpoints).
-  const aiUses = await num("stats:ai:total");
-  const aiToday = await num(`stats:ai:${todayStr}`);
-  let aiLast7 = 0;
-  for (let i = 6; i >= 0; i--) {
-    aiLast7 += await num(`stats:ai:${tzDay(now - i * DAY)}`);
-  }
+  const [aiUses, aiToday] = await Promise.all([num("stats:ai:total"), num(`stats:ai:${todayStr}`)]);
+  const ai7Vals = await Promise.all(last7Days.map(d => num(`stats:ai:${d}`)));
+  const aiLast7 = ai7Vals.reduce((s, v) => s + v, 0);
+
   const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
     "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse"];
+  const aiActionVals = await Promise.all(AI_ACTIONS.map(a => num(`stats:ai:action:${a}`)));
   const aiByAction = {};
-  for (const a of AI_ACTIONS) {
-    const v = await num(`stats:ai:action:${a}`);
-    if (v) aiByAction[a] = v;
-  }
+  AI_ACTIONS.forEach((a, i) => { if (aiActionVals[i]) aiByAction[a] = aiActionVals[i]; });
 
   // Early-bird promo status for the admin panel.
   const eb = await _getEarlyBird(env);
@@ -1135,29 +1141,24 @@ async function adminAnalytics(req, env) {
     "version_restore", "resume_import", "referral_open",
     "onboarding_complete",
   ];
-  // Template variants tracked separately.
   const TEMPLATE_IDS = ["harvard", "stanford", "modern", "minimal", "deedy",
     "twocolumn", "healthcare", "sales", "ats", "classic", "creative", "tech"];
+  const [featureVals, templateVals] = await Promise.all([
+    Promise.all(FEATURE_NAMES.map(f => num(`stats:feature:${f}`))),
+    Promise.all(TEMPLATE_IDS.map(t => num(`stats:feature:template_select:${t}`))),
+  ]);
   const featureUsage = {};
-  for (const f of FEATURE_NAMES) {
-    const v = await num(`stats:feature:${f}`);
-    if (v) featureUsage[f] = v;
-  }
+  FEATURE_NAMES.forEach((f, i) => { if (featureVals[i]) featureUsage[f] = featureVals[i]; });
   const templatePicks = {};
-  for (const t of TEMPLATE_IDS) {
-    const v = await num(`stats:feature:template_select:${t}`);
-    if (v) templatePicks[t] = v;
-  }
+  TEMPLATE_IDS.forEach((t, i) => { if (templateVals[i]) templatePicks[t] = templateVals[i]; });
+
   // 7-day feature activity for key actions.
+  const FL7_KEYS = ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"];
+  const fl7Vals = await Promise.all(FL7_KEYS.map(f =>
+    Promise.all(last7Days.map(d => num(`stats:feature:${f}:${d}`))).then(vs => vs.reduce((s, v) => s + v, 0))
+  ));
   const featureLast7 = {};
-  for (const f of ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"]) {
-    let total7 = 0;
-    for (let i = 6; i >= 0; i--) {
-      const day = tzDay(now - i * DAY);
-      total7 += await num(`stats:feature:${f}:${day}`);
-    }
-    if (total7) featureLast7[f] = total7;
-  }
+  FL7_KEYS.forEach((f, i) => { if (fl7Vals[i]) featureLast7[f] = fl7Vals[i]; });
   // Per-user feature breadth: count users who have used each non-AI feature.
   const usersByNonAiFeature = {};
   for (const u of records) {
@@ -1275,6 +1276,8 @@ async function adminAnalytics(req, env) {
     aiRepeat, aiRepeatRate, avgAiPerUser, totalAiUses,
     // Revenue
     payingCustomers, activePremiumSubs, compedPremium, mrr, lifetimeRevenue,
+    // Churn risk: active premium expiring soon
+    premiumChurn7, premiumChurn30,
     // Early-bird promo
     earlyBird: {
       enabled: !!eb.enabled, limit: eb.limit,

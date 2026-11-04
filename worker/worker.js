@@ -911,6 +911,28 @@ async function _readAllUserRecords(env) {
   return users;
 }
 
+async function _readAllProfileRecords(env) {
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "profile:", cursor });
+    for (const k of page.keys) keys.push(k.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  const profiles = [];
+  const BATCH = 60;
+  for (let i = 0; i < keys.length; i += BATCH) {
+    const raws = await Promise.all(keys.slice(i, i + BATCH).map(name => env.HIREFLOW_KV.get(name)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      let profile; try { profile = JSON.parse(raw); } catch { continue; }
+      if (profile && typeof profile === "object" && !Array.isArray(profile)) profiles.push(profile);
+    }
+  }
+  return profiles;
+}
+
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
   const records = await _readAllUserRecords(env);
@@ -1155,25 +1177,27 @@ async function adminAnalytics(req, env) {
   }
 
   // ---- Profile onboarding (company, role, aggregate opt-in, email consent) ----
+  // These fields are stored under profile:<email>, rather than user:<email>.
   const profileCompanies = {};
   const profileRoles = {};
   let profileCompanyOptInCount = 0;
   let profileEmailConsentCount = 0;
   let profileHasCompany = 0;
   let profileHasRole = 0;
-  for (const u of records) {
-    if (u.company) {
+  const profiles = await _readAllProfileRecords(env);
+  for (const profile of profiles) {
+    const company = typeof profile.company === "string" ? profile.company.trim().toLowerCase() : "";
+    const role = typeof profile.role === "string" ? profile.role.trim().toLowerCase() : "";
+    if (company) {
       profileHasCompany++;
-      const c = u.company.trim().toLowerCase();
-      if (c) profileCompanies[c] = (profileCompanies[c] || 0) + 1;
+      profileCompanies[company] = (profileCompanies[company] || 0) + 1;
     }
-    if (u.role) {
+    if (role) {
       profileHasRole++;
-      const r = u.role.trim().toLowerCase();
-      if (r) profileRoles[r] = (profileRoles[r] || 0) + 1;
+      profileRoles[role] = (profileRoles[role] || 0) + 1;
     }
-    if (u.companyAggregateOptIn === true) profileCompanyOptInCount++;
-    if (u.testimonialFollowupEmail === true) profileEmailConsentCount++;
+    if (profile.companyAggregateOptIn === true) profileCompanyOptInCount++;
+    if (profile.testimonialFollowupEmail === true) profileEmailConsentCount++;
   }
 
   // ---- Onboarding selections ----------------------------------------------
@@ -1251,8 +1275,8 @@ async function adminAnalytics(req, env) {
       hasRole: profileHasRole,
       companyOptInCount: profileCompanyOptInCount,
       emailConsentCount: profileEmailConsentCount,
-      topCompanies: Object.entries(profileCompanies).sort((a, b) => b[1] - a[1]).slice(0, 20),
-      topRoles: Object.entries(profileRoles).sort((a, b) => b[1] - a[1]).slice(0, 20),
+      topCompanies: profileCompanies,
+      topRoles: profileRoles,
     },
   };
 

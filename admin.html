@@ -871,8 +871,16 @@ function renderProfileOnboarding(o) {
     setKPI('pob-optin', p.companyOptInCount || 0, 'pob-optin-pct');
     setKPI('pob-email', p.emailConsentCount || 0, 'pob-email-pct');
   }
-  _renderHBars('pob-companies-bars', p.topCompanies || [], '#6d4dfc');
-  _renderHBars('pob-roles-bars', p.topRoles || [], '#8a73f8');
+  // Accept the legacy pair-array response during a rolling Worker deployment.
+  var bars = function (data) {
+    if (!Array.isArray(data)) return data || {};
+    return data.reduce(function (out, row) {
+      if (Array.isArray(row) && row.length === 2) out[row[0]] = row[1];
+      return out;
+    }, {});
+  };
+  _renderHBars('pob-companies-bars', bars(p.topCompanies), '#6d4dfc');
+  _renderHBars('pob-roles-bars', bars(p.topRoles), '#8a73f8');
 }
 
 // ─── Retention ───

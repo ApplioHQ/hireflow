@@ -194,6 +194,10 @@ function renderAgentText(text) {
       tools.push(`<div class="tool"><span class="tool-name">${esc(tool[1])}</span><span class="tool-arg" title="${esc(tool[2])}">${esc(tool[2])}</span></div>`);
       continue;
     }
+    if (!line.trim()) {
+      if (!tools.length) { flush(); }
+      continue;
+    }
     if (tools.length) flushTools();
     const meta = line.match(/^\[(cost \$[\d.]+|\d+ tokens|stopped by user)\]$/);
     if (meta) { flush(); out.push(`<div class="meta-line">${esc(meta[1])}</div>`); continue; }
@@ -204,7 +208,6 @@ function renderAgentText(text) {
       out.push(`<p class="list-item">${inline(line.replace(/^\s*[-*]\s+/, ""))}</p>`);
       continue;
     }
-    if (!line.trim()) { flush(); flushTools(); continue; }
     para.push(line);
   }
   if (code !== null) out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`);

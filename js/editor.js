@@ -3692,11 +3692,24 @@ async function ai(endpoint, body) {
     showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
     throw new Error('Premium required');
   }
-  const r = await fetch(API + '/ai/' + endpoint, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-    body: JSON.stringify(body)
-  });
+  // AI imports can take longer than ordinary requests, especially for multi-page
+  // resumes, but they must not leave the editor behind an overlay forever.
+  const controller = endpoint === 'parse' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
+  let r;
+  try {
+    r = await fetch(API + '/ai/' + endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify(body),
+      signal: controller ? controller.signal : undefined
+    });
+  } catch (e) {
+    if (controller && controller.signal.aborted) throw new Error('Resume import timed out');
+    throw e;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
   // Session expired or revoked (tokens last 30 days, so returning users hit this).
   // Without this it falls through to the generic error and tells them "Something went
   // wrong, please try again", which can never succeed and leaves them retrying a dead
@@ -3953,6 +3966,9 @@ function _aiErrMsg(e) {
   try { console.warn('[Applio AI] request failed:', m); } catch (_) {}
   if (/usage limit|limit reached|quota|neuron|429|too many/i.test(m)) {
     return 'The daily AI limit was reached. It resets shortly, please try again later.';
+  }
+  if (/resume import timed out/i.test(m)) {
+    return 'This resume is taking too long to import. Try again, or paste the most recent pages first.';
   }
   if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
     return 'The AI is busy right now, give it a few seconds and try again.';

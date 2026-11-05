@@ -3055,6 +3055,14 @@ function _paginate(doc) {
   body.style.padding = CANVAS_PAD + 'px 0';
   body.style.margin = '0';
 
+  // Resume templates use height:100% to make a short document fill one sheet.
+  // In a paginated preview that caps the root at one page and lets a long CV
+  // paint past its edge without contributing to layout. Let each rendered root
+  // grow naturally before measuring breaks.
+  _contentEls(col).forEach(el => {
+    el.style.setProperty('height', 'auto', 'important');
+  });
+
   // --- Paginate via the SHARED decision (HFPaginate in templates.js), the exact
   // same code that shapes the exported PDF, so the preview is true WYSIWYG. Measure
   // continuously within the column, decide breaks, then push each break unit to the
@@ -3093,6 +3101,9 @@ function _paginate(doc) {
       const b = el.getBoundingClientRect().bottom - colTop;
       if (b > bottom) bottom = b;
     });
+    const flowBox = flow.getBoundingClientRect();
+    const flowBottom = flowBox.top - colTop + Math.max(flowBox.height, flow.scrollHeight || 0);
+    bottom = Math.max(bottom, flowBottom);
     const cap = (window.HFPaginate && HFPaginate.MAX_SHEETS) || 40;
     const tail = (window.HFPaginate && HFPaginate.TAIL) || 8;
     const needed = bottom <= PAGE_PX + tail ? 1

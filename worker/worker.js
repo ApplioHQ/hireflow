@@ -2671,29 +2671,28 @@ async function aiStream(req, env, action, cors) {
   try { payload = await authenticate(req, env); } catch (e) { return fail(401, e.message || "Unauthorized"); }
 
   const isAdmin = payload.role === "admin" || payload.role === "super";
-  if (!isAdmin) {
-    const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
-    if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
-  }
 
   let body;
   try { body = await req.json(); } catch { return fail(400, "Invalid request body"); }
 
   if (!isAdmin) {
-    const user = await getUser(env, payload.email).catch(() => null);
-    if (!user) return fail(404, "User not found");
-    const paid = isPaidPlan(user);
-    // Applio is 100% free: no Premium gate on any AI action here either.
     const rlDay = new Date().toISOString().slice(0, 10);
     const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
-    const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);
-    const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
+    const [user, rlRaw, aiUntilRaw] = await Promise.all([
+      getUser(env, payload.email).catch(() => null),
+      env.HIREFLOW_KV.get(rlKey).catch(() => "0"),
+      env.HIREFLOW_KV.get("system:ai_disabled_until").catch(() => "0"),
+    ]);
+    const aiUntil = parseInt(aiUntilRaw || "0", 10);
+    if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
+    if (!user) return fail(404, "User not found");
+    const rlUsed = parseInt(rlRaw || "0", 10);
+    const rlCap = isPaidPlan(user) ? PAID_AI_DAILY : FREE_AI_DAILY;
     if (rlUsed >= rlCap) return fail(429, "Daily AI limit reached. Try again tomorrow.");
     env.HIREFLOW_KV.put(rlKey, String(rlUsed + 1), { expirationTtl: 172800 }).catch(() => {});
   }
 
-  // Build the same prompt that aiDispatch/aiImprove would use, then stream it.
-  // Currently only "improve" is called from the frontend streaming path.
+  // Build the prompt, then stream it. Only "improve" is called from the frontend.
   let sysPrompt, userPrompt, aiOpts = {};
   if (action === "improve") {
     const { target, text, context } = body;
@@ -2701,12 +2700,30 @@ async function aiStream(req, env, action, cors) {
     const ctx = context || {};
     const role = String(ctx.role || "").slice(0, 120);
     const company = String(ctx.company || "").slice(0, 120);
-    const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.` : "";
+    const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.\n` : "";
     const isSummary = target === "summary" || target === "personal";
-    sysPrompt = isSummary
-      ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\n\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths (skills, domains, or scope), concrete nouns, not adjectives.\n- Ends with the value the candidate brings to a hiring manager.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Write like a hiring manager describing the candidate to their boss: plain, specific, no corporate theater.\n- Plain text only, no markdown, no headers, no quotation marks.\n\nOUTPUT: Only the rewritten summary. Nothing else.`
-      : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.\n${roleLine}\n\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs (overused AI clichés): Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored. Use plain verbs instead.\n- Lead with impact. Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Write like a hiring manager describing work to their boss: plain, specific, no corporate theater.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
-    userPrompt = `Original content:\n${text}\n\nRewrite it.`;
+    const mode = String(ctx.mode || "improve");
+    const isSingleBullet = !!ctx.instruction;
+
+    if (isSummary) {
+      sysPrompt = `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths, concrete nouns, not adjectives.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Plain text only, no markdown.\n\nOUTPUT: Only the rewritten summary. Nothing else.`;
+      userPrompt = `Original:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 200, temperature: 0.3 };
+    } else if (isSingleBullet) {
+      const modeInstr = {
+        improve: "Make this bullet stronger and more specific.",
+        quantify: "Rewrite this bullet to include a concrete metric or number (keep it truthful, never invent numbers).",
+        shorten: "Make this bullet more concise without losing impact.",
+        rewrite: "Rewrite this bullet more impactfully with a strong action verb."
+      };
+      sysPrompt = GROUNDING + `\nYou are an elite resume writer. ${modeInstr[mode] || modeInstr.improve}\n${roleLine}\nRULES:\n- Output EXACTLY one bullet, no bullet marker, no preamble.\n- One sentence, 12-20 words, starting with a strong past-tense verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated.\n- Include a metric ONLY if present in the input. NEVER invent numbers.\n- Plain text only.\n\nOUTPUT: Only the single rewritten bullet. Nothing else.`;
+      userPrompt = `Original bullet:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 80, temperature: 0.25 };
+    } else {
+      sysPrompt = `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets.\n${roleLine}\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored.\n- Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
+      userPrompt = `Original content:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 360, temperature: 0.25 };
+    }
   } else {
     return fail(404, "Streaming not supported for this action");
   }

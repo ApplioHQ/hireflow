@@ -39,11 +39,13 @@ models = ["sonnet", "opus", "haiku"]
 [agents.hermes]
 # Hermes may stop at approval prompts when run non-interactively. If it can't read files,
 # add "--yolo" here (it skips all of Hermes's approval checks, so only do it knowingly).
-command = ["hermes", "chat", "-Q", "--oneshot", "--format", "stream-json", "-t", "file,terminal,web,vision", "--query-file", "{prompt_file}"]
+command = ["hermes", "chat", "-Q", "--oneshot", "--format", "stream-json", "-t", "file,terminal,web,vision", "--max-turns", "3", "--run-budget", "120", "--query-file", "{prompt_file}"]
 format = "stream-json"
 resume = ["--resume", "{session_id}"]
 # The current Hermes model can't see images, so it hands screenshots to a coder.
 vision = false
+# Orchestrator gets a shorter timeout than coders (3 min vs 30 min).
+timeout = 180
 # Model selection: only free OpenRouter models allowed.
 model_flag = ["--model", "{model}"]
 models = [

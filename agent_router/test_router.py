@@ -171,6 +171,15 @@ class RunAgentTest(unittest.TestCase):
         self.assertEqual(code, 124)
         self.assertIn("timed out", out)
 
+    def test_per_agent_timeout_overrides_global(self):
+        (self.dir / "slow.py").write_text("import sys, time\nsys.stdin.read()\ntime.sleep(30)\n")
+        self.cfg["agents"]["a"]["command"] = [sys.executable, str(self.dir / "slow.py")]
+        self.cfg["agent_timeout"] = 60
+        self.cfg["agents"]["a"]["timeout"] = 1
+        code, out, _ = router.run_agent(self.cfg, "a", "x")
+        self.assertEqual(code, 124)
+        self.assertIn("timed out", out)
+
 
 class FilesTest(unittest.TestCase):
     def setUp(self):

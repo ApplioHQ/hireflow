@@ -145,7 +145,7 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
         command += [part.replace("{dir}", str(folder)) for part in spec.get("add_dir", [])]
     parse = spec.get("format") == "stream-json"
     uses_file = any("{prompt_file}" in part for part in command)
-    timeout = cfg.get("agent_timeout", 1800)
+    timeout = spec.get("timeout") or cfg.get("agent_timeout", 1800)
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as f:
         f.write(prompt)
     cmd = [part.replace("{prompt_file}", f.name) for part in command]

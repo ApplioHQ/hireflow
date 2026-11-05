@@ -763,7 +763,7 @@ class Engine:
         """Ask the naming agent for a short chat name (in the background; the quick name stays if it fails)."""
         self.store.home.mkdir(parents=True, exist_ok=True)
         code, output, _ = router.run_agent(self.cfg, self.namer, NAME_CHAT.format(text=" ".join(text.split())[:500]),
-                                           cwd=self.store.home)
+                                           cwd=self.store.home, cmd_extra=["--max-turns", "1"])
         lines = [l.strip() for l in output.splitlines()
                  if l.strip() and not l.strip().startswith(("[", ">", "{")) and not l.lower().startswith("session")]
         if code == 0 and lines:
@@ -904,7 +904,7 @@ class Engine:
         return next((c for c in coders if self.available(c)), coders[0])
 
     def run_agent(self, lane, project, chat_id, agent, prompt, step, session=None, extra=None, files=(),
-                  folder=None):
+                  folder=None, cmd_extra=()):
         """Run one agent turn with its output streaming into the chat. Returns the turn's result."""
         pid = project["id"]
         self.store.add(pid, chat_id, {"role": "agent", "agent": agent, "step": step, "text": "", "live": True,
@@ -917,7 +917,7 @@ class Engine:
         code, output, new_session = router.run_agent(
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
             session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
-            model=self.get_model(agent))
+            model=self.get_model(agent), cmd_extra=cmd_extra)
         changed = router.changed_files(before, router.snapshot(folder))
         self.store.set_session(pid, chat_id, agent, new_session)
         stopped = code == 130
@@ -1165,7 +1165,7 @@ class Engine:
         if not session:
             prompt = f'You are Hermes, the orchestrator for the "{project["name"]}" project.\n\n' + prompt
         turn = self.run_agent(lane, project, cid, hermes, prompt, "report", session=session,
-                              folder=self.hermes_folder(project, cid))
+                              folder=project["path"], cmd_extra=["--max-turns", "1"])
         self.store.finish_live(project["id"], cid)
         if turn["code"] not in (0, 130):
             with self.store.lock:  # a failed report is noise; drop it

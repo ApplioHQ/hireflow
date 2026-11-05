@@ -184,18 +184,25 @@ function applySectionToggles(safe) {
 function withFallback(resume, mini, marginsKey) {
   const r = resume || {};
   const empty = { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' };
+  const records = key => Array.isArray(r[key]) ? r[key].filter(item => item && typeof item === 'object' && !Array.isArray(item)) : [];
+  const personal = r.personal && typeof r.personal === 'object' && !Array.isArray(r.personal) ? r.personal : {};
+  const customize = r.customize && typeof r.customize === 'object' && !Array.isArray(r.customize) ? r.customize : {};
+  const categories = r.skills && Array.isArray(r.skills.categories)
+    ? r.skills.categories.filter(category => category && typeof category === 'object' && !Array.isArray(category))
+      .map(category => ({ name: String(category.name || 'All'), items: Array.isArray(category.items) ? category.items.filter(item => typeof item === 'string') : [] }))
+    : [];
   const safe = {
-    personal: Object.assign({}, empty, r.personal || {}),
-    experience: Array.isArray(r.experience) ? r.experience : [],
-    education: Array.isArray(r.education) ? r.education : [],
-    skills: (r.skills && Array.isArray(r.skills.categories)) ? r.skills : { categories: [] },
-    projects: Array.isArray(r.projects) ? r.projects : [],
-    certifications: Array.isArray(r.certifications) ? r.certifications : [],
-    awards: Array.isArray(r.awards) ? r.awards : [],
-    leadership: Array.isArray(r.leadership) ? r.leadership : [],
-    volunteer: Array.isArray(r.volunteer) ? r.volunteer : [],
-    publications: Array.isArray(r.publications) ? r.publications : [],
-    customize: r.customize || {},
+    personal: Object.assign({}, empty, personal),
+    experience: records('experience'),
+    education: records('education'),
+    skills: { categories },
+    projects: records('projects'),
+    certifications: records('certifications'),
+    awards: records('awards'),
+    leadership: records('leadership'),
+    volunteer: records('volunteer'),
+    publications: records('publications'),
+    customize,
     template: r.template || 'modern',
     _marginsKey: marginsKey
   };

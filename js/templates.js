@@ -1666,7 +1666,14 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
       var kids = el.children
         ? Array.prototype.slice.call(el.children).filter(function (c) { return !(c.classList && c.classList.contains('hf-pagebreak')); })
         : [];
-      var tooTall = el.getBoundingClientRect().height > pageH;
+      // Several templates set their outer root to height:100%. For a long resume
+      // that box stays one page tall while its children overflow below it, so using
+      // only the rendered rectangle makes pagination incorrectly stop at page one.
+      // scrollHeight captures the real content height and lets us descend into the
+      // entries that can safely start a continuation page.
+      var boxHeight = el.getBoundingClientRect().height;
+      var contentHeight = Math.max(boxHeight, el.scrollHeight || 0);
+      var tooTall = contentHeight > pageH;
       if (tooTall && kids.length > 1 && depth < MAX_DEPTH) { kids.forEach(function (gc) { collect(gc, depth + 1); }); }
       else units.push(el);
     }

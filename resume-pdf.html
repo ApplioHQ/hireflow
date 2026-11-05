@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Resume PDF</title>
+<script src="js/config.js"></script>
+<script>
+  (function () {
+    var token = new URLSearchParams(location.search).get('token') || '';
+    var api = window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL;
+    if (!/^[a-f0-9]{64}$/i.test(token) || !api) return;
+    document.write('<script src="' + api + '/resume/render-source?token=' + encodeURIComponent(token) + '&format=script"><\\/script>');
+  })();
+</script>
+<script src="js/templates.js"></script>
+<style>
+  html, body { margin:0; padding:0; background:#fff; color:#111; font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,sans-serif; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  * { box-sizing:border-box; }
+  @page { size:letter; margin:0; }
+  .t-entry { break-inside:avoid; page-break-inside:avoid; }
+  h2, h3, h4 { break-after:avoid; page-break-after:avoid; }
+  .sidebar, .main { break-inside:avoid; page-break-inside:avoid; }
+  #resume-root > div[class^="t-"] { height:auto !important; min-height:0 !important; }
+</style>
+</head>
+<body>
+<main id="resume-root"></main>
+<script>
+  (function () {
+    var payload = window.__APPLIO_RENDER_SOURCE__;
+    var root = document.getElementById('resume-root');
+    if (!payload || !payload.resume || !root) {
+      document.body.textContent = 'Resume render source unavailable.';
+      return;
+    }
+    var resume = payload.resume;
+    var paper = resume.customize && resume.customize.paperSize === 'A4' ? 'A4' : 'Letter';
+    var width = paper === 'A4' ? 794 : 816;
+    var page = document.createElement('style');
+    page.textContent = '@page{size:' + (paper === 'A4' ? 'A4' : 'letter') + ';margin:0}body{width:' + width + 'px}';
+    document.head.appendChild(page);
+    root.innerHTML = renderTemplate(resume.template || 'modern', resume, false, resume.customize && resume.customize.accent);
+    document.title = ((resume.personal && resume.personal.fullName) || 'Resume') + ' Resume';
+    document.body.dataset.renderReady = '1';
+  })();
+</script>
+</body>
+</html>

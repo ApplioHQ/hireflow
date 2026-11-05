@@ -52,6 +52,11 @@ GOOGLE_CLIENT_ID = ""
 # the id of a gateway you actually created (Dashboard > AI > AI Gateway); a wrong/
 # missing id makes EVERY AI call fail. "" and "default" both mean "no gateway".
 AI_GATEWAY_ID = ""
+# Authoritative PDF rendering uses Cloudflare Browser Rendering's REST API.
+# Set these as Worker secrets before enabling it:
+#   npx wrangler secret put CF_BROWSER_RENDERING_ACCOUNT_ID
+#   npx wrangler secret put CF_BROWSER_RENDERING_TOKEN
+# Until then the export UI falls back to the browser print flow.
 
 # ---------------------------------------------------------------------------
 # Staging, `wrangler deploy --env staging`  (worker: hireflow-api-staging)

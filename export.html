@@ -422,7 +422,16 @@ async function tryExport(fmt) {
       updatePills();
     } catch(e) { console.warn('download tracking failed', e); }
   }
-  if (fmt === 'pdf') { printFrame(); _trackExport('download_pdf'); }
+  if (fmt === 'pdf') {
+    try {
+      const rendered = await downloadAuthoritativePdf();
+      if (!rendered) printFrame();
+      _trackExport('download_pdf');
+    } catch (e) {
+      if (typeof toast === 'function') toast(e.message || 'PDF export failed. Please try again.', { type: 'error' });
+      return;
+    }
+  }
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
   // Ask once after a successful export. A submission is private by default; public
@@ -771,6 +780,34 @@ function _resumeFilename(ext) {
     .replace(/\s+/g, '_').replace(/[^\w-]/g, '');
   const base = name ? name + '_Resume' : 'resume';
   return ext ? base + '.' + ext : base;
+}
+
+// Final PDF files come from Cloudflare's pinned Chromium renderer. That makes the
+// downloaded page layout independent of the visitor's browser, installed fonts,
+// or print-dialog scale settings. A missing server renderer is intentionally not a
+// hard failure during rollout: users retain the existing browser-print export.
+async function downloadAuthoritativePdf() {
+  if (!TOKEN || !window.HIREFLOW_CONFIG || !window.HIREFLOW_CONFIG.API_URL) return false;
+  const button = document.getElementById('btn-pdf');
+  if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+  try {
+    const response = await fetch(window.HIREFLOW_CONFIG.API_URL + '/resume/pdf', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resume }),
+    });
+    if (!response.ok) {
+      let data = {}; try { data = await response.json(); } catch (_) {}
+      if (data.code === 'renderer_unavailable') return false;
+      throw new Error(data.error || 'PDF export failed');
+    }
+    const blob = await response.blob();
+    if (!blob.size || blob.type !== 'application/pdf') throw new Error('The PDF renderer returned an invalid file');
+    download(blob, _resumeFilename('pdf'));
+    return true;
+  } finally {
+    if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+  }
 }
 function exportHTML() {
   // Render clean first so the downloaded file has no canvas/sheet chrome.

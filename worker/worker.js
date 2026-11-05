@@ -117,6 +117,31 @@ export default {
       return gdriveCallback(req, url, env).catch(e => new Response(`<html><body><script>window.opener&&window.opener.postMessage({type:'gdrive_error',error:${JSON.stringify(e.message)}},'*');window.close();</script><p>Error: ${e.message}</p></body></html>`, { status: 500, headers: { "Content-Type": "text/html" } }));
     }
 
+    // The PDF renderer loads this one-time, opaque source document from the static
+    // renderer page. It is deliberately outside the normal auth flow because the
+    // headless browser has no user session; the 256-bit render token is the access
+    // control and expires from KV within minutes.
+    if (path === "/resume/render-source" && req.method === "GET") {
+      return getResumeRenderSource(url, env).then(source => {
+        if (url.searchParams.get("format") === "script") {
+          const body = "window.__APPLIO_RENDER_SOURCE__=" + JSON.stringify(source).replace(/</g, "\\u003c") + ";";
+          return withCors(new Response(body, {
+            headers: { ...SECURITY_HEADERS, "Content-Type": "application/javascript; charset=utf-8" },
+          }), cors);
+        }
+        return json(source, 200, cors);
+      }).catch(e => json({ error: e.message || "Render source unavailable" }, e.status || 500, cors));
+    }
+
+    // Use Cloudflare Browser Rendering as the authoritative PDF engine. It returns
+    // an actual PDF response rather than JSON, so keep it outside the generic route
+    // wrapper below.
+    if (path === "/resume/pdf" && req.method === "POST") {
+      return renderResumePdf(req, env)
+        .then(response => withCors(response, cors))
+        .catch(e => json({ error: e.message || "PDF export failed" }, e.status || 500, cors));
+    }
+
     // Public personal website: /p/:slug renders a portfolio page from a user's
     // opted-in resume data. No auth, HTML response. Only fields the user chose
     // to publish are included; contact details are hidden unless opted in.
@@ -1401,6 +1426,91 @@ async function getResume(req, env) {
   const payload = await authenticate(req, env);
   const raw = await env.HIREFLOW_KV.get(`resume:${payload.email.toLowerCase()}`);
   return { resume: raw ? JSON.parse(raw) : null };
+}
+
+// ============ Authoritative PDF rendering ================================
+// The editor's HTML preview is intentionally fast and local. Final PDFs are
+// rendered by Cloudflare's pinned Chromium build so every user receives the same
+// page breaks, fonts, and paper geometry regardless of their own browser.
+const PDF_RENDER_TTL = 180;
+const PDF_RENDER_MAX_BYTES = 350000;
+
+function newRenderToken() {
+  return bufToHex(crypto.getRandomValues(new Uint8Array(32)));
+}
+
+function pdfFilename(resume) {
+  const name = String(resume && resume.personal && resume.personal.fullName || "resume")
+    .trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
+  return (name || "resume") + "_Resume.pdf";
+}
+
+async function getResumeRenderSource(url, env) {
+  const token = String(url.searchParams.get("token") || "");
+  if (!/^[a-f0-9]{64}$/i.test(token)) throw err(404, "Render source not found");
+  const raw = await env.HIREFLOW_KV.get(`resume-render:${token}`);
+  if (!raw) throw err(404, "Render source expired");
+  let stored;
+  try { stored = JSON.parse(raw); } catch { throw err(404, "Render source not found"); }
+  if (!stored || !stored.resume || typeof stored.resume !== "object") throw err(404, "Render source not found");
+  return { resume: stored.resume };
+}
+
+async function renderResumePdf(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const resume = body && body.resume;
+  if (!resume || typeof resume !== "object" || Array.isArray(resume)) {
+    return json({ error: "A resume is required" }, 400);
+  }
+  const encoded = JSON.stringify(resume);
+  if (encoded.length > PDF_RENDER_MAX_BYTES) {
+    return json({ error: "This resume is too large to render as a PDF. Remove nonessential text and try again." }, 413);
+  }
+  if (!env.CF_BROWSER_RENDERING_ACCOUNT_ID || !env.CF_BROWSER_RENDERING_TOKEN) {
+    return json({ error: "The secure PDF renderer is not enabled", code: "renderer_unavailable" }, 503);
+  }
+
+  const token = newRenderToken();
+  await env.HIREFLOW_KV.put(`resume-render:${token}`, JSON.stringify({
+    resume,
+    email: payload.email,
+    createdAt: Date.now(),
+  }), { expirationTtl: PDF_RENDER_TTL });
+
+  const site = String(env.SITE_URL || "https://appliohq.com").replace(/\/$/, "");
+  const rendererUrl = `${site}/resume-pdf.html?token=${token}`;
+  const paper = resume.customize && resume.customize.paperSize === "A4" ? "A4" : "Letter";
+  let upstream;
+  try {
+    upstream = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CF_BROWSER_RENDERING_ACCOUNT_ID)}/browser-rendering/pdf`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.CF_BROWSER_RENDERING_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: rendererUrl,
+          pdfOptions: { format: paper, printBackground: true, margin: { top: "0", right: "0", bottom: "0", left: "0" } },
+        }),
+      }
+    );
+  } catch {
+    return json({ error: "The PDF renderer is temporarily unavailable", code: "renderer_unavailable" }, 503);
+  }
+  if (!upstream.ok) {
+    return json({ error: "The PDF renderer could not finish this document", code: "renderer_failed" }, 502);
+  }
+  return new Response(upstream.body, {
+    status: 200,
+    headers: {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${pdfFilename(resume)}"`,
+    },
+  });
 }
 
 // ============ Career profile (dashboard: goals, target role, win journal) ============

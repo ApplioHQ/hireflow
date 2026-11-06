@@ -5024,7 +5024,7 @@ async function importFromLinkedIn() {
   
   const redirectUri = `${CFG.API_URL}/auth/linkedin/callback`;
   const state = btoa(JSON.stringify({ ts: Date.now() }));
-  const scope = 'r_liteprofile r_emailaddress';
+  const scope = 'openid profile email';
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent(scope)}`;
   
   // Open popup

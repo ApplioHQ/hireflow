@@ -776,7 +776,7 @@ async function linkedinCallback(req, env) {
 
     // Build resume text from LinkedIn profile
     const profileText = [
-      firstName && lastName ? `${firstName} ${lastName}` : '',
+      profile.name || [firstName, lastName].filter(Boolean).join(' '),
       email ? `Email: ${email}` : '',
       headline ? `Headline: ${headline}` : '',
       '---',

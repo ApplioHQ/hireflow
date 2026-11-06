@@ -3001,7 +3001,7 @@ function _bestFlowRoot(preview) {
 
 let PAGE_W = 816;          // page width (Letter 816 / A4 794 at 96dpi); set by _syncPaperDims
 const SHEET_GAP = 24;      // gap between page sheets (true px)
-const CANVAS_PAD = 0;      // canvas margin around the page column — 0 so the page fills the preview edge-to-edge (true px)
+const CANVAS_PAD = 20;     // canvas margin around the page column (true px)
 let CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins; set by _syncPaperDims
 const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
@@ -3041,16 +3041,15 @@ function _paginate(doc) {
   // fonts-ready re-run, when the body was already paginated on entry).
   doc._lastRatio = (body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
 
-  // --- Wrap the resume (everything except the <style> tag) into a centered 816px
-  // page column. The body is transparent so the page sits directly on the preview
-  // panel (no gray desk), filling the preview edge-to-edge. The .preview-mini
-  // container supplies the paper color + shadow. ---
+  // --- Wrap the resume (everything except the <style> tag) into a centered page
+  // column on a visible desk. Each sheet stays its physical Letter/A4 size and
+  // the desk makes the continuation gutter unambiguous in the editor. ---
   const col = doc.createElement('div');
   col.className = 'hf-doc';
   col.style.cssText = 'position:relative; width:' + PAGE_W + 'px; margin:0 auto;';
   _contentEls(body).forEach(el => col.appendChild(el));
   body.appendChild(col);
-  body.style.background = 'transparent';
+  body.style.background = '#e9eaef';
   body.style.width = CANVAS_W + 'px';
   body.style.padding = CANVAS_PAD + 'px 0';
   body.style.margin = '0';
@@ -3131,6 +3130,13 @@ function _paginate(doc) {
     num.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX + 6) +
       'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#8a93a6; z-index:0;';
     col.appendChild(num);
+    if (i < totalPages - 1) {
+      const gap = doc.createElement('div');
+      gap.className = 'hf-sheet hf-page-gap';
+      gap.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX) + 'px; height:' + SHEET_GAP +
+        'px; background:#e9eaef; border-top:1px solid rgba(0,0,0,.10); border-bottom:1px solid rgba(0,0,0,.08); z-index:2; pointer-events:none;';
+      col.appendChild(gap);
+    }
   }
   // +1 extra gap so the final page's number label has room below the last sheet.
   col.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';

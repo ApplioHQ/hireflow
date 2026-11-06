@@ -155,7 +155,7 @@ export default {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
       if (path === "/auth/google")             return json(await googleAuth(req, env), 200, cors);
-      if (path === "/auth/linkedin/callback")  return json(await linkedinCallback(req, env), 200, cors);
+      if (path === "/auth/linkedin/callback")  return linkedinCallback(req, env);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);

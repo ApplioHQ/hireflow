@@ -1651,13 +1651,10 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
 
   // Best "flow root": the element that actually holds the resume's top-level blocks.
   function flowRoot(root) {
-    var named = root.querySelector('.body');
+    var template = root.querySelector('div[class^="t-"]') || root;
+    var named = template.querySelector('.body');
     if (named) return named;
-    var best = root.firstElementChild || root, bn = best.children ? best.children.length : 0;
-    root.querySelectorAll('div, section, main').forEach(function (el) {
-      if (el.children.length > bn) { best = el; bn = el.children.length; }
-    });
-    return best;
+    return template;
   }
 
   // Break-units: descend into any block taller than a page (with >1 child) so a

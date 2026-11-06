@@ -1547,6 +1547,9 @@ function resumeDocHTML(bodyHTML, pageWidth) {
     font-feature-settings:"kern" 1,"liga" 1,"tnum" 1,"lnum" 1;
     font-variant-numeric: lining-nums tabular-nums; }
   * { box-sizing:border-box; }
+  /* Templates may fill a short page, but must never cap a long resume. Natural
+     flow lets the shared paginator move overflow onto continuation pages. */
+  body > div[class^="t-"] { height:auto !important; min-height:0 !important; overflow:visible !important; }
   @page { size:${pageSize}; margin:0; }
   /* Two-page support: don't split an entry across the page break, and keep a
      section heading with its content. */

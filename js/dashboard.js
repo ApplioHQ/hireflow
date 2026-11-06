@@ -233,10 +233,7 @@
   ];
   function renderActions() {
     document.getElementById('dash-actions').innerHTML = ACTIONS.map(function (a) {
-      var salaryIcon = a.icon === 'dollar';
-      var iconClass = salaryIcon ? 'act-ico act-ico-salary' : 'act-ico';
-      var badge = salaryIcon ? '<span class="act-ico-spark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 2 2 8 8 2-8 2-2 8-2-8-8-2 8-2z"/></svg></span>' : '';
-      return '<a class="act-card" href="' + a.href + '"><span class="' + iconClass + '">' + (SVG[a.icon] || SVG.doc) + badge + '</span>'
+      return '<a class="act-card" href="' + a.href + '"><span class="act-ico">' + (SVG[a.icon] || SVG.doc) + '</span>'
         + '<span><span class="act-title">' + a.title + '</span><br><span class="act-desc">' + a.desc + '</span></span></a>';
     }).join('');
   }

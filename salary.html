@@ -73,8 +73,8 @@
 
   /* ---- Empty state ---- */
   .sw-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted); padding: 60px 20px; }
-  .sw-value-icon { width:58px; height:58px; margin-bottom:16px; position:relative; display:grid; place-items:center; border-radius:17px; color:var(--accent); background:var(--bg-1); border:1px solid var(--accent-line); box-shadow:var(--sh-1),var(--hi); }
-  .sw-value-icon::before { content:""; position:absolute; inset:6px; border-radius:12px; background:var(--accent-ghost); border:1px solid var(--accent-line); }
+  .sw-value-icon { width:58px; height:58px; margin-bottom:16px; position:relative; display:grid; place-items:center; color:var(--accent); background:transparent; border:0; box-shadow:none; }
+  .sw-value-icon::before { content:none; }
   .sw-value-icon > svg { width:30px; height:30px; position:relative; }
   .sw-value-spark { position:absolute; right:-5px; top:-5px; z-index:1; width:18px; height:18px; display:grid; place-items:center; border:2px solid var(--bg-2); border-radius:50%; color:var(--on-accent); background:var(--accent); box-shadow:var(--sh-1); }
   .sw-value-spark svg { width:9px; height:9px; fill:currentColor; stroke:none; }

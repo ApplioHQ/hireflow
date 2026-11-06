@@ -3128,7 +3128,7 @@ function _paginate(doc) {
     num.className = 'hf-sheet hf-sheet-num';
     num.textContent = 'Page ' + (i + 1) + ' of ' + totalPages;
     num.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX + 6) +
-      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#8a93a6; z-index:0;';
+      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#687386; z-index:3; pointer-events:none;';
     col.appendChild(num);
     if (i < totalPages - 1) {
       const gap = doc.createElement('div');
@@ -3138,8 +3138,12 @@ function _paginate(doc) {
       col.appendChild(gap);
     }
   }
-  // +1 extra gap so the final page's number label has room below the last sheet.
-  col.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';
+  // Reserve every complete sheet plus a final label gutter. This keeps an almost
+  // empty final page at its real Letter/A4 height instead of cropping the canvas
+  // to the final content block.
+  const canvasHeight = totalPages * PAGE_PX + totalPages * SHEET_GAP;
+  col.style.minHeight = canvasHeight + 'px';
+  body.style.minHeight = (canvasHeight + CANVAS_PAD * 2) + 'px';
   return totalPages;
 }
 

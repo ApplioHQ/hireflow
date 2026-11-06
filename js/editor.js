@@ -2099,11 +2099,22 @@ function _aiHead(tone, icon, title, sub, runFn, runLabel, runClass) {
     + '<button class="btn ' + runClass + ' btn-sm" onclick="' + runFn + '" style="white-space:nowrap;">'
     + ICON('sparkle', 'ico ico-sm') + ' ' + runLabel + '</button></div></div>';
 }
-// One loading affordance: the dotted globe, rendered inline into a tool's result host.
+let _aiInlineLoaderId = 0;
+// One loading affordance: the shared animated dot grid, rendered inline into a tool's result host.
 function _aiToolLoading(label) {
-  return '<div class="ai-tool-loading"><div class="ai-globe"><div class="ai-globe-inner">' +
-    '<div class="ai-globe-ring"></div><div class="ai-globe-ring"></div><div class="ai-globe-ring"></div>' +
-    '<div class="ai-globe-eq"></div></div></div><span>' + esc(label) + '</span></div>';
+  const id = 'ai-inline-loader-' + (++_aiInlineLoaderId);
+  setTimeout(function () {
+    const slot = document.getElementById(id);
+    if (!slot || typeof window.createAiDotLoader !== 'function') return;
+    const light = document.documentElement.classList.contains('light-mode');
+    const loader = window.createAiDotLoader(110, light
+      ? { active: '#5b4ee5', inactive: 'rgba(57,48,135,.13)', glow: 'rgba(91,78,229,.42)' }
+      : { active: '#a5b4fc', inactive: 'rgba(255,255,255,.12)', glow: 'rgba(129,140,248,.7)' });
+    slot.appendChild(loader.el);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) loader.staticFrame();
+    else loader.start();
+  }, 0);
+  return '<div class="ai-tool-loading"><div class="ai-dot-loader" id="' + id + '" aria-hidden="true"></div><span>' + esc(label) + '</span></div>';
 }
 
 function renderTailor() {

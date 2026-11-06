@@ -353,13 +353,17 @@ const _AI_DOT_FRAMES = [
 
 // Build the 49-dot grid element. Returns { el, start(), stop() }.
 // Active dots glow indigo; inactive dots are faint on the dark overlay.
-function _aiDotLoader(duration) {
+function _aiDotLoader(duration, colors) {
+  colors = colors || {};
+  const active = colors.active || '#a5b4fc';
+  const inactive = colors.inactive || 'rgba(255,255,255,.12)';
+  const glow = colors.glow || 'rgba(129,140,248,.7)';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,10px);gap:5px;width:fit-content;';
   const dots = [];
   for (let i = 0; i < 49; i++) {
     const d = document.createElement('div');
-    d.style.cssText = 'width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.12);transition:background .12s ease, box-shadow .12s ease;';
+    d.style.cssText = 'width:10px;height:10px;border-radius:3px;background:' + inactive + ';transition:background .12s ease, box-shadow .12s ease;';
     grid.appendChild(d);
     dots.push(d);
   }
@@ -368,21 +372,25 @@ function _aiDotLoader(duration) {
     const frame = _AI_DOT_FRAMES[frameIndex]; if (!frame) return;
     dots.forEach((d, i) => {
       const on = frame.includes(i);
-      d.style.background = on ? '#a5b4fc' : 'rgba(255,255,255,.12)';
-      d.style.boxShadow = on ? '0 0 8px rgba(129,140,248,.7)' : 'none';
+      d.style.background = on ? active : inactive;
+      d.style.boxShadow = on ? '0 0 8px ' + glow : 'none';
     });
   };
   return {
     el: grid,
     start() {
       apply(0); idx = 1;
-      timer = setInterval(() => { apply(idx); idx = (idx + 1) % _AI_DOT_FRAMES.length; }, duration || 110);
+      timer = setInterval(() => {
+        if (!grid.isConnected) { clearInterval(timer); timer = null; return; }
+        apply(idx); idx = (idx + 1) % _AI_DOT_FRAMES.length;
+      }, duration || 110);
       return timer;
     },
     staticFrame() { apply(0); },
     stop() { if (timer) clearInterval(timer); },
   };
 }
+window.createAiDotLoader = function (duration, colors) { return _aiDotLoader(duration, colors); };
 
 window.aiLoading = function (message) {
   // Remove any existing overlay first (safety)

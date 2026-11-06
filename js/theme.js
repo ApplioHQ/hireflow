@@ -34,6 +34,37 @@
   // Hydrate button labels/icons once DOM is ready
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.classList.contains('light-mode'));
+
+    // Deep content pages already expose their parent in a breadcrumb. Turn that
+    // relationship into a consistent return control: it follows the visitor's
+    // internal path when one exists, and otherwise falls back to the parent page.
+    var crumb = document.querySelector('nav[class*="crumb"], nav[aria-label="Breadcrumb"]');
+    if (!crumb || document.querySelector('.applio-return')) return;
+    var parents = Array.prototype.slice.call(crumb.querySelectorAll('a[href]'));
+    var parent = parents[parents.length - 1];
+    if (!parent) return;
+
+    var back = document.createElement('a');
+    back.className = 'applio-return';
+    back.href = parent.href;
+    back.textContent = '← Back to ' + parent.textContent.trim();
+    back.setAttribute('aria-label', 'Back to ' + parent.textContent.trim());
+
+    try {
+      var ref = document.referrer ? new URL(document.referrer) : null;
+      if (ref && ref.origin === location.origin && ref.pathname !== location.pathname && history.length > 1) {
+        back.addEventListener('click', function (event) {
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+          event.preventDefault();
+          history.back();
+        });
+      }
+    } catch (e) {}
+
+    var style = document.createElement('style');
+    style.textContent = '.applio-return{display:inline-flex;align-items:center;margin:0 0 12px;color:rgba(255,255,255,.72);font-size:12.5px;font-weight:650;text-decoration:none;transition:color .15s,transform .15s}.applio-return:hover{color:#fff;transform:translateX(-2px)}.light-mode .applio-return{color:rgba(255,255,255,.82)}';
+    document.head.appendChild(style);
+    crumb.parentNode.insertBefore(back, crumb);
   });
 
   // ── Anonymous page-view beacon (no PII, no cookies) ──

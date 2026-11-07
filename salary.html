@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Salary Insights | Applio</title>
+<meta name="description" content="Free salary insights for professional roles, including market ranges, location comparisons, and compensation breakdowns.">
+<link rel="canonical" href="https://appliohq.com/salary">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,13 +40,6 @@
     "price": "0",
     "priceCurrency": "USD",
     "description": "Completely free, no credit card required"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "189",
-    "bestRating": "5",
-    "worstRating": "1"
   }
 }
 </script>
@@ -249,7 +244,7 @@
 
 <main class="sw-wrap">
   <div class="sw-hero">
-    <h1 id="sw-title"></h1>
+    <h1 id="sw-title">Salary Insights</h1>
     <p>See what a role pays so you know which opportunities are worth your time.</p>
   </div>
 
@@ -326,7 +321,7 @@ function _gate(){
     '<div class="sw-gate"><span class="badge">Free look used</span>'
     + '<h4>Unlimited salary insights</h4>'
     + '<p>Pay-range insights on any role are free and unlimited.</p>'
-    + '<a class="btn btn-primary" href="pricing">'+ICON('sparkle','ico ico-sm')+' See plans</a></div>';
+    + '<button class="btn btn-primary" type="button" onclick="lookup()">'+ICON('refresh','ico ico-sm')+' Try again</button></div>';
 }
 
 function _loadingState(){
@@ -733,8 +728,7 @@ document.getElementById('sw-location').addEventListener('keydown', function(e){ 
     document.getElementById('sw-title').innerHTML = ICON('gauge') + ' <span>Salary Insights</span>';
     document.getElementById('sw-go').innerHTML = ICON('sparkle') + ' <span>Show pay range</span>';
     var planPill = document.getElementById('plan-pill');
-    if (isPaid()) planPill.innerHTML = '<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">'+ICON('crown','ico ico-sm')+' '+planLabel()+'</button>';
-    else planPill.innerHTML = '<a class="btn btn-primary btn-xs" href="pricing">'+ICON('sparkle','ico ico-sm')+' <span>Upgrade</span></a>';
+    planPill.innerHTML = '<span class="pill success">'+ICON('sparkle','ico ico-sm')+' Free</span>';
     try {
       var rz = _resume();
       var top = (rz.experience || [])[0];

@@ -37,13 +37,6 @@
     "price": "0",
     "priceCurrency": "USD",
     "description": "Completely free, no credit card required"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.5",
-    "ratingCount": "87",
-    "bestRating": "5",
-    "worstRating": "1"
   }
 }
 </script>
@@ -295,7 +288,6 @@ async function runMatch(){
   if (jd.length < 40) { toast('Paste a fuller job description first (a few lines).', {type:'warn'}); return; }
   const cands = _candidates.filter(c => c.type === 'saved' || (typeof c.content === 'string' && c.content.trim().length >= 40));
   if (cands.length < 1) { toast('Add at least one resume (paste a few lines or use your saved resume).', {type:'warn'}); return; }
-  if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
 
   if (typeof skeleton === 'function') {
     document.getElementById('bm-results').innerHTML = skeleton('cards', { count: cands.length, cols: cands.length >= 3 ? 3 : 2 });
@@ -361,8 +353,8 @@ function _renderResults(scored, paywalled, attempted){
   if (paywalled) {
     html += `<div style="text-align:center; margin-top:16px; padding:20px; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg);">
       <p style="font-size:14px; margin-bottom:6px;"><strong>Scored ${ok.length} of ${attempted} resumes.</strong></p>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You've used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
-      <a href="pricing" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">Some resume scores could not be completed right now. Please try again in a moment.</p>
+      <button type="button" class="btn btn-primary" onclick="runMatch()">${ICON('refresh')} <span>Try again</span></button>
     </div>`;
   }
   res.innerHTML = html;
@@ -414,20 +406,12 @@ function _rowHTML(s, idx, isBest){
   document.getElementById('bm-run').addEventListener('click', runMatch);
 
   const planPill = document.getElementById('plan-pill');
-  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  planPill.innerHTML = `<span class="pill success">${ICON('sparkle','ico ico-sm')} Free</span>`;
 
   _renderCandidates();
 
   const banner = document.getElementById('bm-banner');
-  if (isFree()) {
-    const left = freeAiUsesLeft('ats');
-    if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You've used your free match, running it again needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
-    } else {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;"><strong style="color:var(--accent);">${left} free ${left===1?'match':'matches'}</strong> left. Then it's Premium.</p>`;
-    }
-  }
+  banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">Free, unlimited resume matching with no credit card.</p>`;
 })();
 </script>
   <script src="js/acctcenter.js"></script>

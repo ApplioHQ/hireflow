@@ -39,13 +39,6 @@
     "price": "0",
     "priceCurrency": "USD",
     "description": "Completely free, no credit card required"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "134",
-    "bestRating": "5",
-    "worstRating": "1"
   }
 }
 </script>
@@ -388,7 +381,6 @@ function stopRec(){ recording = false; try { _recog && _recog.stop(); } catch(e)
 /* ── send: user bubble → thinking sphere → answer bubble ── */
 async function send(){
   if (IS_ANON) { promptSignup('chat with your AI career coach'); return; }
-  if (_isFreeUser()) { _showPremiumGate(); return; }
   const field = document.getElementById('cc-field');
   const text = (field.value || '').trim();
   if (!text || busy) return;
@@ -421,7 +413,7 @@ async function send(){
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
       body: JSON.stringify({ messages: messages, resume: _resume() })
     });
-    if (r.status === 402) { if (typeof showUpgradeModal === 'function') showUpgradeModal('ai', 'assistant'); reply = 'Career Coach is a Premium feature.'; }
+    if (r.status === 402) { reply = 'Career Coach is temporarily unavailable. Please try again shortly.'; }
     else {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) { const m = data.error || ''; reply = /usage limit|limit reached|quota|neuron|429/i.test(m)
@@ -442,22 +434,9 @@ async function send(){
   if (orb) orb.resolve(() => { try { orb.destroy(); } catch(e){} finish(); }); else finish();
 }
 
-/* Premium gate (kept as a guard; never fires while the product is 100% free). */
-function _showPremiumGate(){
-  const live = document.getElementById('ca-live'); if (live) live.style.display = 'none';
-  document.getElementById('cc-chips').style.display = 'none';
-  document.querySelector('.cc-composer').style.display = 'none';
-  document.getElementById('cc-thread').innerHTML =
-    '<div class="ca-empty"><div class="ca-hero-badge"><span class="ca-title-brand large"><span class="brand-applio">Applio</span><span class="brand-ai"> AI</span></span></div>'
-    + '<h1>Career Coach is Premium</h1>'
-    + '<div class="ca-hero-sub" style="max-width:420px;margin:8px auto 18px;">Your personal AI coach that knows your resume. All free and unlimited.</div>'
-    + '<a class="btn btn-primary" href="pricing">See plans</a></div>';
-}
-
 renderInit(); refreshSend();
 (async () => {
   if (typeof loadCurrentUser === 'function') { await loadCurrentUser(); if (window.renderPlanPill) renderPlanPill(); }
-  if (_isFreeUser()) _showPremiumGate();
   try { document.getElementById('cc-field').focus(); } catch(e){}
 })();
 </script>

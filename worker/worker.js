@@ -1008,7 +1008,7 @@ async function adminAnalytics(req, env) {
   const plans = { free: 0, premium: 0, lifetime: 0 };
   let total = 0, totalDownloads = 0;
   let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
-  let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
+  let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, exportedUsers = 0, dormant = 0;
   let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
   // Self-reported outcomes (logged at export): interviews and offers.
   let interviewUsers = 0, interviewEvents = 0, offerEvents = 0, winsLast30 = 0;
@@ -1056,8 +1056,11 @@ async function adminAnalytics(req, env) {
     const dl = Number(u.downloadsUsed) || 0;
     totalDownloads += dl;
     if (dl > 0) everDownloaded++;
+    const features = u.features || {};
+    const hasExported = dl > 0 || Number(features.download_pdf) > 0 || Number(features.export_gdoc) > 0 || Number(features.export_print) > 0;
+    if (hasExported) exportedUsers++;
     if (u.aiUsed) usedAi++;
-    if (u.aiUsed || dl > 0) activated++;
+    if (u.aiUsed || hasExported) activated++;
     if (u.stripeCustomerId) stripeLinked++;
     // Active paid: lifetime never expires; premium counts if its period end is in the future.
     const premiumActive = plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now;
@@ -1094,8 +1097,8 @@ async function adminAnalytics(req, env) {
       const day = tzDay(created);
       if (day in signupsByDay) signupsByDay[day]++;
     }
-    // Dormant: joined more than 7 days ago and never downloaded anything.
-    if (created && now - created > 7 * DAY && dl === 0) dormant++;
+    // Dormant: joined more than 7 days ago and has neither used AI nor exported.
+    if (created && now - created > 7 * DAY && !u.aiUsed && !hasExported) dormant++;
 
     // Interview / offer outcomes the user self-reported at export. `interviewWins`
     // is [{outcome:'interview'|'offer'|'no', ts}]; count real wins only.
@@ -1151,7 +1154,8 @@ async function adminAnalytics(req, env) {
     aiLast7 += await num(`stats:ai:${tzDay(now - i * DAY)}`);
   }
   const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
-    "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse"];
+    "interview-feedback", "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse",
+    "linkedin", "modernize"];
   const aiByAction = {};
   for (const a of AI_ACTIONS) {
     const v = await num(`stats:ai:action:${a}`);
@@ -1163,24 +1167,38 @@ async function adminAnalytics(req, env) {
 
   // Non-AI feature usage counters (from /track beacon).
   const FEATURE_NAMES = [
-    "template_select", "download_pdf", "export_gdoc", "export_print",
+    "template_select", "section_visit", "version_restore", "version_save",
+    "download_pdf", "export_gdoc", "export_print",
     "job_tracker_open", "job_tracker_save", "cover_letter_open",
     "interview_prep_open", "salary_open", "skill_gap_open",
-    "version_restore", "resume_import", "referral_open",
+    "resume_import", "referral_open", "feedback_open",
     "onboarding_complete",
   ];
-  // Template variants tracked separately.
-  const TEMPLATE_IDS = ["harvard", "stanford", "modern", "minimal", "deedy",
-    "twocolumn", "healthcare", "sales", "ats", "classic", "creative", "tech"];
   const featureUsage = {};
   for (const f of FEATURE_NAMES) {
     const v = await num(`stats:feature:${f}`);
     if (v) featureUsage[f] = v;
   }
+  // Template variants share a prefix with daily template_select counters. Read the
+  // actual variant keys so new templates appear automatically, while excluding the
+  // YYYY-MM-DD daily counters.
+  const templateKeys = [];
+  let templateCursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "stats:feature:template_select:", cursor: templateCursor });
+    for (const key of page.keys) {
+      const variant = key.name.slice("stats:feature:template_select:".length);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(variant)) templateKeys.push({ name: key.name, variant });
+    }
+    templateCursor = page.list_complete ? undefined : page.cursor;
+  } while (templateCursor);
   const templatePicks = {};
-  for (const t of TEMPLATE_IDS) {
-    const v = await num(`stats:feature:template_select:${t}`);
-    if (v) templatePicks[t] = v;
+  for (let i = 0; i < templateKeys.length; i += 60) {
+    const batch = templateKeys.slice(i, i + 60);
+    const values = await Promise.all(batch.map(({ name }) => num(name)));
+    values.forEach((value, index) => {
+      if (value) templatePicks[batch[index].variant] = value;
+    });
   }
   // 7-day feature activity for key actions.
   const featureLast7 = {};
@@ -1332,7 +1350,7 @@ async function adminAnalytics(req, env) {
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
-    activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
+    activeSubs, stripeLinked, everDownloaded, exportedUsers, activationRate, dormant,
     usedAi, activated,
     // Retention / repeat usage
     activeToday, wau, mau, returning, returnRate, stickiness,
@@ -2335,12 +2353,20 @@ async function saveFeedback(req, env) {
 
 async function listFeedback(req, env) {
   await requireAdmin(req, env);
-  const list = await env.HIREFLOW_KV.list({ prefix: "feedback:", limit: 1000 });
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "feedback:", cursor, limit: 1000 });
+    keys.push(...page.keys);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
   const feedback = [];
-  for (const k of list.keys) {
-    const raw = await env.HIREFLOW_KV.get(k.name);
-    if (!raw) continue;
-    try { feedback.push(JSON.parse(raw)); } catch {}
+  for (let i = 0; i < keys.length; i += 60) {
+    const raws = await Promise.all(keys.slice(i, i + 60).map(key => env.HIREFLOW_KV.get(key.name)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      try { feedback.push(JSON.parse(raw)); } catch {}
+    }
   }
   feedback.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   return { feedback };
@@ -2705,7 +2731,7 @@ async function runAI(env, system, user, opts = {}) {
 // yields nothing. If both streaming attempts fail, falls back to non-streaming
 // runAI (which has its own model-fallback chain). This mirrors runAI's
 // resilience so a single flaky model can't take down all streaming AI.
-async function runAIStream(env, system, user, opts = {}) {
+async function runAIStream(env, system, user, opts = {}, onSuccess) {
   const wanted = opts.model || FAST_MODEL;
   const other = wanted === FAST_MODEL ? SMART_MODEL : FAST_MODEL;
   const chain = [wanted, other];
@@ -2739,7 +2765,11 @@ async function runAIStream(env, system, user, opts = {}) {
           const text = _aiText(res).trim();
           if (text) { await send(text); emitted = true; }
         }
-        if (emitted) { done(); return; }
+        if (emitted) {
+          try { if (onSuccess) await onSuccess(); } catch (_) {}
+          done();
+          return;
+        }
         // Empty response, try the next model.
         lastErr = new Error(`${model} returned empty stream`);
         console.error(`AI stream ${model} empty response, falling back`);
@@ -2752,7 +2782,12 @@ async function runAIStream(env, system, user, opts = {}) {
     // has its own model-fallback chain and different gateway attempts.
     try {
       const text = await runAI(env, system, user, opts);
-      if (text) { await send(text); done(); return; }
+      if (text) {
+        await send(text);
+        try { if (onSuccess) await onSuccess(); } catch (_) {}
+        done();
+        return;
+      }
     } catch (e) { lastErr = e; }
 
     // Everything failed. Emit an error the client can classify.
@@ -2785,6 +2820,7 @@ async function aiStream(req, env, action, cors) {
   let body;
   try { body = await req.json(); } catch { return fail(400, "Invalid request body"); }
 
+  let trackedUser = null;
   if (!isAdmin) {
     const rlDay = new Date().toISOString().slice(0, 10);
     const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
@@ -2796,6 +2832,7 @@ async function aiStream(req, env, action, cors) {
     const aiUntil = parseInt(aiUntilRaw || "0", 10);
     if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
     if (!user) return fail(404, "User not found");
+    trackedUser = user;
     const rlUsed = parseInt(rlRaw || "0", 10);
     const rlCap = isPaidPlan(user) ? PAID_AI_DAILY : FREE_AI_DAILY;
     if (rlUsed >= rlCap) return fail(429, "Daily AI limit reached. Try again tomorrow.");
@@ -2838,7 +2875,12 @@ async function aiStream(req, env, action, cors) {
     return fail(404, "Streaming not supported for this action");
   }
 
-  const stream = await runAIStream(env, sysPrompt, userPrompt, aiOpts);
+  const stream = await runAIStream(env, sysPrompt, userPrompt, aiOpts, async () => {
+    if (!trackedUser) return;
+    _recordUserFeature(trackedUser, action);
+    await putUser(env, trackedUser);
+    await _bumpAiUsage(env, action);
+  });
   return new Response(stream, { headers: sseHeaders });
 }
 

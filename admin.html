@@ -244,7 +244,7 @@
       <div class="kpi-card" style="--kpi-accent:#8a73f8;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="kpi-label">Total Users</span></div><div class="kpi-num" id="hc-total">—</div><div class="kpi-trend" id="hc-total-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#22c55e;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span class="kpi-label">Activation</span></div><div class="kpi-num" id="hc-activation">—</div><div class="kpi-trend" id="hc-activation-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#f59e0b;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><span class="kpi-label">Weekly Active</span></div><div class="kpi-num" id="hc-wau">—</div><div class="kpi-trend" id="hc-wau-trend"></div></div>
-      <div class="kpi-card" style="--kpi-accent:#14b8a6;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span><span class="kpi-label">Resumes Exported</span></div><div class="kpi-num" id="hc-exports">—</div><div class="kpi-trend" id="hc-exports-trend"></div></div>
+      <div class="kpi-card" style="--kpi-accent:#14b8a6;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span><span class="kpi-label">Export Actions</span></div><div class="kpi-num" id="hc-exports">—</div><div class="kpi-trend" id="hc-exports-trend"></div></div>
     </div>
 
     <div class="dash-grid">
@@ -650,8 +650,7 @@ function _totalExports(d) {
   return (f.download_pdf || 0) + (f.export_gdoc || 0) + (f.export_print || 0);
 }
 function _usersExported(d) {
-  var u = d.usersByNonAiFeature || {};
-  return Math.max(u.download_pdf || 0, u.export_gdoc || 0, u.export_print || 0, d.everDownloaded || 0);
+  return d.exportedUsers || 0;
 }
 
 function renderHeroCards(d) {
@@ -980,15 +979,14 @@ function renderExports(d) {
 }
 
 // ─── AI / Feature bars ───
-var _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', letter: 'Letter Writer', interview: 'Interview Prep', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', salary: 'Salary Insights', win: 'Win Polish', parse: 'Resume Import' };
+var _AI_LABELS = { tailor: 'Tailor to Job', ats: 'ATS Check', analyze: 'Resume Analysis', improve: 'AI Improve', 'cover-letter': 'Cover Letter', letter: 'Letter Writer', interview: 'Interview Prep', 'interview-feedback': 'Interview Feedback', assistant: 'Career Coach', autopilot: 'Autopilot', skills: 'Suggest Skills', 'skill-gap': 'Skill Gap', salary: 'Salary Insights', win: 'Win Polish', parse: 'Resume Import', linkedin: 'LinkedIn Optimizer', modernize: 'Resume Modernizer' };
 function _aiLabel(k) { return _AI_LABELS[k] || k; }
 var _FEATURE_LABELS = {
-  template_select: 'Template Changed', download_pdf: 'PDF Download', export_gdoc: 'Google Docs Export',
+  template_select: 'Template Changed', section_visit: 'Section Visited', version_restore: 'Version Restored', version_save: 'Version Saved', download_pdf: 'PDF Download', export_gdoc: 'Google Docs Export',
   export_print: 'Print', job_tracker_open: 'Job Tracker', job_tracker_save: 'Job Saved',
   cover_letter_open: 'Cover Letter', interview_prep_open: 'Interview Prep',
   salary_open: 'Salary Lookup', skill_gap_open: 'Skill Gap',
-  version_restore: 'Version Restored', resume_import: 'Resume Imported',
-  referral_open: 'Referral Panel', onboarding_complete: 'Onboarding Done',
+  resume_import: 'Resume Imported', referral_open: 'Referral Panel', feedback_open: 'Feedback Opened', onboarding_complete: 'Onboarding Done',
 };
 function _featureLabel(k) { return _FEATURE_LABELS[k] || k.replace(/_/g,' '); }
 

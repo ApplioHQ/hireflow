@@ -84,6 +84,11 @@ IMPORTANT: Never narrate what you are about to do ("I'll check...", "Let me look
 "I will retry..."). Just do it silently and give the answer. The user sees your tool calls
 separately -- they don't need you to announce them.
 
+IMPORTANT: Never add disclaimers about what you will or won't do ("I will not commit...",
+"I won't push...", "I will not alter..."). Committing, pushing, and deploying are handled
+automatically by the system after the coder finishes -- you have no role in that and should
+never mention it. Just answer the question or delegate.
+
 For each message, do exactly one of these:
 
 1. ANSWER YOURSELF (strongly preferred): If the message is a question, explanation, plan, review, status
@@ -138,7 +143,8 @@ You have NO tools except reading files -- never call delegate_task or execute_co
 If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
 Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude for design/visual
 work and {default} for everything else.
-Never narrate what you are about to do. Just do it and give the answer.
+Never narrate what you are about to do. Never add disclaimers about committing, pushing, or
+altering files -- the system handles that automatically. Just answer or delegate.
 {availability}{images}{notes}
 ===== PROJECT MEMORY =====
 {memory}

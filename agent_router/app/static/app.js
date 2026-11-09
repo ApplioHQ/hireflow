@@ -656,6 +656,7 @@ function renderSettings(p) {
     <label>Default coder<select name="coder">${coders.map((c) => `<option value="${esc(c)}"${c === p.coders[0] ? " selected" : ""}>${esc(nameOf(c))}</option>`).join("")}</select></label>
     <p class="muted">If the default coder hits a usage limit, the other one takes over.</p>
     <label>Check command <span class="muted">(runs after every coding turn; leave empty for none)</span><input name="check" value="${esc(p.check || "")}"></label>
+    <label>Deploy command <span class="muted">(runs after successful changes to go live; leave empty for none)</span><input name="deploy" value="${esc(p.deploy || "")}"></label>
     <label>Preview URL <span class="muted">(for live preview and auto-screenshots after changes)</span><input name="preview_url" value="${esc(p.preview_url || "")}" placeholder="http://localhost:3000"></label>
     <label>Preview pages <span class="muted">(comma-separated paths to screenshot, e.g. /,/login,/dashboard)</span><input name="preview_pages" value="${esc((p.preview_pages || []).join(", "))}" placeholder="/"></label>
     ${p.notes ? `<p class="muted">Project rules: ${esc(p.notes)}</p>` : ""}
@@ -910,6 +911,7 @@ document.addEventListener("submit", async (e) => {
     const previewPages = (form.preview_pages?.value || "").split(",").map((s) => s.trim()).filter(Boolean);
     await api("/api/projects/update", {
       project: pid, name: form.elements.name.value.trim() || p.name, coders, check: form.check.value,
+      deploy: form.deploy?.value || "",
       preview_url: form.preview_url?.value?.trim() || "",
       preview_pages: previewPages.length ? previewPages : undefined,
     });

@@ -279,7 +279,8 @@ class Handler(BaseHTTPRequestHandler):
                                        or not all(c in eng.coders for c in coders)):
                 raise ApiError(400, f"Coders must be some of: {', '.join(eng.coders)}")
             eng.store.update_project(pid, coders=coders, check=b.get("check"), name=b.get("name"),
-                                     preview_url=b.get("preview_url"), preview_pages=b.get("preview_pages"))
+                                     preview_url=b.get("preview_url"), preview_pages=b.get("preview_pages"),
+                                     deploy=b.get("deploy"))
             return {"ok": True}
         if path == "/api/screenshot":
             url = b.get("url", "")

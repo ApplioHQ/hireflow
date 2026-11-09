@@ -1115,15 +1115,24 @@ class Engine:
             self.store.remember(pid, name(coder), summary)
         committed = False
         if ok and files and self.cfg.get("auto_commit", False):
-            chat = self.store.chat(pid, cid)
-            user_msg = next((m["text"] for m in reversed(chat["messages"]) if m["role"] == "user"), "")
-            short = " ".join(user_msg.split()[:12]) if user_msg else "agent changes"
-            commit_msg = f"{name(coder)}: {short}\n\nFiles: {', '.join(files[:10])}"
-            committed, commit_out = router.git_commit_and_push(project["path"], files, commit_msg)
-            if committed:
-                self.store.add(pid, cid, {"role": "note", "text": f"Auto-committed and pushed ({', '.join(files[:5])})."})
+            has_git = (Path(project["path"]) / ".git").exists()
+            if has_git:
+                chat = self.store.chat(pid, cid)
+                user_msg = next((m["text"] for m in reversed(chat["messages"]) if m["role"] == "user"), "")
+                short = " ".join(user_msg.split()[:12]) if user_msg else "agent changes"
+                commit_msg = f"{name(coder)}: {short}\n\nFiles: {', '.join(files[:10])}"
+                committed, commit_out = router.git_commit_and_push(project["path"], files, commit_msg)
+                if committed:
+                    self.store.add(pid, cid, {"role": "note", "text": f"Auto-committed and pushed ({', '.join(files[:5])})."})
+                else:
+                    self.store.add(pid, cid, {"role": "note", "text": f"Auto-commit failed: {commit_out[:200]}"})
+        if ok and files and project.get("deploy"):
+            deploy_code, deploy_out = router.run_check(project["deploy"], project["path"],
+                                                       self.cfg.get("check_timeout", 600))
+            if deploy_code == 0:
+                self.store.add(pid, cid, {"role": "note", "text": "Auto-deploy ran successfully."})
             else:
-                self.store.add(pid, cid, {"role": "note", "text": f"Auto-commit failed: {commit_out[:200]}"})
+                self.store.add(pid, cid, {"role": "note", "text": f"Auto-deploy failed: {deploy_out[:200]}"})
 
         agent_summary = router.tail(turn["output"], 800).strip().split("\n")
         agent_summary = " ".join(l.strip() for l in agent_summary[-6:] if l.strip())[:400]

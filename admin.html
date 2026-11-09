@@ -88,6 +88,16 @@
   .section-hd .sub, .section-hd .section-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .section-bd { padding: 20px; }
 
+  /* ===== Daily Update widget ===== */
+  .du-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 700px) { .du-grid { grid-template-columns: repeat(2, 1fr); } }
+  .du-stat { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .du-num { font-size: 24px; font-weight: 800; letter-spacing: -.5px; line-height: 1.1; }
+  .du-lbl { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .du-status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
+  .du-status-ok { background: var(--success-soft); color: var(--success-text); }
+  .du-status-warn { background: var(--danger-soft); color: var(--danger-text); }
+
   /* ===== Grid layouts ===== */
   .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .dash-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
@@ -242,7 +252,7 @@
       <div class="section-hd">
         <div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Daily Update</h2><div class="sub" id="daily-update-updated">Loading…</div></div>
       </div>
-      <div class="section-bd" id="daily-update-body" style="font-size:13px; line-height:1.75;">Loading…</div>
+      <div class="section-bd" id="daily-update-body">Loading…</div>
     </div>
 
     <!-- KPI cards (free product: no revenue/paid metrics) -->
@@ -634,25 +644,45 @@ function renderDailyUpdate() {
   if (!el || !LAST_ANALYTICS || !LAST_STATUS) return;
   var d = LAST_ANALYTICS, s = LAST_STATUS;
   var trend = d.signupTrend || 0;
-  var trendTxt = trend > 0 ? ('up ' + trend + '%') : trend < 0 ? ('down ' + Math.abs(trend) + '%') : 'flat';
-  var growth = (d.signupsToday || 0) + ' new signup' + (d.signupsToday === 1 ? '' : 's') + ' today, '
-    + (d.last7Signups || 0) + ' in the last 7 days (' + trendTxt + ' vs the prior week), '
-    + (d.last30Signups || 0) + ' in the last 30 days. ' + (d.total || 0).toLocaleString() + ' total users.';
-  var usage = (d.wau || 0).toLocaleString() + ' weekly active (' + (d.stickiness || 0) + '% sticky), '
-    + (d.activeToday || 0) + ' active today, ' + (d.aiToday || 0) + ' AI uses today ('
-    + (d.totalAiUses || 0).toLocaleString() + ' all time), ' + (d.exportedUsers || 0) + ' users exported.';
+  var tArrow = trend > 0 ? '&#9650;' : trend < 0 ? '&#9660;' : '';
+  var tCls = trend > 0 ? 'color:var(--success-text)' : trend < 0 ? 'color:var(--danger-text)' : 'color:var(--muted)';
+  var tTxt = Math.abs(trend) + '% vs prior week';
 
   var issues = [];
-  if (s.aiDisabled) issues.push('AI is DISABLED until ' + fmtUnix(s.aiDisabledUntil) + '.');
-  if (s.maintenance) issues.push('Site is in MAINTENANCE mode until ' + fmtUnix(s.maintenanceUntil) + '.');
-  if (s.adminEnabled === false) issues.push('ADMIN tier is disabled.');
-  if (!(d.signupsToday || d.visitorsToday)) issues.push('No signups or visitors recorded yet today.');
+  if (s.aiDisabled) issues.push('AI disabled until ' + fmtUnix(s.aiDisabledUntil));
+  if (s.maintenance) issues.push('Maintenance until ' + fmtUnix(s.maintenanceUntil));
+  if (s.adminEnabled === false) issues.push('Admin tier disabled');
+  if (!(d.signupsToday || d.visitorsToday)) issues.push('No traffic recorded yet today');
   var hasIssue = !!(s.aiDisabled || s.maintenance || s.adminEnabled === false);
-  var issuesTxt = issues.length ? issues.join(' ') : 'No issues detected, AI and site fully operational.';
 
-  el.innerHTML = '<div style="margin-bottom:6px;"><strong>Growth:</strong> ' + esc(growth) + '</div>'
-    + '<div style="margin-bottom:6px;"><strong>Usage:</strong> ' + esc(usage) + '</div>'
-    + '<div><strong>Backend:</strong> <span class="' + (hasIssue ? 'status-on' : 'status-off') + '">' + esc(issuesTxt) + '</span></div>';
+  var html = '<div class="du-grid">';
+
+  // Row 1: Growth stats
+  html += '<div class="du-stat"><div class="du-num">' + (d.signupsToday || 0) + '</div><div class="du-lbl">Signups today</div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.last7Signups || 0) + '</div><div class="du-lbl">Last 7 days <span style="'+tCls+';font-weight:700;font-size:11px;">' + tArrow + ' ' + esc(tTxt) + '</span></div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.last30Signups || 0) + '</div><div class="du-lbl">Last 30 days</div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.total || 0).toLocaleString() + '</div><div class="du-lbl">Total users</div></div>';
+
+  // Row 2: Usage stats
+  html += '<div class="du-stat"><div class="du-num">' + (d.wau || 0) + '</div><div class="du-lbl">Weekly active <span style="color:var(--muted);font-size:11px;">' + (d.stickiness || 0) + '% sticky</span></div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.activeToday || 0) + '</div><div class="du-lbl">Active today</div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.aiToday || 0) + '</div><div class="du-lbl">AI uses today <span style="color:var(--muted);font-size:11px;">' + (d.totalAiUses || 0).toLocaleString() + ' all time</span></div></div>'
+    + '<div class="du-stat"><div class="du-num">' + (d.exportedUsers || 0) + '</div><div class="du-lbl">Users exported</div></div>';
+
+  html += '</div>';
+
+  // Backend status bar
+  if (hasIssue) {
+    html += '<div class="du-status du-status-warn">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span>' + esc(issues.join(' -- ')) + '</span></div>';
+  } else {
+    html += '<div class="du-status du-status-ok">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+      + '<span>All systems operational</span></div>';
+  }
+
+  el.innerHTML = html;
   var upd = document.getElementById('daily-update-updated');
   if (upd) upd.textContent = 'As of ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }

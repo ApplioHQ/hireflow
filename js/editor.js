@@ -4306,7 +4306,7 @@ async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
   if (!bulletText) return toast('Add some text to this bullet first.', { type: 'warn' });
   const INSTR = {
     improve: 'Make this one bullet stronger and more specific. Return a single bullet line.',
-    quantify: 'Rewrite this one bullet to include a concrete metric or number (keep it truthful). Return a single bullet line.',
+    quantify: 'Use a metric only if this original bullet explicitly states one. Otherwise, keep the improvement qualitative. Return a single bullet line.',
     shorten: 'Make this one bullet more concise without losing impact. Return a single bullet line.',
     rewrite: 'Rewrite this one bullet more impactfully with a strong action verb. Return a single bullet line.'
   };

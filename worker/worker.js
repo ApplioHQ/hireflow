@@ -22,7 +22,7 @@ const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 // model can never fabricate facts the candidate didn't actually provide. This is the
 // single most important guardrail for output quality/trust.
 const GROUNDING = `GROUNDING, the most important rule, overrides everything else if in conflict:
-Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative, never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
+Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, extrapolate, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. A number or quantitative claim may appear only when that exact detail appears in the input. Never convert a qualitative statement into a numeric claim, use a typical industry metric, or fill in a missing detail. If a specific detail is missing, keep the statement qualitative. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
 Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
@@ -2739,7 +2739,7 @@ async function runAI(env, system, user, opts = {}) {
 // yields nothing. If both streaming attempts fail, falls back to non-streaming
 // runAI (which has its own model-fallback chain). This mirrors runAI's
 // resilience so a single flaky model can't take down all streaming AI.
-async function runAIStream(env, system, user, opts = {}, onSuccess) {
+async function runAIStream(env, system, user, opts = {}, onSuccess, transformOutput) {
   const wanted = opts.model || FAST_MODEL;
   const other = wanted === FAST_MODEL ? SMART_MODEL : FAST_MODEL;
   const chain = [wanted, other];
@@ -2763,17 +2763,27 @@ async function runAIStream(env, system, user, opts = {}, onSuccess) {
       try {
         const res = await env.AI.run(model, payload);
         let emitted = false;
+        let output = "";
         if (res && typeof res[Symbol.asyncIterator] === "function") {
           for await (const part of res) {
             const token = part && (part.response || (part.choices && part.choices[0] && part.choices[0].delta && part.choices[0].delta.content) || "");
-            if (token) { await send(token); emitted = true; }
+            if (token) {
+              if (transformOutput) output += token;
+              else await send(token);
+              emitted = true;
+            }
           }
         } else {
           // Non-streaming response from this model: emit full text as one chunk.
           const text = _aiText(res).trim();
-          if (text) { await send(text); emitted = true; }
+          if (text) {
+            if (transformOutput) output = text;
+            else await send(text);
+            emitted = true;
+          }
         }
         if (emitted) {
+          if (transformOutput) await send(transformOutput(output));
           try { if (onSuccess) await onSuccess(); } catch (_) {}
           done();
           return;
@@ -2791,7 +2801,7 @@ async function runAIStream(env, system, user, opts = {}, onSuccess) {
     try {
       const text = await runAI(env, system, user, opts);
       if (text) {
-        await send(text);
+        await send(transformOutput ? transformOutput(text) : text);
         try { if (onSuccess) await onSuccess(); } catch (_) {}
         done();
         return;
@@ -2855,19 +2865,20 @@ async function aiStream(req, env, action, cors) {
     const ctx = context || {};
     const role = String(ctx.role || "").slice(0, 120);
     const company = String(ctx.company || "").slice(0, 120);
+    const groundingInput = `${text}\n${role}\n${company}`;
     const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.\n` : "";
     const isSummary = target === "summary" || target === "personal";
     const mode = String(ctx.mode || "improve");
     const isSingleBullet = !!ctx.instruction;
 
     if (isSummary) {
-      sysPrompt = `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths, concrete nouns, not adjectives.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Plain text only, no markdown.\n\nOUTPUT: Only the rewritten summary. Nothing else.`;
+      sysPrompt = GROUNDING + `\n\nYou are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths, concrete nouns, not adjectives.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Plain text only, no markdown.\n\nOUTPUT: Only the rewritten summary. Nothing else.`;
       userPrompt = `Original:\n${text}\n\nRewrite it.`;
       aiOpts = { max_tokens: 200, temperature: 0.3 };
     } else if (isSingleBullet) {
       const modeInstr = {
         improve: "Make this bullet stronger and more specific.",
-        quantify: "Rewrite this bullet to include a concrete metric or number (keep it truthful, never invent numbers).",
+        quantify: "Rewrite this bullet using a metric only when the original bullet explicitly provides one. Otherwise, keep it qualitative.",
         shorten: "Make this bullet more concise without losing impact.",
         rewrite: "Rewrite this bullet more impactfully with a strong action verb."
       };
@@ -2875,7 +2886,7 @@ async function aiStream(req, env, action, cors) {
       userPrompt = `Original bullet:\n${text}\n\nRewrite it.`;
       aiOpts = { max_tokens: 80, temperature: 0.25 };
     } else {
-      sysPrompt = `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets.\n${roleLine}\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored.\n- Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
+      sysPrompt = GROUNDING + `\n\nYou are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets.\n${roleLine}\nEvery bullet: [strong action verb] + [what you did] + [an outcome or scope stated in the input].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored.\n- Include a metric ONLY when it is explicitly stated in the input. Otherwise, keep the result qualitative.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
       userPrompt = `Original content:\n${text}\n\nRewrite it.`;
       aiOpts = { max_tokens: 360, temperature: 0.25 };
     }
@@ -2888,7 +2899,7 @@ async function aiStream(req, env, action, cors) {
     _recordUserFeature(trackedUser, action);
     await putUser(env, trackedUser);
     await _bumpAiUsage(env, action);
-  });
+  }, output => _safeImproveText(output, text, groundingInput, isSummary));
   return new Response(stream, { headers: sseHeaders });
 }
 
@@ -3018,13 +3029,13 @@ OUTPUT: Only the rewritten summary. Nothing else.`
     : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.
 ${roleLine}
 
-Every bullet follows the impact formula:  [strong action verb] + [what you did] + [the measurable result or scope].
+Every bullet follows the impact formula: [strong action verb] + [what you did] + [an outcome or scope stated in the input].
 
 HARD RULES, follow exactly:
 - Output 3-6 bullets, one per line, each starting with "• ".
 - Each bullet is ONE sentence, 12-20 words. Never a second sentence or trailing "which…" clause.
 - Begin each bullet with a DISTINCT strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected, Launched, Cut, Scaled, Automated, Negotiated). Never reuse a verb.
-- Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if present in or directly implied by the input. NEVER invent numbers.
+- Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if explicitly stated in the input. Otherwise, keep the result qualitative.
 - Keep real facts; prefer concrete outcomes over stacked adjectives.
 - BANNED openers/phrases (never use): "Responsible for", "Worked on", "Helped", "Assisted with", "Tasked with", "Duties included", "Successfully", "In order to", "Various".
 - BANNED verbs (overused AI-resume clichés, never use): "Spearheaded", "Leveraged", "Utilized", "Orchestrated", "Pioneered", "Championed", "Facilitated", "Synergized", "Endeavored". Use plain, specific verbs instead (Led, Built, Cut, Shipped, Grew, Ran, Designed, Reduced, Automated, Launched, Negotiated, Delivered).
@@ -3035,11 +3046,11 @@ Before answering, silently self-check each bullet: unique strong verb? not a ban
 
 EXAMPLES (weak input → strong bullet):
   "Responsible for the website and worked on making it faster."
-    → "• Rebuilt the marketing site in Next.js, cutting page load time 40%."
+    → "• Improved the marketing site experience by refining performance and usability."
   "Helped the sales team with reports and did some analysis to find trends."
-    → "• Built weekly sales dashboards in SQL, surfacing trends that lifted quota attainment."
+    → "• Built sales reports and analyzed trends to support the sales team."
   "Managed engineers and shipped features."
-    → "• Led a team of engineers to ship three core features across two product launches."
+    → "• Led engineers through delivery of core product features."
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
   const sys = GROUNDING + "\n\n" + body;
@@ -3056,7 +3067,7 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
   // For bullets, enforce format + strip banned openers in CODE so a chatty model can
   // never slip fluff past us: one tight sentence per bullet, ≤20 words, distinct verbs.
   if (!isSummary) cleaned = _tightenBullets(cleaned);
-  return { text: cleaned };
+  return { text: _safeImproveText(cleaned, text, `${text}\n${role}\n${company}`, isSummary) };
 }
 
 // ============ Polish one win-journal note into a resume-ready bullet ============
@@ -3113,6 +3124,20 @@ function _tightenBullets(out) {
     if (bullets.length >= 6) break;
   }
   return bullets.length ? bullets.join("\n") : out;
+}
+
+const _QUANTITATIVE_TOKEN_RE = /(?:[$€£]\s*)?\b\d[\d,]*(?:\.\d+)?(?:\s*%|\s*(?:k|m|b|hours?|days?|weeks?|months?|years?|people|employees|engineers|users|clients|customers|projects|features|reports))?\b|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen|hundred|thousand|million|billion|couple|several)\b/gi;
+
+function _hasUnsupportedQuantity(output, input) {
+  const source = String(input || "").toLowerCase().replace(/\s+/g, "");
+  const tokens = String(output || "").match(_QUANTITATIVE_TOKEN_RE) || [];
+  return tokens.some(token => !source.includes(token.toLowerCase().replace(/\s+/g, "")));
+}
+
+function _safeImproveText(output, original, groundingInput, isSummary) {
+  if (!_hasUnsupportedQuantity(output, groundingInput)) return output;
+  const source = String(original || "").trim();
+  return isSummary ? source : _tightenBullets(source);
 }
 
 // ============ Generative-output safety net =====================================

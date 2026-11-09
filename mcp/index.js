@@ -84,7 +84,7 @@ server.tool(
 
 server.tool(
   "improve_resume_bullets",
-  "Rewrite resume bullet points to be stronger, more quantified, and ATS-friendly. Grounded in the candidate's real experience, never fabricates.",
+  "Rewrite resume bullet points to be stronger and ATS-friendly, using only facts in the provided bullets. Never invent metrics, numbers, dates, tools, team sizes, or certifications.",
   {
     bullets: z.string().describe("The resume bullet points to improve (one per line)"),
     role: z.string().optional().describe("Target job title for context"),
@@ -93,8 +93,7 @@ server.tool(
     if (!TOKEN) {
       return { content: [{ type: "text", text: "Resume improvement requires authentication. Set APPLIO_TOKEN to your Applio auth token." }] };
     }
-    const body = { text: bullets, section: "experience" };
-    if (role) body.role = role;
+    const body = { target: "experience", text: bullets, context: { section: "experience", role: role || "" } };
     const data = await api("/ai/improve", { method: "POST", body: JSON.stringify(body) });
     return { content: [{ type: "text", text: typeof data === "string" ? data : JSON.stringify(data, null, 2) }] };
   }

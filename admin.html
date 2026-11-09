@@ -237,6 +237,14 @@
   <section class="band" id="overview">
     <div class="band-hd"><h2>Overview</h2><span class="band-note">Top-line product health</span></div>
 
+    <!-- Daily Update widget: one-glance growth + usage + backend health -->
+    <div class="section-card" id="daily-update-card" style="margin-bottom:18px;">
+      <div class="section-hd">
+        <div><h2><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Daily Update</h2><div class="sub" id="daily-update-updated">Loading…</div></div>
+      </div>
+      <div class="section-bd" id="daily-update-body" style="font-size:13px; line-height:1.75;">Loading…</div>
+    </div>
+
     <!-- KPI cards (free product: no revenue/paid metrics) -->
     <div class="kpi-grid" id="kpi-grid" style="margin-bottom:18px;">
       <div class="kpi-card" style="--kpi-accent:#06b6d4;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="kpi-label">Visitors</span></div><div class="kpi-num" id="hc-visitors">—</div><div class="kpi-trend" id="hc-visitors-trend"></div></div>
@@ -596,6 +604,8 @@ async function refresh() {
     ALL_USERS = r[0].users || [];
     renderUsers();
     renderStatus(r[1]);
+    LAST_STATUS = r[1];
+    renderDailyUpdate();
   });
   var results = await Promise.allSettled([usersAndStatus, loadAnalytics(), loadFeedback(), loadExcludedIps()]);
 
@@ -614,10 +624,45 @@ async function refresh() {
   _refreshing = false;
 }
 
+// ─────────────── Daily Update widget ───────────────
+// Pure front-end composition over data the Overview/System panels already fetch
+// (/admin/analytics + /status), no new endpoint. Recomputed on every refresh, so
+// it always reflects "as of now" rather than a locked daily snapshot.
+var LAST_ANALYTICS = null, LAST_STATUS = null;
+function renderDailyUpdate() {
+  var el = document.getElementById('daily-update-body');
+  if (!el || !LAST_ANALYTICS || !LAST_STATUS) return;
+  var d = LAST_ANALYTICS, s = LAST_STATUS;
+  var trend = d.signupTrend || 0;
+  var trendTxt = trend > 0 ? ('up ' + trend + '%') : trend < 0 ? ('down ' + Math.abs(trend) + '%') : 'flat';
+  var growth = (d.signupsToday || 0) + ' new signup' + (d.signupsToday === 1 ? '' : 's') + ' today, '
+    + (d.last7Signups || 0) + ' in the last 7 days (' + trendTxt + ' vs the prior week), '
+    + (d.last30Signups || 0) + ' in the last 30 days. ' + (d.total || 0).toLocaleString() + ' total users.';
+  var usage = (d.wau || 0).toLocaleString() + ' weekly active (' + (d.stickiness || 0) + '% sticky), '
+    + (d.activeToday || 0) + ' active today, ' + (d.aiToday || 0) + ' AI uses today ('
+    + (d.totalAiUses || 0).toLocaleString() + ' all time), ' + (d.exportedUsers || 0) + ' users exported.';
+
+  var issues = [];
+  if (s.aiDisabled) issues.push('AI is DISABLED until ' + fmtUnix(s.aiDisabledUntil) + '.');
+  if (s.maintenance) issues.push('Site is in MAINTENANCE mode until ' + fmtUnix(s.maintenanceUntil) + '.');
+  if (s.adminEnabled === false) issues.push('ADMIN tier is disabled.');
+  if (!(d.signupsToday || d.visitorsToday)) issues.push('No signups or visitors recorded yet today.');
+  var hasIssue = !!(s.aiDisabled || s.maintenance || s.adminEnabled === false);
+  var issuesTxt = issues.length ? issues.join(' ') : 'No issues detected, AI and site fully operational.';
+
+  el.innerHTML = '<div style="margin-bottom:6px;"><strong>Growth:</strong> ' + esc(growth) + '</div>'
+    + '<div style="margin-bottom:6px;"><strong>Usage:</strong> ' + esc(usage) + '</div>'
+    + '<div><strong>Backend:</strong> <span class="' + (hasIssue ? 'status-on' : 'status-off') + '">' + esc(issuesTxt) + '</span></div>';
+  var upd = document.getElementById('daily-update-updated');
+  if (upd) upd.textContent = 'As of ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
 // ─────────────── Hero cards + charts ───────────────
 async function loadAnalytics() {
   try {
     var d = await apiGet('/admin/analytics');
+    LAST_ANALYTICS = d;
+    renderDailyUpdate();
     renderHeroCards(d);
     renderDailyBreakdown(d.dailyBreakdown || []);
     renderAreaChart('chart-signups', 'chart-signups-labels', d.signupsByDay, '#6d4dfc');

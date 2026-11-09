@@ -34,6 +34,12 @@ const DEFAULT_RESUME = {
   versions: []
 };
 
+function _resumeSnapshot(source) {
+  const snapshot = JSON.parse(JSON.stringify(source || {}));
+  delete snapshot.versions;
+  return snapshot;
+}
+
 // Deep-merge any loaded resume against the default shape so a valid-but-partial or
 // legacy record (missing customize / personal / skills.categories / tailor) can never
 // white-screen the editor (renderPreview reads resume.customize.accent on every render).
@@ -48,6 +54,9 @@ function _normalizeResume(raw) {
   }
   for (const k of Object.keys(raw)) { if (!(k in base)) base[k] = raw[k]; }   // keep custom-section arrays
   if (!base.skills || !Array.isArray(base.skills.categories)) base.skills = { categories: [] };
+  base.versions = Array.isArray(base.versions) ? base.versions.slice(0, 25).map(function (version) {
+    return Object.assign({}, version, { data: _resumeSnapshot(version && version.data) });
+  }) : [];
   return base;
 }
 
@@ -3585,8 +3594,7 @@ async function saveResume(silent) {
   if (IS_ANON) { _promptSignup('save your resume and pick up on any device'); return; }
   resume.versions = resume.versions || [];
   // Snapshot excludes versions array to prevent recursive nesting
-  const { versions: _v, ...snap } = resume;
-  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(snap)) });
+  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: _resumeSnapshot(resume) });
   resume.versions = resume.versions.slice(0, 10);
   save();
   let cloudOk = false;
@@ -4418,7 +4426,7 @@ async function aiTailor() {
       // the user's original summary is always recoverable from version history.
       if ((resume.personal.summary || '').trim()) {
         resume.versions = resume.versions || [];
-        resume.versions.unshift({ ts: Date.now(), label: 'Before AI tailor', data: JSON.parse(JSON.stringify(resume)) });
+        resume.versions.unshift({ ts: Date.now(), label: 'Before AI tailor', data: _resumeSnapshot(resume) });
         if (resume.versions.length > 25) resume.versions.length = 25;
       }
       resume.personal.summary = r.summary;

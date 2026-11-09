@@ -92,7 +92,7 @@
         <div style="font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4;">Compress spacing and text so everything fits on a single page.</div>
       </div>
       <button class="btn btn-primary btn-block" onclick="tryExport(SELECTED_FORMAT)" id="btn-pdf"></button>
-      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="tryExport('pdf')">Print</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="printFrame()">Print</button>
       <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
       <!-- Hidden until Google OAuth verification is complete -->
       <div id="gdoc-section" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
@@ -126,6 +126,13 @@ const resume = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
   catch { return {}; }  // corrupt storage must not white-screen the export page
 })();
+
+function _resumeForExport(source) {
+  const copy = JSON.parse(JSON.stringify(source || {}));
+  delete copy.versions;
+  delete copy.tailor;
+  return copy;
+}
 
 let _exportFrame = null;
 
@@ -428,8 +435,14 @@ async function tryExport(fmt) {
       if (!rendered) printFrame();
       _trackExport('download_pdf');
     } catch (e) {
-      if (typeof toast === 'function') toast(e.message || 'PDF export failed. Please try again.', { type: 'error' });
-      return;
+      if (e && e.code === 'resume_too_large') {
+        printFrame();
+        _trackExport('export_print');
+        if (typeof toast === 'function') toast('Your resume is ready to save through your browser print dialog.', { type: 'info' });
+      } else {
+        if (typeof toast === 'function') toast(e.message || 'PDF export failed. Please try again.', { type: 'error' });
+        return;
+      }
     }
   }
   else if (fmt === 'html') exportHTML();
@@ -679,7 +692,7 @@ async function exportToGdoc() {
     const r = await fetch(window.HIREFLOW_CONFIG.API_URL + '/export-gdoc', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume }),
+      body: JSON.stringify({ resume: _resumeForExport(resume) }),
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Export failed');
@@ -794,12 +807,14 @@ async function downloadAuthoritativePdf() {
     const response = await fetch(window.HIREFLOW_CONFIG.API_URL + '/resume/pdf', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume }),
+      body: JSON.stringify({ resume: _resumeForExport(resume) }),
     });
     if (!response.ok) {
       let data = {}; try { data = await response.json(); } catch (_) {}
       if (data.code === 'renderer_unavailable') return false;
-      throw new Error(data.error || 'PDF export failed');
+      const error = new Error(data.error || 'PDF export failed');
+      error.code = data.code;
+      throw error;
     }
     const blob = await response.blob();
     if (!blob.size || blob.type !== 'application/pdf') throw new Error('The PDF renderer returned an invalid file');

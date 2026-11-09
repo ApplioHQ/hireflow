@@ -1453,6 +1453,13 @@ async function getResume(req, env) {
 const PDF_RENDER_TTL = 180;
 const PDF_RENDER_MAX_BYTES = 350000;
 
+function resumeForPdf(resume) {
+  const clean = JSON.parse(JSON.stringify(resume));
+  delete clean.versions;
+  delete clean.tailor;
+  return clean;
+}
+
 function newRenderToken() {
   return bufToHex(crypto.getRandomValues(new Uint8Array(32)));
 }
@@ -1481,9 +1488,10 @@ async function renderResumePdf(req, env) {
   if (!resume || typeof resume !== "object" || Array.isArray(resume)) {
     return json({ error: "A resume is required" }, 400);
   }
-  const encoded = JSON.stringify(resume);
+  const renderResume = resumeForPdf(resume);
+  const encoded = JSON.stringify(renderResume);
   if (encoded.length > PDF_RENDER_MAX_BYTES) {
-    return json({ error: "This resume is too large to render as a PDF. Remove nonessential text and try again." }, 413);
+    return json({ error: "This resume has too much content to render as a PDF. Use Print to save it through your browser, or trim nonessential text and try again.", code: "resume_too_large" }, 413);
   }
   if (!env.CF_BROWSER_RENDERING_ACCOUNT_ID || !env.CF_BROWSER_RENDERING_TOKEN) {
     return json({ error: "The secure PDF renderer is not enabled", code: "renderer_unavailable" }, 503);
@@ -1491,14 +1499,14 @@ async function renderResumePdf(req, env) {
 
   const token = newRenderToken();
   await env.HIREFLOW_KV.put(`resume-render:${token}`, JSON.stringify({
-    resume,
+    resume: renderResume,
     email: payload.email,
     createdAt: Date.now(),
   }), { expirationTtl: PDF_RENDER_TTL });
 
   const site = String(env.SITE_URL || "https://appliohq.com").replace(/\/$/, "");
   const rendererUrl = `${site}/resume-pdf.html?token=${token}`;
-  const paper = resume.customize && resume.customize.paperSize === "A4" ? "A4" : "Letter";
+  const paper = renderResume.customize && renderResume.customize.paperSize === "A4" ? "A4" : "Letter";
   let upstream;
   try {
     upstream = await fetch(

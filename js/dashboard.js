@@ -227,12 +227,20 @@
     { href: 'first-90-days', icon: 'compass', title: 'First 90 Days', desc: 'Ramp fast in a new role with a 30/60/90 plan' },
     { href: 'skill-gap', icon: 'gauge', title: 'Skill Gap Coach', desc: 'See what your target role wants that you\'re missing' },
     { href: 'salary', icon: 'dollar', title: 'Salary Insights', desc: 'Typical pay ranges for roles you\'re eyeing' },
-    { href: 'resume-website', icon: 'globe', title: 'Personal Site', desc: 'Turn your resume into a shareable web page' },
-    { href: 'linkedin-optimizer', icon: 'target', title: 'LinkedIn Optimizer', desc: 'Rewrite your headline & About to rank' },
     { href: 'assistant', icon: 'chat', title: 'Career Coach', desc: 'Ask anything, anytime' }
+  ];
+  // Public-facing presence tools, broken out of ACTIONS into their own dashboard
+  // section (and a left-nav group) so they're not buried at the bottom of the grid.
+  var PRESENCE = [
+    { href: 'resume-website', icon: 'globe', title: 'Personal Site', desc: 'Turn your resume into a shareable web page' },
+    { href: 'linkedin-optimizer', icon: 'target', title: 'LinkedIn Optimizer', desc: 'Rewrite your headline & About to rank' }
   ];
   function renderActions() {
     document.getElementById('dash-actions').innerHTML = ACTIONS.map(function (a) {
+      return '<a class="act-card" href="' + a.href + '"><span class="act-ico">' + (SVG[a.icon] || SVG.doc) + '</span>'
+        + '<span><span class="act-title">' + a.title + '</span><br><span class="act-desc">' + a.desc + '</span></span></a>';
+    }).join('');
+    document.getElementById('dash-presence').innerHTML = PRESENCE.map(function (a) {
       return '<a class="act-card" href="' + a.href + '"><span class="act-ico">' + (SVG[a.icon] || SVG.doc) + '</span>'
         + '<span><span class="act-title">' + a.title + '</span><br><span class="act-desc">' + a.desc + '</span></span></a>';
     }).join('');

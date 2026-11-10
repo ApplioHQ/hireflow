@@ -23,7 +23,9 @@
     brag:      '<path d="M6 9a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"/><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889"/><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889"/>',
     days90:    '<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12"/><path d="M16 3l0 4"/><path d="M8 3l0 4"/><path d="M4 11l16 0"/><path d="M8 15h2v2h-2l0 -2"/>',
     skill:     '<path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>',
-    salary:    '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/>'
+    salary:    '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/>',
+    globe:     '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+    target:    '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
   };
   var NAV = [
     ['dashboard',   'Home',           '/dashboard',    'home'],
@@ -41,7 +43,11 @@
     ['skill-gap',    'Skill Gap',     '/skill-gap',     'skill'],
     ['salary',       'Salary Insights','/salary',       'salary'],
     ['brag-doc',     'Brag Doc',      '/brag-doc',      'brag'],
-    ['first-90-days','First 90 Days', '/first-90-days', 'days90']
+    ['first-90-days','First 90 Days', '/first-90-days', 'days90'],
+    ['SEP'],
+    ['LABEL', 'Presence'],
+    ['resume-website',    'Personal Site',      '/resume-website',    'globe'],
+    ['linkedin-optimizer','LinkedIn Optimizer', '/linkedin-optimizer','target']
   ];
 
   var here = location.pathname.replace(/^\//, '').replace(/[?#].*$/, '').replace(/\.html$/, '') || 'dashboard';
@@ -64,6 +70,10 @@
     '.rail-item span{font-size:13.5px;font-weight:550;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;}' +
     '.app-rail:hover .rail-item span{opacity:1;transform:none;}' +
     '.rail-sep{height:1px;margin:8px 14px;background:var(--border);}' +
+    '.rail-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);' +
+      'padding:6px 19px 4px;white-space:nowrap;opacity:0;transition:opacity .15s;}' +
+    '.app-rail:hover .rail-label{opacity:1;}' +
+    '.rail-drawer .rail-label{opacity:1;}' +
     // The per-page .topbar-tabs are superseded by this rail's NAV on BOTH desktop
     // (rail) and mobile (drawer below), so they stay hidden everywhere. One source.
     'body.has-rail .app-topbar .topbar-tabs{display:none!important;}' +
@@ -88,6 +98,7 @@
 
   var items = NAV.map(function (n) {
     if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
+    if (n[0] === 'LABEL') return '<div class="rail-label">' + n[1] + '</div>';
     var active = n[0] === here ? ' active' : '';
     return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
@@ -107,6 +118,7 @@
   // same NAV array as the rail (no hand-authored per-page tabs to drift from).
   var drawerItems = NAV.map(function (n) {
     if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
+    if (n[0] === 'LABEL') return '<div class="rail-label">' + n[1] + '</div>';
     var active = n[0] === here ? ' active' : '';
     return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +

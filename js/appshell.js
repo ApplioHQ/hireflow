@@ -24,6 +24,7 @@
     days90:    '<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12"/><path d="M16 3l0 4"/><path d="M8 3l0 4"/><path d="M4 11l16 0"/><path d="M8 15h2v2h-2l0 -2"/>',
     skill:     '<path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>',
     salary:    '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/>',
+    more:      '<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',
     globe:     '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
     target:    '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
   };
@@ -43,9 +44,9 @@
     ['skill-gap',    'Skill Gap',     '/skill-gap',     'skill'],
     ['salary',       'Salary Insights','/salary',       'salary'],
     ['brag-doc',     'Brag Doc',      '/brag-doc',      'brag'],
-    ['first-90-days','First 90 Days', '/first-90-days', 'days90'],
-    ['SEP'],
-    ['LABEL', 'Presence'],
+    ['first-90-days','First 90 Days', '/first-90-days', 'days90']
+  ];
+  var MORE = [
     ['resume-website',    'Personal Site',      '/resume-website',    'globe'],
     ['linkedin-optimizer','LinkedIn Optimizer', '/linkedin-optimizer','target']
   ];
@@ -70,10 +71,16 @@
     '.rail-item span{font-size:13.5px;font-weight:550;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;}' +
     '.app-rail:hover .rail-item span{opacity:1;transform:none;}' +
     '.rail-sep{height:1px;margin:8px 14px;background:var(--border);}' +
-    '.rail-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);' +
-      'padding:6px 19px 4px;white-space:nowrap;opacity:0;transition:opacity .15s;}' +
-    '.app-rail:hover .rail-label{opacity:1;}' +
-    '.rail-drawer .rail-label{opacity:1;}' +
+    '.rail-more{display:flex;align-items:center;gap:13px;width:100%;height:42px;padding:0 19px;border:0;border-left:2px solid transparent;background:none;color:var(--muted);cursor:pointer;font:inherit;text-align:left;white-space:nowrap;}' +
+    '.rail-more:hover,.rail-more[aria-expanded="true"]{color:var(--text);background:var(--bg-2);}' +
+    '.rail-more svg{width:20px;height:20px;flex-shrink:0;}' +
+    '.rail-more span{font-size:13.5px;font-weight:550;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;}' +
+    '.app-rail:hover .rail-more span{opacity:1;transform:none;}' +
+    '.rail-more-menu{display:none;}' +
+    '.more-open .rail-more-menu{display:block;}' +
+    '.rail-more-menu .rail-item{padding-left:29px;}' +
+    '.rail-drawer .rail-more span{opacity:1;transform:none;}' +
+    '.rail-drawer .rail-more-menu .rail-item{padding-left:29px;}' +
     // The per-page .topbar-tabs are superseded by this rail's NAV on BOTH desktop
     // (rail) and mobile (drawer below), so they stay hidden everywhere. One source.
     'body.has-rail .app-topbar .topbar-tabs{display:none!important;}' +
@@ -98,7 +105,6 @@
 
   var items = NAV.map(function (n) {
     if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
-    if (n[0] === 'LABEL') return '<div class="rail-label">' + n[1] + '</div>';
     var active = n[0] === here ? ' active' : '';
     return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
@@ -108,17 +114,39 @@
   var rail = document.createElement('nav');
   rail.className = 'app-rail';
   rail.setAttribute('aria-label', 'Primary navigation');
-  rail.innerHTML = '<div class="rail-top"></div>' + items;
+  rail.innerHTML = '<div class="rail-top"></div>' + items + moreMarkup('rail-more-menu', 'app-rail-more-tools');
 
   document.body.appendChild(rail);
   document.body.classList.add('has-rail');
+
+  function moreMarkup(menuClass, menuId) {
+    var links = MORE.map(function (n) {
+      var active = n[0] === here ? ' active' : '';
+      return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
+        '<span>' + n[1] + '</span></a>';
+    }).join('');
+    return '<div class="rail-sep"></div>' +
+      '<button class="rail-more" type="button" aria-expanded="false" aria-controls="' + menuId + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS.more + '</svg>' +
+        '<span>More tools</span></button>' +
+      '<div class="rail-more-menu ' + menuClass + '" id="' + menuId + '">' + links + '</div>';
+  }
+
+  function wireMoreMenu(container) {
+    var button = container.querySelector('.rail-more');
+    button.addEventListener('click', function () {
+      var isOpen = container.classList.toggle('more-open');
+      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
+  wireMoreMenu(rail);
 
   // ---- Mobile drawer: the same NAV, opened from a topbar hamburger ----------
   // On <=900px the rail hides and this is the only nav, so it must come from the
   // same NAV array as the rail (no hand-authored per-page tabs to drift from).
   var drawerItems = NAV.map(function (n) {
     if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
-    if (n[0] === 'LABEL') return '<div class="rail-label">' + n[1] + '</div>';
     var active = n[0] === here ? ' active' : '';
     return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
@@ -135,9 +163,10 @@
     '<div class="rail-head"><b>Applio</b>' +
     '<button class="rail-close" type="button" aria-label="Close menu">' +
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
-    '</button></div>' + drawerItems;
+    '</button></div>' + drawerItems + moreMarkup('rail-more-menu', 'app-drawer-more-tools');
   document.body.appendChild(backdrop);
   document.body.appendChild(drawer);
+  wireMoreMenu(drawer);
 
   function setDrawerOpen(isOpen) {
     drawer.classList.toggle('open', isOpen);

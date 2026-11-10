@@ -14,9 +14,9 @@
   --accent-2: #8a73f8;
   --primary: #5a3ce8;
   --primary-hover: #4a34c4;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --success: oklch(0.70 0.17 160);
+  --warning: oklch(0.70 0.16 75);
+  --danger: oklch(0.70 0.22 25);
   /* ---- Accent ramp (tokenizes the scattered #8370ff/#8a73f8/#c2b8fd/#818cf8 hexes) ---- */
   --accent-hover: #8370ff;              /* the real :hover accent, was hardcoded */
   --accent-text: #c2b8fd;               /* accent-coloured text on dark surfaces */
@@ -25,9 +25,9 @@
   --accent-soft: rgba(109,77,252,.14);  /* soft tinted surface */
   --accent-line: rgba(109,77,252,.35);  /* tinted border */
   /* ---- Status tints (soft fill + readable text + border, per status) ---- */
-  --success-soft: rgba(16,185,129,.14); --success-text: #34d399; --success-line: rgba(16,185,129,.35);
-  --warning-soft: rgba(245,158,11,.14); --warning-text: #fbbf24; --warning-line: rgba(245,158,11,.35);
-  --danger-soft: rgba(239,68,68,.14);   --danger-text: #f87171;  --danger-line: rgba(239,68,68,.35);
+  --success-soft: oklch(0.70 0.17 160 / .14); --success-text: oklch(0.82 0.14 160); --success-line: oklch(0.70 0.17 160 / .35);
+  --warning-soft: oklch(0.70 0.16 75 / .14);  --warning-text: oklch(0.82 0.13 75);  --warning-line: oklch(0.70 0.16 75 / .35);
+  --danger-soft: oklch(0.70 0.22 25 / .14);   --danger-text: oklch(0.82 0.18 25);   --danger-line: oklch(0.70 0.22 25 / .35);
   /* Reserved for hero moments only (banner, featured tier, hero CTA). Regular
      buttons use a restrained vertical sheen instead of this diagonal gradient. */
   --gradient: linear-gradient(135deg, #5a3ce8 0%, #8370ff 100%);
@@ -76,8 +76,8 @@ html.light-mode {
   /* Accent & status text */
   --accent-text: #4f46e5;
   --accent-ghost: rgba(99,102,241,.08); --accent-soft: rgba(99,102,241,.12);
-  --success-text: #059669; --warning-text: #b45309; --danger-text: #dc2626;
-  --success-soft: rgba(16,185,129,.1); --warning-soft: rgba(245,158,11,.12); --danger-soft: rgba(239,68,68,.1);
+  --success-text: oklch(0.50 0.15 160); --warning-text: oklch(0.50 0.14 75); --danger-text: oklch(0.50 0.20 25);
+  --success-soft: oklch(0.70 0.17 160 / .10); --warning-soft: oklch(0.70 0.16 75 / .12); --danger-soft: oklch(0.70 0.22 25 / .10);
   /* Accent buttons */
   --accent-hover: #4338ca;
   --accent-line: rgba(99,102,241,.4);
@@ -530,7 +530,18 @@ html.light-mode .app-footer-brand img { filter: invert(1); }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
 .action-row { display: flex; justify-content: space-between; margin-top: 18px; }
-.empty-state { text-align: center; padding: 32px 20px; color: var(--muted); }
+.empty-state {
+  text-align: center; padding: 48px 20px; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.empty-state svg, .empty-state .empty-icon {
+  width: 48px; height: 48px; color: var(--accent); opacity: .5; margin-bottom: 8px;
+}
+.empty-state h3, .empty-state strong {
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+.empty-state p { font-size: 13px; max-width: 320px; line-height: 1.55; }
+.empty-state .btn { margin-top: 12px; }
 .add-btn {
   width: 100%; padding: 12px; border: 1px dashed var(--border);
   border-radius: var(--r-md); color: var(--muted); font-size: 13px;
@@ -779,10 +790,10 @@ html.light-mode .app-footer-brand img { filter: invert(1); }
   background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg);
   max-width: 480px; width: 100%; padding: 24px;
   box-shadow: 0 20px 60px rgba(0,0,0,.55);
-  transform: translateY(8px); opacity: 0;
-  transition: transform .18s ease, opacity .18s ease;
+  transform: translateY(8px) scale(.97); opacity: 0;
+  transition: transform .22s var(--ease-out), opacity .18s ease;
 }
-.app-dialog-bd-in .app-dialog { transform: translateY(0); opacity: 1; }
+.app-dialog-bd-in .app-dialog { transform: translateY(0) scale(1); opacity: 1; }
 .app-dialog-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
 .app-dialog-body {
   font-size: 14px; color: var(--muted); line-height: 1.55;
@@ -2163,3 +2174,110 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
   50% { opacity: .5; }
 }
 .save-saving { animation: save-pulse .8s ease infinite; }
+
+/* Optimistic shimmer while AI is processing */
+@keyframes ai-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.ai-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.ai-shimmer::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(109,77,252,.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: ai-shimmer 1.5s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ===== Phase 1 design polish: typography, spacing, interaction ===== */
+
+/* 1. Tabular nums: extend to salary, admin, dashboard counters */
+.sw-median, .sw-comp-total, .sw-nego-number, .sw-range-labels,
+.sw-range-tooltip, .sw-loc-diff, .kpi-num, .du-num,
+.dash-score-num, .dash-ring-num, time, [data-count] {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* 3. Line-height consistency: body paragraphs at 1.6, UI labels at 1.4 */
+p, .card-body, .section-sub, .hero-sub, .cta-sub,
+.ats-hero-sub, .ai-nochange-sub, .score-reveal-feedback,
+.ats-fix-txt, .an-fix-why, .an-fix-example, .tailor-hint {
+  line-height: 1.6;
+}
+
+/* 4. Line length: cap body text for readability */
+.card-body, .section-sub, .cta-sub, .ats-hero-sub,
+.ai-nochange-sub, .score-reveal-feedback, .tailor-hint,
+.fa-banner .fa-txt, .sw-perc-callout, .tool-intro p,
+.auth-card p, p.page-desc {
+  max-width: 65ch;
+}
+
+/* 5. Widow prevention on paragraph text */
+p, .card-body, .section-sub, .hero-sub, .cta-sub,
+.ats-hero-sub, .score-reveal-feedback {
+  text-wrap: pretty;
+}
+
+/* 6. Tracking on all uppercase text without explicit letter-spacing */
+.ai-result-label {
+  letter-spacing: .06em;
+}
+
+/* 8. Touch targets: minimum 44px on icon-only buttons */
+.ico-btn, button:has(> .ico:only-child), button:has(> svg:only-child),
+.anon-bar-x, .modal-x {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 9. Safe area: fixed bottom elements */
+.app-toast, .anon-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* 20. Tinted neutrals: shift pure greys toward blue-purple */
+:root {
+  --muted: #9a9cb0;
+  --border: #33354a;
+}
+html.light-mode {
+  --muted: #6b6f85;
+  --border: #e2e4ee;
+}
+
+/* 2. Layout shift prevention: reserve space for async sections */
+.section-min { min-height: 120px; }
+.card-min    { min-height: 80px; }
+
+/* 15. Stagger animation: cascade children in with a delay */
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger > * {
+  opacity: 0;
+  animation: stagger-in .3s var(--ease-out) forwards;
+}
+.stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.stagger > *:nth-child(2)  { animation-delay: 40ms; }
+.stagger > *:nth-child(3)  { animation-delay: 80ms; }
+.stagger > *:nth-child(4)  { animation-delay: 120ms; }
+.stagger > *:nth-child(5)  { animation-delay: 160ms; }
+.stagger > *:nth-child(6)  { animation-delay: 200ms; }
+.stagger > *:nth-child(7)  { animation-delay: 240ms; }
+.stagger > *:nth-child(8)  { animation-delay: 280ms; }
+.stagger > *:nth-child(9)  { animation-delay: 320ms; }
+.stagger > *:nth-child(10) { animation-delay: 360ms; }
+.stagger > *:nth-child(n+11) { animation-delay: 400ms; }
+@media (prefers-reduced-motion: reduce) {
+  .stagger > * { animation: none; opacity: 1; }
+}

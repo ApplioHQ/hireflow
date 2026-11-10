@@ -60,6 +60,13 @@
   .sw-field input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
   .sw-go { flex-shrink: 0; height: 42px; padding: 0 22px; white-space: nowrap; }
 
+  /* Combobox dropdown */
+  .sw-field { position: relative; }
+  .sw-combo { position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 4px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--sh-2); max-height: 200px; overflow-y: auto; display: none; }
+  .sw-combo.open { display: block; }
+  .sw-combo-item { padding: 8px 14px; font-size: 13px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+  .sw-combo-item:hover, .sw-combo-item.active { background: var(--accent-ghost); color: var(--accent-text); }
+
   /* Seniority chips */
   .sw-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 14px 0 20px; }
   .sw-chip { font-size: 12.5px; padding: 6px 14px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--bg-1); color: var(--text); cursor: pointer; transition: all var(--dur) var(--ease); }
@@ -121,7 +128,7 @@
   .sw-pill-muted { color: var(--muted); background: var(--bg-2); border: 1px solid var(--border); }
 
   /* Big number */
-  .sw-median { font-size: 38px; font-weight: 800; letter-spacing: -.5px; margin: 14px 0 2px; }
+  .sw-median { font-size: 38px; font-weight: 800; letter-spacing: -.5px; margin: 14px 0 2px; font-variant-numeric: tabular-nums lining-nums; }
   .sw-median small { font-size: 15px; font-weight: 600; color: var(--muted); }
 
   /* ---- Interactive range bar ---- */
@@ -252,7 +259,8 @@
   <div class="sw-form-row">
     <div class="sw-field" style="flex:2;">
       <label for="sw-role">Job title</label>
-      <input id="sw-role" placeholder="e.g. Product Manager" autocomplete="off">
+      <input id="sw-role" placeholder="e.g. Product Manager" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sw-role-list" aria-autocomplete="list">
+      <div class="sw-combo" id="sw-role-list" role="listbox"></div>
     </div>
     <div class="sw-field">
       <label for="sw-location">Location <span style="font-weight:400; color:var(--muted);">(optional)</span></label>
@@ -287,6 +295,60 @@ var level = '';
 var _lastData = null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);});}
+
+// Combobox: job title suggestions
+(function(){
+  var TITLES = [
+    'Software Engineer','Senior Software Engineer','Staff Software Engineer','Principal Engineer',
+    'Frontend Developer','Backend Developer','Full Stack Developer','DevOps Engineer','Site Reliability Engineer',
+    'Data Scientist','Data Analyst','Data Engineer','Machine Learning Engineer','AI Engineer',
+    'Product Manager','Senior Product Manager','Product Designer','UX Designer','UX Researcher',
+    'Engineering Manager','Director of Engineering','VP of Engineering','CTO',
+    'Project Manager','Program Manager','Scrum Master','Business Analyst',
+    'Marketing Manager','Content Strategist','Growth Manager','SEO Specialist',
+    'Sales Manager','Account Executive','Customer Success Manager',
+    'Financial Analyst','Accountant','Controller','CFO',
+    'Human Resources Manager','Recruiter','People Operations',
+    'Operations Manager','Supply Chain Manager','Logistics Coordinator',
+    'Consultant','Management Consultant','Strategy Analyst',
+    'Graphic Designer','Visual Designer','Creative Director','Art Director',
+    'QA Engineer','Test Engineer','Security Engineer','Cloud Engineer',
+    'iOS Developer','Android Developer','Mobile Engineer',
+    'Solutions Architect','Technical Program Manager','Technical Writer'
+  ];
+  var input = document.getElementById('sw-role');
+  var list = document.getElementById('sw-role-list');
+  var activeIdx = -1;
+  function show(matches){
+    if (!matches.length) { list.classList.remove('open'); input.setAttribute('aria-expanded','false'); return; }
+    list.innerHTML = matches.map(function(t,i){ return '<div class="sw-combo-item'+(i===activeIdx?' active':'')+'" role="option" data-idx="'+i+'">'+esc(t)+'</div>'; }).join('');
+    list.classList.add('open'); input.setAttribute('aria-expanded','true');
+  }
+  function filter(){
+    var q = input.value.trim().toLowerCase(); activeIdx = -1;
+    if (q.length < 1) { list.classList.remove('open'); input.setAttribute('aria-expanded','false'); return; }
+    var m = TITLES.filter(function(t){ return t.toLowerCase().indexOf(q) >= 0; }).slice(0,8);
+    show(m);
+  }
+  input.addEventListener('input', filter);
+  input.addEventListener('focus', function(){ if (input.value.trim().length >= 1) filter(); });
+  list.addEventListener('mousedown', function(e){
+    var item = e.target.closest('.sw-combo-item');
+    if (!item) return;
+    e.preventDefault();
+    input.value = item.textContent;
+    list.classList.remove('open'); input.setAttribute('aria-expanded','false');
+  });
+  input.addEventListener('keydown', function(e){
+    var items = list.querySelectorAll('.sw-combo-item');
+    if (!items.length || !list.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx+1, items.length-1); items.forEach(function(el,i){ el.classList.toggle('active',i===activeIdx); }); items[activeIdx].scrollIntoView({block:'nearest'}); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); items.forEach(function(el,i){ el.classList.toggle('active',i===activeIdx); }); items[activeIdx].scrollIntoView({block:'nearest'}); }
+    else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); input.value = items[activeIdx].textContent; list.classList.remove('open'); input.setAttribute('aria-expanded','false'); }
+    else if (e.key === 'Escape') { list.classList.remove('open'); input.setAttribute('aria-expanded','false'); }
+  });
+  document.addEventListener('click', function(e){ if (!e.target.closest('.sw-field')) { list.classList.remove('open'); input.setAttribute('aria-expanded','false'); } });
+})();
 function signOut(){ localStorage.removeItem('hf_token'); location.href='/'; }
 function _resume(){ try { return JSON.parse(localStorage.getItem('hf_resume') || '{}') || {}; } catch(e) { return {}; } }
 function _money(n, cur){
@@ -385,7 +447,7 @@ function _render(d){
   var role = d.role || '';
   var location = d.location || 'Not specified';
 
-  var html = '<div class="sw-result">';
+  var html = '<div class="sw-result stagger">';
 
   // === 1. Hero card ===
   html += '<div class="sw-card">';

@@ -4136,24 +4136,7 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   bd.id = 'ai-suggest-bd';
   bd.className = 'app-dialog-bd';
   document.body.appendChild(bd);
-  requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
   _aiSuggestState = { text, apply };
-  // Focus trap for the suggestion dialog
-  const dialog = bd.querySelector('.app-dialog');
-  if (dialog) {
-    const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const trap = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    dialog.addEventListener('keydown', trap);
-    bd._focusTrap = trap;
-    bd._focusDialog = dialog;
-    first?.focus();
-  }
   const hasBefore = original != null && String(original).trim().length > 0;
   const noChange = hasBefore && _diffMagnitude(original, text) === 0;
 
@@ -4206,6 +4189,30 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
     </div>`;
   bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });
   document.addEventListener('keydown', _aiSuggestKey);
+  // Origin-aware animation: scale from the last-clicked button position
+  const dialog = bd.querySelector('.app-dialog');
+  if (dialog && window._lastAiClickY) {
+    const rect = dialog.getBoundingClientRect();
+    const originY = Math.max(0, Math.min(100, ((window._lastAiClickY - rect.top) / (rect.height || 1)) * 100));
+    dialog.style.transformOrigin = '50% ' + originY + '%';
+  }
+  requestAnimationFrame(() => {
+    bd.classList.add('app-dialog-bd-in');
+    if (dialog) {
+      const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const trap = (e) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      dialog.addEventListener('keydown', trap);
+      bd._focusTrap = trap;
+      bd._focusDialog = dialog;
+      first?.focus();
+    }
+  });
 }
 function _aiToggleDiff(btn) {
   const diff = document.getElementById('ai-df-diff'), after = document.getElementById('ai-ba-after');
@@ -4241,6 +4248,10 @@ function _applyAiSuggestion() {
 // Improve one specific entry. `idx` targets the exact card the button lives on, so
 // every entry (not just the first) can be improved independently.
 async function aiImprove(target, idx = 0) {
+  if (event) window._lastAiClickY = event.clientY;
+  // Optimistic shimmer on the card being improved
+  const _shimCard = document.querySelector(`.drag-item[data-drag-key="${target}"][data-drag-idx="${idx}"] .item-card`);
+  if (_shimCard) _shimCard.classList.add('ai-shimmer');
   aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
   try {
     // Send the exact text being improved plus role/company context so the AI writes
@@ -4275,7 +4286,7 @@ async function aiImprove(target, idx = 0) {
       : ((resume[target] || [])[idx] && (resume[target][idx].title || resume[target][idx].role || resume[target][idx].name)) || _titleCase(target);
     showAiSuggestion({ title: 'Improved: ' + entryLabel, text: suggestion, original: text, apply });
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
-  finally { aiLoadingDone(); }
+  finally { aiLoadingDone(); if (_shimCard) _shimCard.classList.remove('ai-shimmer'); }
 }
 
 // Map a rendered bullet index (Nth non-empty line) back to its raw line in the
@@ -4293,6 +4304,7 @@ function _bulletRawIndex(desc, bulletIdx) {
 // Inline per-bullet AI: improve/quantify/shorten/rewrite a SINGLE bullet, then
 // write just that line back. Reuses the proven aiStream + suggestion flow.
 async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
+  if (event) window._lastAiClickY = event.clientY;
   const item = (resume[section] || [])[entryIdx];
   if (!item) return;
   const field = ('description' in item) ? 'description' : ('abstract' in item) ? 'abstract' : null;

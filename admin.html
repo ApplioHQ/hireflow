@@ -66,7 +66,7 @@
   .kpi-icon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--kpi-accent, #6d4dfc) 16%, transparent); color: var(--kpi-accent, #6d4dfc); }
   .kpi-icon svg { width: 16px; height: 16px; }
   .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .kpi-num { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1; }
+  .kpi-num { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1; font-variant-numeric: tabular-nums lining-nums; }
   .kpi-trend { font-size: 11.5px; font-weight: 600; margin-top: 7px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
   .kpi-trend.up { color: #22c55e; }
   .kpi-trend.down { color: #ef4444; }
@@ -92,7 +92,7 @@
   .du-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
   @media (max-width: 700px) { .du-grid { grid-template-columns: repeat(2, 1fr); } }
   .du-stat { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .du-num { font-size: 24px; font-weight: 800; letter-spacing: -.5px; line-height: 1.1; }
+  .du-num { font-size: 24px; font-weight: 800; letter-spacing: -.5px; line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
   .du-lbl { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
   .du-status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
   .du-status-ok { background: var(--success-soft); color: var(--success-text); }
@@ -256,7 +256,7 @@
     </div>
 
     <!-- KPI cards (free product: no revenue/paid metrics) -->
-    <div class="kpi-grid" id="kpi-grid" style="margin-bottom:18px;">
+    <div class="kpi-grid stagger" id="kpi-grid" style="margin-bottom:18px;">
       <div class="kpi-card" style="--kpi-accent:#06b6d4;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="kpi-label">Visitors</span></div><div class="kpi-num" id="hc-visitors">—</div><div class="kpi-trend" id="hc-visitors-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#6d4dfc;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span><span class="kpi-label">Signups 7d</span></div><div class="kpi-num" id="hc-signups">—</div><div class="kpi-trend" id="hc-signups-trend"></div></div>
       <div class="kpi-card" style="--kpi-accent:#8a73f8;"><div class="kpi-top"><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="kpi-label">Total Users</span></div><div class="kpi-num" id="hc-total">—</div><div class="kpi-trend" id="hc-total-trend"></div></div>
@@ -655,7 +655,7 @@ function renderDailyUpdate() {
   if (!(d.signupsToday || d.visitorsToday)) issues.push('No traffic recorded yet today');
   var hasIssue = !!(s.aiDisabled || s.maintenance || s.adminEnabled === false);
 
-  var html = '<div class="du-grid">';
+  var html = '<div class="du-grid stagger">';
 
   // Row 1: Growth stats
   html += '<div class="du-stat"><div class="du-num">' + (d.signupsToday || 0) + '</div><div class="du-lbl">Signups today</div></div>'

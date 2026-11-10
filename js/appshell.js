@@ -68,7 +68,7 @@
     // (rail) and mobile (drawer below), so they stay hidden everywhere. One source.
     'body.has-rail .app-topbar .topbar-tabs{display:none!important;}' +
     // Mobile drawer (same NAV, slide-in). Trigger lives in the topbar; the rail hides.
-    '.rail-mobtrigger{display:none;}' +
+    '.rail-mobtrigger{display:none!important;}' +
     '.rail-drawer-bd{position:fixed;inset:0;z-index:110;background:rgba(2,4,16,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s;}' +
     '.rail-drawer-bd.open{opacity:1;pointer-events:auto;}' +
     '.rail-drawer{position:fixed;top:0;left:0;bottom:0;z-index:111;width:258px;max-width:82vw;background:var(--bg-1);border-right:1px solid var(--border);' +
@@ -78,10 +78,10 @@
     '.rail-drawer .rail-head b{font-size:16px;font-weight:700;}' +
     '.rail-drawer .rail-close{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;display:inline-flex;}' +
     '.rail-drawer .rail-item span{opacity:1;transform:none;}' +
-    '@media(max-width:900px){body.has-rail{padding-left:0;}.app-rail{display:none;}' +
-      '.rail-mobtrigger{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;border:0;background:none;color:var(--text);cursor:pointer;flex-shrink:0;}' +
+    '@media(max-width:1023px){body.has-rail{padding-left:0;}.app-rail{display:none;}' +
+      '.rail-mobtrigger{display:inline-flex!important;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;border:0;background:none;color:var(--text);cursor:pointer;flex-shrink:0;}' +
       '.rail-mobtrigger:hover{background:var(--bg-2);}}' +
-    '@media(min-width:901px){.rail-drawer,.rail-drawer-bd{display:none!important;}}';
+    '@media(min-width:1024px){.rail-drawer,.rail-drawer-bd{display:none!important;}}';
   var style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);

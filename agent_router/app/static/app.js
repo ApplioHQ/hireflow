@@ -141,7 +141,7 @@ function detectLang(code, hint) {
 }
 
 function stripHtmlTags(text) {
-  return text.replace(/<[^>]+>/g, "");
+  return text.replace(/<[^>]+>/g, "").replace(/"hl-\w+">/g, "").replace(/\s*<\/span>/g, "");
 }
 
 function highlightCode(text, lang) {

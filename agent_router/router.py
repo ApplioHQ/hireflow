@@ -59,7 +59,12 @@ def parse_line(line, repo):
                 parts.append(tool_line(block.get("name"), block.get("input"), repo))
         return "".join(parts)
     if kind == "text":  # Hermes: text arrives in small chunks
-        return event.get("text", "")
+        t = event.get("text", "")
+        if '"hl-' in t or "</span>" in t:
+            t = re.sub(r'"hl-\w+">', "", t)
+            t = re.sub(r"</span>", "", t)
+            t = re.sub(r"<[^>]+>", "", t)
+        return t
     if kind == "tool_use":  # Hermes
         tool_name = event.get("name", "")
         if tool_name == "delegate_task":

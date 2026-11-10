@@ -333,6 +333,29 @@ class Handler(BaseHTTPRequestHandler):
                 if r.get("screenshot"):
                     r["view_url"] = f"/api/screenshot/view?path=flow-{token}/{Path(r['screenshot']).name}"
             return {"results": results}
+        if path == "/api/exec":
+            code_text = b.get("code", "").strip()
+            lang = b.get("lang", "").lower()
+            pid = b.get("project")
+            if not code_text:
+                raise ApiError(400, "code is required")
+            project = eng.store.project(pid) if pid else None
+            cwd = project["path"] if project else str(eng.store.home)
+            if lang in ("python", "py"):
+                cmd = ["python3", "-c", code_text]
+            elif lang in ("sh", "bash", "shell", "zsh", ""):
+                cmd = ["bash", "-c", code_text]
+            else:
+                cmd = ["bash", "-c", code_text]
+            import subprocess as _sp
+            try:
+                result = _sp.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=30)
+                return {"ok": result.returncode == 0, "code": result.returncode,
+                        "stdout": result.stdout[-4000:], "stderr": result.stderr[-2000:]}
+            except _sp.TimeoutExpired:
+                return {"ok": False, "code": 124, "stdout": "", "stderr": "timed out after 30s"}
+            except Exception as exc:
+                return {"ok": False, "code": 1, "stdout": "", "stderr": str(exc)}
         raise ApiError(404, "not found")
 
 

@@ -140,6 +140,10 @@ function detectLang(code, hint) {
   return "";
 }
 
+function stripHtmlTags(text) {
+  return text.replace(/<[^>]+>/g, "");
+}
+
 function highlightCode(text, lang) {
   let html = esc(text);
   if (lang === "html") {
@@ -176,9 +180,12 @@ function renderAgentText(text) {
     if (code !== null) {
       if (line.trim().startsWith("```")) {
         const id = `code-${++codeBlockId}`;
-        const lang = detectLang(code.join("\n"), codeLang);
-        const highlighted = highlightCode(code.join("\n"), lang);
-        out.push(`<div class="code-block"><div class="code-head"><span class="code-lang">${esc(codeLang || lang)}</span><button type="button" class="copy-btn" data-copy="${id}">Copy</button></div><pre id="${id}"><code>${highlighted}</code></pre></div>`);
+        const raw = stripHtmlTags(code.join("\n"));
+        const lang = detectLang(raw, codeLang);
+        const highlighted = highlightCode(raw, lang);
+        const runnable = ["python", "py", "sh", "bash", "shell", "zsh"].includes((codeLang || lang).toLowerCase());
+        const runBtn = runnable ? `<button type="button" class="run-btn" data-run="${id}" data-lang="${esc(codeLang || lang)}">Run</button>` : "";
+        out.push(`<div class="code-block"><div class="code-head"><span class="code-lang">${esc(codeLang || lang)}</span>${runBtn}<button type="button" class="copy-btn" data-copy="${id}">Copy</button></div><pre id="${id}"><code>${highlighted}</code></pre></div>`);
         code = null;
         continue;
       }
@@ -761,8 +768,8 @@ async function deleteChat(pid, cid) {
 
 // ---- events ----
 
-// ---- copy button handler ----
-document.addEventListener("click", (e) => {
+// ---- copy & run button handlers ----
+document.addEventListener("click", async (e) => {
   const copyBtn = e.target.closest(".copy-btn");
   if (copyBtn) {
     const pre = document.getElementById(copyBtn.dataset.copy);
@@ -773,6 +780,30 @@ document.addEventListener("click", (e) => {
         setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 1500);
       });
     }
+    return;
+  }
+  const runBtn = e.target.closest(".run-btn");
+  if (runBtn) {
+    const pre = document.getElementById(runBtn.dataset.run);
+    if (!pre) return;
+    const code = pre.textContent;
+    const lang = runBtn.dataset.lang || "";
+    const pid = currentProject()?.id;
+    runBtn.textContent = "Running...";
+    runBtn.disabled = true;
+    try {
+      const res = await api("/api/exec", { code, lang, project: pid });
+      const block = pre.closest(".code-block");
+      let output = block.querySelector(".run-output");
+      if (!output) { output = document.createElement("pre"); output.className = "run-output"; block.appendChild(output); }
+      const text = (res.stdout || "") + (res.stderr || "");
+      output.textContent = text.trim() || (res.ok ? "(no output)" : `exit code ${res.code}`);
+      output.classList.toggle("run-error", !res.ok);
+      runBtn.textContent = res.ok ? "Done" : "Failed";
+    } catch (err) {
+      runBtn.textContent = "Error";
+    }
+    setTimeout(() => { runBtn.textContent = "Run"; runBtn.disabled = false; }, 3000);
     return;
   }
 });

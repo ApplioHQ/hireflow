@@ -194,7 +194,7 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .run-btn { margin-right: 2px; }
 .run-btn:disabled { opacity: 0.5; cursor: default; }
 .code-block pre { margin: 0; border-radius: 0; border: 0; }
-.run-output { margin: 0; padding: 8px 12px; background: var(--code); border-top: 1px solid var(--line); font-size: 12px; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.run-output { margin: 0; padding: 8px 12px; background: var(--code); border-top: 1px solid var(--line); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
 .run-output.run-error { color: #e55; }
 .run-output.run-ok { color: var(--ok); }
 

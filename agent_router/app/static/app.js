@@ -801,6 +801,11 @@ document.addEventListener("click", async (e) => {
       output.classList.toggle("run-error", !res.ok);
       runBtn.textContent = res.ok ? "Done" : "Failed";
     } catch (err) {
+      const block = pre.closest(".code-block");
+      let output = block.querySelector(".run-output");
+      if (!output) { output = document.createElement("pre"); output.className = "run-output"; block.appendChild(output); }
+      output.textContent = err.message || "Failed to run";
+      output.classList.add("run-error");
       runBtn.textContent = "Error";
     }
     setTimeout(() => { runBtn.textContent = "Run"; runBtn.disabled = false; }, 3000);

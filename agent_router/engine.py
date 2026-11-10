@@ -98,13 +98,23 @@ DELEGATE: <{names}>
 REVIEW: <yes ONLY if the change touches payment, auth, data deletion, or more than 5 files>
 BRIEF:
 ## Goal
-<one sentence: what the user wants>
+<one sentence: what the user wants, expanded into a precise spec -- see BRIEF QUALITY below>
 ## Files
 <which files to create/edit/delete, be specific>
 ## Constraints
 <what NOT to do, edge cases, style rules>
 ## Done when
 <how to verify the change works>
+
+BRIEF QUALITY: The user writes casually. Your brief must be a polished, detailed spec the coder can
+execute without guessing. Expand vague requests into concrete implementation details:
+- "make the button look better" -> specify exact colors (hex), border-radius, padding, hover animation
+  (e.g. scale transform, box-shadow transition), active state, and font-weight.
+- "fix the layout" -> specify the exact flexbox/grid structure, gaps, alignment, breakpoints.
+- "add dark mode" -> specify the color palette for backgrounds, text, borders, accents, and how to toggle.
+- "improve performance" -> specify which files to profile, what to lazy-load, what to cache, bundle targets.
+Always read the project files first to match existing patterns, colors, and conventions. Your brief is
+the coder's ONLY instruction -- if you leave something vague, the coder will guess and probably guess wrong.
 
 3. SPLIT ACROSS CODERS: When the user asks for independent pieces to go to different coders, reply with
    multiple DELEGATE blocks, one per piece. Each block is a complete DELEGATE/REVIEW/BRIEF set:
@@ -145,6 +155,10 @@ Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude
 work and {default} for everything else.
 Never narrate what you are about to do. Never add disclaimers about committing, pushing, or
 altering files -- the system handles that automatically. Just answer or delegate.
+BRIEF QUALITY: The user writes casually. Your brief must be a polished, detailed spec the coder can
+execute without guessing. Expand vague requests into concrete details -- exact colors, specific
+animations, precise layout values, named files. Read project files first to match existing patterns.
+Your brief is the coder's ONLY instruction -- vague means wrong.
 {availability}{images}{notes}
 ===== PROJECT MEMORY =====
 {memory}
@@ -247,19 +261,35 @@ DELEGATE: <{names}>
 REVIEW: <yes ONLY if the change touches payment, auth, data deletion, or more than 5 files>
 BRIEF:
 ## Goal
-<one sentence: what the user wants>
+<one sentence: what the user wants, expanded into a precise spec -- see BRIEF QUALITY below>
 ## Files
 <which files to create/edit/delete, be specific>
 ## Constraints
 <what NOT to do, edge cases, style rules>
 ## Done when
 <how to verify the change works>
+
+BRIEF QUALITY: The user writes casually. Your brief must be a polished, detailed spec the coder can
+execute without guessing. Expand vague requests into concrete implementation details:
+- "make the button look better" -> specify exact colors (hex), border-radius, padding, hover animation
+  (e.g. scale transform, box-shadow transition), active state, and font-weight.
+- "fix the layout" -> specify the exact flexbox/grid structure, gaps, alignment, breakpoints.
+- "add dark mode" -> specify the color palette for backgrounds, text, borders, accents, and how to toggle.
+Always read the project files first to match existing patterns, colors, and conventions. Your brief is
+the coder's ONLY instruction -- if you leave something vague, the coder will guess wrong.
 """
 
-REPORT = """The coding for the user's last message is finished. Tell the user what happened in one to three
-short sentences: what changed, whether the check passed, and anything they should do next (such as
-review the changes). Base your summary on the actual diff below, not just the coder's description.
-Do not change any files, and do not repeat this block.
+REPORT = """The coding for the user's last message is finished. Your job is to VERIFY the work, not just summarize it.
+
+Read the actual diff below carefully. Check these things:
+1. Did the coder actually complete what was asked? Compare the diff against the brief/user message.
+2. Are the changed files complete and correct? No leftover debug code, no placeholder text, no broken imports.
+3. Is the code clean? No syntax errors, no unclosed tags, no obvious logic bugs.
+4. Git status: committed={committed}. If not committed, flag that changes are NOT live yet.
+
+If everything looks good, tell the user in 1-2 sentences what shipped and confirm it's live.
+If something is wrong or incomplete, say exactly what's missing or broken so it can be fixed.
+Do not change any files yourself.
 
 Coder: {coder}
 Files changed: {files}
@@ -1157,7 +1187,7 @@ class Engine:
         if ok and files and project.get("preview_url"):
             self.auto_screenshot(project, cid, files)
         if self.report_enabled and (not ok or files):
-            self.report(lane, project, cid, coder, files, ok, check_out, turn["output"])
+            self.report(lane, project, cid, coder, files, ok, check_out, turn["output"], committed)
 
     def auto_screenshot(self, project, cid, files):
         """Take screenshots of the project's preview URL after a coder finishes."""
@@ -1174,7 +1204,7 @@ class Engine:
         except Exception:
             pass
 
-    def report(self, lane, project, cid, coder, files, ok, check_out, output):
+    def report(self, lane, project, cid, coder, files, ok, check_out, output, committed=False):
         hermes = self.orchestrator
         if not self.available(hermes):
             return
@@ -1182,7 +1212,8 @@ class Engine:
         check = ("passed" if project.get("check") else "no check configured") if ok else f"failed:\n{router.tail(check_out, 1500)}"
         diff = self.review_diff(project) if files else "(no changes)"
         prompt = REPORT.format(coder=name(coder), files=", ".join(files) or "none", check=check,
-                               output=router.tail(output, 3000), diff=router.tail(diff, 4000))
+                               output=router.tail(output, 3000), diff=router.tail(diff, 4000),
+                               committed="yes, pushed to git" if committed else "no")
         if not session:
             prompt = f'You are Hermes, the orchestrator for the "{project["name"]}" project.\n\n' + prompt
         turn = self.run_agent(lane, project, cid, hermes, prompt, "report", session=session,

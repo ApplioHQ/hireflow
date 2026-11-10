@@ -141,19 +141,35 @@ function detectLang(code, hint) {
 }
 
 function stripHtmlTags(text) {
-  return text.replace(/<[^>]+>/g, "").replace(/"hl-\w+">/g, "").replace(/\s*<\/span>/g, "");
+  return text
+    .replace(/<span\s+class="[^"]*">/g, "")
+    .replace(/<\/span>/g, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/"hl-\w+">/g, "")
+    .replace(/"hl-\w+"/g, "")
+    .replace(/\bhl-\w+/g, "");
 }
 
 function highlightCode(text, lang) {
   let html = esc(text);
   if (lang === "html") {
-    html = html.replace(KEYWORDS.html, '$1<span class="hl-tag">$2</span>');
-  } else if (KEYWORDS[lang]) {
-    html = html.replace(KEYWORDS[lang], '<span class="hl-kw">$&</span>');
+    return html.replace(KEYWORDS.html, '$1<span class="hl-tag">$2</span>');
   }
-  html = html.replace(/(["'`])(?:(?!\1).)*?\1/g, '<span class="hl-str">$&</span>');
-  html = html.replace(/(\/\/.*|#(?!!).*)/gm, '<span class="hl-cmt">$&</span>');
-  return html;
+  const parts = [];
+  const tokenRe = /(["'`])(?:(?!\1).)*?\1|\/\/.*|#(?!!).*$/gm;
+  let last = 0;
+  for (const m of html.matchAll(tokenRe)) {
+    if (m.index > last) parts.push({ type: "code", text: html.slice(last, m.index) });
+    parts.push({ type: /^["'`]/.test(m[0]) ? "str" : "cmt", text: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < html.length) parts.push({ type: "code", text: html.slice(last) });
+  const kwRe = KEYWORDS[lang];
+  return parts.map((p) => {
+    if (p.type === "str") return `<span class="hl-str">${p.text}</span>`;
+    if (p.type === "cmt") return `<span class="hl-cmt">${p.text}</span>`;
+    return kwRe ? p.text.replace(kwRe, '<span class="hl-kw">$&</span>') : p.text;
+  }).join("");
 }
 
 let codeBlockId = 0;
@@ -376,6 +392,7 @@ function renderResult(m) {
 }
 
 function renderMessage(m) {
+  if (m.text) m = Object.assign({}, m, { text: stripHtmlTags(m.text) });
   if (m.role === "user") {
     const { pid, cid } = route();
     const files = (m.files || []).map((f) => {

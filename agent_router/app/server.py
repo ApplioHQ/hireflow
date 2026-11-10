@@ -174,7 +174,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(404, b"not found", "text/plain")
         if not file.is_file():
             return self.send(404, b"not found", "text/plain")
-        self.send(200, file.read_bytes(), TYPES.get(file.suffix, "application/octet-stream"), "no-cache")
+        self.send(200, file.read_bytes(), TYPES.get(file.suffix, "application/octet-stream"), "no-store")
 
     def do_POST(self):
         # Only this page may call the API: same host, a custom header (which a cross-site form or fetch

@@ -1,5 +1,5 @@
 // Lets the app be installed, and shows a "start the server" page when the local server isn't running.
-const CACHE = "agents-v2";
+const CACHE = "agents-v3";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(["/offline.html", "/logo.svg"])));

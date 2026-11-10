@@ -813,9 +813,16 @@ document.addEventListener("click", async (e) => {
       const block = pre.closest(".code-block");
       let output = block.querySelector(".run-output");
       if (!output) { output = document.createElement("pre"); output.className = "run-output"; block.appendChild(output); }
-      const text = (res.stdout || "") + (res.stderr || "");
-      output.textContent = text.trim() || (res.ok ? "(no output)" : `exit code ${res.code}`);
+      const stdout = (res.stdout || "").trim();
+      const stderr = (res.stderr || "").trim();
+      const combined = [stdout, stderr].filter(Boolean).join("\n");
+      if (res.ok) {
+        output.textContent = combined || "(completed, no output)";
+      } else {
+        output.textContent = combined ? `${combined}\n\nexit code ${res.code}` : `exit code ${res.code}`;
+      }
       output.classList.toggle("run-error", !res.ok);
+      output.classList.toggle("run-ok", res.ok && !!combined);
       runBtn.textContent = res.ok ? "Done" : "Failed";
     } catch (err) {
       const block = pre.closest(".code-block");

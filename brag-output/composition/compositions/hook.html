@@ -1,0 +1,232 @@
+<template>
+<style>
+#root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  overflow: hidden;
+}
+
+/* Applio hero bg: gradient mesh */
+#hook-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 30%, rgba(109,77,252,.22), transparent 50%),
+    radial-gradient(circle at 85% 70%, rgba(139,92,246,.18), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59,130,246,.08), transparent 60%),
+    linear-gradient(180deg, #111113 0%, #0f1437 100%);
+}
+
+#hook-waves {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#hook-waves svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#hook-aurora {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 600px; height: 600px;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(109,77,252,.38) 0%, transparent 55%),
+    radial-gradient(circle at 72% 62%, rgba(139,92,246,.28) 0%, transparent 50%),
+    radial-gradient(circle at 55% 20%, rgba(59,130,246,.15) 0%, transparent 45%);
+  filter: blur(60px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.p1 { width: 3px; height: 3px; background: rgba(109,77,252,.5); top: 20%; left: 15%; }
+.p3 { width: 4px; height: 4px; background: rgba(139,92,246,.4); top: 70%; left: 25%; }
+.p6 { width: 2px; height: 2px; background: rgba(165,180,252,.4); top: 15%; left: 55%; }
+
+#hook-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.5) 100%);
+  pointer-events: none;
+}
+
+#hook-logo {
+  width: 72px; height: 72px;
+  margin-bottom: 36px;
+  position: relative; z-index: 2;
+}
+
+#hook-headline {
+  position: relative; z-index: 2;
+  text-align: center; line-height: 1.12;
+}
+.hook-line { display: block; overflow: hidden; }
+.hook-char {
+  display: inline-block;
+  color: var(--color-ink);
+  font-size: 68px; font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.hook-char-space { width: 0.3em; }
+
+#hook-sub {
+  color: #9a9aa2;
+  font-size: 28px; font-weight: 400;
+  margin-top: 24px; letter-spacing: -0.01em;
+  position: relative; z-index: 2;
+}
+
+#hook-grain {
+  position: absolute; inset: 0; opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none; z-index: 10;
+}
+</style>
+<div id="root" data-composition-id="hook" data-width="1920" data-height="1080">
+  <div id="hook-bg" class="clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+  <div id="hook-waves" class="clip" data-start="0" data-duration="4.5" data-track-index="0" data-layout-allow-overflow></div>
+  <div id="hook-aurora" class="clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+
+  <div id="hook-p1" class="particle p1 clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+  <div id="hook-p3" class="particle p3 clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+  <div id="hook-p6" class="particle p6 clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+
+  <div id="hook-vignette" class="clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+
+  <img id="hook-logo" class="clip" data-start="0" data-duration="4.5" data-track-index="1" src="assets/logo-mark.png" alt="">
+
+  <div id="hook-headline" class="clip" data-start="0" data-duration="4.5" data-track-index="2">
+    <span class="hook-line" id="line1">
+      <span class="hook-char">T</span><span class="hook-char">h</span><span class="hook-char">e</span><span class="hook-char hook-char-space"> </span><span class="hook-char">r</span><span class="hook-char">e</span><span class="hook-char">s</span><span class="hook-char">u</span><span class="hook-char">m</span><span class="hook-char">e</span><span class="hook-char hook-char-space"> </span><span class="hook-char">b</span><span class="hook-char">u</span><span class="hook-char">i</span><span class="hook-char">l</span><span class="hook-char">t</span>
+    </span>
+    <span class="hook-line" id="line2">
+      <span class="hook-char">t</span><span class="hook-char">o</span><span class="hook-char hook-char-space"> </span><span class="hook-char">l</span><span class="hook-char">a</span><span class="hook-char">n</span><span class="hook-char">d</span><span class="hook-char hook-char-space"> </span><span class="hook-char hook-accent">i</span><span class="hook-char hook-accent">n</span><span class="hook-char hook-accent">t</span><span class="hook-char hook-accent">e</span><span class="hook-char hook-accent">r</span><span class="hook-char hook-accent">v</span><span class="hook-char hook-accent">i</span><span class="hook-char hook-accent">e</span><span class="hook-char hook-accent">w</span><span class="hook-char hook-accent">s</span>
+    </span>
+  </div>
+
+  <div id="hook-sub" class="clip" data-start="0" data-duration="4.5" data-track-index="3">AI-powered. Free forever.</div>
+
+  <div id="hook-grain" class="clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
+</div>
+<script>
+(function() {
+  var container = document.getElementById("hook-waves");
+  var w = 1920, h = 1080;
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+  var gap = 10;
+  var totalLines = Math.ceil((w + 200) / gap);
+  var totalPoints = Math.ceil((h + 40) / gap);
+  var xStart = (w - gap * totalLines) / 2;
+  var yStart = (h - gap * totalPoints) / 2;
+
+  for (var i = 0; i < totalLines; i++) {
+    var d = "";
+    for (var j = 0; j < totalPoints; j++) {
+      var baseX = xStart + gap * i;
+      var baseY = yStart + gap * j;
+      var waveX = Math.sin(baseY * 0.008 + i * 0.3) * 6 + Math.sin(baseY * 0.003 + i * 0.7) * 4;
+      var waveY = Math.cos(baseX * 0.005 + j * 0.2) * 3;
+      var px = baseX + waveX;
+      var py = baseY + waveY;
+      d += (j === 0 ? "M " : "L ") + px.toFixed(1) + " " + py.toFixed(1) + " ";
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#818cf8");
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("stroke-opacity", "0.14");
+    svg.appendChild(path);
+  }
+
+  container.appendChild(svg);
+})();
+
+var tl = gsap.timeline({ paused: true });
+
+tl.fromTo("#hook-aurora",
+  { opacity: 0, scale: 0.7, xPercent: -50, yPercent: -50 },
+  { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, duration: 2.5, ease: "power2.out" },
+  0
+);
+tl.to("#hook-aurora",
+  { x: 20, y: -15, scale: 1.08, xPercent: -50, yPercent: -50, duration: 4, ease: "sine.inOut" },
+  0.5
+);
+
+tl.fromTo("#hook-waves",
+  { opacity: 0 },
+  { opacity: 1, duration: 1.2, ease: "power2.out" },
+  0
+);
+
+var particles = document.querySelectorAll(".particle");
+particles.forEach(function(p, i) {
+  tl.fromTo(p,
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: -40, duration: 4, ease: "none" },
+    0.15 * i
+  );
+});
+
+tl.fromTo("#hook-logo",
+  { opacity: 0, scale: 0.6, filter: "blur(8px)" },
+  { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "back.out(1.7)" },
+  0
+);
+
+var line1Chars = document.querySelectorAll("#line1 .hook-char");
+tl.fromTo(line1Chars,
+  { opacity: 0, y: 30, filter: "blur(4px)" },
+  { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "power4.out", stagger: 0.025 },
+  0.5
+);
+
+var line2Chars = document.querySelectorAll("#line2 .hook-char");
+tl.fromTo(line2Chars,
+  { opacity: 0, y: 30, filter: "blur(4px)" },
+  { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "power4.out", stagger: 0.025 },
+  0.9
+);
+
+var accentChars = document.querySelectorAll(".hook-accent");
+tl.to(accentChars,
+  { color: "#8370ff", duration: 0.3, ease: "power2.out", stagger: 0.02 },
+  1.8
+);
+
+tl.fromTo("#hook-sub",
+  { opacity: 0, y: 16 },
+  { opacity: 1, y: 0, duration: 0.5, ease: "power4.out" },
+  1.7
+);
+
+tl.to(["#hook-logo", "#hook-headline", "#hook-sub"],
+  { opacity: 0, y: -20, filter: "blur(3px)", duration: 0.5, ease: "power2.in", stagger: 0.05 },
+  3.8
+);
+tl.to(["#hook-aurora", "#hook-waves"],
+  { opacity: 0, duration: 0.5, ease: "power2.in" },
+  3.8
+);
+
+window.__timelines["hook"] = tl;
+</script>
+</template>

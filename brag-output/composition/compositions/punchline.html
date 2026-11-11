@@ -1,0 +1,279 @@
+<template>
+<style>
+#root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  overflow: hidden;
+}
+
+/* Background */
+#punch-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(109,77,252,.2), transparent 45%),
+    radial-gradient(circle at 30% 60%, rgba(139,92,246,.12), transparent 40%),
+    linear-gradient(180deg, #111113 0%, #0f1437 50%, #111113 100%);
+}
+#punch-waves {
+  position: absolute; inset: 0;
+  overflow: hidden; pointer-events: none;
+}
+#punch-waves svg { display: block; width: 100%; height: 100%; }
+#punch-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px; height: 500px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(109,77,252,.3) 0%, transparent 55%);
+  filter: blur(50px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+#punch-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.5) 100%);
+  pointer-events: none;
+}
+#punch-grain {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none; z-index: 20;
+}
+
+/* Cinematic letterbox bars */
+#letterbox-top, #letterbox-bottom {
+  position: absolute;
+  left: 0; right: 0;
+  height: 50px;
+  background: #000;
+  z-index: 15;
+}
+#letterbox-top { top: 0; }
+#letterbox-bottom { bottom: 0; }
+
+/* Content */
+#punch-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+#punch-main {
+  color: var(--color-ink);
+  font-size: 80px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  position: relative;
+}
+
+#punch-text-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px; height: 120px;
+  background: radial-gradient(ellipse, rgba(109,77,252,.25) 0%, transparent 70%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.punch-char {
+  display: inline-block;
+}
+
+#punch-sub {
+  color: #9a9aa2;
+  font-size: 28px;
+  font-weight: 400;
+  margin-top: 18px;
+}
+
+#punch-url-wrap {
+  margin-top: 32px;
+  position: relative;
+  display: inline-block;
+}
+#punch-url {
+  color: #9d8aff;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+#punch-underline {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6d4dfc, #8370ff);
+  border-radius: 1px;
+  transform-origin: left center;
+}
+
+/* Particles */
+.punch-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.pp1 { width: 3px; height: 3px; background: rgba(109,77,252,.4); top: 25%; left: 20%; }
+.pp3 { width: 4px; height: 4px; background: rgba(139,92,246,.35); top: 72%; left: 30%; }
+</style>
+<div id="root" data-composition-id="punchline" data-width="1920" data-height="1080">
+  <div id="punch-bg" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="punch-waves" class="clip" data-start="0" data-duration="5.5" data-track-index="0" data-layout-allow-overflow></div>
+  <div id="punch-glow" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="punch-vignette" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+  <!-- Particles -->
+  <div id="punch-p1" class="punch-particle pp1 clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="punch-p3" class="punch-particle pp3 clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+  <!-- Letterbox -->
+  <div id="letterbox-top" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="letterbox-bottom" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+  <div id="punch-content" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
+    <div id="punch-main">
+      <div id="punch-text-glow"></div>
+      <span class="punch-char">F</span><span class="punch-char">r</span><span class="punch-char">e</span><span class="punch-char">e</span><span class="punch-char" style="width:.35em"> </span><span class="punch-char">f</span><span class="punch-char">o</span><span class="punch-char">r</span><span class="punch-char">e</span><span class="punch-char">v</span><span class="punch-char">e</span><span class="punch-char">r</span><span class="punch-char">.</span>
+    </div>
+    <div id="punch-sub">No credit card needed. Start now.</div>
+    <div id="punch-url-wrap">
+      <div id="punch-url">appliohq.com</div>
+      <div id="punch-underline"></div>
+    </div>
+  </div>
+
+  <div id="punch-grain" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+</div>
+<script>
+// Generate wavy lines
+(function() {
+  var container = document.getElementById("punch-waves");
+  var w = 1920, h = 1080;
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+  var gap = 10;
+  var totalLines = Math.ceil((w + 200) / gap);
+  var totalPoints = Math.ceil((h + 40) / gap);
+  var xStart = (w - gap * totalLines) / 2;
+  var yStart = (h - gap * totalPoints) / 2;
+  for (var i = 0; i < totalLines; i++) {
+    var d = "";
+    for (var j = 0; j < totalPoints; j++) {
+      var bx = xStart + gap * i;
+      var by = yStart + gap * j;
+      var wx = Math.sin(by * 0.008 + i * 0.3) * 6 + Math.sin(by * 0.003 + i * 0.7) * 4;
+      var wy = Math.cos(bx * 0.005 + j * 0.2) * 3;
+      d += (j === 0 ? "M " : "L ") + (bx + wx).toFixed(1) + " " + (by + wy).toFixed(1) + " ";
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#818cf8");
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("stroke-opacity", "0.14");
+    svg.appendChild(path);
+  }
+  container.appendChild(svg);
+})();
+
+var tl = gsap.timeline({ paused: true });
+
+// Background fades in
+tl.fromTo("#punch-bg",
+  { opacity: 0 },
+  { opacity: 1, duration: 0.5, ease: "power2.out" },
+  0
+);
+tl.fromTo("#punch-waves",
+  { opacity: 0 },
+  { opacity: 1, duration: 0.8, ease: "power2.out" },
+  0
+);
+
+// Glow blooms
+tl.fromTo("#punch-glow",
+  { opacity: 0, scale: 0.6 },
+  { opacity: 1, scale: 1, duration: 0.9, ease: "power2.out" },
+  0
+);
+
+// Letterbox bars slide in
+tl.fromTo("#letterbox-top",
+  { y: -50 },
+  { y: 0, duration: 0.6, ease: "power4.out" },
+  0.1
+);
+tl.fromTo("#letterbox-bottom",
+  { y: 50 },
+  { y: 0, duration: 0.6, ease: "power4.out" },
+  0.1
+);
+
+// Particles float
+var pParticles = document.querySelectorAll(".punch-particle");
+pParticles.forEach(function(p, i) {
+  tl.fromTo(p,
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: -30, duration: 5, ease: "none" },
+    0.15 * i
+  );
+});
+
+// "Free forever." characters slam in
+var chars = document.querySelectorAll(".punch-char");
+tl.fromTo(chars,
+  { opacity: 0, y: 40, scale: 1.1, filter: "blur(6px)" },
+  { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.35, ease: "back.out(1.5)", stagger: 0.03 },
+  0.5
+);
+
+// Text glow pulse after text lands
+tl.fromTo("#punch-text-glow",
+  { opacity: 0, scale: 0.8 },
+  { opacity: 1, scale: 1.2, duration: 0.4, ease: "power2.out" },
+  1.0
+);
+tl.to("#punch-text-glow",
+  { opacity: 0.6, scale: 1, duration: 0.6, ease: "power2.inOut" },
+  1.4
+);
+
+// Supporting line
+tl.fromTo("#punch-sub",
+  { opacity: 0, y: 12 },
+  { opacity: 1, y: 0, duration: 0.45, ease: "power4.out" },
+  1.5
+);
+
+// URL enters
+tl.fromTo("#punch-url",
+  { opacity: 0, y: 10 },
+  { opacity: 1, y: 0, duration: 0.4, ease: "power4.out" },
+  2.2
+);
+
+// Underline draws in
+tl.fromTo("#punch-underline",
+  { width: "0%" },
+  { width: "100%", duration: 0.5, ease: "power2.inOut" },
+  2.5
+);
+
+// Glow breathes gently
+tl.to("#punch-glow",
+  { scale: 1.1, duration: 2.5, ease: "sine.inOut", yoyo: true },
+  1
+);
+
+window.__timelines["punchline"] = tl;
+</script>
+</template>

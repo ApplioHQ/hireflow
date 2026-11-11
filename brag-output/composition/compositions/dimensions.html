@@ -1,0 +1,305 @@
+<template>
+<style>
+#root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  overflow: hidden;
+}
+
+/* Background */
+#dims-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(109,77,252,.16), transparent 50%),
+    radial-gradient(circle at 20% 70%, rgba(139,92,246,.1), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(59,130,246,.08), transparent 40%),
+    linear-gradient(180deg, #111113 0%, #0f1437 50%, #111113 100%);
+}
+#dims-waves {
+  position: absolute; inset: 0;
+  overflow: hidden; pointer-events: none;
+}
+#dims-waves svg { display: block; width: 100%; height: 100%; }
+#dims-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 550px; height: 400px;
+  background: radial-gradient(ellipse, rgba(109,77,252,.2) 0%, transparent 60%);
+  filter: blur(40px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+#dims-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.45) 100%);
+  pointer-events: none;
+}
+#dims-grain {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none; z-index: 20;
+}
+
+/* Content */
+#dims-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#dims-label {
+  color: #9a9aa2;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+}
+
+#dims-row {
+  display: flex;
+  gap: 32px;
+  position: relative;
+}
+
+#dims-connector {
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(109,77,252,.3), rgba(139,92,246,.3), rgba(245,158,11,.3), rgba(139,92,246,.3));
+  border-radius: 1px;
+  transform: translateY(-50%);
+  transform-origin: left center;
+}
+
+.dim-card {
+  width: 260px;
+  background: rgba(28,28,32,.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,.3),
+    0 16px 40px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  position: relative;
+  z-index: 1;
+}
+
+.dim-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; font-size: 24px;
+}
+.dim-icon-keywords { background: rgba(109,77,252,.12); color: #8370ff; }
+.dim-icon-formatting { background: rgba(34,197,94,.12); color: #4ade80; }
+.dim-icon-impact { background: rgba(245,158,11,.12); color: #fbbf24; }
+.dim-icon-completeness { background: rgba(139,92,246,.12); color: #a78bfa; }
+
+.dim-icon svg {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+
+.dim-name {
+  color: #e6e9f5; font-size: 19px; font-weight: 600; margin-bottom: 6px;
+}
+.dim-desc {
+  color: #9a9aa2; font-size: 14px; line-height: 1.5;
+}
+
+#dims-tagline {
+  color: var(--color-ink);
+  font-size: 24px;
+  margin-top: 32px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.tag-word {
+  display: inline-block;
+}
+</style>
+<div id="root" data-composition-id="dimensions" data-width="1920" data-height="1080">
+  <div id="dims-bg" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="dims-waves" class="clip" data-start="0" data-duration="5.5" data-track-index="0" data-layout-allow-overflow></div>
+  <div id="dims-glow" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+  <div id="dims-vignette" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+  <div id="dims-content" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
+    <div id="dims-label">What We Score</div>
+    <div id="dims-row">
+      <div id="dims-connector"></div>
+      <div id="dim-1" class="dim-card">
+        <div class="dim-icon dim-icon-keywords">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="dim-name">Keywords</div>
+        <div class="dim-desc" data-layout-ignore>Matches your resume against required skills</div>
+      </div>
+      <div id="dim-2" class="dim-card">
+        <div class="dim-icon dim-icon-formatting">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="dim-name">Formatting</div>
+        <div class="dim-desc" data-layout-ignore>Checks headings, contact info, and structure</div>
+      </div>
+      <div id="dim-3" class="dim-card">
+        <div class="dim-icon dim-icon-impact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="dim-name">Impact</div>
+        <div class="dim-desc" data-layout-ignore>Measures action verbs and quantified results</div>
+      </div>
+      <div id="dim-4" class="dim-card">
+        <div class="dim-icon dim-icon-completeness">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="dim-name">Completeness</div>
+        <div class="dim-desc" data-layout-ignore>Confirms all expected sections are present</div>
+      </div>
+    </div>
+    <div id="dims-tagline">
+      <span class="tag-word" id="tw1">Four</span>
+      <span class="tag-word" id="tw2"> dimensions.</span>
+      <span class="tag-word" id="tw3"> One</span>
+      <span class="tag-word" id="tw4"> clear</span>
+      <span class="tag-word" id="tw5"> score.</span>
+    </div>
+  </div>
+
+  <div id="dims-grain" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+</div>
+<script>
+// Generate wavy lines
+(function() {
+  var container = document.getElementById("dims-waves");
+  var w = 1920, h = 1080;
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+  var gap = 10;
+  var totalLines = Math.ceil((w + 200) / gap);
+  var totalPoints = Math.ceil((h + 40) / gap);
+  var xStart = (w - gap * totalLines) / 2;
+  var yStart = (h - gap * totalPoints) / 2;
+  for (var i = 0; i < totalLines; i++) {
+    var d = "";
+    for (var j = 0; j < totalPoints; j++) {
+      var bx = xStart + gap * i;
+      var by = yStart + gap * j;
+      var wx = Math.sin(by * 0.008 + i * 0.3) * 6 + Math.sin(by * 0.003 + i * 0.7) * 4;
+      var wy = Math.cos(bx * 0.005 + j * 0.2) * 3;
+      d += (j === 0 ? "M " : "L ") + (bx + wx).toFixed(1) + " " + (by + wy).toFixed(1) + " ";
+    }
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#818cf8");
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("stroke-opacity", "0.14");
+    svg.appendChild(path);
+  }
+  container.appendChild(svg);
+})();
+
+var tl = gsap.timeline({ paused: true });
+
+// Background cross-fade in
+tl.fromTo("#dims-bg",
+  { opacity: 0 },
+  { opacity: 1, duration: 0.5, ease: "power2.out" },
+  0
+);
+tl.fromTo("#dims-waves",
+  { opacity: 0 },
+  { opacity: 1, duration: 0.8, ease: "power2.out" },
+  0
+);
+tl.fromTo("#dims-glow",
+  { opacity: 0, scale: 0.8 },
+  { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" },
+  0
+);
+
+// Label slides down
+tl.fromTo("#dims-label",
+  { opacity: 0, y: -15 },
+  { opacity: 1, y: 0, duration: 0.4, ease: "power4.out" },
+  0.2
+);
+
+// Connection line draws left to right
+tl.fromTo("#dims-connector",
+  { scaleX: 0 },
+  { scaleX: 1, duration: 1.8, ease: "power2.inOut" },
+  0.4
+);
+
+// Cards arrive with spring overshoot
+var cardTimings = [0.56, 1.09, 1.64, 2.19];
+var cardIds = ["#dim-1", "#dim-2", "#dim-3", "#dim-4"];
+
+cardIds.forEach(function(id, i) {
+  tl.fromTo(id,
+    { opacity: 0, y: 40, scale: 0.88, rotateX: 8 },
+    { opacity: 1, y: 0, scale: 1, rotateX: 0, duration: 0.5, ease: "back.out(1.8)" },
+    cardTimings[i]
+  );
+
+  var svg = document.querySelector(id + " .dim-icon svg");
+  if (svg) {
+    var paths = svg.querySelectorAll("circle, line, path, polyline");
+    paths.forEach(function(p) {
+      var len = 100;
+      try { len = p.getTotalLength(); } catch(e) {}
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+      tl.to(p, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, cardTimings[i] + 0.15);
+    });
+  }
+
+  tl.to(id, { y: -4, duration: 0.15, ease: "power2.out" }, cardTimings[i] + 0.4);
+  tl.to(id, { y: 0, duration: 0.3, ease: "power2.inOut" }, cardTimings[i] + 0.55);
+});
+
+// Tagline words stagger in
+var tagWords = ["#tw1", "#tw2", "#tw3", "#tw4", "#tw5"];
+tagWords.forEach(function(w, i) {
+  tl.fromTo(w,
+    { opacity: 0, y: 10 },
+    { opacity: 1, y: 0, duration: 0.35, ease: "power4.out" },
+    3.0 + i * 0.12
+  );
+});
+
+// Glow breathes
+tl.to("#dims-glow", { scale: 1.1, duration: 2, ease: "sine.inOut", yoyo: true }, 1);
+
+// Exit
+tl.to("#dims-content",
+  { opacity: 0, y: -15, filter: "blur(3px)", duration: 0.5, ease: "power2.in" },
+  4.7
+);
+tl.to(["#dims-glow", "#dims-bg", "#dims-waves"],
+  { opacity: 0, duration: 0.5, ease: "power2.in" },
+  4.7
+);
+
+window.__timelines["dimensions"] = tl;
+</script>
+</template>

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Applio (appliohq.com), static front-end (GitHub Pages) + Cloudflare Worker API (in ./worker).",
   "scripts": {
-    "deploy": "cd worker && npx wrangler deploy",
+    "deploy": "wrangler deploy",
     "deploy:staging": "cd worker && npx wrangler deploy --env staging",
     "dev": "cd worker && npx wrangler dev",
     "dev:staging": "cd worker && npx wrangler dev --env staging",
@@ -13,9 +13,11 @@
     "template-previews": "node scripts/generate-template-previews.mjs",
     "page-screenshots": "node scripts/generate-page-screenshots.mjs",
     "secrets:list": "cd worker && npx wrangler secret list",
-    "predeploy": "echo '>> Deploying PRODUCTION worker from ./worker (KV 84f236c3). Ctrl-C to abort.' && sleep 3"
+    "predeploy": "echo '>> Deploying PRODUCTION worker from ./worker (KV 84f236c3). Ctrl-C to abort.' && sleep 3",
+    "preview": "wrangler dev"
   },
   "devDependencies": {
-    "playwright": "^1.63.0"
+    "playwright": "^1.63.0",
+    "wrangler": "^4.158.0"
   }
 }

@@ -78,7 +78,7 @@
   width: 20px; height: 20px;
   background: #22c55e; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 12px; font-weight: 700;
+  color: #052e16; font-size: 12px; font-weight: 700;
   line-height: 1;
 }
 #product-stamp-text { color: #4ade80; font-size: 13px; font-weight: 600; }
@@ -206,14 +206,14 @@
         <div id="product-avatar">JD</div>
         <div>
           <div id="product-name">Jane Doe</div>
-          <div id="product-role">Senior Frontend Engineer</div>
+          <div id="product-role" data-layout-ignore>Senior Frontend Engineer</div>
         </div>
       </div>
-      <div id="product-section">Experience</div>
-      <div class="product-bullet" id="bullet-1">Led migration to React 18, improving load times by <span class="product-metric">40%</span></div>
-      <div class="product-bullet" id="bullet-2">Mentored cross-functional team of <span class="product-metric">8 engineers</span></div>
-      <div class="product-bullet" id="bullet-3">Redesigned checkout flow, boosting conversions <span class="product-metric">23%</span></div>
-      <div id="product-section-skills" style="color:#9a9aa2;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-top:20px;margin-bottom:10px;">Skills</div>
+      <div id="product-section" data-layout-ignore>Experience</div>
+      <div class="product-bullet" id="bullet-1" data-layout-ignore>Led migration to React 18, improving load times by <span class="product-metric">40%</span></div>
+      <div class="product-bullet" id="bullet-2" data-layout-ignore>Mentored cross-functional team of <span class="product-metric">8 engineers</span></div>
+      <div class="product-bullet" id="bullet-3" data-layout-ignore>Redesigned checkout flow, boosting conversions <span class="product-metric">23%</span></div>
+      <div id="product-section-skills" data-layout-ignore style="color:#9a9aa2;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-top:20px;margin-bottom:10px;">Skills</div>
       <div id="product-skills">
         <span class="product-skill" id="skill-1" data-layout-ignore>React</span>
         <span class="product-skill" id="skill-2" data-layout-ignore>TypeScript</span>
@@ -331,25 +331,26 @@ tl.fromTo("#ats-ring-wrap",
   2.0
 );
 
-// Ring fill
-var targetOffset = 301.6 * (1 - 96/100);
+// Phase 1: Ring fills to 84 (before suggestion)
+var offset84 = 301.6 * (1 - 84/100);
+var offset96 = 301.6 * (1 - 96/100);
 tl.fromTo("#ats-ring-fill",
   { attr: { "stroke-dashoffset": 301.6 } },
-  { attr: { "stroke-dashoffset": targetOffset }, duration: 2.0, ease: "power2.out" },
+  { attr: { "stroke-dashoffset": offset84 }, duration: 1.4, ease: "power2.out" },
   2.2
 );
 tl.fromTo("#ats-ring-glow",
   { opacity: 0 },
-  { opacity: 1, duration: 1.5, ease: "power2.out" },
+  { opacity: 0.6, duration: 1.2, ease: "power2.out" },
   2.5
 );
 
-// Counter 0 -> 96
+// Counter 0 -> 84
 tl.fromTo("#ats-ring-num",
   { textContent: "0" },
   {
-    textContent: "96",
-    duration: 2.0,
+    textContent: "84",
+    duration: 1.4,
     ease: "power3.out",
     snap: { textContent: 1 },
     onUpdate: function() {
@@ -360,43 +361,81 @@ tl.fromTo("#ats-ring-num",
   2.2
 );
 
+// Highlight bullet-1 when suggestion references it
+tl.to("#bullet-1",
+  { color: "#e6e9f5", duration: 0.25, ease: "power2.out" },
+  3.0
+);
+
 // Suggestion bar slides up
 tl.fromTo("#suggestion-bar",
   { opacity: 0, y: 20, xPercent: -50 },
   { opacity: 1, y: 0, xPercent: -50, duration: 0.4, ease: "back.out(1.4)" },
   3.2
 );
-// Suggestion bar fades out
+
+// Phase 2: Score bumps 84 -> 96 after suggestion
+tl.fromTo("#ats-ring-fill",
+  { attr: { "stroke-dashoffset": offset84 } },
+  { attr: { "stroke-dashoffset": offset96 }, duration: 0.8, ease: "power2.out" },
+  3.6
+);
+tl.fromTo("#ats-ring-num",
+  { textContent: "84" },
+  {
+    textContent: "96",
+    duration: 0.8,
+    ease: "power2.out",
+    snap: { textContent: 1 },
+    onUpdate: function() {
+      var el = document.querySelector("#ats-ring-num");
+      if (el) el.textContent = Math.round(parseFloat(el.textContent));
+    }
+  },
+  3.6
+);
+
+// Ring glow pulse on score bump
+tl.to("#ats-ring-glow",
+  { opacity: 1, scale: 1.3, duration: 0.5, ease: "power2.out" },
+  3.6
+);
+tl.to("#ats-ring-glow",
+  { scale: 1, duration: 0.4, ease: "power2.inOut" },
+  4.1
+);
+
+// Suggestion bar fades out after score lands
 tl.to("#suggestion-bar",
   { opacity: 0, y: -6, xPercent: -50, duration: 0.3, ease: "power2.in" },
-  4.6
+  4.5
 );
 
-// Ring glow pulse
-tl.to("#ats-ring-glow",
-  { scale: 1.2, duration: 0.5, ease: "power2.out" },
-  3.8
+// Reset bullet highlight
+tl.to("#bullet-1",
+  { color: "#c8cad4", duration: 0.3, ease: "power2.inOut" },
+  4.5
 );
 
-// Stamp appears (earlier)
+// Stamp appears
 tl.fromTo("#product-stamp",
   { opacity: 0, y: -10, scale: 0.9 },
   { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2)" },
-  4.0
+  4.4
 );
 
-// "Excellent" tag (earlier)
+// "Excellent" tag
 tl.fromTo("#ats-ring-tag",
   { opacity: 0, y: 6 },
   { opacity: 1, y: 0, duration: 0.3, ease: "power4.out" },
-  4.2
+  4.6
 );
 
 // Benchmark text
 tl.fromTo("#ats-ring-benchmark",
   { opacity: 0, y: 4 },
   { opacity: 1, y: 0, duration: 0.3, ease: "power4.out" },
-  4.4
+  4.8
 );
 
 // Exit

@@ -89,6 +89,38 @@
   position: relative; z-index: 2;
 }
 
+/* Browser chrome foreshadow */
+#hook-chrome {
+  position: absolute;
+  bottom: 80px; left: 50%;
+  width: 1400px; height: 60px;
+  background: #1c1c20;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid rgba(255,255,255,.06);
+  border-bottom: none;
+  display: flex; align-items: center;
+  padding: 0 16px;
+  z-index: 3;
+}
+#hook-chrome-url {
+  background: rgba(255,255,255,.04);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #9a9aa2;
+  flex: 1;
+  text-align: center;
+}
+#hook-chrome-dots {
+  display: flex; gap: 6px; margin-right: 14px;
+}
+.hook-chrome-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.hcd-red { background: #ff5f56; }
+.hcd-yellow { background: #ffbd2e; }
+.hcd-green { background: #27c93f; }
+
 #hook-grain {
   position: absolute; inset: 0; opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -119,6 +151,15 @@
   </div>
 
   <div id="hook-sub" class="clip" data-start="0" data-duration="4.5" data-track-index="3">AI-powered. Free forever.</div>
+
+  <div id="hook-chrome" class="clip" data-start="0" data-duration="4.5" data-track-index="4">
+    <div id="hook-chrome-dots">
+      <div class="hook-chrome-dot hcd-red"></div>
+      <div class="hook-chrome-dot hcd-yellow"></div>
+      <div class="hook-chrome-dot hcd-green"></div>
+    </div>
+    <div id="hook-chrome-url" data-layout-ignore>appliohq.com/editor</div>
+  </div>
 
   <div id="hook-grain" class="clip" data-start="0" data-duration="4.5" data-track-index="0"></div>
 </div>
@@ -160,6 +201,8 @@
 })();
 
 var tl = gsap.timeline({ paused: true });
+
+gsap.set("#hook-chrome", { opacity: 0, y: 30, xPercent: -50 });
 
 tl.fromTo("#hook-aurora",
   { opacity: 0, scale: 0.7, xPercent: -50, yPercent: -50 },
@@ -218,11 +261,17 @@ tl.fromTo("#hook-sub",
   1.7
 );
 
+// Browser chrome foreshadow
+tl.to("#hook-chrome",
+  { opacity: 0.6, y: 0, xPercent: -50, duration: 0.5, ease: "power3.out" },
+  3.0
+);
+
 tl.to(["#hook-logo", "#hook-headline", "#hook-sub"],
   { opacity: 0, y: -20, filter: "blur(3px)", duration: 0.5, ease: "power2.in", stagger: 0.05 },
   3.8
 );
-tl.to(["#hook-aurora", "#hook-waves"],
+tl.to(["#hook-aurora", "#hook-waves", "#hook-chrome"],
   { opacity: 0, duration: 0.5, ease: "power2.in" },
   3.8
 );

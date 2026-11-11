@@ -4,33 +4,27 @@
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   font-family: 'Sora', sans-serif;
   overflow: hidden;
 }
 
-/* Background */
+/* Background layers */
 #prod-bg {
   position: absolute; inset: 0;
   background:
-    radial-gradient(circle at 25% 40%, rgba(109,77,252,.18), transparent 50%),
-    radial-gradient(circle at 75% 60%, rgba(139,92,246,.14), transparent 50%),
-    linear-gradient(180deg, #111113 0%, #0f1437 100%);
+    radial-gradient(circle at 40% 35%, rgba(109,77,252,.18), transparent 50%),
+    radial-gradient(circle at 75% 65%, rgba(139,92,246,.14), transparent 45%),
+    radial-gradient(circle at 55% 50%, rgba(59,130,246,.08), transparent 55%),
+    linear-gradient(180deg, #111113 0%, #0f1437 50%, #111113 100%);
 }
-#prod-waves {
-  position: absolute; inset: 0;
-  overflow: hidden; pointer-events: none;
-}
+#prod-waves { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 #prod-waves svg { display: block; width: 100%; height: 100%; }
 #prod-glow {
-  position: absolute;
-  top: 50%; left: 38%;
-  transform: translate(-50%, -50%);
-  width: 500px; height: 500px;
-  background:
-    radial-gradient(circle at 40% 45%, rgba(109,77,252,.3) 0%, transparent 55%),
-    radial-gradient(circle at 65% 55%, rgba(139,92,246,.2) 0%, transparent 50%);
+  position: absolute; top: 50%; left: 50%;
+  width: 600px; height: 500px;
+  background: radial-gradient(ellipse, rgba(109,77,252,.18) 0%, transparent 60%);
   filter: blur(50px); border-radius: 50%; pointer-events: none;
 }
 #prod-vignette {
@@ -45,218 +39,457 @@
   pointer-events: none; z-index: 20;
 }
 
-/* 3D perspective wrapper */
-#product-perspective {
-  perspective: 1200px;
-  position: relative; z-index: 2;
-  display: flex; align-items: center; gap: 60px;
-}
-
-/* Glass card */
-#product-card {
-  position: relative; width: 640px;
-  background: rgba(28,28,32,.75);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 18px; padding: 44px;
-  box-shadow:
-    0 8px 32px rgba(0,0,0,.4),
-    0 24px 60px rgba(0,0,0,.3),
-    inset 0 1px 0 rgba(255,255,255,.06);
-  transform-style: preserve-3d;
-}
-
-#product-stamp {
-  position: absolute; top: 20px; right: 20px;
-  background: rgba(34,197,94,.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(34,197,94,.25);
-  border-radius: 8px; padding: 8px 14px;
-  display: flex; align-items: center; gap: 8px;
-}
-#product-stamp-icon {
-  width: 20px; height: 20px;
-  background: #22c55e; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #052e16; font-size: 12px; font-weight: 700;
-  line-height: 1;
-}
-#product-stamp-text { color: #4ade80; font-size: 13px; font-weight: 600; }
-
-#product-header {
-  display: flex; align-items: center; gap: 16px;
-  margin-bottom: 24px; margin-top: 8px;
-}
-#product-avatar {
-  width: 48px; height: 48px; border-radius: 12px;
-  background: linear-gradient(135deg, #5a3ce8, #8370ff);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 16px; font-weight: 700; flex-shrink: 0;
-}
-#product-name { color: #e6e9f5; font-size: 20px; font-weight: 700; margin-bottom: 2px; }
-#product-role { color: #9a9aa2; font-size: 14px; }
-
-#product-section {
-  color: #9a9aa2; font-size: 11px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  margin-bottom: 10px; margin-top: 20px;
-}
-.product-bullet {
-  color: #c8cad4; font-size: 15px; line-height: 1.6;
-  padding-left: 14px; position: relative; margin-bottom: 4px;
-}
-.product-bullet::before {
-  content: ""; position: absolute; left: 0; top: 10px;
-  width: 4px; height: 4px; border-radius: 50%; background: #6d4dfc;
-}
-.product-metric { color: #4ade80; font-weight: 600; }
-
-#product-skills {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
-}
-.product-skill {
-  background: rgba(109,77,252,.08);
-  border: 1px solid rgba(109,77,252,.2);
-  border-radius: 6px; padding: 4px 10px;
-  color: #c2b8fd; font-size: 13px; font-weight: 500;
-}
-
-/* Suggestion bar */
-#suggestion-bar {
-  position: absolute; bottom: -60px; left: 50%;
-  width: 540px;
-  background: rgba(28,28,32,.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(34,197,94,.2);
-  border-radius: 10px; padding: 12px 20px;
-  display: flex; align-items: center; gap: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.3);
-}
-#suggestion-icon {
-  width: 28px; height: 28px; border-radius: 6px;
-  background: rgba(34,197,94,.12);
-  display: flex; align-items: center; justify-content: center;
-  color: #4ade80; font-size: 14px; font-weight: 700; flex-shrink: 0;
-}
-#suggestion-text {
-  color: #c8cad4; font-size: 14px; flex: 1;
-}
-#suggestion-pts {
-  color: #4ade80; font-size: 15px; font-weight: 700; white-space: nowrap;
-}
-
-/* ATS ring */
-#ats-ring-wrap {
-  text-align: center; position: relative;
-}
-#ats-ring-label {
-  color: #9a9aa2; font-size: 15px; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  margin-bottom: 12px;
-}
-#ats-ring-glow {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px; height: 200px;
-  background: radial-gradient(circle, rgba(34,197,94,.25) 0%, transparent 70%);
-  filter: blur(20px); border-radius: 50%; pointer-events: none;
-}
-#ats-ring-container {
+/* Editor shell */
+#editor-shell {
   position: relative;
-  width: 170px; height: 170px;
-  display: inline-block;
+  z-index: 2;
+  width: 1560px;
+  height: 880px;
+  margin-top: 100px;
+  background: rgba(28,28,32,.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.34),
+    0 24px 60px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-#ats-ring-svg {
-  position: absolute; top: 0; left: 0;
-  z-index: 1;
-}
-#ats-ring-num {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+
+/* Topbar */
+#ed-topbar {
+  height: 44px;
+  background: rgba(28,28,32,.9);
+  border-bottom: 1px solid rgba(255,255,255,.06);
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+#ed-logo {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #5a3ce8, #8370ff);
+  margin-right: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+#ed-logo-icon { color: #fff; font-size: 12px; font-weight: 700; }
+#ed-brand { color: #e6e9f5; font-size: 14px; font-weight: 600; margin-right: auto; }
+.ed-topbar-btn {
+  height: 28px; padding: 0 12px;
+  border-radius: 6px;
+  font-size: 12px; font-weight: 500;
+  display: flex; align-items: center; gap: 4px;
+  margin-left: 8px;
+}
+.ed-btn-ghost { background: rgba(255,255,255,.06); color: #9a9aa2; border: 1px solid rgba(255,255,255,.06); }
+.ed-btn-accent { background: #6d4dfc; color: #fff; border: none; }
+#ed-save-status { color: #4ade80; font-size: 11px; margin-right: 12px; }
+
+/* Body columns */
+#ed-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+#ed-sidebar {
+  width: 200px;
+  background: #1c1c20;
+  border-right: 1px solid rgba(255,255,255,.06);
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+.sb-section { padding: 0 12px; margin-bottom: 8px; }
+.sb-section-label {
+  font-size: 10px; font-weight: 600; color: #9a9aa2;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 8px; margin-bottom: 2px;
+}
+.sb-item {
+  height: 34px;
+  display: flex; align-items: center;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13px; color: #9a9aa2;
+  gap: 8px;
+  border-left: 3px solid transparent;
+  margin-bottom: 1px;
+}
+.sb-item-active {
+  background: rgba(109,77,252,.1);
   color: #e6e9f5;
-  font-size: 52px;
-  font-weight: 800;
-  z-index: 2;
-  line-height: 1;
+  border-left-color: #6d4dfc;
 }
-#ats-ring-tag {
-  color: #4ade80; font-size: 14px; font-weight: 600; margin-top: 10px;
+.sb-check { color: #4ade80; font-size: 11px; margin-left: auto; }
+.sb-icon { width: 16px; height: 16px; opacity: 0.6; }
+.sb-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 12px; }
+
+/* Main content area */
+#ed-main {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
 }
-#ats-ring-benchmark {
-  color: #9a9aa2; font-size: 13px; margin-top: 6px;
+
+/* Resume content panel */
+#resume-content { position: absolute; inset: 0; padding: 28px 32px; }
+.rc-section-title { color: #e6e9f5; font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.rc-entry { margin-bottom: 20px; }
+.rc-role { color: #e6e9f5; font-size: 15px; font-weight: 600; }
+.rc-company { color: #9a9aa2; font-size: 13px; margin-top: 2px; }
+.rc-date { color: #9a9aa2; font-size: 12px; margin-top: 1px; }
+.rc-bullets { margin-top: 10px; padding-left: 16px; }
+.rc-bullet {
+  color: #c8cad4; font-size: 14px; line-height: 1.6;
+  margin-bottom: 6px; position: relative;
+  padding-left: 12px;
+}
+.rc-bullet::before {
+  content: '';
+  position: absolute; left: 0; top: 9px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #9a9aa2;
+}
+
+/* ATS results panel */
+#ats-results { position: absolute; inset: 0; padding: 28px 32px; background: #1c1c20; }
+.ats-header { color: #e6e9f5; font-size: 18px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+.ats-header-icon { color: rgb(132,114,255); }
+
+/* Loading shimmer */
+#ats-shimmer { margin-bottom: 20px; }
+.shimmer-bar {
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(109,77,252,.08);
+  margin-bottom: 10px;
+}
+.shimmer-bar:nth-child(1) { width: 70%; }
+.shimmer-bar:nth-child(2) { width: 55%; }
+.shimmer-bar:nth-child(3) { width: 40%; }
+
+/* Score ring */
+#ats-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+#ats-ring-container { width: 140px; height: 140px; position: relative; flex-shrink: 0; }
+#ats-ring-svg { width: 140px; height: 140px; }
+.ats-ring-track { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 8; }
+.ats-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; }
+#ats-counter {
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: 42px; font-weight: 700;
+  color: #e6e9f5;
+}
+#ats-label {
+  position: absolute; bottom: 22px; left: 50%;
+  font-size: 12px; color: #9a9aa2; white-space: nowrap;
+}
+
+/* Dimension bars */
+#ats-dims { flex: 1; }
+.dim-bar-row { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
+.dim-bar-label { font-size: 13px; color: #9a9aa2; width: 110px; flex-shrink: 0; }
+.dim-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+.dim-bar-fill { height: 100%; border-radius: 3px; }
+.dim-bar-fill-keywords { background: #8370ff; }
+.dim-bar-fill-formatting { background: #4ade80; }
+.dim-bar-fill-impact { background: #fbbf24; }
+.dim-bar-fill-completeness { background: #a78bfa; }
+.dim-bar-pct { font-size: 12px; color: #e6e9f5; font-weight: 600; width: 32px; text-align: right; }
+
+/* Keyword chips */
+#ats-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.kw-chip {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.kw-chip-ok {
+  background: rgba(34,197,94,.1);
+  color: #4ade80;
+  border: 1px solid rgba(34,197,94,.2);
+}
+.kw-chip-no {
+  background: rgba(255,255,255,.05);
+  color: #9a9aa2;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* Right panel */
+#ed-right {
+  width: 300px;
+  background: #1c1c20;
+  border-left: 1px solid rgba(255,255,255,.06);
+  padding: 16px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.rp-header {
+  font-size: 13px; font-weight: 600; color: #e6e9f5;
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 12px;
+}
+.rp-sparkle { color: rgb(132,114,255); }
+#rp-message { font-size: 12px; color: #9a9aa2; line-height: 1.5; margin-bottom: 12px; }
+
+/* Copilot mini ring */
+#rp-score-wrap {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 12px;
+}
+#rp-ring-svg { width: 48px; height: 48px; flex-shrink: 0; }
+.rp-ring-track { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 5; }
+.rp-ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; }
+#rp-score-num { font-size: 24px; font-weight: 700; color: #e6e9f5; }
+#rp-score-label { font-size: 11px; color: #9a9aa2; }
+
+/* Fix chips */
+.rp-fix-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 12px; color: #e6e9f5;
+}
+.rp-fix-pts { color: #4ade80; font-size: 11px; font-weight: 600; margin-left: auto; }
+
+/* Preview placeholder */
+#rp-preview {
+  margin-top: auto;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px;
+  height: 180px;
+  display: flex; align-items: center; justify-content: center;
+}
+#rp-preview-label { font-size: 11px; color: #9a9aa2; }
+
+/* Cursor */
+#cursor-wrap { position: absolute; z-index: 50; pointer-events: none; }
+#cursor-svg { width: 24px; height: 28px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+#cursor-glow {
+  position: absolute; top: -4px; left: -4px;
+  width: 24px; height: 24px;
+  background: radial-gradient(circle, rgba(109,77,252,.35), transparent 70%);
+  filter: blur(6px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+#cursor-ripple {
+  position: absolute; top: 0; left: 0;
+  width: 0; height: 0;
+  border-radius: 50%;
+  background: rgba(109,77,252,.3);
+  pointer-events: none;
 }
 </style>
 <div id="root" data-composition-id="product" data-width="1920" data-height="1080">
+  <!-- Background -->
   <div id="prod-bg" class="clip" data-start="0" data-duration="6.7" data-track-index="0"></div>
   <div id="prod-waves" class="clip" data-start="0" data-duration="6.7" data-track-index="0" data-layout-allow-overflow></div>
   <div id="prod-glow" class="clip" data-start="0" data-duration="6.7" data-track-index="0"></div>
   <div id="prod-vignette" class="clip" data-start="0" data-duration="6.7" data-track-index="0"></div>
 
-  <div id="product-perspective" class="clip" data-start="0" data-duration="6.7" data-track-index="1">
-    <div id="product-card">
-      <div id="product-stamp">
-        <div id="product-stamp-icon">&#10003;</div>
-        <div id="product-stamp-text" data-layout-ignore>ATS Optimized</div>
-      </div>
-      <div id="product-header">
-        <div id="product-avatar">JD</div>
-        <div>
-          <div id="product-name">Jane Doe</div>
-          <div id="product-role" data-layout-ignore>Senior Frontend Engineer</div>
+  <!-- Editor shell -->
+  <div id="editor-shell" class="clip" data-start="0" data-duration="6.7" data-track-index="1">
+    <!-- Topbar -->
+    <div id="ed-topbar">
+      <div id="ed-logo"><span id="ed-logo-icon">A</span></div>
+      <span id="ed-brand">Applio</span>
+      <span id="ed-save-status" data-layout-ignore>Saved</span>
+      <div class="ed-topbar-btn ed-btn-ghost" id="ed-btn-import" data-layout-ignore>Import</div>
+      <div class="ed-topbar-btn ed-btn-ghost" id="ed-btn-save" data-layout-ignore>Save</div>
+      <div class="ed-topbar-btn ed-btn-accent" id="ed-btn-export" data-layout-ignore>Export PDF</div>
+    </div>
+
+    <div id="ed-body">
+      <!-- Sidebar -->
+      <div id="ed-sidebar">
+        <div class="sb-section">
+          <div class="sb-section-label" data-layout-ignore>Build</div>
+          <div id="sb-personal" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9679;</span> Personal Info <span class="sb-check">&#10003;</span>
+          </div>
+          <div id="sb-experience" class="sb-item sb-item-active" data-layout-ignore>
+            <span class="sb-icon">&#9679;</span> Experience <span class="sb-check">&#10003;</span>
+          </div>
+          <div id="sb-education" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9679;</span> Education <span class="sb-check">&#10003;</span>
+          </div>
+          <div id="sb-skills" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9679;</span> Skills
+          </div>
+          <div id="sb-projects" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9679;</span> Projects
+          </div>
+        </div>
+        <div class="sb-divider"></div>
+        <div class="sb-section">
+          <div class="sb-section-label" data-layout-ignore>Improve</div>
+          <div id="sb-tailor" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9673;</span> AI Tailor
+          </div>
+          <div id="sb-ats" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9745;</span> ATS Check
+          </div>
+          <div id="sb-analysis" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9670;</span> Analysis
+          </div>
+          <div id="sb-modernize" class="sb-item" data-layout-ignore>
+            <span class="sb-icon">&#9733;</span> Modernize
+          </div>
         </div>
       </div>
-      <div id="product-section" data-layout-ignore>Experience</div>
-      <div class="product-bullet" id="bullet-1" data-layout-ignore>Led migration to React 18, improving load times by <span class="product-metric">40%</span></div>
-      <div class="product-bullet" id="bullet-2" data-layout-ignore>Mentored cross-functional team of <span class="product-metric">8 engineers</span></div>
-      <div class="product-bullet" id="bullet-3" data-layout-ignore>Redesigned checkout flow, boosting conversions <span class="product-metric">23%</span></div>
-      <div id="product-section-skills" data-layout-ignore style="color:#9a9aa2;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-top:20px;margin-bottom:10px;">Skills</div>
-      <div id="product-skills">
-        <span class="product-skill" id="skill-1" data-layout-ignore>React</span>
-        <span class="product-skill" id="skill-2" data-layout-ignore>TypeScript</span>
-        <span class="product-skill" id="skill-3" data-layout-ignore>Node.js</span>
-        <span class="product-skill" id="skill-4" data-layout-ignore>AWS</span>
-        <span class="product-skill" id="skill-5" data-layout-ignore>CI/CD</span>
-        <span class="product-skill" id="skill-6" data-layout-ignore>GraphQL</span>
+
+      <!-- Main content -->
+      <div id="ed-main">
+        <!-- Resume content (initial) -->
+        <div id="resume-content">
+          <div class="rc-section-title">Experience</div>
+          <div class="rc-entry">
+            <div class="rc-role">Senior Frontend Engineer</div>
+            <div class="rc-company" data-layout-ignore>Acme Corp</div>
+            <div class="rc-date" data-layout-ignore>2021 - Present</div>
+            <div class="rc-bullets">
+              <div id="rc-b1" class="rc-bullet" data-layout-ignore>Led migration to React 18, improving load times by 40%</div>
+              <div id="rc-b2" class="rc-bullet" data-layout-ignore>Mentored cross-functional team of 8 engineers</div>
+              <div id="rc-b3" class="rc-bullet" data-layout-ignore>Redesigned checkout flow, boosting conversions 23%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATS results (hidden initially) -->
+        <div id="ats-results">
+          <div class="ats-header">
+            <span class="ats-header-icon">&#9745;</span>
+            ATS Compatibility Check
+          </div>
+
+          <div id="ats-shimmer">
+            <div class="shimmer-bar" id="shimmer-1"></div>
+            <div class="shimmer-bar" id="shimmer-2"></div>
+            <div class="shimmer-bar" id="shimmer-3"></div>
+          </div>
+
+          <div id="ats-score-wrap">
+            <div id="ats-ring-container">
+              <svg id="ats-ring-svg" viewBox="0 0 140 140">
+                <circle class="ats-ring-track" cx="70" cy="70" r="58" />
+                <circle id="ats-ring-fill" class="ats-ring-fill" cx="70" cy="70" r="58"
+                  stroke="#4ade80"
+                  stroke-dasharray="364.42"
+                  stroke-dashoffset="364.42"
+                  transform="rotate(-90 70 70)" />
+              </svg>
+              <div id="ats-counter">0</div>
+              <div id="ats-label" data-layout-ignore>ATS Score</div>
+            </div>
+
+            <div id="ats-dims">
+              <div class="dim-bar-row" id="dim-keywords">
+                <span class="dim-bar-label" data-layout-ignore>Keywords</span>
+                <div class="dim-bar-track"><div class="dim-bar-fill dim-bar-fill-keywords" id="bar-keywords"></div></div>
+                <span class="dim-bar-pct" id="pct-keywords" data-layout-ignore>78%</span>
+              </div>
+              <div class="dim-bar-row" id="dim-formatting">
+                <span class="dim-bar-label" data-layout-ignore>Formatting</span>
+                <div class="dim-bar-track"><div class="dim-bar-fill dim-bar-fill-formatting" id="bar-formatting"></div></div>
+                <span class="dim-bar-pct" id="pct-formatting" data-layout-ignore>92%</span>
+              </div>
+              <div class="dim-bar-row" id="dim-impact">
+                <span class="dim-bar-label" data-layout-ignore>Impact</span>
+                <div class="dim-bar-track"><div class="dim-bar-fill dim-bar-fill-impact" id="bar-impact"></div></div>
+                <span class="dim-bar-pct" id="pct-impact" data-layout-ignore>76%</span>
+              </div>
+              <div class="dim-bar-row" id="dim-completeness">
+                <span class="dim-bar-label" data-layout-ignore>Completeness</span>
+                <div class="dim-bar-track"><div class="dim-bar-fill dim-bar-fill-completeness" id="bar-completeness"></div></div>
+                <span class="dim-bar-pct" id="pct-completeness" data-layout-ignore>88%</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="ats-chips">
+            <span class="kw-chip kw-chip-ok" id="chip-react" data-layout-ignore>React</span>
+            <span class="kw-chip kw-chip-ok" id="chip-ts" data-layout-ignore>TypeScript</span>
+            <span class="kw-chip kw-chip-ok" id="chip-node" data-layout-ignore>Node.js</span>
+            <span class="kw-chip kw-chip-ok" id="chip-cicd" data-layout-ignore>CI/CD</span>
+            <span class="kw-chip kw-chip-no" id="chip-docker" data-layout-ignore>Docker</span>
+            <span class="kw-chip kw-chip-no" id="chip-k8s" data-layout-ignore>Kubernetes</span>
+          </div>
+        </div>
       </div>
 
-      <div id="suggestion-bar" data-layout-ignore>
-        <div id="suggestion-icon">+</div>
-        <div id="suggestion-text">Added "Led migration to React 18"</div>
-        <div id="suggestion-pts">+12 pts</div>
-      </div>
-    </div>
+      <!-- Right panel -->
+      <div id="ed-right">
+        <div class="rp-header"><span class="rp-sparkle">&#10024;</span> Copilot</div>
+        <div id="rp-message" data-layout-ignore>Your resume is ready for review. Run an ATS check to see how it scores.</div>
 
-    <div id="ats-ring-wrap">
-      <div id="ats-ring-label">ATS Compatibility Score</div>
-      <div id="ats-ring-glow"></div>
-      <div id="ats-ring-container">
-        <svg id="ats-ring-svg" viewBox="0 0 120 120" width="170" height="170">
-          <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
-          <circle id="ats-ring-fill" cx="60" cy="60" r="48" fill="none" stroke="url(#atsGrad)" stroke-width="8"
-            stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round"
-            transform="rotate(-90 60 60)"/>
-          <defs>
-            <linearGradient id="atsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#4ade80"/>
-              <stop offset="100%" stop-color="#22c55e"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div id="ats-ring-num">0</div>
+        <div id="rp-score-wrap">
+          <svg id="rp-ring-svg" viewBox="0 0 48 48">
+            <circle class="rp-ring-track" cx="24" cy="24" r="19" />
+            <circle id="rp-ring-fill" class="rp-ring-fill" cx="24" cy="24" r="19"
+              stroke="#4ade80"
+              stroke-dasharray="119.38"
+              stroke-dashoffset="119.38"
+              transform="rotate(-90 24 24)" />
+          </svg>
+          <div>
+            <div id="rp-score-num">--</div>
+            <div id="rp-score-label" data-layout-ignore>ATS Score</div>
+          </div>
+        </div>
+
+        <div id="rp-fix-1" class="rp-fix-chip" data-layout-ignore>
+          <span class="rp-sparkle">&#10024;</span> Add Docker keywords
+          <span class="rp-fix-pts">+4 pts</span>
+        </div>
+        <div id="rp-fix-2" class="rp-fix-chip" data-layout-ignore>
+          <span class="rp-sparkle">&#10024;</span> Add Kubernetes
+          <span class="rp-fix-pts">+4 pts</span>
+        </div>
+
+        <div id="rp-preview">
+          <span id="rp-preview-label" data-layout-ignore>Live Preview</span>
+        </div>
       </div>
-      <div id="ats-ring-tag">Excellent</div>
-      <div id="ats-ring-benchmark" data-layout-ignore>Top 4% of applicants</div>
     </div>
+  </div>
+
+  <!-- Cursor -->
+  <div id="cursor-wrap" class="clip" data-start="0" data-duration="6.7" data-track-index="5">
+    <div id="cursor-glow"></div>
+    <svg id="cursor-svg" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 2L5 22L10 17L16 26L20 24L14 15L21 15L5 2Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
+    </svg>
+    <div id="cursor-ripple"></div>
   </div>
 
   <div id="prod-grain" class="clip" data-start="0" data-duration="6.7" data-track-index="0"></div>
 </div>
 <script>
-// Generate wavy lines
+// Wavy lines
 (function() {
   var container = document.getElementById("prod-waves");
   var w = 1920, h = 1080;
@@ -289,163 +522,224 @@
 
 var tl = gsap.timeline({ paused: true });
 
-// Cross-fade in
-tl.fromTo("#prod-bg", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
-tl.fromTo("#prod-waves", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0);
-tl.fromTo("#prod-glow", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 1.5, ease: "power2.out" }, 0);
+// -- Initial state: hide things --
+gsap.set("#ats-results", { opacity: 0 });
+gsap.set("#ats-shimmer", { opacity: 0 });
+gsap.set("#ats-score-wrap", { opacity: 0 });
+gsap.set("#ats-chips", { opacity: 0 });
+gsap.set(".kw-chip", { opacity: 0, scale: 0.7 });
+gsap.set(".dim-bar-row", { opacity: 0 });
+gsap.set(".dim-bar-fill", { width: "0%" });
+gsap.set("#rp-score-wrap", { opacity: 0 });
+gsap.set("#rp-fix-1", { opacity: 0 });
+gsap.set("#rp-fix-2", { opacity: 0 });
+gsap.set("#prod-glow", { xPercent: -50, yPercent: -50 });
+gsap.set("#ats-counter", { xPercent: -50, yPercent: -50 });
+gsap.set("#ats-label", { xPercent: -50 });
+gsap.set("#cursor-ripple", { xPercent: -50, yPercent: -50 });
 
-// Hide elements initially
-tl.set("#product-stamp", { opacity: 0 }, 0);
-tl.set("#ats-ring-wrap", { opacity: 0 }, 0);
-tl.set("#ats-ring-tag", { opacity: 0 }, 0);
-tl.set("#ats-ring-glow", { opacity: 0 }, 0);
-tl.set("#suggestion-bar", { opacity: 0, xPercent: -50 }, 0);
-tl.set("#ats-ring-benchmark", { opacity: 0 }, 0);
-
-// Card enters with 3D perspective tilt
-tl.fromTo("#product-card",
-  { opacity: 0, rotateY: 8, rotateX: -4, scale: 0.92, filter: "blur(6px)" },
-  { opacity: 1, rotateY: 0, rotateX: 0, scale: 1, filter: "blur(0px)", duration: 0.8, ease: "power4.out" },
-  0.3
+// -- Background entry --
+tl.fromTo("#prod-bg", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+tl.fromTo("#prod-waves", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0);
+tl.fromTo("#prod-glow",
+  { opacity: 0, scale: 0.7, xPercent: -50, yPercent: -50 },
+  { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, duration: 1.2, ease: "power2.out" },
+  0
 );
 
-// Bullets stagger in
-tl.fromTo("#bullet-1", { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35, ease: "power4.out" }, 0.9);
-tl.fromTo("#bullet-2", { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35, ease: "power4.out" }, 1.1);
-tl.fromTo("#bullet-3", { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35, ease: "power4.out" }, 1.3);
+// -- Editor shell enters from below --
+tl.fromTo("#editor-shell",
+  { opacity: 0, y: 50 },
+  { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+  0.1
+);
 
-// Skills pop in with spring
-var skills = ["#skill-1","#skill-2","#skill-3","#skill-4","#skill-5","#skill-6"];
-skills.forEach(function(s, i) {
-  tl.fromTo(s,
-    { opacity: 0, scale: 0.7 },
-    { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" },
-    1.5 + i * 0.08
+// -- Sidebar items stagger in --
+var sbItems = ["#sb-personal", "#sb-experience", "#sb-education", "#sb-skills", "#sb-projects", "#sb-tailor", "#sb-ats", "#sb-analysis", "#sb-modernize"];
+sbItems.forEach(function(id, i) {
+  tl.fromTo(id,
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.25, ease: "power4.out" },
+    0.3 + i * 0.04
   );
 });
 
-// ATS ring appears
-tl.fromTo("#ats-ring-wrap",
-  { opacity: 0, scale: 0.85, x: -20 },
-  { opacity: 1, scale: 1, x: 0, duration: 0.5, ease: "back.out(1.4)" },
-  2.0
+// -- Main content fades in --
+tl.fromTo("#resume-content",
+  { opacity: 0, y: 12 },
+  { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" },
+  0.4
 );
 
-// Phase 1: Ring fills to 84 (before suggestion)
-var offset84 = 301.6 * (1 - 84/100);
-var offset96 = 301.6 * (1 - 96/100);
-tl.fromTo("#ats-ring-fill",
-  { attr: { "stroke-dashoffset": 301.6 } },
-  { attr: { "stroke-dashoffset": offset84 }, duration: 1.4, ease: "power2.out" },
-  2.2
-);
-tl.fromTo("#ats-ring-glow",
+// -- Right panel fades in --
+tl.fromTo("#ed-right",
   { opacity: 0 },
-  { opacity: 0.6, duration: 1.2, ease: "power2.out" },
+  { opacity: 1, duration: 0.35, ease: "power3.out" },
+  0.5
+);
+
+// -- Cursor enters from bottom-right, moves to "ATS Check" --
+tl.fromTo("#cursor-wrap",
+  { x: 1600, y: 880, opacity: 0 },
+  { x: 1600, y: 880, opacity: 1, duration: 0.15, ease: "power2.out" },
+  0.7
+);
+tl.to("#cursor-wrap",
+  { x: 340, y: 540, duration: 0.8, ease: "power2.inOut" },
+  0.85
+);
+
+// -- Cursor click on ATS Check --
+tl.to("#cursor-wrap",
+  { scale: 0.85, duration: 0.08, ease: "power2.in" },
+  1.65
+);
+tl.to("#cursor-wrap",
+  { scale: 1, duration: 0.15, ease: "back.out(2)" },
+  1.73
+);
+// Ripple
+tl.fromTo("#cursor-ripple",
+  { width: 0, height: 0, opacity: 0.5, xPercent: -50, yPercent: -50 },
+  { width: 40, height: 40, opacity: 0, xPercent: -50, yPercent: -50, duration: 0.35, ease: "power2.out" },
+  1.65
+);
+
+// -- Sidebar highlight switches to ATS Check --
+tl.to("#sb-experience", {
+  backgroundColor: "transparent",
+  color: "#9a9aa2",
+  borderLeftColor: "transparent",
+  duration: 0.2,
+  ease: "power2.out"
+}, 1.65);
+tl.to("#sb-ats", {
+  backgroundColor: "rgba(109,77,252,.1)",
+  color: "#e6e9f5",
+  borderLeftColor: "#6d4dfc",
+  duration: 0.2,
+  ease: "power2.out"
+}, 1.65);
+
+// -- Crossfade: resume out, ATS results in --
+tl.to("#resume-content",
+  { opacity: 0, x: -30, duration: 0.35, ease: "power3.in" },
+  1.7
+);
+tl.to("#ats-results",
+  { opacity: 1, duration: 0.01 },
+  1.7
+);
+
+// -- Loading shimmer --
+tl.fromTo("#ats-shimmer",
+  { opacity: 0 },
+  { opacity: 1, duration: 0.15, ease: "power2.out" },
+  1.9
+);
+tl.fromTo(".shimmer-bar",
+  { opacity: 0.4 },
+  { opacity: 1, duration: 0.2, ease: "sine.inOut", stagger: 0.08, yoyo: true, repeat: 1 },
+  1.95
+);
+tl.to("#ats-shimmer",
+  { opacity: 0, duration: 0.15, ease: "power2.in" },
+  2.35
+);
+
+// -- Score ring appears --
+tl.fromTo("#ats-score-wrap",
+  { opacity: 0, scale: 0.85 },
+  { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.5)" },
+  2.4
+);
+
+// Ring fill animation (84% of circumference 364.42)
+var circumference = 364.42;
+var targetOffset = circumference * (1 - 0.84);
+tl.to("#ats-ring-fill",
+  { attr: { "stroke-dashoffset": targetOffset }, duration: 1.2, ease: "power2.out" },
   2.5
 );
 
-// Counter 0 -> 84
-tl.fromTo("#ats-ring-num",
-  { textContent: "0" },
-  {
-    textContent: "84",
-    duration: 1.4,
-    ease: "power3.out",
-    snap: { textContent: 1 },
-    onUpdate: function() {
-      var el = document.querySelector("#ats-ring-num");
-      if (el) el.textContent = Math.round(parseFloat(el.textContent));
-    }
-  },
-  2.2
+// Counter ticks 0 -> 84
+var counterEl = document.getElementById("ats-counter");
+tl.to({ val: 0 }, {
+  val: 84,
+  duration: 1.2,
+  ease: "power3.out",
+  onUpdate: function() {
+    counterEl.textContent = Math.round(this.targets()[0].val);
+  }
+}, 2.5);
+
+// -- Cursor drifts to score area --
+tl.to("#cursor-wrap",
+  { x: 700, y: 440, duration: 0.6, ease: "power2.inOut" },
+  2.8
 );
 
-// Highlight bullet-1 when suggestion references it
-tl.to("#bullet-1",
-  { color: "#e6e9f5", duration: 0.25, ease: "power2.out" },
-  3.0
-);
+// -- Dimension bars stagger in --
+var dimIds = ["#dim-keywords", "#dim-formatting", "#dim-impact", "#dim-completeness"];
+var barIds = ["#bar-keywords", "#bar-formatting", "#bar-impact", "#bar-completeness"];
+var barWidths = ["78%", "92%", "76%", "88%"];
+dimIds.forEach(function(id, i) {
+  tl.to(id, { opacity: 1, duration: 0.2, ease: "power2.out" }, 3.3 + i * 0.15);
+  tl.to(barIds[i], { width: barWidths[i], duration: 0.5, ease: "power2.out" }, 3.35 + i * 0.15);
+});
 
-// Suggestion bar slides up
-tl.fromTo("#suggestion-bar",
-  { opacity: 0, y: 20, xPercent: -50 },
-  { opacity: 1, y: 0, xPercent: -50, duration: 0.4, ease: "back.out(1.4)" },
-  3.2
-);
+// -- Keyword chips pop in --
+tl.to("#ats-chips", { opacity: 1, duration: 0.01 }, 3.9);
+var chipIds = ["#chip-react", "#chip-ts", "#chip-node", "#chip-cicd", "#chip-docker", "#chip-k8s"];
+chipIds.forEach(function(id, i) {
+  tl.to(id, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, 3.9 + i * 0.08);
+});
 
-// Phase 2: Score bumps 84 -> 96 after suggestion
-tl.fromTo("#ats-ring-fill",
-  { attr: { "stroke-dashoffset": offset84 } },
-  { attr: { "stroke-dashoffset": offset96 }, duration: 0.8, ease: "power2.out" },
-  3.6
+// -- Copilot rail updates --
+tl.to("#rp-score-wrap", { opacity: 1, duration: 0.3, ease: "power3.out" }, 4.3);
+// Mini ring fill (84% of 119.38)
+var rpCirc = 119.38;
+var rpOffset = rpCirc * (1 - 0.84);
+tl.to("#rp-ring-fill",
+  { attr: { "stroke-dashoffset": rpOffset }, duration: 0.6, ease: "power2.out" },
+  4.3
 );
-tl.fromTo("#ats-ring-num",
-  { textContent: "84" },
-  {
-    textContent: "96",
-    duration: 0.8,
-    ease: "power2.out",
-    snap: { textContent: 1 },
-    onUpdate: function() {
-      var el = document.querySelector("#ats-ring-num");
-      if (el) el.textContent = Math.round(parseFloat(el.textContent));
-    }
-  },
-  3.6
-);
+var rpNumEl = document.getElementById("rp-score-num");
+tl.to({ val: 0 }, {
+  val: 84,
+  duration: 0.6,
+  ease: "power2.out",
+  onUpdate: function() {
+    rpNumEl.textContent = Math.round(this.targets()[0].val);
+  }
+}, 4.3);
+tl.to("#rp-fix-1", { opacity: 1, duration: 0.25, ease: "power3.out" }, 4.5);
+tl.to("#rp-fix-2", { opacity: 1, duration: 0.25, ease: "power3.out" }, 4.6);
 
-// Ring glow pulse on score bump
-tl.to("#ats-ring-glow",
-  { opacity: 1, scale: 1.3, duration: 0.5, ease: "power2.out" },
-  3.6
-);
-tl.to("#ats-ring-glow",
-  { scale: 1, duration: 0.4, ease: "power2.inOut" },
-  4.1
-);
-
-// Suggestion bar fades out after score lands
-tl.to("#suggestion-bar",
-  { opacity: 0, y: -6, xPercent: -50, duration: 0.3, ease: "power2.in" },
-  4.5
-);
-
-// Reset bullet highlight
-tl.to("#bullet-1",
-  { color: "#c8cad4", duration: 0.3, ease: "power2.inOut" },
-  4.5
-);
-
-// Stamp appears
-tl.fromTo("#product-stamp",
-  { opacity: 0, y: -10, scale: 0.9 },
-  { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2)" },
-  4.4
-);
-
-// "Excellent" tag
-tl.fromTo("#ats-ring-tag",
-  { opacity: 0, y: 6 },
-  { opacity: 1, y: 0, duration: 0.3, ease: "power4.out" },
-  4.6
-);
-
-// Benchmark text
-tl.fromTo("#ats-ring-benchmark",
-  { opacity: 0, y: 4 },
-  { opacity: 1, y: 0, duration: 0.3, ease: "power4.out" },
+// -- Cursor drifts toward AI Tailor --
+tl.to("#cursor-wrap",
+  { x: 320, y: 490, duration: 0.6, ease: "power2.inOut" },
   4.8
 );
 
-// Exit
-tl.to("#product-perspective",
-  { opacity: 0, scale: 0.96, filter: "blur(4px)", duration: 0.5, ease: "power2.in" },
-  5.8
+// -- Glow breathes --
+tl.to("#prod-glow",
+  { scale: 1.08, xPercent: -50, yPercent: -50, duration: 2.5, ease: "sine.inOut", yoyo: true },
+  1.0
+);
+
+// -- Exit --
+tl.to("#editor-shell",
+  { scale: 0.97, opacity: 0, filter: "blur(4px)", duration: 0.5, ease: "power2.in" },
+  5.9
+);
+tl.to("#cursor-wrap",
+  { opacity: 0, duration: 0.3, ease: "power2.in" },
+  5.9
 );
 tl.to(["#prod-glow", "#prod-bg", "#prod-waves"],
   { opacity: 0, duration: 0.5, ease: "power2.in" },
-  5.8
+  6.0
 );
 
 window.__timelines["product"] = tl;

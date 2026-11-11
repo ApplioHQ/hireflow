@@ -4,8 +4,7 @@
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   font-family: 'Sora', sans-serif;
   overflow: hidden;
@@ -13,28 +12,20 @@
 
 /* Background */
 #dims-bg {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background:
     radial-gradient(circle at 50% 45%, rgba(109,77,252,.16), transparent 50%),
     radial-gradient(circle at 20% 70%, rgba(139,92,246,.1), transparent 45%),
     radial-gradient(circle at 80% 30%, rgba(59,130,246,.08), transparent 40%),
     linear-gradient(180deg, #111113 0%, #0f1437 50%, #111113 100%);
 }
-#dims-waves {
-  position: absolute; inset: 0;
-  overflow: hidden; pointer-events: none;
-}
+#dims-waves { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 #dims-waves svg { display: block; width: 100%; height: 100%; }
 #dims-glow {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute; top: 50%; left: 50%;
   width: 550px; height: 400px;
   background: radial-gradient(ellipse, rgba(109,77,252,.2) 0%, transparent 60%);
-  filter: blur(40px);
-  border-radius: 50%;
-  pointer-events: none;
+  filter: blur(40px); border-radius: 50%; pointer-events: none;
 }
 #dims-vignette {
   position: absolute; inset: 0;
@@ -48,145 +39,399 @@
   pointer-events: none; z-index: 20;
 }
 
-/* Content */
-#dims-content {
+/* Editor shell (duplicated from product scene, self-contained) */
+#tailor-shell {
   position: relative;
   z-index: 2;
+  width: 1560px;
+  height: 880px;
+  margin-top: 100px;
+  background: rgba(28,28,32,.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.34),
+    0 24px 60px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-#dims-label {
-  color: #9a9aa2;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 36px;
+/* Topbar */
+#t-topbar {
+  height: 44px;
+  background: rgba(28,28,32,.9);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; padding: 0 16px; flex-shrink: 0;
 }
-
-#dims-row {
-  display: flex;
-  gap: 32px;
-  position: relative;
-}
-
-#dims-connector {
-  position: absolute;
-  top: 50%;
-  left: 24px;
-  right: 24px;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(109,77,252,.3), rgba(139,92,246,.3), rgba(245,158,11,.3), rgba(139,92,246,.3));
-  border-radius: 1px;
-  transform: translateY(-50%);
-  transform-origin: left center;
-}
-
-.dim-card {
-  width: 260px;
-  background: rgba(28,28,32,.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 16px;
-  padding: 36px 28px;
-  text-align: center;
-  box-shadow:
-    0 4px 16px rgba(0,0,0,.3),
-    0 16px 40px rgba(0,0,0,.25),
-    inset 0 1px 0 rgba(255,255,255,.05);
-  position: relative;
-  z-index: 1;
-}
-
-.dim-icon {
-  width: 56px; height: 56px; border-radius: 14px;
+#t-logo {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: linear-gradient(135deg, #5a3ce8, #8370ff);
+  margin-right: 8px;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px; font-size: 24px;
 }
-.dim-icon-keywords { background: rgba(109,77,252,.12); color: #8370ff; }
-.dim-icon-formatting { background: rgba(34,197,94,.12); color: #4ade80; }
-.dim-icon-impact { background: rgba(245,158,11,.12); color: #fbbf24; }
-.dim-icon-completeness { background: rgba(139,92,246,.12); color: #a78bfa; }
+#t-logo-icon { color: #fff; font-size: 12px; font-weight: 700; }
+#t-brand { color: #e6e9f5; font-size: 14px; font-weight: 600; margin-right: auto; }
+.t-topbar-btn {
+  height: 28px; padding: 0 12px; border-radius: 6px;
+  font-size: 12px; font-weight: 500;
+  display: flex; align-items: center; margin-left: 8px;
+}
+.t-btn-ghost { background: rgba(255,255,255,.06); color: #9a9aa2; border: 1px solid rgba(255,255,255,.06); }
+.t-btn-accent { background: #6d4dfc; color: #fff; border: none; }
+#t-save-status { color: #4ade80; font-size: 11px; margin-right: 12px; }
 
-.dim-icon svg {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
+/* Body columns */
+#t-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+#t-sidebar {
+  width: 200px; background: #1c1c20;
+  border-right: 1px solid rgba(255,255,255,.06);
+  padding: 12px 0; flex-shrink: 0;
+}
+.ts-section { padding: 0 12px; margin-bottom: 8px; }
+.ts-section-label {
+  font-size: 10px; font-weight: 600; color: #9a9aa2;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 8px; margin-bottom: 2px;
+}
+.ts-item {
+  height: 34px; display: flex; align-items: center;
+  padding: 0 8px; border-radius: 8px;
+  font-size: 13px; color: #9a9aa2; gap: 8px;
+  border-left: 3px solid transparent; margin-bottom: 1px;
+}
+.ts-item-active {
+  background: rgba(109,77,252,.1);
+  color: #e6e9f5;
+  border-left-color: #6d4dfc;
+}
+.ts-check { color: #4ade80; font-size: 11px; margin-left: auto; }
+.ts-icon { width: 16px; height: 16px; opacity: 0.6; }
+.ts-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 12px; }
+
+/* Main content */
+#t-main { flex: 1; padding: 0; overflow: hidden; position: relative; }
+
+/* Phase A: JD input */
+#tailor-input { position: absolute; inset: 0; padding: 28px 32px; background: #1c1c20; }
+.ti-header { color: #e6e9f5; font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.ti-header-icon { color: rgb(132,114,255); }
+#jd-textarea {
+  width: 100%; height: 160px;
+  background: #26262b; border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px; padding: 16px;
+  font-family: 'Sora', sans-serif; font-size: 14px; color: #e6e9f5;
+  line-height: 1.6; resize: none;
+}
+#jd-placeholder { color: #9a9aa2; }
+#jd-typed { color: #e6e9f5; }
+#tailor-btn {
+  margin-top: 16px; width: 100%; height: 44px;
+  background: #6d4dfc; color: #fff; border: none;
+  border-radius: 10px; font-size: 15px; font-weight: 600;
+  font-family: 'Sora', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+#tailor-btn-loading { display: none; }
+.tailor-spinner { color: #fff; }
+
+/* Phase C: Results */
+#tailor-results { position: absolute; inset: 0; padding: 28px 32px; background: #1c1c20; }
+.tr-score-row { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+#tr-ring-container { width: 100px; height: 100px; position: relative; flex-shrink: 0; }
+#tr-ring-svg { width: 100px; height: 100px; }
+.tr-ring-track { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 7; }
+.tr-ring-fill { fill: none; stroke-width: 7; stroke-linecap: round; }
+#tr-counter {
+  position: absolute; top: 50%; left: 50%;
+  font-size: 32px; font-weight: 700; color: #e6e9f5;
+}
+#tr-delta {
+  background: rgba(34,197,94,.15); color: #4ade80;
+  font-size: 14px; font-weight: 600;
+  padding: 4px 10px; border-radius: 8px;
+  border: 1px solid rgba(34,197,94,.2);
+}
+#tr-score-info { flex: 1; }
+#tr-score-title { font-size: 16px; font-weight: 600; color: #e6e9f5; margin-bottom: 4px; }
+#tr-score-sub { font-size: 13px; color: #9a9aa2; }
+
+/* Keyword pills */
+.tr-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tr-pill {
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 500;
+}
+.tr-pill-ok { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+.tr-pill-new { background: rgba(34,197,94,.2); color: #4ade80; border: 1px solid rgba(34,197,94,.35); }
+
+/* Bullet rewrite */
+#tr-rewrite { margin-bottom: 16px; }
+.tr-rewrite-label { font-size: 13px; font-weight: 600; color: #e6e9f5; margin-bottom: 10px; }
+#tr-before {
+  color: #9a9aa2; font-size: 13px; line-height: 1.5;
+  text-decoration: line-through; margin-bottom: 8px; padding: 10px 12px;
+  background: rgba(255,255,255,.02); border-radius: 8px;
+  border-left: 3px solid rgba(255,255,255,.1);
+}
+#tr-after {
+  color: #e6e9f5; font-size: 13px; line-height: 1.5;
+  padding: 10px 12px;
+  background: rgba(34,197,94,.05); border-radius: 8px;
+  border-left: 3px solid #4ade80;
 }
 
-.dim-name {
-  color: #e6e9f5; font-size: 19px; font-weight: 600; margin-bottom: 6px;
-}
-.dim-desc {
-  color: #9a9aa2; font-size: 14px; line-height: 1.5;
-}
-
-#dims-tagline {
-  color: var(--color-ink);
-  font-size: 24px;
-  margin-top: 32px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+/* Apply All button */
+#apply-all-btn {
+  width: 100%; height: 40px;
+  background: #22c55e; color: #fff; border: none;
+  border-radius: 10px; font-size: 14px; font-weight: 600;
+  font-family: 'Sora', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 
-.tag-word {
-  display: inline-block;
+/* Float text */
+#float-pts {
+  position: absolute; z-index: 10;
+  font-size: 16px; font-weight: 700; color: #4ade80;
+  pointer-events: none;
+}
+
+/* Sparkle particles */
+.sparkle {
+  position: absolute; border-radius: 50%; pointer-events: none;
+}
+
+/* Right panel */
+#t-right {
+  width: 300px; background: #1c1c20;
+  border-left: 1px solid rgba(255,255,255,.06);
+  padding: 16px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+}
+.trp-header {
+  font-size: 13px; font-weight: 600; color: #e6e9f5;
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 12px;
+}
+.trp-sparkle { color: rgb(132,114,255); }
+#trp-score-wrap {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,.03);
+  border-radius: 10px; border: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 12px;
+}
+#trp-ring-svg { width: 48px; height: 48px; flex-shrink: 0; }
+.trp-ring-track { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 5; }
+.trp-ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; }
+#trp-score-num { font-size: 24px; font-weight: 700; color: #e6e9f5; }
+#trp-score-label { font-size: 11px; color: #9a9aa2; }
+
+#trp-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: rgba(34,197,94,.1);
+  border: 1px solid rgba(34,197,94,.2);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600; color: #4ade80;
+  margin-bottom: 12px;
+}
+
+#trp-preview {
+  margin-top: auto;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px; height: 180px;
+  display: flex; align-items: center; justify-content: center;
+}
+#trp-preview-label { font-size: 11px; color: #9a9aa2; }
+
+/* Cursor */
+#t-cursor-wrap { position: absolute; z-index: 50; pointer-events: none; }
+#t-cursor-svg { width: 24px; height: 28px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+#t-cursor-glow {
+  position: absolute; top: -4px; left: -4px;
+  width: 24px; height: 24px;
+  background: radial-gradient(circle, rgba(109,77,252,.35), transparent 70%);
+  filter: blur(6px); border-radius: 50%; pointer-events: none;
+}
+#t-cursor-ripple {
+  position: absolute; top: 0; left: 0;
+  width: 0; height: 0; border-radius: 50%;
+  background: rgba(109,77,252,.3); pointer-events: none;
 }
 </style>
 <div id="root" data-composition-id="dimensions" data-width="1920" data-height="1080">
+  <!-- Background -->
   <div id="dims-bg" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
   <div id="dims-waves" class="clip" data-start="0" data-duration="5.5" data-track-index="0" data-layout-allow-overflow></div>
   <div id="dims-glow" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
   <div id="dims-vignette" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
 
-  <div id="dims-content" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
-    <div id="dims-label" data-layout-ignore>What We Score</div>
-    <div id="dims-row">
-      <div id="dims-connector"></div>
-      <div id="dim-1" class="dim-card">
-        <div class="dim-icon dim-icon-keywords">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <!-- Editor shell -->
+  <div id="tailor-shell" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
+    <div id="t-topbar">
+      <div id="t-logo"><span id="t-logo-icon">A</span></div>
+      <span id="t-brand">Applio</span>
+      <span id="t-save-status" data-layout-ignore>Saved</span>
+      <div class="t-topbar-btn t-btn-ghost" id="t-btn-import" data-layout-ignore>Import</div>
+      <div class="t-topbar-btn t-btn-ghost" id="t-btn-save" data-layout-ignore>Save</div>
+      <div class="t-topbar-btn t-btn-accent" id="t-btn-export" data-layout-ignore>Export PDF</div>
+    </div>
+
+    <div id="t-body">
+      <!-- Sidebar -->
+      <div id="t-sidebar">
+        <div class="ts-section">
+          <div class="ts-section-label" data-layout-ignore>Build</div>
+          <div id="ts-personal" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9679;</span> Personal Info <span class="ts-check">&#10003;</span>
+          </div>
+          <div id="ts-experience" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9679;</span> Experience <span class="ts-check">&#10003;</span>
+          </div>
+          <div id="ts-education" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9679;</span> Education <span class="ts-check">&#10003;</span>
+          </div>
+          <div id="ts-skills" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9679;</span> Skills
+          </div>
+          <div id="ts-projects" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9679;</span> Projects
+          </div>
         </div>
-        <div class="dim-name" data-layout-ignore>Keywords</div>
-        <div class="dim-desc" data-layout-ignore>Matches your resume against required skills</div>
+        <div class="ts-divider"></div>
+        <div class="ts-section">
+          <div class="ts-section-label" data-layout-ignore>Improve</div>
+          <div id="ts-tailor" class="ts-item ts-item-active" data-layout-ignore>
+            <span class="ts-icon">&#9673;</span> AI Tailor
+          </div>
+          <div id="ts-ats" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9745;</span> ATS Check <span class="ts-check">&#10003;</span>
+          </div>
+          <div id="ts-analysis" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9670;</span> Analysis
+          </div>
+          <div id="ts-modernize" class="ts-item" data-layout-ignore>
+            <span class="ts-icon">&#9733;</span> Modernize
+          </div>
+        </div>
       </div>
-      <div id="dim-2" class="dim-card">
-        <div class="dim-icon dim-icon-formatting">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+
+      <!-- Main content -->
+      <div id="t-main">
+        <!-- Phase A: JD input -->
+        <div id="tailor-input">
+          <div class="ti-header">
+            <span class="ti-header-icon">&#9673;</span>
+            AI Tailor
+          </div>
+          <div id="jd-textarea">
+            <span id="jd-placeholder">Paste the job description...</span><span id="jd-typed"></span>
+          </div>
+          <div id="tailor-btn">
+            <span id="tailor-btn-text">Tailor Resume</span>
+            <span id="tailor-btn-loading" data-layout-ignore>Analyzing...</span>
+          </div>
         </div>
-        <div class="dim-name" data-layout-ignore>Formatting</div>
-        <div class="dim-desc" data-layout-ignore>Checks headings, contact info, and structure</div>
+
+        <!-- Phase C: Results -->
+        <div id="tailor-results">
+          <div class="tr-score-row">
+            <div id="tr-ring-container">
+              <svg id="tr-ring-svg" viewBox="0 0 100 100">
+                <circle class="tr-ring-track" cx="50" cy="50" r="42" />
+                <circle id="tr-ring-fill" class="tr-ring-fill" cx="50" cy="50" r="42"
+                  stroke="#4ade80"
+                  stroke-dasharray="263.89"
+                  stroke-dashoffset="263.89"
+                  transform="rotate(-90 50 50)" />
+              </svg>
+              <div id="tr-counter">84</div>
+            </div>
+            <div id="tr-score-info">
+              <div id="tr-score-title">Job Match Score</div>
+              <div id="tr-score-sub" data-layout-ignore>Tailored for Senior Frontend Engineer at TechCorp</div>
+            </div>
+            <div id="tr-delta" data-layout-ignore>+12</div>
+          </div>
+
+          <div class="tr-pills" id="tr-pills">
+            <span class="tr-pill tr-pill-ok" id="pill-react" data-layout-ignore>React</span>
+            <span class="tr-pill tr-pill-ok" id="pill-ts" data-layout-ignore>TypeScript</span>
+            <span class="tr-pill tr-pill-ok" id="pill-cicd" data-layout-ignore>CI/CD</span>
+            <span class="tr-pill tr-pill-new" id="pill-docker" data-layout-ignore>Docker &#10003;</span>
+            <span class="tr-pill tr-pill-new" id="pill-k8s" data-layout-ignore>Kubernetes &#10003;</span>
+          </div>
+
+          <div id="tr-rewrite">
+            <div class="tr-rewrite-label" data-layout-ignore>Suggested Rewrite</div>
+            <div id="tr-before" data-layout-ignore>Led migration to React 18, improving load times by 40%</div>
+            <div id="tr-after" data-layout-ignore>Led containerized migration to React 18 using Docker and Kubernetes, improving load times by 40%</div>
+          </div>
+
+          <div id="apply-all-btn" data-layout-ignore>&#10024; Apply All Changes</div>
+        </div>
+
+        <!-- Float pts text -->
+        <div id="float-pts" data-layout-ignore>+12 pts</div>
       </div>
-      <div id="dim-3" class="dim-card">
-        <div class="dim-icon dim-icon-impact">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+
+      <!-- Right panel -->
+      <div id="t-right">
+        <div class="trp-header"><span class="trp-sparkle">&#10024;</span> Copilot</div>
+
+        <div id="trp-score-wrap">
+          <svg id="trp-ring-svg" viewBox="0 0 48 48">
+            <circle class="trp-ring-track" cx="24" cy="24" r="19" />
+            <circle id="trp-ring-fill" class="trp-ring-fill" cx="24" cy="24" r="19"
+              stroke="#4ade80"
+              stroke-dasharray="119.38"
+              stroke-dashoffset="119.38"
+              transform="rotate(-90 24 24)" />
+          </svg>
+          <div>
+            <div id="trp-score-num">84</div>
+            <div id="trp-score-label" data-layout-ignore>ATS Score</div>
+          </div>
         </div>
-        <div class="dim-name" data-layout-ignore>Impact</div>
-        <div class="dim-desc" data-layout-ignore>Measures action verbs and quantified results</div>
-      </div>
-      <div id="dim-4" class="dim-card">
-        <div class="dim-icon dim-icon-completeness">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+
+        <div id="trp-badge" data-layout-ignore>&#10003; ATS Optimized</div>
+
+        <div id="trp-preview">
+          <span id="trp-preview-label" data-layout-ignore>Live Preview</span>
         </div>
-        <div class="dim-name" data-layout-ignore>Completeness</div>
-        <div class="dim-desc" data-layout-ignore>Confirms all expected sections are present</div>
       </div>
     </div>
-    <div id="dims-tagline">
-      <span class="tag-word" id="tw1">Four</span>
-      <span class="tag-word" id="tw2"> dimensions.</span>
-      <span class="tag-word" id="tw3"> One</span>
-      <span class="tag-word" id="tw4"> clear</span>
-      <span class="tag-word" id="tw5"> score.</span>
-    </div>
+  </div>
+
+  <!-- Sparkle particles for celebration -->
+  <div id="sparkle-1" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:6px;height:6px;background:#6d4dfc;"></div>
+  <div id="sparkle-2" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:4px;height:4px;background:#4ade80;"></div>
+  <div id="sparkle-3" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:5px;height:5px;background:#a78bfa;"></div>
+  <div id="sparkle-4" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:4px;height:4px;background:#fbbf24;"></div>
+  <div id="sparkle-5" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:6px;height:6px;background:#8370ff;"></div>
+  <div id="sparkle-6" class="sparkle clip" data-start="0" data-duration="5.5" data-track-index="3" style="width:3px;height:3px;background:#4ade80;"></div>
+
+  <!-- Cursor -->
+  <div id="t-cursor-wrap" class="clip" data-start="0" data-duration="5.5" data-track-index="5">
+    <div id="t-cursor-glow"></div>
+    <svg id="t-cursor-svg" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 2L5 22L10 17L16 26L20 24L14 15L21 15L5 2Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
+    </svg>
+    <div id="t-cursor-ripple"></div>
   </div>
 
   <div id="dims-grain" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
 </div>
 <script>
-// Generate wavy lines
+// Wavy lines
 (function() {
   var container = document.getElementById("dims-waves");
   var w = 1920, h = 1080;
@@ -219,85 +464,249 @@
 
 var tl = gsap.timeline({ paused: true });
 
-// Background cross-fade in
-tl.fromTo("#dims-bg",
-  { opacity: 0 },
-  { opacity: 1, duration: 0.5, ease: "power2.out" },
-  0
-);
-tl.fromTo("#dims-waves",
-  { opacity: 0 },
-  { opacity: 1, duration: 0.8, ease: "power2.out" },
-  0
-);
+// The full JD text to type
+var jdText = "Senior Frontend Engineer at TechCorp. Requirements: React, TypeScript, Docker, Kubernetes, CI/CD pipelines, 5+ years experience...";
+
+// -- Initial state --
+gsap.set("#tailor-results", { opacity: 0 });
+gsap.set("#float-pts", { opacity: 0 });
+gsap.set(".sparkle", { opacity: 0 });
+gsap.set("#trp-badge", { opacity: 0, scale: 0.8 });
+gsap.set("#tr-delta", { opacity: 0, scale: 0.5 });
+gsap.set(".tr-pill", { opacity: 0, scale: 0.7 });
+gsap.set("#tr-rewrite", { opacity: 0 });
+gsap.set("#apply-all-btn", { opacity: 0 });
+gsap.set("#dims-glow", { xPercent: -50, yPercent: -50 });
+gsap.set("#tr-counter", { xPercent: -50, yPercent: -50 });
+gsap.set("#t-cursor-ripple", { xPercent: -50, yPercent: -50 });
+
+// Right panel: start with score 84, ring at 84%
+var trpCirc = 119.38;
+var trpOffset84 = trpCirc * (1 - 0.84);
+gsap.set("#trp-ring-fill", { attr: { "stroke-dashoffset": trpOffset84 } });
+
+// -- Background entry --
+tl.fromTo("#dims-bg", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+tl.fromTo("#dims-waves", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0);
 tl.fromTo("#dims-glow",
-  { opacity: 0, scale: 0.8 },
-  { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" },
+  { opacity: 0, scale: 0.7, xPercent: -50, yPercent: -50 },
+  { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, duration: 1.0, ease: "power2.out" },
   0
 );
 
-// Label slides down
-tl.fromTo("#dims-label",
-  { opacity: 0, y: -15 },
-  { opacity: 1, y: 0, duration: 0.4, ease: "power4.out" },
-  0.2
+// -- Editor enters --
+tl.fromTo("#tailor-shell",
+  { opacity: 0, y: 50 },
+  { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+  0.1
 );
 
-// Connection line draws left to right
-tl.fromTo("#dims-connector",
-  { scaleX: 0 },
-  { scaleX: 1, duration: 1.8, ease: "power2.inOut" },
-  0.4
+// -- Sidebar stagger --
+var tsItems = ["#ts-personal", "#ts-experience", "#ts-education", "#ts-skills", "#ts-projects", "#ts-tailor", "#ts-ats", "#ts-analysis", "#ts-modernize"];
+tsItems.forEach(function(id, i) {
+  tl.fromTo(id, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.2, ease: "power4.out" }, 0.2 + i * 0.03);
+});
+
+// -- Tailor input visible --
+tl.fromTo("#tailor-input",
+  { opacity: 0, y: 10 },
+  { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" },
+  0.3
 );
 
-// Cards arrive with spring overshoot
-var cardTimings = [0.56, 1.09, 1.64, 2.19];
-var cardIds = ["#dim-1", "#dim-2", "#dim-3", "#dim-4"];
+// -- Right panel --
+tl.fromTo("#t-right", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power3.out" }, 0.4);
+tl.fromTo("#trp-score-wrap", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power3.out" }, 0.4);
 
-cardIds.forEach(function(id, i) {
-  tl.fromTo(id,
-    { opacity: 0, y: 40, scale: 0.88, rotateX: 8 },
-    { opacity: 1, y: 0, scale: 1, rotateX: 0, duration: 0.5, ease: "back.out(1.8)" },
-    cardTimings[i]
-  );
+// -- Cursor enters, moves to textarea --
+tl.fromTo("#t-cursor-wrap",
+  { x: 320, y: 490, opacity: 0 },
+  { x: 320, y: 490, opacity: 1, duration: 0.15, ease: "power2.out" },
+  0.3
+);
+tl.to("#t-cursor-wrap",
+  { x: 650, y: 400, duration: 0.5, ease: "power2.inOut" },
+  0.5
+);
 
-  var svg = document.querySelector(id + " .dim-icon svg");
-  if (svg) {
-    var paths = svg.querySelectorAll("circle, line, path, polyline");
-    paths.forEach(function(p) {
-      var len = 100;
-      try { len = p.getTotalLength(); } catch(e) {}
-      p.style.strokeDasharray = len;
-      p.style.strokeDashoffset = len;
-      tl.to(p, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, cardTimings[i] + 0.15);
-    });
+// -- Click into textarea --
+tl.to("#t-cursor-wrap", { scale: 0.85, duration: 0.08, ease: "power2.in" }, 0.95);
+tl.to("#t-cursor-wrap", { scale: 1, duration: 0.12, ease: "back.out(2)" }, 1.03);
+
+// -- Typing animation: reveal characters via textContent --
+var jdEl = document.getElementById("jd-typed");
+var jdPlaceholder = document.getElementById("jd-placeholder");
+tl.to(jdPlaceholder, { opacity: 0, duration: 0.1 }, 1.1);
+tl.to({ charIndex: 0 }, {
+  charIndex: jdText.length,
+  duration: 1.2,
+  ease: "none",
+  onUpdate: function() {
+    var idx = Math.round(this.targets()[0].charIndex);
+    jdEl.textContent = jdText.substring(0, idx);
   }
+}, 1.15);
 
-  tl.to(id, { y: -4, duration: 0.15, ease: "power2.out" }, cardTimings[i] + 0.4);
-  tl.to(id, { y: 0, duration: 0.3, ease: "power2.inOut" }, cardTimings[i] + 0.55);
+// -- Cursor moves to "Tailor Resume" button --
+tl.to("#t-cursor-wrap",
+  { x: 650, y: 570, duration: 0.3, ease: "power2.inOut" },
+  2.3
+);
+
+// -- Button glow pulse --
+tl.to("#tailor-btn",
+  { boxShadow: "0 0 20px rgba(109,77,252,.4)", duration: 0.2, ease: "power2.out" },
+  2.35
+);
+
+// -- Click Tailor Resume --
+tl.to("#t-cursor-wrap", { scale: 0.85, duration: 0.08, ease: "power2.in" }, 2.6);
+tl.to("#t-cursor-wrap", { scale: 1, duration: 0.12, ease: "back.out(2)" }, 2.68);
+tl.fromTo("#t-cursor-ripple",
+  { width: 0, height: 0, opacity: 0.5, xPercent: -50, yPercent: -50 },
+  { width: 40, height: 40, opacity: 0, xPercent: -50, yPercent: -50, duration: 0.35, ease: "power2.out", immediateRender: false },
+  2.6
+);
+
+// -- Button loading state --
+tl.to("#tailor-btn-text", { opacity: 0, duration: 0.1 }, 2.7);
+tl.set("#tailor-btn-loading", { display: "inline" }, 2.7);
+tl.fromTo("#tailor-btn-loading", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 2.7);
+
+// -- Processing shimmer on button --
+tl.to("#tailor-btn", {
+  background: "linear-gradient(90deg, #5a3ce8, #8370ff, #5a3ce8)",
+  duration: 0.4,
+  ease: "sine.inOut"
+}, 2.75);
+
+// -- Crossfade: input out, results in --
+tl.to("#tailor-input",
+  { opacity: 0, y: -20, duration: 0.3, ease: "power3.in" },
+  3.1
+);
+tl.to("#tailor-results",
+  { opacity: 1, duration: 0.01 },
+  3.2
+);
+tl.fromTo("#tailor-results",
+  { y: 20 },
+  { y: 0, duration: 0.4, ease: "power3.out" },
+  3.2
+);
+
+// -- Score ring animates 84 -> 96 --
+var trCirc = 263.89;
+var trOffset96 = trCirc * (1 - 0.96);
+tl.to("#tr-ring-fill",
+  { attr: { "stroke-dashoffset": trOffset96 }, duration: 0.8, ease: "power2.out" },
+  3.3
+);
+var trCounterEl = document.getElementById("tr-counter");
+tl.to({ val: 84 }, {
+  val: 96,
+  duration: 0.8,
+  ease: "power2.out",
+  onUpdate: function() {
+    trCounterEl.textContent = Math.round(this.targets()[0].val);
+  }
+}, 3.3);
+
+// -- Delta badge pops in --
+tl.to("#tr-delta", { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2.5)" }, 3.5);
+
+// -- Keyword pills stagger --
+var pillIds = ["#pill-react", "#pill-ts", "#pill-cicd", "#pill-docker", "#pill-k8s"];
+pillIds.forEach(function(id, i) {
+  tl.to(id, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(1.8)" }, 3.5 + i * 0.06);
 });
 
-// Tagline words stagger in
-var tagWords = ["#tw1", "#tw2", "#tw3", "#tw4", "#tw5"];
-tagWords.forEach(function(w, i) {
-  tl.fromTo(w,
-    { opacity: 0, y: 10 },
-    { opacity: 1, y: 0, duration: 0.35, ease: "power4.out" },
-    3.0 + i * 0.12
+// -- Bullet rewrite --
+tl.to("#tr-rewrite", { opacity: 1, duration: 0.3, ease: "power3.out" }, 3.9);
+
+// -- Apply All button --
+tl.to("#apply-all-btn", { opacity: 1, duration: 0.2, ease: "power3.out" }, 4.1);
+
+// -- Cursor moves to Apply All --
+tl.to("#t-cursor-wrap",
+  { x: 650, y: 700, duration: 0.4, ease: "power2.inOut" },
+  4.15
+);
+
+// -- Click Apply All --
+tl.to("#t-cursor-wrap", { scale: 0.85, duration: 0.08, ease: "power2.in" }, 4.5);
+tl.to("#t-cursor-wrap", { scale: 1, duration: 0.12, ease: "back.out(2)" }, 4.58);
+tl.fromTo("#t-cursor-ripple",
+  { width: 0, height: 0, opacity: 0.5, xPercent: -50, yPercent: -50 },
+  { width: 40, height: 40, opacity: 0, xPercent: -50, yPercent: -50, duration: 0.35, ease: "power2.out", immediateRender: false },
+  4.5
+);
+
+// -- Flash green on rewrite items --
+tl.to("#tr-after", { backgroundColor: "rgba(34,197,94,.15)", duration: 0.15, ease: "power2.out" }, 4.55);
+tl.to("#tr-after", { backgroundColor: "rgba(34,197,94,.05)", duration: 0.3, ease: "power2.inOut" }, 4.7);
+
+// -- "+12 pts" floats up --
+tl.fromTo("#float-pts",
+  { opacity: 1, x: 650, y: 650 },
+  { opacity: 0, x: 650, y: 600, duration: 0.6, ease: "power2.out" },
+  4.55
+);
+
+// -- Right panel updates: score 84 -> 96 --
+var trpOffset96 = trpCirc * (1 - 0.96);
+tl.to("#trp-ring-fill",
+  { attr: { "stroke-dashoffset": trpOffset96 }, duration: 0.5, ease: "power2.out" },
+  4.6
+);
+var trpNumEl = document.getElementById("trp-score-num");
+tl.to({ val: 84 }, {
+  val: 96,
+  duration: 0.5,
+  ease: "power2.out",
+  onUpdate: function() {
+    trpNumEl.textContent = Math.round(this.targets()[0].val);
+  }
+}, 4.6);
+
+// -- ATS Optimized badge --
+tl.to("#trp-badge", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 4.7);
+
+// -- Celebration sparkles --
+var sparkleData = [
+  { id: "#sparkle-1", x: 1340, y: 300, dx: -30, dy: -40 },
+  { id: "#sparkle-2", x: 1360, y: 280, dx: 25, dy: -35 },
+  { id: "#sparkle-3", x: 1330, y: 310, dx: -20, dy: 30 },
+  { id: "#sparkle-4", x: 1370, y: 290, dx: 35, dy: 20 },
+  { id: "#sparkle-5", x: 1350, y: 270, dx: -10, dy: -50 },
+  { id: "#sparkle-6", x: 1345, y: 320, dx: 15, dy: 35 }
+];
+sparkleData.forEach(function(s) {
+  tl.fromTo(s.id,
+    { x: s.x, y: s.y, opacity: 1, scale: 1 },
+    { x: s.x + s.dx, y: s.y + s.dy, opacity: 0, scale: 0.3, duration: 0.5, ease: "power2.out" },
+    4.75
   );
 });
 
-// Glow breathes
-tl.to("#dims-glow", { scale: 1.1, duration: 2, ease: "sine.inOut", yoyo: true }, 1);
+// -- Glow breathes --
+tl.to("#dims-glow",
+  { scale: 1.08, xPercent: -50, yPercent: -50, duration: 2, ease: "sine.inOut", yoyo: true },
+  1.0
+);
 
-// Exit
-tl.to("#dims-content",
-  { opacity: 0, y: -15, filter: "blur(3px)", duration: 0.5, ease: "power2.in" },
-  4.7
+// -- Exit --
+tl.to("#tailor-shell",
+  { scale: 0.97, opacity: 0, filter: "blur(4px)", duration: 0.5, ease: "power2.in" },
+  5.0
+);
+tl.to("#t-cursor-wrap",
+  { opacity: 0, duration: 0.3, ease: "power2.in" },
+  5.0
 );
 tl.to(["#dims-glow", "#dims-bg", "#dims-waves"],
-  { opacity: 0, duration: 0.5, ease: "power2.in" },
-  4.7
+  { opacity: 0, duration: 0.4, ease: "power2.in" },
+  5.0
 );
 
 window.__timelines["dimensions"] = tl;

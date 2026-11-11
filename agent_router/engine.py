@@ -960,6 +960,14 @@ class Engine:
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
             session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
             model=self.get_model(agent), cmd_extra=cmd_extra)
+        if code not in (0, 130) and session and time.time() - started < 5:
+            self.store.set_session(pid, chat_id, agent, None)
+            before = router.snapshot(folder)
+            started = time.time()
+            code, output, new_session = router.run_agent(
+                self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
+                session_id=None, control=lane.control, cwd=folder, extra_dirs=dirs,
+                model=self.get_model(agent), cmd_extra=cmd_extra)
         changed = router.changed_files(before, router.snapshot(folder))
         self.store.set_session(pid, chat_id, agent, new_session)
         stopped = code == 130

@@ -981,7 +981,8 @@ class Engine:
 
     @staticmethod
     def failure_reason(output, code):
-        lines = [l.strip() for l in output.splitlines() if l.strip() and not l.strip().startswith("[")]
+        lines = [l.strip() for l in output.splitlines()
+                 if l.strip() and not l.strip().startswith("[") and not l.strip().startswith("session_id:")]
         return (lines[-1][:200] if lines else f"exited with code {code}")
 
     def write_log(self, project, chat_id, agent, step, prompt, output, code, changed, started):
@@ -1022,8 +1023,9 @@ class Engine:
         if turn["stopped"]:
             self.store.finish_live(pid, cid)
             return self.store.add(pid, cid, {"role": "result", "ok": False, "reason": "stopped by you", "files": []})
-        delegations = parse_delegations(turn["output"]) if turn["code"] == 0 else []
-        if turn["code"] != 0:
+        has_output = len(turn["output"]) > 100
+        delegations = parse_delegations(turn["output"]) if turn["code"] == 0 or has_output else []
+        if turn["code"] != 0 and not delegations and not has_output:
             # Hermes itself failed: don't strand the message, send it straight to the default coder.
             self.store.finish_live(pid, cid, step="note")
             last = router.tail(turn["output"], 300).strip()

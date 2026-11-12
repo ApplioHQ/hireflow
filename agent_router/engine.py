@@ -982,7 +982,8 @@ class Engine:
     @staticmethod
     def failure_reason(output, code):
         lines = [l.strip() for l in output.splitlines()
-                 if l.strip() and not l.strip().startswith("[") and not l.strip().startswith("session_id:")]
+                 if l.strip() and not l.strip().startswith("[")
+                 and not l.strip().startswith(("session_id:", "Session:"))]
         return (lines[-1][:200] if lines else f"exited with code {code}")
 
     def write_log(self, project, chat_id, agent, step, prompt, output, code, changed, started):

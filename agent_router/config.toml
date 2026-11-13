@@ -38,9 +38,10 @@ models = ["sonnet", "opus", "haiku"]
 
 [agents.hermes]
 # --yolo skips all of Hermes's approval checks so it never stalls on prompts.
+# resume_command omits --yolo because hermes rejects policy changes on resume.
 command = ["hermes", "chat", "-Q", "--oneshot", "--yolo", "--format", "stream-json", "-t", "file", "--max-turns", "3", "--query-file", "{prompt_file}"]
+resume_command = ["hermes", "chat", "-Q", "--oneshot", "--format", "stream-json", "-t", "file", "--max-turns", "3", "--resume", "{session_id}", "--query-file", "{prompt_file}"]
 format = "stream-json"
-resume = ["--resume", "{session_id}"]
 # The current Hermes model can't see images, so it hands screenshots to a coder.
 vision = false
 # Orchestrator gets a shorter timeout than coders (3 min vs 30 min).

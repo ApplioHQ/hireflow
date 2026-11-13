@@ -73,7 +73,8 @@
   //   nv=1 -> first ever view from this browser (unique visitor)
   //   nd=1 -> first view from this browser today
   try {
-    if (/(^|\\.)appliohq\\.com$/.test(location.hostname)) {
+    var _host = location.hostname.toLowerCase();
+    if (_host === 'appliohq.com' || _host === 'www.appliohq.com') {
       var _t = new Date().toISOString().slice(0, 10);
       var _nv = localStorage.getItem('hf_seen') ? '0' : '1';
       var _nd = localStorage.getItem('hf_pv_day') === _t ? '0' : '1';

@@ -960,7 +960,11 @@ class Engine:
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
             session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
             model=self.get_model(agent), cmd_extra=cmd_extra)
-        if code not in (0, 130) and session and time.time() - started < 5:
+        resume_failed = (code not in (0, 130) and session
+                         and (time.time() - started < 15
+                              or "resume" in output.lower()[:500]
+                              or "session" in output.lower()[:500]))
+        if resume_failed:
             self.store.set_session(pid, chat_id, agent, None)
             before = router.snapshot(folder)
             started = time.time()
@@ -983,7 +987,8 @@ class Engine:
     def failure_reason(output, code):
         lines = [l.strip() for l in output.splitlines()
                  if l.strip() and not l.strip().startswith("[")
-                 and not l.strip().startswith(("session_id:", "Session:"))]
+                 and not l.strip().startswith(("session_id:", "Session:", "Error: agent exited",
+                                               "Error: Session:", "Error: session_id:", "> "))]
         return (lines[-1][:200] if lines else f"exited with code {code}")
 
     def write_log(self, project, chat_id, agent, step, prompt, output, code, changed, started):
@@ -1024,19 +1029,21 @@ class Engine:
         if turn["stopped"]:
             self.store.finish_live(pid, cid)
             return self.store.add(pid, cid, {"role": "result", "ok": False, "reason": "stopped by you", "files": []})
-        has_output = len(turn["output"]) > 100 or "\n> " in turn["output"]
-        delegations = parse_delegations(turn["output"]) if turn["code"] == 0 or has_output else []
-        if turn["code"] != 0 and not delegations and not has_output:
-            # Hermes itself failed: don't strand the message, send it straight to the default coder.
-            self.store.finish_live(pid, cid, step="note")
-            last = router.tail(turn["output"], 300).strip()
-            self.store.add(pid, cid, {"role": "note", "text": f"{name(hermes)} failed ({turn['reason']}). "
-                                                              f"Sending this straight to {name(default)}."
-                                                              + (f" Error: {last}" if last else "")})
+        output = turn["output"]
+        # Strip synthetic error lines added by router.run_agent so they don't pollute delegation parsing.
+        clean = re.sub(r"\n?Error: agent exited with code \d+\n?", "", output)
+        clean = re.sub(r"\n?Error: Session:.*\n?", "", clean)
+        clean = re.sub(r"\n?Error: session_id:.*\n?", "", clean)
+        has_output = len(clean.strip()) > 50 or "> " in clean
+        delegations = parse_delegations(clean) if turn["code"] == 0 or has_output else []
+        if not delegations and turn["code"] not in (0, 130):
+            # Hermes failed or tried to edit itself: delegate to default coder.
+            self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
+                                   brief=job["text"], coder=default, review=False)
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
-        if not delegations and (turn["files"] or turn["code"] not in (0, 130)):
-            # Hermes edited its own copy or tried and failed. Either way it needs a coder.
+        if not delegations and turn["files"]:
+            # Hermes edited its own copy instead of delegating -- send to a coder.
             self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
                                    brief=job["text"], coder=default, review=False)
             job.update(coder=default, brief=job["text"], review=False)

@@ -214,9 +214,9 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
     if timed_out:
         return 124, f"agent timed out after {timeout}s\n" + "".join(shown), session
     if code not in (0, 130) and parse and not any("Error:" in part for part in shown):
+        skip = ("session_id:", "Session:", "Resume retains", " WARN ", "Downloading ", "Installing ")
         details = next((line for line in reversed(stderr_lines)
-                        if line and " WARN " not in line
-                        and not line.startswith(("session_id:", "Session:"))), "")
+                        if line and not any(line.startswith(s) or s in line for s in skip)), "")
         message = details[:300] if details else f"agent exited with code {code}"
         error = f"\nError: {message}\n"
         shown.append(error)

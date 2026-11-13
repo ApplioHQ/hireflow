@@ -1035,9 +1035,8 @@ class Engine:
                                                               + (f" Error: {last}" if last else "")})
             job.update(coder=default, brief=job["text"], review=False)
             return self.lane(pid, "code").submit(job)
-        if not delegations and turn["files"]:
-            # Hermes edited its own copy instead of delegating. Those edits are discarded; the request
-            # needs a change, so it goes to a coder like any other hand-off.
+        if not delegations and (turn["files"] or turn["code"] not in (0, 130)):
+            # Hermes edited its own copy or tried and failed. Either way it needs a coder.
             self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
                                    brief=job["text"], coder=default, review=False)
             job.update(coder=default, brief=job["text"], review=False)

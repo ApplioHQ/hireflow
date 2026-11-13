@@ -98,13 +98,15 @@
       <label for="pf-location">Location <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
       <input type="text" id="pf-location" maxlength="120" placeholder="City, State">
     </div>
-    <div class="pf-field">
-      <label for="pf-company">Company <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-      <input type="text" id="pf-company" maxlength="120" placeholder="e.g. Acme, Google">
+    <div class="pf-field" style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border);">
+      <label style="font-size:14px; color:var(--text);">About your work <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <div class="pf-hint" style="margin-top:-2px; margin-bottom:10px;">This helps us understand who Applio serves. It is not displayed publicly.</div>
+      <label for="pf-company">Where do you work?</label>
+      <input type="text" id="pf-company" maxlength="120" placeholder="e.g. Acme or Google" autocomplete="organization">
     </div>
     <div class="pf-field">
-      <label for="pf-role">Role <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-      <input type="text" id="pf-role" maxlength="120" placeholder="e.g. Product designer">
+      <label for="pf-role">What is your role?</label>
+      <input type="text" id="pf-role" maxlength="120" placeholder="e.g. Product designer" autocomplete="organization-title">
     </div>
     <div class="pf-field" style="margin-bottom:4px;">
       <label>Email</label>
@@ -118,18 +120,18 @@
       <input type="checkbox" id="pf-onresume" checked>
       Use this name and headline on new resumes
     </label>
-    <label class=”pf-toggle-row”>
-      <input type=”checkbox” id=”pf-company-optin”>
+    <label class="pf-toggle-row">
+      <input type="checkbox" id="pf-company-optin">
       <div>
-        <span class=”pf-toggle-label”>Include my company in aggregate statistics</span>
-        <span class=”pf-toggle-hint”>Anonymous count only. Your name, photo, and role are never shown.</span>
+        <span class="pf-toggle-label">Include my company in aggregate statistics</span>
+        <span class="pf-toggle-hint">Anonymous count only. Your name, photo, and role are never shown.</span>
       </div>
     </label>
-    <label class=”pf-toggle-row”>
-      <input type=”checkbox” id=”pf-testimonial-followup”>
+    <label class="pf-toggle-row">
+      <input type="checkbox" id="pf-testimonial-followup">
       <div>
-        <span class=”pf-toggle-label”>Send me a one-time feedback email</span>
-        <span class=”pf-toggle-hint”>About a week after your first export. One email, no follow-ups.</span>
+        <span class="pf-toggle-label">Send me a one-time feedback email</span>
+        <span class="pf-toggle-hint">About a week after your first export. One email, no follow-ups.</span>
       </div>
     </label>
 

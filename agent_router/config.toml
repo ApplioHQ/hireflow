@@ -25,8 +25,8 @@ namer = "hermes"
 # the command contains {prompt_file}. format = "stream-json" turns its JSON events into live progress.
 
 [agents.claude]
-# acceptEdits lets Claude Code edit files without prompting; shell commands stay blocked.
-command = ["claude", "-p", "--permission-mode", "acceptEdits", "--output-format", "stream-json", "--verbose"]
+# bypassPermissions gives Claude full access: file edits, shell commands, git push.
+command = ["claude", "-p", "--permission-mode", "bypassPermissions", "--output-format", "stream-json", "--verbose"]
 format = "stream-json"
 # Continues Claude's earlier session when you follow up in the same chat.
 resume = ["--resume", "{session_id}"]
@@ -37,9 +37,8 @@ model_flag = ["--model", "{model}"]
 models = ["sonnet", "opus", "haiku"]
 
 [agents.hermes]
-# Hermes may stop at approval prompts when run non-interactively. If it can't read files,
-# add "--yolo" here (it skips all of Hermes's approval checks, so only do it knowingly).
-command = ["hermes", "chat", "-Q", "--oneshot", "--format", "stream-json", "-t", "file", "--max-turns", "3", "--query-file", "{prompt_file}"]
+# --yolo skips all of Hermes's approval checks so it never stalls on prompts.
+command = ["hermes", "chat", "-Q", "--oneshot", "--yolo", "--format", "stream-json", "-t", "file", "--max-turns", "3", "--query-file", "{prompt_file}"]
 format = "stream-json"
 resume = ["--resume", "{session_id}"]
 # The current Hermes model can't see images, so it hands screenshots to a coder.
@@ -58,11 +57,9 @@ models = [
 ]
 
 [agents.chatgpt]
-# ChatGPT through the Codex CLI that ships inside the ChatGPT app, signed in with your ChatGPT account.
-# workspace-write lets it edit files in the project folder; it can't write anywhere else.
-# --skip-git-repo-check lets it work in folders that aren't git repos (like Stockbot).
-command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "--json", "--skip-git-repo-check", "-s", "workspace-write", "-"]
-resume_command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "resume", "--json", "--skip-git-repo-check", "-c", "sandbox_mode=\"workspace-write\"", "{session_id}", "-"]
+# ChatGPT through the Codex CLI. full-auto gives it full access including shell and git.
+command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "--json", "--skip-git-repo-check", "-s", "full-auto", "-"]
+resume_command = ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex", "exec", "resume", "--json", "--skip-git-repo-check", "-c", "sandbox_mode=\"full-auto\"", "{session_id}", "-"]
 format = "stream-json"
 # No add_dir: Codex reads any file by absolute path (full-disk read in workspace-write), so it sees
 # attachments without it. `codex exec resume` rejects --add-dir anyway, which crashed follow-ups.

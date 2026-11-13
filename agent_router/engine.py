@@ -1024,7 +1024,7 @@ class Engine:
         if turn["stopped"]:
             self.store.finish_live(pid, cid)
             return self.store.add(pid, cid, {"role": "result", "ok": False, "reason": "stopped by you", "files": []})
-        has_output = len(turn["output"]) > 100
+        has_output = len(turn["output"]) > 100 or "\n> " in turn["output"]
         delegations = parse_delegations(turn["output"]) if turn["code"] == 0 or has_output else []
         if turn["code"] != 0 and not delegations and not has_output:
             # Hermes itself failed: don't strand the message, send it straight to the default coder.

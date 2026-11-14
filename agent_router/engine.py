@@ -960,7 +960,7 @@ class Engine:
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
             session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
             model=self.get_model(agent), cmd_extra=cmd_extra)
-        resume_failed = (code not in (0, 130) and session
+        resume_failed = (code not in (0, 2, 130) and session
                          and (time.time() - started < 15
                               or "resume" in output.lower()[:500]
                               or "session" in output.lower()[:500]))
@@ -976,12 +976,12 @@ class Engine:
         self.store.set_session(pid, chat_id, agent, new_session)
         stopped = code == 130
         self.write_log(project, chat_id, agent, step, prompt, output, code, changed, started)
-        if code not in (0, 130):
+        if code not in (0, 2, 130):
             reason = self.failure_reason(output, code)
             if re.search(r"limit|quota|rate.?limit|usage", reason, re.I):
                 self.unavailable[agent] = (time.time() + 3600, reason)
         return {"code": code, "output": output, "files": changed, "stopped": stopped,
-                "reason": "stopped by you" if stopped else (self.failure_reason(output, code) if code else "")}
+                "reason": "stopped by you" if stopped else (self.failure_reason(output, code) if code not in (0, 2) else "")}
 
     @staticmethod
     def failure_reason(output, code):
@@ -1035,8 +1035,8 @@ class Engine:
         clean = re.sub(r"\n?Error: Session:.*\n?", "", clean)
         clean = re.sub(r"\n?Error: session_id:.*\n?", "", clean)
         has_output = len(clean.strip()) > 50 or "> " in clean
-        delegations = parse_delegations(clean) if turn["code"] == 0 or has_output else []
-        if not delegations and turn["code"] not in (0, 130):
+        delegations = parse_delegations(clean) if turn["code"] in (0, 2) or has_output else []
+        if not delegations and turn["code"] not in (0, 2, 130):
             # Hermes failed or tried to edit itself: delegate to default coder.
             self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
                                    brief=job["text"], coder=default, review=False)

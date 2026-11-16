@@ -1858,26 +1858,6 @@ section[id] { scroll-margin-top: 80px; }
   .price-matrix tbody td { padding: 12px 8px; font-size: 12.5px; }
 }
 
-/* ===== Modern Web Guidance: Scroll-driven entry animations ===== */
-@media (prefers-reduced-motion: no-preference) {
-  @supports ((animation-timeline: view()) and (animation-range: entry)) {
-    @keyframes scroll-reveal {
-      from { opacity: 0; transform: translateY(32px) scale(.97); filter: blur(4px); }
-      to   { opacity: 1; transform: translateY(0) scale(1);     filter: blur(0); }
-    }
-    .section-light,
-    .section-alt,
-    .spotlights,
-    .askai,
-    .final-cta,
-    #faq,
-    #pricing {
-      animation: scroll-reveal auto ease-out backwards;
-      animation-timeline: view();
-      animation-range: entry 0% entry 40%;
-    }
-  }
-}
 
 /* ===== Modern Web Guidance: Scroll progress indicator ===== */
 @media (prefers-reduced-motion: no-preference) {

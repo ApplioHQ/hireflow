@@ -139,8 +139,11 @@ window.addEventListener('scroll', rafThrottle(() => {
     if (y > 20) homeNav.classList.add('home-nav-solid'); else if (y < 6) homeNav.classList.remove('home-nav-solid');
     if (!_hasScrollState) {
       var clamped = Math.max(0, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
-      homeNav.classList.toggle('nav-hidden', clamped > _lastScrollY && clamped > homeNav.offsetHeight);
-      _lastScrollY = clamped;
+      var delta = clamped - _lastScrollY;
+      if (Math.abs(delta) > 5) {
+        homeNav.classList.toggle('nav-hidden', delta > 0 && clamped > homeNav.offsetHeight);
+        _lastScrollY = clamped;
+      }
     }
   }
   if (bttEl) bttEl.classList.toggle('visible', y > 500);

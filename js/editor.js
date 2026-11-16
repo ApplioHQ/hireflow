@@ -214,6 +214,8 @@ const SECTION_INFO = {
   ats:           { label: 'ATS Check',      icon: 'check' },
   analysis:      { label: 'AI Analysis',    icon: 'beaker' },
   modernize:     { label: 'Age-Proof',      icon: 'clock' },
+  linkedin:      { label: 'LinkedIn',       icon: 'user' },
+  interview:     { label: 'Interview Prep', icon: 'chat' },
   dashboard:     { label: 'Dashboard',      icon: 'chart' },
   quickfix:      { label: 'Quick Fixes',    icon: 'check' },
   customize:     { label: 'Customize',      icon: 'settings' }
@@ -401,7 +403,7 @@ function goSection(key) {
   _closeMobileDrawers && _closeMobileDrawers();
   // Track AI-tool section visits separately (they have their own AI counters);
   // track general content sections so we know which resume sections users actually fill in.
-  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','assistant']);
+  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','linkedin','assistant']);
   if (!AI_SECTIONS.has(key)) track('section_visit', { variant: key });
 }
 
@@ -412,6 +414,7 @@ const SECTIONS = {
   certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
   volunteer: renderVolunteer, publications: renderPublications,
   tailor: renderTailor, ats: renderATS, analysis: renderAnalysis, modernize: renderModernize,
+  linkedin: renderLinkedIn, interview: renderInterview,
   dashboard: renderDashboard, quickfix: renderQuickFix, customize: renderCustomize
 };
 
@@ -447,6 +450,7 @@ function renderMain() {
     setTimeout(_wireAutoGrow, 60);
     renderPreview();
     if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
+    if (currentSection === 'tailor') setTimeout(() => _renderJDRedFlags(resume.tailor.jobDescription, 'tailor-redflags'), 0);
     setTimeout(_bindDragReorder, 0);
     setTimeout(_bindSectionDrag, 0);
     _refreshCompletion();
@@ -1767,6 +1771,34 @@ function _qfDateFormat() {
   }];
 }
 
+function _qfBulletLength() {
+  var issues = [];
+  _qfBullets().forEach(function (b) {
+    var lines = b.desc.split('\n').filter(function (l) { return l.replace(/^\s*[*\-•]\s*/, '').trim(); });
+    var long = 0, short = 0;
+    lines.forEach(function (l) {
+      var w = l.trim().split(/\s+/).length;
+      if (w > 30) long++;
+      if (w < 4 && w > 0) short++;
+    });
+    if (long) issues.push({ level: 'info', title: long + ' overly long bullet' + (long > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Keep bullets under 25-30 words. Long bullets lose the recruiter in the 6-second scan.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+    if (short) issues.push({ level: 'info', title: short + ' very short bullet' + (short > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Bullets under 4 words lack substance. Expand with context and impact.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+  });
+  return issues;
+}
+
+function _qfFirstPerson() {
+  var issues = [];
+  _qfBullets().forEach(function (b) {
+    var count = 0;
+    b.desc.split('\n').forEach(function (l) {
+      if (/^\s*[*\-•]?\s*I\s/i.test(l) || /\bmy\b.*\b(?:role|team|work|project|responsibility)\b/i.test(l)) count++;
+    });
+    if (count) issues.push({ level: 'info', title: count + ' first-person reference' + (count > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Resumes conventionally drop "I" and "my". Start with an action verb instead.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+  });
+  return issues;
+}
+
 const QF_CHECKS = [
   { name: 'Strong action verbs', fn: _qfWeakVerbs },
   { name: 'Quantified impact', fn: _qfMissingMetrics },
@@ -1775,6 +1807,8 @@ const QF_CHECKS = [
   { name: 'Summary length', fn: _qfSummary },
   { name: 'No duplicate skills', fn: _qfDupSkills },
   { name: 'Consistent date formats', fn: _qfDateFormat },
+  { name: 'Bullet length', fn: _qfBulletLength },
+  { name: 'No first-person pronouns', fn: _qfFirstPerson },
 ];
 
 // Flat list of the current render's actionable issues, indexed by qfAction().
@@ -2141,9 +2175,10 @@ function renderTailor() {
           </div>
           <textarea data-bind="tailor.jobDescription" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
-            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
+            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value);_renderJDRedFlags(this.value,'tailor-redflags')"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
+        <div id="tailor-redflags" style="margin-top:14px;"></div>
         <div id="tailor-result" style="margin-top:18px;">
         ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
           <div class="ai-result-box ai-result-indigo">
@@ -2190,8 +2225,9 @@ function renderATS() {
           </div>
           <textarea id="ats-jd" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
-            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
+            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value);_runJDRedFlags(this.value)"></textarea>
         </div>
+        <div id="jd-redflags-result"></div>
         <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
@@ -2207,6 +2243,7 @@ async function _atsPaste() {
       ta.value = txt.trim();
       const wc = document.getElementById('ats-wc');
       if (wc) wc.textContent = _jdWordCount(ta.value);
+      _runJDRedFlags(ta.value);
       ta.focus();
     } else {
       toast('Clipboard is empty, copy a job description first.', { type: 'warn' });
@@ -2235,7 +2272,7 @@ function renderModernize() {
       ${_aiHead('violet', 'clock', 'Age-Proof', 'Spot details that read as dated or reveal age, and get concrete fixes', 'aiModernize()', 'Age-proof', 'btn-primary')}
       <div class="ai-card-body">
         <div id="modernize-result">${resume.modernize ? _modernizePanel(resume.modernize) : _modernizeEmptyState()}</div>
-        ${navRow('analysis','dashboard')}
+        ${navRow('analysis','linkedin')}
       </div>
     </div>`;
 }
@@ -4508,6 +4545,29 @@ function _trackerDialog(title, company, jd) {
   };
 }
 
+function _runJDRedFlags(text) {
+  var host = document.getElementById('jd-redflags-result');
+  if (!host || !window.scanJDRedFlags) return;
+  if (!text || text.trim().length < 40) { host.innerHTML = ''; return; }
+  var r = scanJDRedFlags(text);
+  if (!r.flags.length) { host.innerHTML = ''; return; }
+  var sevIcon = { red: '<span style="color:#ef4444;">&#9679;</span>', yellow: '<span style="color:#f59e0b;">&#9679;</span>' };
+  var html = '<div style="margin:12px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card,var(--bg));">' +
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+    '<span style="font-weight:700;font-size:13px;">Job Posting Red Flags</span>' +
+    '<span style="margin-left:auto;font-size:12px;font-weight:600;color:' + (r.score >= 70 ? '#22c55e' : r.score >= 40 ? '#f59e0b' : '#ef4444') + ';">' + r.score + '/100</span></div>';
+  r.flags.forEach(function (f) {
+    html += '<div style="display:flex;gap:6px;align-items:flex-start;margin:6px 0;font-size:12px;line-height:1.5;">' +
+      (sevIcon[f.severity] || sevIcon.yellow) +
+      '<div><strong>' + f.title + '</strong><br><span style="color:var(--muted);">' + f.detail + '</span>' +
+      (f.quote ? '<br><span style="color:var(--muted);font-style:italic;font-size:11px;">' + f.quote.replace(/</g, '&lt;') + '</span>' : '') +
+      '</div></div>';
+  });
+  html += '</div>';
+  host.innerHTML = html;
+}
+
 async function aiATS() {
   const jd = (document.getElementById('ats-jd').value || '').trim();
   if (jd.length < 30) {
@@ -4643,7 +4703,14 @@ function _renderATSResult(r) {
       </div>` : ''}
       ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#4ade80;text-transform:none;font-size:13px;letter-spacing:0;">${okSvg} Matched keywords <span style="color:var(--muted);font-weight:600;">(${matched.length})</span></div><div class="ats-chips">${matched.map(k => chip(k, 'ats-chip-ok')).join('')}</div></div>` : ''}
       ${missChips.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#fbbf24;text-transform:none;font-size:13px;letter-spacing:0;">${warnSvg} Missing from your resume <span style="color:var(--muted);font-weight:600;">(${missChips.length})</span></div><div class="ats-chips">${missChips.map(k => chip(k, 'ats-chip-miss')).join('')}</div></div>` : ''}
+      ${(matched.length || missChips.length) ? `<div class="ats-heatmap-row" style="display:flex;align-items:center;gap:10px;margin:8px 0 4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--fg);cursor:pointer;">
+          <input type="checkbox" id="ats-heatmap-toggle" style="accent-color:#6d4dfc;width:15px;height:15px;cursor:pointer;"> Show on resume
+        </label>
+        <span id="ats-heatmap-legend" style="opacity:.8;"></span>
+      </div>` : ''}
       ${fixes.length ? `<div class="ats-fix-section"><div class="ats-fix-title">Do these next, biggest gain first</div>${fixHtml}</div>` : ''}
+      ${_renderRedFlags(jdText)}
       ${_atsNextSteps(score, missChips.length)}
     </div>`;
 
@@ -4662,6 +4729,20 @@ function _renderATSResult(r) {
       })(performance.now());
     }
   });
+
+  // Keyword heatmap toggle
+  var hmToggle = document.getElementById('ats-heatmap-toggle');
+  var hmLegend = document.getElementById('ats-heatmap-legend');
+  if (hmToggle && window.keywordHeatmap) {
+    if (hmLegend) hmLegend.innerHTML = keywordHeatmap.legend();
+    hmToggle.addEventListener('change', function () {
+      var iframe = document.querySelector('.right-panel iframe');
+      var doc = iframe && iframe.contentDocument;
+      if (!doc) return;
+      if (this.checked) keywordHeatmap.apply(doc, matched, missChips);
+      else keywordHeatmap.clear(doc);
+    });
+  }
 
 }
 
@@ -4953,6 +5034,270 @@ function _relTime(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+// ---- LinkedIn Profile Generator ----
+function renderLinkedIn() {
+  return `
+    <div class="section-card ai-card ai-card-indigo">
+      ${_aiHead('indigo', 'user', 'LinkedIn Optimizer', 'Generate a keyword-rich headline and About section from your resume', 'aiLinkedIn()', 'Generate', 'btn-primary')}
+      <div class="ai-card-body">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Target role</label>
+        <input type="text" id="li-role" placeholder="e.g. Senior Product Manager" value="${esc(resume.personal.summary ? '' : '')}"
+          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Current headline <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <input type="text" id="li-headline" placeholder="Paste your current LinkedIn headline"
+          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Current About <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <textarea id="li-about" rows="4" placeholder="Paste your current LinkedIn About section"
+          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;"></textarea>
+        <div id="linkedin-result" style="margin-top:18px;"></div>
+        ${navRow('modernize','interview')}
+      </div>
+    </div>`;
+}
+
+async function aiLinkedIn() {
+  const role = (document.getElementById('li-role') || {}).value || '';
+  const headline = (document.getElementById('li-headline') || {}).value || '';
+  const about = (document.getElementById('li-about') || {}).value || '';
+  if (!role.trim() && !headline.trim() && !about.trim()) {
+    toast('Enter a target role or paste your current headline/about.', { type: 'warn' });
+    const f = document.getElementById('li-role'); if (f) f.focus();
+    return;
+  }
+  const host = document.getElementById('linkedin-result');
+  if (host) host.innerHTML = _aiToolLoading('Crafting your LinkedIn profile...');
+  try {
+    const r = await ai('linkedin', { role, currentHeadline: headline, currentAbout: about, resume });
+    _renderLinkedInResult(r);
+  } catch (e) {
+    if (host) host.innerHTML = '';
+    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
+  }
+}
+
+function _renderLinkedInResult(r) {
+  const host = document.getElementById('linkedin-result');
+  if (!host) return;
+  const tips = (r.tips || []).map(t => '<li style="font-size:13px;line-height:1.6;color:var(--text);padding:4px 0;">' + esc(t) + '</li>').join('');
+  host.innerHTML = `
+    <div class="ai-result-box ai-result-indigo">
+      <div class="ai-result-label">Optimized LinkedIn Profile</div>
+      <div style="padding:14px;">
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Headline</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.5;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);" id="li-out-headline">${esc(r.headline || '')}</div>
+          <button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="_copyLi('li-out-headline')">${ICON('clipboard','ico ico-sm')} Copy headline</button>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">About</div>
+          <div style="font-size:13.5px;color:var(--text);line-height:1.65;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);white-space:pre-wrap;" id="li-out-about">${esc(r.about || '')}</div>
+          <button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="_copyLi('li-out-about')">${ICON('clipboard','ico ico-sm')} Copy about</button>
+        </div>
+        ${tips ? '<div style="margin-bottom:4px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Profile tips</div><ul style="margin:0;padding-left:18px;">' + tips + '</ul></div>' : ''}
+      </div>
+    </div>`;
+}
+function _copyLi(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(
+    function () { toast('Copied to clipboard', { type: 'success' }); },
+    function () { toast('Select the text and copy manually.', { type: 'info' }); }
+  );
+}
+
+// ---- Interview Prep ----
+function renderInterview() {
+  const hasJD = resume.tailor && resume.tailor.jobDescription && resume.tailor.jobDescription.trim().length > 30;
+  return `
+    <div class="section-card ai-card ai-card-violet">
+      ${_aiHead('violet', 'chat', 'Interview Prep', 'Get 10 practice questions tailored to your resume and target job', 'aiInterviewPrep()', 'Generate questions', 'btn-primary')}
+      <div class="ai-card-body">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Target role</label>
+        <input type="text" id="iv-role" placeholder="e.g. Senior Software Engineer"
+          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:10px;">
+        ${hasJD ? '<div style="font-size:12px;color:var(--accent);margin-bottom:14px;">' + ICON('check','ico ico-sm') + ' Using your job description from the Tailor section</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Tip: paste a job description in the <a href="#" onclick="goSection(\'tailor\');return false;" style="color:var(--accent);">Tailor</a> section first for more relevant questions.</div>'}
+        <div id="interview-result" style="margin-top:8px;"></div>
+        ${navRow('linkedin','sixsec')}
+      </div>
+    </div>`;
+}
+
+async function aiInterviewPrep() {
+  const role = (document.getElementById('iv-role') || {}).value || '';
+  if (!role.trim()) {
+    toast('Enter a target role for interview prep.', { type: 'warn' });
+    const f = document.getElementById('iv-role'); if (f) f.focus();
+    return;
+  }
+  const jd = (resume.tailor && resume.tailor.jobDescription) || '';
+  const host = document.getElementById('interview-result');
+  if (host) host.innerHTML = _aiToolLoading('Generating interview questions...');
+  try {
+    const r = await ai('interview', { role, jobDescription: jd, resume });
+    _renderInterviewResult(r);
+  } catch (e) {
+    if (host) host.innerHTML = '';
+    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
+  }
+}
+
+function _renderInterviewResult(r) {
+  const host = document.getElementById('interview-result');
+  if (!host) return;
+  const text = r.text || r;
+  if (typeof text !== 'string' || !text.trim()) {
+    host.innerHTML = '<p style="color:var(--muted);font-size:13px;">No questions generated. Try again.</p>';
+    return;
+  }
+  host.innerHTML = `
+    <div class="ai-result-box ai-result-violet">
+      <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Practice Questions</span>
+        <button class="btn btn-ghost btn-xs" onclick="_copyInterviewQs()">${ICON('clipboard','ico ico-sm')} Copy all</button>
+      </div>
+      <div class="ai-body" style="padding:14px;font-size:13.5px;line-height:1.7;">${_renderAiBody(text)}</div>
+    </div>`;
+}
+function _copyInterviewQs() {
+  const el = document.querySelector('#interview-result .ai-body');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(
+    function () { toast('Questions copied', { type: 'success' }); },
+    function () { toast('Select the text and copy manually.', { type: 'info' }); }
+  );
+}
+
+// ---- JD Red Flag Scanner (integrated into ATS results) ----
+function _renderRedFlags(jdText) {
+  if (!window.scanJDRedFlags || !jdText || jdText.trim().length < 30) return '';
+  var result = window.scanJDRedFlags(jdText);
+  if (!result || !result.flags || !result.flags.length) return '';
+  var sevColor = function (s) { return s === 'red' ? '#ef4444' : '#f59e0b'; };
+  var flags = result.flags.map(function (f) {
+    return '<div class="ats-fix" style="border-left:3px solid ' + sevColor(f.severity) + ';padding-left:10px;margin-bottom:8px;">'
+      + '<div style="font-weight:650;color:var(--text);font-size:13px;">'
+      + '<span style="color:' + sevColor(f.severity) + ';">' + (f.severity === 'red' ? ICON('alert','ico ico-sm') : ICON('alert','ico ico-sm')) + '</span> '
+      + esc(f.title) + '</div>'
+      + (f.detail ? '<div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55;">' + esc(f.detail) + '</div>' : '')
+      + (f.quote ? '<div style="font-size:12px;font-style:italic;color:var(--muted);margin-top:2px;opacity:.7;">"' + esc(f.quote) + '"</div>' : '')
+      + '</div>';
+  }).join('');
+  var scoreColor = result.score >= 70 ? '#22c55e' : result.score >= 40 ? '#f59e0b' : '#ef4444';
+  return '<div style="margin-top:16px;padding:14px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+    + '<span style="font-size:13px;font-weight:700;color:var(--text);">' + ICON('alert','ico ico-sm') + ' Job Posting Red Flags</span>'
+    + '<span style="font-size:12px;font-weight:700;color:' + scoreColor + ';">Posting health: ' + result.score + '/100</span>'
+    + '</div>' + flags + '</div>';
+}
+
+// ---- 6-Second Recruiter Scan Simulator ----
+function renderSixSec() {
+  return `
+    <div class="section-card ai-card ai-card-amber">
+      ${_aiHead('amber', 'eye', '6-Second Scan', 'See what a recruiter notices in their first 6-second glance at your resume', '_startSixSecScan()', 'Start scan', 'btn-primary')}
+      <div class="ai-card-body">
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">
+          Recruiters spend an average of <strong>6 seconds</strong> on a first-pass resume scan.
+          This tool blurs your resume preview, then reveals it section by section to show what stands out
+          in that critical window -- and what gets missed.
+        </div>
+        <div id="sixsec-result"></div>
+        ${navRow('interview','quickfix')}
+      </div>
+    </div>`;
+}
+
+var _sixSecTimer = null;
+function _startSixSecScan() {
+  var host = document.getElementById('sixsec-result');
+  if (!host) return;
+  if (_sixSecTimer) { clearInterval(_sixSecTimer); _sixSecTimer = null; }
+
+  var p = resume.personal || {};
+  var checks = [];
+  if ((p.fullName || '').trim()) checks.push({ pass: true, label: 'Name visible', detail: 'Your name is the first thing recruiters look for.' });
+  else checks.push({ pass: false, label: 'Name missing', detail: 'Without a name, your resume gets skipped instantly.' });
+
+  if ((p.email || '').trim() || (p.phone || '').trim()) checks.push({ pass: true, label: 'Contact info present', detail: 'Recruiters check they can reach you.' });
+  else checks.push({ pass: false, label: 'No contact info', detail: 'No way to reach you = instant rejection.' });
+
+  var hasTitle = (p.summary || '').trim().length >= 10;
+  if (hasTitle) checks.push({ pass: true, label: 'Summary/headline exists', detail: 'A strong opening line anchors the 6-second scan.' });
+  else checks.push({ pass: false, label: 'No summary or headline', detail: 'The top of your resume is blank real estate. Add a 1-2 line professional summary.' });
+
+  var exp = resume.experience || [];
+  if (exp.length && exp[0].title) checks.push({ pass: true, label: 'Most recent role visible', detail: '"' + exp[0].title + '" at the top of experience is what recruiters see next.' });
+  else checks.push({ pass: false, label: 'No recent role', detail: 'Experience section is empty or missing a title -- recruiters move on.' });
+
+  var hasDates = exp.length && (exp[0].start || exp[0].end);
+  if (hasDates) checks.push({ pass: true, label: 'Dates present', detail: 'Recruiters check for tenure and gaps.' });
+  else if (exp.length) checks.push({ pass: false, label: 'Missing dates', detail: 'No dates on your most recent role raises a red flag.' });
+
+  var skills = (resume.skills && resume.skills.categories || []).flatMap(function (c) { return c.items || []; });
+  if (skills.length >= 3) checks.push({ pass: true, label: 'Skills section populated', detail: skills.length + ' skills listed. Recruiters keyword-scan this section.' });
+  else checks.push({ pass: false, label: 'Skills section thin', detail: 'Only ' + skills.length + ' skills. This section gets scanned for ATS keywords.' });
+
+  var bullets = [];
+  exp.forEach(function (e) { (e.description || '').split('\n').forEach(function (l) { var t = l.replace(/^\s*[*\-•]\s*/, '').trim(); if (t) bullets.push(t); }); });
+  var hasMetrics = bullets.some(function (b) { return /[\d$%]/.test(b); });
+  if (hasMetrics) checks.push({ pass: true, label: 'Metrics catch the eye', detail: 'Numbers and $ amounts pop visually during a quick scan.' });
+  else if (bullets.length) checks.push({ pass: false, label: 'No quantified results', detail: 'No numbers, $, or % in your bullets. Metrics are what recruiters remember.' });
+
+  var passed = checks.filter(function (c) { return c.pass; }).length;
+  var score = Math.round(passed / checks.length * 100);
+  var color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  var label = score >= 80 ? 'Your resume passes the 6-second test' : score >= 50 ? 'Some elements need work' : 'Major gaps in the first impression';
+
+  var secs = 6;
+  var revealed = 0;
+  host.innerHTML =
+    '<div style="text-align:center;margin:16px 0 20px;">' +
+      '<div id="sixsec-timer" style="font-size:48px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1;">' + secs + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:4px;">seconds remaining</div>' +
+    '</div>' +
+    '<div id="sixsec-checks" style="display:flex;flex-direction:column;gap:6px;"></div>' +
+    '<div id="sixsec-summary" style="display:none;margin-top:16px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);text-align:center;"></div>';
+
+  var checksHost = document.getElementById('sixsec-checks');
+  var timerEl = document.getElementById('sixsec-timer');
+  var summaryEl = document.getElementById('sixsec-summary');
+
+  function revealNext() {
+    if (revealed >= checks.length) {
+      clearInterval(_sixSecTimer); _sixSecTimer = null;
+      if (timerEl) timerEl.textContent = '0';
+      if (summaryEl) {
+        summaryEl.style.display = 'block';
+        summaryEl.innerHTML =
+          '<div style="font-size:36px;font-weight:900;color:' + color + ';line-height:1;">' + score + '<span style="font-size:16px;font-weight:600;">/100</span></div>' +
+          '<div style="font-size:13px;font-weight:600;margin-top:4px;color:' + color + ';">' + label + '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:6px;">' + passed + ' of ' + checks.length + ' first-impression checks passed</div>';
+      }
+      return;
+    }
+    var c = checks[revealed];
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;';
+    row.innerHTML =
+      '<span style="flex-shrink:0;margin-top:1px;font-size:14px;">' + (c.pass ? '<span style="color:#22c55e;">&#10003;</span>' : '<span style="color:#ef4444;">&#10007;</span>') + '</span>' +
+      '<div><div style="font-size:13px;font-weight:600;color:var(--fg);">' + c.label + '</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:1px;">' + c.detail + '</div></div>';
+    checksHost.appendChild(row);
+    requestAnimationFrame(function () { row.style.opacity = '1'; row.style.transform = 'translateY(0)'; });
+    revealed++;
+  }
+
+  var interval = Math.floor(6000 / (checks.length + 1));
+  revealNext();
+  _sixSecTimer = setInterval(function () {
+    secs--;
+    if (timerEl) timerEl.textContent = Math.max(0, secs);
+    revealNext();
+    if (revealed >= checks.length) { clearInterval(_sixSecTimer); _sixSecTimer = null; }
+  }, interval);
+}
+
 function renderVersions() {
   const versions = resume.versions || [];
   if (!versions.length) {
@@ -4975,12 +5320,27 @@ function renderVersions() {
           ${new Date(v.ts).toLocaleString()} &nbsp;·&nbsp; ${_relTime(v.ts)}
         </div>
       </div>
-      <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
-        ${i === 0 ? 'Current' : 'Restore'}
-      </button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="diffVersion(${i})" title="Compare with current">${ICON('eye','ico')} Diff</button>
+        <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
+          ${i === 0 ? 'Current' : 'Restore'}
+        </button>
+      </div>
     </div>`).join('');
   document.getElementById('version-list').innerHTML = list;
 }
+function diffVersion(i) {
+  const versions = resume.versions || [];
+  const snap = versions[i] && versions[i].data;
+  if (!snap) return;
+  const current = _resumeSnapshot(resume);
+  const diff = window.versionDiff.compute(current, snap);
+  document.getElementById('modal-vdiff-title').textContent =
+    'Diff: Current vs ' + (versions[i].label || new Date(versions[i].ts).toLocaleString());
+  document.getElementById('vdiff-body').innerHTML = window.versionDiff.render(diff);
+  openModal('vdiff');
+}
+
 async function restoreVersion(i) {
   const ok = await confirmDialog({
     title: 'Restore this version?',
@@ -5002,6 +5362,193 @@ async function restoreVersion(i) {
   toast('Version restored', { type: 'success' });
   track('version_restore');
 }
+
+// ============ JD Red Flags (client-side, via js/jd-redflags.js) ============
+function _renderJDRedFlags(text, hostId) {
+  const host = document.getElementById(hostId);
+  if (!host || !window.scanJDRedFlags) return;
+  if (!text || text.trim().length < 30) { host.innerHTML = ''; return; }
+  const r = scanJDRedFlags(text);
+  if (!r.flags.length) {
+    host.innerHTML = '<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--muted);">' +
+      '<span style="color:#4ade80;font-size:16px;">&#10003;</span> No red flags detected in this job description.</div>';
+    return;
+  }
+  const sevColor = { red: '#ef4444', yellow: '#eab308' };
+  const sevLabel = { red: 'Red flag', yellow: 'Caution' };
+  const catIcons = { culture: '🏢', turnover: '🔄', compensation: '💰', scope: '📋', discrimination: '⚠️', unrealistic: '🎯' };
+  const cards = r.flags.map(f =>
+    '<div style="display:flex;gap:10px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;">' +
+      '<div style="flex-shrink:0;font-size:18px;">' + (catIcons[f.category] || '⚠️') + '</div>' +
+      '<div style="min-width:0;">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+          '<span style="font-size:10px;font-weight:700;text-transform:uppercase;color:' + (sevColor[f.severity] || '#eab308') + ';letter-spacing:.5px;">' + (sevLabel[f.severity] || 'Note') + '</span>' +
+          '<span style="font-size:13px;font-weight:600;color:var(--fg);">' + esc(f.title) + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;">' + esc(f.detail) + '</div>' +
+        (f.quote ? '<div style="font-size:11px;color:var(--muted);opacity:.7;margin-top:4px;font-style:italic;">\"' + esc(f.quote) + '\"</div>' : '') +
+      '</div>' +
+    '</div>'
+  ).join('');
+  const scoreColor = r.score >= 70 ? '#4ade80' : r.score >= 40 ? '#eab308' : '#ef4444';
+  host.innerHTML =
+    '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-2);border-bottom:1px solid var(--border);">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--fg);">JD Red Flag Scanner</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<span style="font-size:11px;color:var(--muted);">Trust score</span>' +
+          '<span style="font-size:14px;font-weight:700;color:' + scoreColor + ';">' + r.score + '/100</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px;">' + cards + '</div>' +
+    '</div>';
+}
+window._renderJDRedFlags = _renderJDRedFlags;
+
+// ============ LinkedIn Optimizer ============
+function renderLinkedIn() {
+  return `
+    <div class="section-card ai-card ai-card-sky">
+      ${_aiHead('sky', 'user', 'LinkedIn Optimizer', 'AI-powered headline and About section, grounded in your resume', 'aiLinkedInGen()', 'Optimize', 'btn-primary')}
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label>Target role</label>
+          <input id="li-role" placeholder="e.g. Senior Product Manager" value="${esc((resume.personal && resume.personal.summary || '').split(/[,.\n]/)[0].trim().slice(0, 80))}">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Current LinkedIn headline <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <input id="li-headline" placeholder="Paste your current headline so we can improve it">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Current LinkedIn About <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <textarea id="li-about" rows="5" placeholder="Paste your current About section, or leave blank and we'll write one from scratch."></textarea>
+        </div>
+        <div id="li-result" style="margin-top:18px;"></div>
+        ${navRow('quickfix','interview')}
+      </div>
+    </div>`;
+}
+
+async function aiLinkedInGen() {
+  const role = (document.getElementById('li-role').value || '').trim();
+  const headline = (document.getElementById('li-headline').value || '').trim();
+  const about = (document.getElementById('li-about').value || '').trim();
+  if (!role && !headline && !about) {
+    toast('Add your target role or paste your current headline first.', { type: 'warn' });
+    document.getElementById('li-role').focus();
+    return;
+  }
+  const host = document.getElementById('li-result');
+  host.innerHTML = _aiToolLoading('Crafting your LinkedIn profile...');
+  aiLoadingStart();
+  try {
+    const r = await ai('linkedin', { role, currentHeadline: headline, currentAbout: about, resume: _resumeSnapshot(resume) });
+    track('ai_linkedin');
+    let html = '<div class="ai-result-box ai-result-sky"><div class="ai-result-label">✦ LinkedIn Optimization</div><div style="padding:14px;">';
+    if (r.headline) {
+      html += '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Headline</div>' +
+        '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:14px;font-weight:600;line-height:1.5;">' + esc(r.headline) + '</div>' +
+        '<button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent);toast(\'Headline copied!\',{type:\'success\'})">Copy headline</button>' +
+      '</div>';
+    }
+    if (r.about) {
+      html += '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">About Section</div>' +
+        '<div id="li-about-result" style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;white-space:pre-wrap;">' + esc(r.about) + '</div>' +
+        '<button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="navigator.clipboard.writeText(document.getElementById(\'li-about-result\').textContent);toast(\'About section copied!\',{type:\'success\'})">Copy About</button>' +
+      '</div>';
+    }
+    if (r.tips && r.tips.length) {
+      html += '<div style="margin-top:12px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;">Profile Tips</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        r.tips.map(t => '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);font-size:12px;line-height:1.5;"><span style="color:#38bdf8;flex-shrink:0;">&#10070;</span><span>' + esc(t) + '</span></div>').join('') +
+        '</div></div>';
+    }
+    html += '</div></div>';
+    host.innerHTML = html;
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  finally { aiLoadingDone(); }
+}
+window.aiLinkedInGen = aiLinkedInGen;
+
+// ============ Interview Prep ============
+function renderInterview() {
+  return `
+    <div class="section-card ai-card ai-card-amber">
+      ${_aiHead('amber', 'chat', 'Interview Prep', 'Practice questions tailored to your resume and target role', 'aiInterviewPrep()', 'Generate Questions', 'btn-primary')}
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label>Role you're interviewing for</label>
+          <input id="iv-role" placeholder="e.g. Backend Engineer at Stripe">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Job description <span style="color:var(--muted);font-weight:400;">(optional, improves relevance)</span></label>
+          <textarea id="iv-jd" rows="5" placeholder="Paste the job description for more targeted questions."></textarea>
+        </div>
+        <div id="iv-result" style="margin-top:18px;"></div>
+        ${navRow('linkedin','')}
+      </div>
+    </div>`;
+}
+
+function _renderInterviewResult(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '', inSection = false;
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    const sectionMatch = trimmed.match(/^\[(.+)\]$/);
+    if (sectionMatch) {
+      if (inSection) html += '</div>';
+      html += '<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:8px;">' + esc(sectionMatch[1]) + '</div>';
+      inSection = true;
+      return;
+    }
+    const qMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+    if (qMatch) {
+      html += '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">' +
+        '<div style="display:flex;gap:8px;align-items:flex-start;">' +
+          '<span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">' + esc(qMatch[1]) + '</span>' +
+          '<div style="font-size:13px;font-weight:600;line-height:1.5;">' + esc(qMatch[2]) + '</div>' +
+        '</div>';
+      return;
+    }
+    const tipMatch = trimmed.match(/^Tip:\s*(.+)/);
+    if (tipMatch) {
+      html += '<div style="margin-top:6px;padding:6px 10px;background:rgba(251,191,36,.08);border-radius:6px;border:1px solid rgba(251,191,36,.2);font-size:12px;color:var(--muted);line-height:1.5;">' +
+        '<span style="color:#fbbf24;font-weight:600;">Tip:</span> ' + esc(tipMatch[1]) + '</div></div>';
+      return;
+    }
+    html += '<div style="font-size:12px;color:var(--muted);line-height:1.5;padding:2px 0;">' + esc(trimmed) + '</div>';
+  });
+  if (inSection) html += '</div>';
+  return html;
+}
+
+async function aiInterviewPrep() {
+  const role = (document.getElementById('iv-role').value || '').trim();
+  const jd = (document.getElementById('iv-jd').value || '').trim();
+  if (!role) {
+    toast('Enter the role you are interviewing for.', { type: 'warn' });
+    document.getElementById('iv-role').focus();
+    return;
+  }
+  const host = document.getElementById('iv-result');
+  host.innerHTML = _aiToolLoading('Preparing interview questions...');
+  aiLoadingStart();
+  try {
+    const r = await ai('interview', { role, jobDescription: jd, resume: _resumeSnapshot(resume) });
+    track('ai_interview');
+    const body = typeof r === 'string' ? r : (r && r.text) || '';
+    host.innerHTML = '<div class="ai-result-box ai-result-amber"><div class="ai-result-label">✦ Interview Questions</div><div style="padding:14px;">' +
+      _renderInterviewResult(body) + '</div></div>';
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  finally { aiLoadingDone(); }
+}
+window.aiInterviewPrep = aiInterviewPrep;
 
 // Coerce whatever /ai/parse returns into the exact shape the editor renders, so
 // a malformed AI response (skills as array/string, missing categories, non-array

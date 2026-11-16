@@ -112,6 +112,9 @@
     <div class="sidebar-item" data-section="analysis" data-icon="beaker"></div>
     <div class="sidebar-item" data-section="modernize" data-icon="clock"></div>
     <div class="sidebar-item" data-section="quickfix" data-icon="check"></div>
+    <div class="sidebar-item" data-section="linkedin" data-icon="user"></div>
+    <div class="sidebar-item" data-section="interview" data-icon="chat"></div>
+    <div class="sidebar-item" data-section="sixsec" data-icon="eye"></div>
 
     <div class="sidebar-section">Setup</div>
     <div class="sidebar-item" data-section="template" data-icon="doc"></div>
@@ -188,6 +191,15 @@
   </div>
 </div>
 
+<!-- Version diff modal -->
+<div class="modal-backdrop" id="modal-vdiff">
+  <div class="modal" style="max-width:640px;">
+    <button class="modal-close" onclick="closeModal('vdiff')">×</button>
+    <h3 id="modal-vdiff-title">Version Diff</h3>
+    <div id="vdiff-body" style="margin-top:12px;max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/notify.js?v=20261106"></script>
@@ -196,7 +208,10 @@
 <script src="js/templates.js"></script>
 <script src="js/jobsync.js"></script>
 <script src="js/inline-ai.js"></script>
-<script src="js/editor.js?v=20261106"></script>
+<script src="js/version-diff.js"></script>
+<script src="js/jd-redflags.js"></script>
+<script src="js/keyword-heatmap.js"></script>
+<script src="js/editor.js?v=20261116"></script>
 <script src="js/health-badge.js"></script>
 <script src="js/copilot-rail.js"></script>
 <script src="js/command-palette.js"></script>

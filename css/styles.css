@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
 /* ========== HireFlow shared styles ========== */
 :root {
+  color-scheme: dark light;
   --font-display: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
   --bg-0: #111113;
   --bg-1: #1c1c20;
@@ -139,7 +140,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline: none; box-shadow: var(--ring); border-radius: var(--r-sm);
 }
 
-@media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+/* Per-component reduced-motion handling is used throughout the codebase;
+   a global blanket override is avoided because it can make some animations
+   more jarring rather than less (e.g. discrete state changes). */
 
 /* ===== Hide scrollbars but keep scroll ===== */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
@@ -778,6 +781,10 @@ html.light-mode .app-footer-brand img { filter: invert(1); }
 .app-toast-copied .app-toast-ico { color: var(--accent); }
 
 /* ===== Notify / Confirm dialogs ===== */
+/* Native dialog scroll containment (prevents page scroll behind modals) */
+dialog:modal { overscroll-behavior: contain; }
+dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }
+
 .app-dialog-bd {
   position: fixed; inset: 0; z-index: 9998;
   background: rgba(2,4,16,.65); backdrop-filter: blur(4px);
@@ -2167,6 +2174,11 @@ a, button, .btn, [role="button"], input, select, textarea, label, summary { touc
 }
 @keyframes vt-fade-out { to { opacity: 0; transform: translateY(-6px); } }
 @keyframes vt-fade-in  { from { opacity: 0; transform: translateY(8px); } }
+
+/* Cross-document view transitions: smooth cross-fade between MPA pages */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
 
 /* Optimistic save indicator pulse */
 @keyframes save-pulse {

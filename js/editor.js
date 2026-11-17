@@ -2027,8 +2027,23 @@ function _renderTailorStructured(r) {
         </div>`).join('') + `</div>`;
   }
   if (emph.length) html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">What to emphasize</div><ul class="ai-rec-list">${emph.map(e => `<li class="ai-rec"><span class="ai-rec-ico">${ICON('sparkle', 'ico ico-sm')}</span><span>${esc(_deName(e))}</span></li>`).join('')}</ul></div>`;
+  html += _tailorTrackerCTA();
   return `<div class="tailor-result">${html || '<p class="ai-para">Tailoring complete, no changes suggested.</p>'}</div>`;
 }
+function _tailorTrackerCTA() {
+  const jd = (resume.tailor && resume.tailor.jobDescription || '').trim();
+  if (jd.length < 30) return '';
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(arr)) arr = []; } catch { arr = []; }
+  const already = arr.some(j => j.tailored && j.notes && jd.slice(0, 100) === (j.notes || '').slice(0, 100));
+  if (already) return '<div class="tailor-block" style="text-align:center;padding:10px 0;"><span style="font-size:12px;color:var(--muted);">' + ICON('check','ico ico-sm') + ' Already saved to your job tracker</span></div>';
+  return '<div class="tailor-block" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);">' +
+    '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">Track this application?</div>' +
+    '<div style="font-size:12px;color:var(--muted);margin-top:2px;">Save to your job tracker so you can follow up later.</div></div>' +
+    '<button class="btn btn-primary btn-sm" onclick="saveTailorToTracker()" style="flex-shrink:0;white-space:nowrap;">' + ICON('briefcase','ico ico-sm') + ' I applied</button>' +
+  '</div>';
+}
+
 function _copyTailorBullet(btn) {
   const t = btn.getAttribute('data-t') || '';
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(
@@ -5360,8 +5375,10 @@ function renderInterview() {
     </div>`;
 }
 
+let _ivQCounter = 0;
 function _renderInterviewResult(text) {
   if (!text) return '';
+  _ivQCounter = 0;
   const lines = text.split('\n');
   let html = '', inSection = false;
   lines.forEach(line => {
@@ -5376,11 +5393,15 @@ function _renderInterviewResult(text) {
     }
     const qMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
     if (qMatch) {
-      html += '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">' +
+      const qId = 'iv-q-' + (++_ivQCounter);
+      const qText = qMatch[2];
+      html += '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;" id="' + qId + '">' +
         '<div style="display:flex;gap:8px;align-items:flex-start;">' +
           '<span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">' + esc(qMatch[1]) + '</span>' +
-          '<div style="font-size:13px;font-weight:600;line-height:1.5;">' + esc(qMatch[2]) + '</div>' +
-        '</div>';
+          '<div style="flex:1;font-size:13px;font-weight:600;line-height:1.5;">' + esc(qText) + '</div>' +
+          '<button class="btn btn-ghost btn-xs iv-practice-btn" data-qid="' + qId + '" data-q="' + esc(qText) + '" onclick="ivTogglePractice(this.dataset.qid,this.dataset.q)" style="flex-shrink:0;white-space:nowrap;">' + ICON('mic','ico ico-sm') + ' Practice</button>' +
+        '</div>' +
+        '<div class="iv-practice-zone" id="' + qId + '-zone" style="display:none;"></div>';
       return;
     }
     const tipMatch = trimmed.match(/^Tip:\s*(.+)/);
@@ -5416,6 +5437,113 @@ async function aiInterviewPrep() {
   finally { aiLoadingDone(); }
 }
 window.aiInterviewPrep = aiInterviewPrep;
+
+// ---- Interview Practice Mode ----
+function ivTogglePractice(qId, questionText) {
+  const zone = document.getElementById(qId + '-zone');
+  if (!zone) return;
+  if (zone.style.display !== 'none') { zone.style.display = 'none'; return; }
+  zone.style.display = 'block';
+  if (zone.dataset.init) return;
+  zone.dataset.init = '1';
+  zone.innerHTML =
+    '<div style="margin-top:10px;">' +
+      '<textarea id="' + qId + '-ans" rows="5" placeholder="Type your answer here. Use STAR format: Situation, Task, Action, Result." style="width:100%;box-sizing:border-box;"></textarea>' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-top:8px;">' +
+        '<button class="btn btn-primary btn-sm" data-qid="' + esc(qId) + '" data-q="' + esc(questionText) + '" onclick="ivSubmitAnswer(this.dataset.qid,this.dataset.q)">' + ICON('sparkle','ico ico-sm') + ' Score my answer</button>' +
+        '<span style="font-size:11px;color:var(--muted);">AI will evaluate structure, impact, and clarity</span>' +
+      '</div>' +
+      '<div id="' + qId + '-fb" style="margin-top:12px;"></div>' +
+    '</div>';
+}
+window.ivTogglePractice = ivTogglePractice;
+
+async function ivSubmitAnswer(qId, questionText) {
+  const ta = document.getElementById(qId + '-ans');
+  const answer = (ta && ta.value || '').trim();
+  if (!answer) { toast('Write your answer first.', { type: 'warn' }); if (ta) ta.focus(); return; }
+  const role = (document.getElementById('iv-role').value || '').trim() || 'the target role';
+  const fb = document.getElementById(qId + '-fb');
+  if (!fb) return;
+  fb.innerHTML = _aiToolLoading('Scoring your answer...');
+  aiLoadingStart();
+  try {
+    const r = await ai('interview-feedback', { question: questionText, answer, role });
+    track('ai_interview_practice');
+    fb.innerHTML = _renderFeedbackResult(r);
+  } catch (e) {
+    if (e.message !== 'Premium required' && e.message !== 'Sign up required') {
+      fb.innerHTML = '';
+      toast(_aiErrMsg(e), { type: 'error' });
+    } else fb.innerHTML = '';
+  } finally { aiLoadingDone(); }
+}
+window.ivSubmitAnswer = ivSubmitAnswer;
+
+function _renderFeedbackResult(r) {
+  if (!r) return '';
+  const score = typeof r.score === 'number' ? r.score : 50;
+  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const band = score >= 90 ? 'Excellent' : score >= 70 ? 'Strong' : score >= 50 ? 'Needs work' : 'Major gaps';
+
+  let html = '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
+  // Score header
+  html += '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-2);border-bottom:1px solid var(--border);">';
+  html += '<div style="position:relative;width:52px;height:52px;flex-shrink:0;">' +
+    '<svg viewBox="0 0 36 36" style="width:52px;height:52px;transform:rotate(-90deg);">' +
+      '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" stroke-width="3"/>' +
+      '<circle cx="18" cy="18" r="15.9" fill="none" stroke="' + color + '" stroke-width="3" stroke-dasharray="' + score + ' 100" stroke-linecap="round"/>' +
+    '</svg>' +
+    '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:' + color + ';">' + score + '</span>' +
+  '</div>';
+  html += '<div><div style="font-size:14px;font-weight:600;">' + band + '</div>';
+  if (r.feedback) html += '<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px;">' + esc(typeof r.feedback === 'string' ? r.feedback.split('\n')[0] : r.feedback) + '</div>';
+  html += '</div></div>';
+
+  // Breakdown bars
+  if (r.breakdown) {
+    html += '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">';
+    var dims = [['Structure (STAR)', r.breakdown.structure], ['Impact & results', r.breakdown.impact], ['Clarity', r.breakdown.clarity]];
+    dims.forEach(function(d) {
+      var v = typeof d[1] === 'number' ? d[1] : 50;
+      var c = v >= 80 ? '#22c55e' : v >= 60 ? '#f59e0b' : '#ef4444';
+      html += '<div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px;">' +
+          '<span>' + d[0] + '</span><span style="color:' + c + ';">' + v + '/100</span>' +
+        '</div>' +
+        '<div style="height:5px;border-radius:3px;background:var(--border);overflow:hidden;">' +
+          '<div style="height:100%;width:' + v + '%;background:' + c + ';border-radius:3px;transition:width .4s ease;"></div>' +
+        '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Strengths & improvements
+  var feedback = typeof r.feedback === 'string' ? r.feedback : '';
+  var strengths = [], improvements = [];
+  feedback.split('\n').forEach(function(line) {
+    var t = line.trim();
+    if (t.match(/^[✓]\s/)) strengths.push(t.slice(2));
+    else if (t.match(/^[→]\s/) || t.match(/^->\s/)) improvements.push(t.slice(2).trim() || t.slice(3));
+  });
+  if (strengths.length) {
+    html += '<div style="padding:0 16px 8px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#22c55e;margin-bottom:6px;">Strengths</div>';
+    strengths.forEach(function(s) {
+      html += '<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.5;margin-bottom:4px;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span><span>' + esc(s) + '</span></div>';
+    });
+    html += '</div>';
+  }
+  if (improvements.length) {
+    html += '<div style="padding:0 16px 12px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f59e0b;margin-bottom:6px;">Improvements</div>';
+    improvements.forEach(function(s) {
+      html += '<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.5;margin-bottom:4px;"><span style="color:#f59e0b;flex-shrink:0;">&#8594;</span><span>' + esc(s) + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
 
 // Coerce whatever /ai/parse returns into the exact shape the editor renders, so
 // a malformed AI response (skills as array/string, missing categories, non-array

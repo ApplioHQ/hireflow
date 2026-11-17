@@ -216,6 +216,7 @@ const SECTION_INFO = {
   modernize:     { label: 'Age-Proof',      icon: 'clock' },
   linkedin:      { label: 'LinkedIn',       icon: 'user' },
   interview:     { label: 'Interview Prep', icon: 'chat' },
+  sixsec:        { label: '6-Sec Scan',    icon: 'gauge' },
   dashboard:     { label: 'Dashboard',      icon: 'chart' },
   quickfix:      { label: 'Quick Fixes',    icon: 'check' },
   customize:     { label: 'Customize',      icon: 'settings' }
@@ -403,7 +404,7 @@ function goSection(key) {
   _closeMobileDrawers && _closeMobileDrawers();
   // Track AI-tool section visits separately (they have their own AI counters);
   // track general content sections so we know which resume sections users actually fill in.
-  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','linkedin','assistant']);
+  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','linkedin','sixsec','assistant']);
   if (!AI_SECTIONS.has(key)) track('section_visit', { variant: key });
 }
 
@@ -414,7 +415,7 @@ const SECTIONS = {
   certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
   volunteer: renderVolunteer, publications: renderPublications,
   tailor: renderTailor, ats: renderATS, analysis: renderAnalysis, modernize: renderModernize,
-  linkedin: renderLinkedIn, interview: renderInterview,
+  linkedin: renderLinkedIn, interview: renderInterview, sixsec: renderSixSec,
   dashboard: renderDashboard, quickfix: renderQuickFix, customize: renderCustomize
 };
 
@@ -5034,140 +5035,6 @@ function _relTime(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-// ---- LinkedIn Profile Generator ----
-function renderLinkedIn() {
-  return `
-    <div class="section-card ai-card ai-card-indigo">
-      ${_aiHead('indigo', 'user', 'LinkedIn Optimizer', 'Generate a keyword-rich headline and About section from your resume', 'aiLinkedIn()', 'Generate', 'btn-primary')}
-      <div class="ai-card-body">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Target role</label>
-        <input type="text" id="li-role" placeholder="e.g. Senior Product Manager" value="${esc(resume.personal.summary ? '' : '')}"
-          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:14px;">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Current headline <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-        <input type="text" id="li-headline" placeholder="Paste your current LinkedIn headline"
-          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:14px;">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Current About <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-        <textarea id="li-about" rows="4" placeholder="Paste your current LinkedIn About section"
-          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;"></textarea>
-        <div id="linkedin-result" style="margin-top:18px;"></div>
-        ${navRow('modernize','interview')}
-      </div>
-    </div>`;
-}
-
-async function aiLinkedIn() {
-  const role = (document.getElementById('li-role') || {}).value || '';
-  const headline = (document.getElementById('li-headline') || {}).value || '';
-  const about = (document.getElementById('li-about') || {}).value || '';
-  if (!role.trim() && !headline.trim() && !about.trim()) {
-    toast('Enter a target role or paste your current headline/about.', { type: 'warn' });
-    const f = document.getElementById('li-role'); if (f) f.focus();
-    return;
-  }
-  const host = document.getElementById('linkedin-result');
-  if (host) host.innerHTML = _aiToolLoading('Crafting your LinkedIn profile...');
-  try {
-    const r = await ai('linkedin', { role, currentHeadline: headline, currentAbout: about, resume });
-    _renderLinkedInResult(r);
-  } catch (e) {
-    if (host) host.innerHTML = '';
-    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
-  }
-}
-
-function _renderLinkedInResult(r) {
-  const host = document.getElementById('linkedin-result');
-  if (!host) return;
-  const tips = (r.tips || []).map(t => '<li style="font-size:13px;line-height:1.6;color:var(--text);padding:4px 0;">' + esc(t) + '</li>').join('');
-  host.innerHTML = `
-    <div class="ai-result-box ai-result-indigo">
-      <div class="ai-result-label">Optimized LinkedIn Profile</div>
-      <div style="padding:14px;">
-        <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Headline</div>
-          <div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.5;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);" id="li-out-headline">${esc(r.headline || '')}</div>
-          <button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="_copyLi('li-out-headline')">${ICON('clipboard','ico ico-sm')} Copy headline</button>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">About</div>
-          <div style="font-size:13.5px;color:var(--text);line-height:1.65;padding:10px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);white-space:pre-wrap;" id="li-out-about">${esc(r.about || '')}</div>
-          <button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="_copyLi('li-out-about')">${ICON('clipboard','ico ico-sm')} Copy about</button>
-        </div>
-        ${tips ? '<div style="margin-bottom:4px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Profile tips</div><ul style="margin:0;padding-left:18px;">' + tips + '</ul></div>' : ''}
-      </div>
-    </div>`;
-}
-function _copyLi(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(
-    function () { toast('Copied to clipboard', { type: 'success' }); },
-    function () { toast('Select the text and copy manually.', { type: 'info' }); }
-  );
-}
-
-// ---- Interview Prep ----
-function renderInterview() {
-  const hasJD = resume.tailor && resume.tailor.jobDescription && resume.tailor.jobDescription.trim().length > 30;
-  return `
-    <div class="section-card ai-card ai-card-violet">
-      ${_aiHead('violet', 'chat', 'Interview Prep', 'Get 10 practice questions tailored to your resume and target job', 'aiInterviewPrep()', 'Generate questions', 'btn-primary')}
-      <div class="ai-card-body">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px;">Target role</label>
-        <input type="text" id="iv-role" placeholder="e.g. Senior Software Engineer"
-          style="width:100%;padding:9px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:10px;">
-        ${hasJD ? '<div style="font-size:12px;color:var(--accent);margin-bottom:14px;">' + ICON('check','ico ico-sm') + ' Using your job description from the Tailor section</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Tip: paste a job description in the <a href="#" onclick="goSection(\'tailor\');return false;" style="color:var(--accent);">Tailor</a> section first for more relevant questions.</div>'}
-        <div id="interview-result" style="margin-top:8px;"></div>
-        ${navRow('linkedin','sixsec')}
-      </div>
-    </div>`;
-}
-
-async function aiInterviewPrep() {
-  const role = (document.getElementById('iv-role') || {}).value || '';
-  if (!role.trim()) {
-    toast('Enter a target role for interview prep.', { type: 'warn' });
-    const f = document.getElementById('iv-role'); if (f) f.focus();
-    return;
-  }
-  const jd = (resume.tailor && resume.tailor.jobDescription) || '';
-  const host = document.getElementById('interview-result');
-  if (host) host.innerHTML = _aiToolLoading('Generating interview questions...');
-  try {
-    const r = await ai('interview', { role, jobDescription: jd, resume });
-    _renderInterviewResult(r);
-  } catch (e) {
-    if (host) host.innerHTML = '';
-    if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' });
-  }
-}
-
-function _renderInterviewResult(r) {
-  const host = document.getElementById('interview-result');
-  if (!host) return;
-  const text = r.text || r;
-  if (typeof text !== 'string' || !text.trim()) {
-    host.innerHTML = '<p style="color:var(--muted);font-size:13px;">No questions generated. Try again.</p>';
-    return;
-  }
-  host.innerHTML = `
-    <div class="ai-result-box ai-result-violet">
-      <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Practice Questions</span>
-        <button class="btn btn-ghost btn-xs" onclick="_copyInterviewQs()">${ICON('clipboard','ico ico-sm')} Copy all</button>
-      </div>
-      <div class="ai-body" style="padding:14px;font-size:13.5px;line-height:1.7;">${_renderAiBody(text)}</div>
-    </div>`;
-}
-function _copyInterviewQs() {
-  const el = document.querySelector('#interview-result .ai-body');
-  if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(
-    function () { toast('Questions copied', { type: 'success' }); },
-    function () { toast('Select the text and copy manually.', { type: 'info' }); }
-  );
-}
-
 // ---- JD Red Flag Scanner (integrated into ATS results) ----
 function _renderRedFlags(jdText) {
   if (!window.scanJDRedFlags || !jdText || jdText.trim().length < 30) return '';
@@ -5195,7 +5062,7 @@ function _renderRedFlags(jdText) {
 function renderSixSec() {
   return `
     <div class="section-card ai-card ai-card-amber">
-      ${_aiHead('amber', 'eye', '6-Second Scan', 'See what a recruiter notices in their first 6-second glance at your resume', '_startSixSecScan()', 'Start scan', 'btn-primary')}
+      ${_aiHead('amber', 'gauge', '6-Second Scan', 'See what a recruiter notices in their first 6-second glance at your resume', '_startSixSecScan()', 'Start scan', 'btn-primary')}
       <div class="ai-card-body">
         <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">
           Recruiters spend an average of <strong>6 seconds</strong> on a first-pass resume scan.
@@ -5424,7 +5291,7 @@ function renderLinkedIn() {
           <textarea id="li-about" rows="5" placeholder="Paste your current About section, or leave blank and we'll write one from scratch."></textarea>
         </div>
         <div id="li-result" style="margin-top:18px;"></div>
-        ${navRow('quickfix','interview')}
+        ${navRow('modernize','interview')}
       </div>
     </div>`;
 }
@@ -5488,7 +5355,7 @@ function renderInterview() {
           <textarea id="iv-jd" rows="5" placeholder="Paste the job description for more targeted questions."></textarea>
         </div>
         <div id="iv-result" style="margin-top:18px;"></div>
-        ${navRow('linkedin','')}
+        ${navRow('linkedin','sixsec')}
       </div>
     </div>`;
 }

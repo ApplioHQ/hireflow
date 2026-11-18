@@ -5958,6 +5958,13 @@ async function _hydrateFromCloud() {
   }
 
   document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + Shift + F: dev reset panel (works even when typing)
+    if (e[MOD] && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+      e.preventDefault();
+      _toggleDevResetPanel();
+      return;
+    }
+
     if (isTyping(e)) return;
 
     // Cmd/Ctrl + 1-9: jump to sidebar section
@@ -6005,12 +6012,6 @@ async function _hydrateFromCloud() {
       return;
     }
 
-    // Ctrl/Cmd + Shift + F: dev reset panel
-    if (e[MOD] && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
-      e.preventDefault();
-      _toggleDevResetPanel();
-      return;
-    }
   });
 
   function _toggleDevResetPanel() {

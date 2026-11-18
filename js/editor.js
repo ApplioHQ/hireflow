@@ -6005,8 +6005,8 @@ async function _hydrateFromCloud() {
       return;
     }
 
-    // Ctrl/Cmd + Shift + . (period): dev reset panel
-    if (e[MOD] && e.shiftKey && (e.key === '>' || e.key === '.')) {
+    // Ctrl/Cmd + Shift + F: dev reset panel
+    if (e[MOD] && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
       e.preventDefault();
       _toggleDevResetPanel();
       return;

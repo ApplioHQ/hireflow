@@ -11,21 +11,19 @@
   // whose target isn't on the page). Desktop walks left-to-right: build -> optimize -> ship.
   var STEPS_DESKTOP = [
     { find: function () { return document.querySelector('.sidebar'); }, place: 'right',
-      title: 'Build your resume here', body: 'Add each part of your resume, one section at a time, on the left. It saves and previews as you go.' },
-    { find: function () { return document.querySelector('.sidebar-item[data-section="ats"]'); }, place: 'right',
-      title: 'ATS score + keyword heatmap', body: 'Paste a job posting to see your ATS score. Toggle the keyword heatmap to see matched and missing keywords highlighted on your resume.' },
+      title: 'Build your resume here', body: 'Add each section of your resume on the left. It saves and previews as you go.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="tailor"]'); }, place: 'right',
-      title: 'Tailor + track applications', body: 'AI rewrites your resume to match a job description. After tailoring, hit "I applied" to save the job to your tracker.' },
+      title: 'Tailor to any job', body: 'Paste a job description and AI rewrites your bullets to match. Hit "I applied" to save it to your tracker.' },
+    { find: function () { return document.querySelector('.sidebar-item[data-section="ats"]'); }, place: 'right',
+      title: 'ATS score + keyword heatmap', body: 'See how your resume scores against ATS filters, with matched and missing keywords highlighted right on your preview.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="interview"]'); }, place: 'right',
-      title: 'Interview practice', body: 'Generate role-specific questions, then practice answering them. AI scores your responses on structure, impact, and clarity.' },
-    { find: function () { return document.querySelector('.sidebar-item[data-section="sixsec"]'); }, place: 'right',
-      title: '6-second recruiter scan', body: 'See your resume through a recruiter\'s eyes -- what stands out and what gets missed in the first 6 seconds.' },
+      title: 'Interview practice', body: 'Generate role-specific questions, practice your answers, and get AI scoring on structure, impact, and clarity.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="linkedin"]'); }, place: 'right',
-      title: 'LinkedIn optimizer', body: 'Turn your resume into a polished LinkedIn profile -- headline, about section, and experience bullets optimized for search.' },
+      title: 'LinkedIn optimizer', body: 'Turn your resume into a polished LinkedIn profile -- headline, about, and experience bullets optimized for search.' },
     { find: function () { return document.getElementById('btn-export'); }, place: 'bottom',
-      title: 'Export when you are ready', body: 'Download a clean, recruiter-ready, ATS-safe PDF in one click.' },
+      title: 'Export when ready', body: 'Download a clean, ATS-safe PDF in one click.' },
     { find: function () { return document.querySelector('.app-rail'); }, place: 'right',
-      title: 'More tools in the rail', body: 'Autopilot, Cover Letter, JD Red Flags scanner, Version Diff, Salary Insights and more live here. Hover to expand.' }
+      title: 'More tools in the rail', body: 'Cover Letter, 6-Sec Scan, JD Red Flags, Version Diff, Salary Insights and more. Hover to expand.' }
   ];
   // Mobile anchors to the always-visible bottom nav + the top Menu, so nothing depends on
   // a drawer being open. Tooltips sit above the bottom nav / below the top Menu.
@@ -39,6 +37,12 @@
     { find: function () { return document.querySelector('.rail-mobtrigger'); }, place: 'bottom',
       title: 'More tools here', body: 'Autopilot, Cover Letter, JD Red Flags, Version Diff, Salary Insights and more live in this menu.' }
   ];
+
+  function isVisible(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 10 && r.height > 10;
+  }
 
   var i = 0, steps = [], overlay, hole, tip;
 
@@ -139,7 +143,7 @@
     // Pick the step set for the layout: desktop rail + sidebar, or mobile bottom nav + Menu.
     var SET = window.innerWidth < 900 ? STEPS_MOBILE : STEPS_DESKTOP;
     // Resolve which steps have a live target right now.
-    steps = SET.map(function (s) { var el = s.find(); return el ? Object.assign({}, s, { el: el }) : null; }).filter(Boolean);
+    steps = SET.map(function (s) { var el = s.find(); return isVisible(el) ? Object.assign({}, s, { el: el }) : null; }).filter(Boolean);
     if (!steps.length) return;
     injectCSS();
     overlay = document.createElement('div');
@@ -173,6 +177,11 @@
     function tryStart() {
       if (document.getElementById('attr-backdrop') || document.getElementById('onb-overlay')) {
         setTimeout(tryStart, 500);
+        return;
+      }
+      var sidebar = document.querySelector('.sidebar');
+      if (!sidebar || !isVisible(sidebar)) {
+        setTimeout(tryStart, 1000);
         return;
       }
       start(false);

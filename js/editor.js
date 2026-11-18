@@ -5999,8 +5999,75 @@ async function _hydrateFromCloud() {
       if (sidebar) sidebar.classList.remove('mob-open');
       const overlay = document.getElementById('sidebar-overlay');
       if (overlay) overlay.classList.remove('show');
+      // Also close dev reset panel
+      const devPanel = document.getElementById('dev-reset-bd');
+      if (devPanel) devPanel.remove();
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + D: dev reset panel
+    if (e[MOD] && e.shiftKey && (e.key === 'd' || e.key === 'D')) {
+      e.preventDefault();
+      _toggleDevResetPanel();
       return;
     }
   });
+
+  function _toggleDevResetPanel() {
+    var old = document.getElementById('dev-reset-bd');
+    if (old) { old.remove(); return; }
+
+    var RESETS = [
+      { label: 'Replay onboarding flow', desc: 'Clears onboarding flags only. Your resume, jobs, and account stay.', keys: ['hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done'], set: { 'hf_onboard_new': '1' } },
+      { label: 'Replay walkthrough tour', desc: 'Re-shows the guided editor tour on next page load.', keys: ['hf_tour_done_v1'] },
+      { label: 'Replay auto-score popup', desc: 'Re-triggers the first-visit resume score.', keys: ['hf_seen_score'] },
+      { label: 'Clear AI result cache', desc: 'Forgets cached AI results (tailor, ATS, etc). Resume content stays.', keys: ['hf_ai_results'] },
+      { label: 'Clear job tracker', desc: 'Removes all saved jobs from the tracker. Resume stays.', keys: ['hf_jobs', 'hf_jobs_ts'] },
+      { label: 'Full fresh-user reset', desc: 'Clears everything EXCEPT your login token and email -- you stay signed in but see the app as a new user.', keys: ['hf_resume', 'hf_resumes', 'hf_active_id', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome', 'hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done', 'hf_tour_done_v1', 'hf_seen_score', 'hf_seen'], set: { 'hf_onboard_new': '1' } },
+    ];
+
+    var bd = document.createElement('div');
+    bd.id = 'dev-reset-bd';
+    bd.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(8,10,25,.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+    var html = '<div style="background:var(--bg-card,#1a1b2e);border:1px solid var(--border);border-radius:12px;max-width:460px;width:100%;padding:20px 24px;max-height:80vh;overflow-y:auto;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h3 style="margin:0;font-size:15px;">Dev reset panel</h3>' +
+        '<button id="dev-reset-close" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">&times;</button>' +
+      '</div>' +
+      '<p style="font-size:11px;color:var(--muted);margin:0 0 14px;">Each button snapshots the affected keys before clearing, so you can undo from the console:<br><code style="font-size:10px;">_devResetUndo()</code></p>';
+
+    RESETS.forEach(function(r, i) {
+      var isDanger = i === RESETS.length - 1;
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;' + (i ? 'border-top:1px solid var(--border);' : '') + '">' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">' + r.label + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px;">' + r.desc + '</div></div>' +
+        '<button class="btn btn-sm ' + (isDanger ? 'btn-danger' : 'btn-secondary') + '" data-idx="' + i + '" style="flex-shrink:0;white-space:nowrap;">' + (isDanger ? 'Reset' : 'Run') + '</button>' +
+      '</div>';
+    });
+    html += '</div>';
+    bd.innerHTML = html;
+    document.body.appendChild(bd);
+
+    bd.addEventListener('click', function(e) {
+      if (e.target === bd || e.target.id === 'dev-reset-close') { bd.remove(); return; }
+      var btn = e.target.closest('button[data-idx]');
+      if (!btn) return;
+      var r = RESETS[parseInt(btn.dataset.idx, 10)];
+      if (!r) return;
+      // Snapshot before clearing
+      var snap = {};
+      r.keys.forEach(function(k) { var v = localStorage.getItem(k); if (v !== null) snap[k] = v; });
+      window._devResetSnapshot = snap;
+      window._devResetUndo = function() {
+        Object.keys(snap).forEach(function(k) { localStorage.setItem(k, snap[k]); });
+        if (typeof toast === 'function') toast('Undo applied, reload to take effect.', { type: 'info' });
+      };
+      // Clear
+      r.keys.forEach(function(k) { localStorage.removeItem(k); });
+      if (r.set) Object.keys(r.set).forEach(function(k) { localStorage.setItem(k, r.set[k]); });
+      bd.remove();
+      if (typeof toast === 'function') toast(r.label + ' -- reload to take effect. Undo: _devResetUndo() in console.', { type: 'success', duration: 5000 });
+    });
+  }
 })();
 

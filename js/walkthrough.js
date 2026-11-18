@@ -13,25 +13,31 @@
     { find: function () { return document.querySelector('.sidebar'); }, place: 'right',
       title: 'Build your resume here', body: 'Add each part of your resume, one section at a time, on the left. It saves and previews as you go.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="ats"]'); }, place: 'right',
-      title: 'Check your ATS score', body: 'Paste a job posting and see how your resume scores against the filters, and exactly what to fix.' },
+      title: 'ATS score + keyword heatmap', body: 'Paste a job posting to see your ATS score. Toggle the keyword heatmap to see matched and missing keywords highlighted on your resume.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="tailor"]'); }, place: 'right',
-      title: 'Tailor to any job', body: 'Let AI rewrite your resume to match a specific job description, so every application fits.' },
+      title: 'Tailor + track applications', body: 'AI rewrites your resume to match a job description. After tailoring, hit "I applied" to save the job to your tracker.' },
+    { find: function () { return document.querySelector('.sidebar-item[data-section="interview"]'); }, place: 'right',
+      title: 'Interview practice', body: 'Generate role-specific questions, then practice answering them. AI scores your responses on structure, impact, and clarity.' },
+    { find: function () { return document.querySelector('.sidebar-item[data-section="sixsec"]'); }, place: 'right',
+      title: '6-second recruiter scan', body: 'See your resume through a recruiter\'s eyes -- what stands out and what gets missed in the first 6 seconds.' },
+    { find: function () { return document.querySelector('.sidebar-item[data-section="linkedin"]'); }, place: 'right',
+      title: 'LinkedIn optimizer', body: 'Turn your resume into a polished LinkedIn profile -- headline, about section, and experience bullets optimized for search.' },
     { find: function () { return document.getElementById('btn-export'); }, place: 'bottom',
       title: 'Export when you are ready', body: 'Download a clean, recruiter-ready, ATS-safe PDF in one click.' },
     { find: function () { return document.querySelector('.app-rail'); }, place: 'right',
-      title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more live in this rail. Hover to expand it.' }
+      title: 'More tools in the rail', body: 'Autopilot, Cover Letter, JD Red Flags scanner, Version Diff, Salary Insights and more live here. Hover to expand.' }
   ];
   // Mobile anchors to the always-visible bottom nav + the top Menu, so nothing depends on
   // a drawer being open. Tooltips sit above the bottom nav / below the top Menu.
   var STEPS_MOBILE = [
     { find: function () { return document.getElementById('mob-menu-btn'); }, place: 'top',
-      title: 'Build your resume', body: 'Tap Sections to add each part of your resume, and to find ATS Check and Tailor to Job.' },
+      title: 'Build your resume', body: 'Tap Sections to add each part of your resume, plus ATS Check, Tailor, Interview Practice, and more.' },
     { find: function () { return document.getElementById('mob-preview-btn'); }, place: 'top',
       title: 'Preview anytime', body: 'See exactly how your resume looks as you build it.' },
     { find: function () { return document.querySelector('a.mobile-nav-btn[href="export"]'); }, place: 'top',
       title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' },
     { find: function () { return document.querySelector('.rail-mobtrigger'); }, place: 'bottom',
-      title: 'All your other tools', body: 'Autopilot, Cover Letter, Interview Prep, Salary Insights and more live in this menu.' }
+      title: 'More tools here', body: 'Autopilot, Cover Letter, JD Red Flags, Version Diff, Salary Insights and more live in this menu.' }
   ];
 
   var i = 0, steps = [], overlay, hole, tip;

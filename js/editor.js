@@ -3676,7 +3676,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 function signOut() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_tour_done_v1'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_walkthrough_done'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 
@@ -5958,8 +5958,8 @@ async function _hydrateFromCloud() {
   }
 
   document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + Shift + F: dev reset panel (works even when typing)
-    if (e[MOD] && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+    // Ctrl/Cmd + Shift + Z: dev reset panel (works even when typing)
+    if (e[MOD] && e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
       e.preventDefault();
       _toggleDevResetPanel();
       return;
@@ -6020,11 +6020,11 @@ async function _hydrateFromCloud() {
 
     var RESETS = [
       { label: 'Replay onboarding flow', desc: 'Clears onboarding flags only. Your resume, jobs, and account stay.', keys: ['hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done'], set: { 'hf_onboard_new': '1' } },
-      { label: 'Replay walkthrough tour', desc: 'Re-shows the guided editor tour on next page load.', keys: ['hf_tour_done_v1'] },
+      { label: 'Replay walkthrough tour', desc: 'Re-shows the guided editor tour on next page load.', keys: ['hf_walkthrough_done'] },
       { label: 'Replay auto-score popup', desc: 'Re-triggers the first-visit resume score.', keys: ['hf_seen_score'] },
       { label: 'Clear AI result cache', desc: 'Forgets cached AI results (tailor, ATS, etc). Resume content stays.', keys: ['hf_ai_results'] },
       { label: 'Clear job tracker', desc: 'Removes all saved jobs from the tracker. Resume stays.', keys: ['hf_jobs', 'hf_jobs_ts'] },
-      { label: 'Full fresh-user reset', desc: 'Clears everything EXCEPT your login token and email -- you stay signed in but see the app as a new user.', keys: ['hf_resume', 'hf_resumes', 'hf_active_id', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome', 'hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done', 'hf_tour_done_v1', 'hf_seen_score', 'hf_seen'], set: { 'hf_onboard_new': '1' } },
+      { label: 'Full fresh-user reset', desc: 'Clears everything EXCEPT your login token and email -- you stay signed in but see the app as a new user.', keys: ['hf_resume', 'hf_resumes', 'hf_active_id', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome', 'hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done', 'hf_walkthrough_done', 'hf_seen_score', 'hf_seen'], set: { 'hf_onboard_new': '1' } },
     ];
 
     var bd = document.createElement('div');

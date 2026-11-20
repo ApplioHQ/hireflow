@@ -4,7 +4,7 @@
    the same final halftone panel rather than a duplicate footer. */
 (function () {
   var existingFooter = document.querySelector('footer.app-footer') || document.querySelector('.home-footer');
-  if (existingFooter) { mountHalftoneFooter(existingFooter); return; }
+  if (existingFooter) { ensureTrustLinks(existingFooter); mountHalftoneFooter(existingFooter); return; }
 
   var YEAR = new Date().getFullYear();
   var css = ''
@@ -127,6 +127,8 @@
     +     '<a href="/guides/how-to-tailor-resume-to-job">Tailor Resume to a Job</a>'
     +     '<a href="/privacy">Privacy</a>'
     +     '<a href="/terms">Terms</a>'
+    +     '<a href="/about">About</a>'
+    +     '<a href="/methodology">Methodology</a>'
     +     '<a href="/email-preferences">Email preferences</a>'
     +   '</div>'
     + '</div>'
@@ -203,5 +205,17 @@
     if (window.ResizeObserver) { var ro = new ResizeObserver(function () { layout(); wake(); }); ro.observe(root); }
     if (window.IntersectionObserver) { var io = new IntersectionObserver(function (entries) { visible = entries[0] ? entries[0].isIntersecting : true; if (visible) wake(); }); io.observe(root); }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(); wake(); });
+  }
+
+  function ensureTrustLinks(host) {
+    if (host.querySelector('a[href="/about"]')) return;
+    var links = document.createElement('p');
+    links.className = 'applio-trust-links';
+    links.innerHTML = '<a href="/about">About</a><span aria-hidden="true"> · </span><a href="/methodology">Methodology</a>';
+    var target = host.querySelector('.app-footer-bot') || host.querySelector('.footer-row') || host;
+    target.appendChild(links);
+    var style = document.createElement('style');
+    style.textContent = '.applio-trust-links{margin:14px 0 0;font-size:12.5px;color:var(--muted)}.applio-trust-links a{display:inline;color:inherit;padding:0}.applio-trust-links a:hover{color:var(--accent)}';
+    document.head.appendChild(style);
   }
 })();

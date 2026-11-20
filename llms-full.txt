@@ -91,6 +91,8 @@ Browse by industry: Tech & Engineering (https://appliohq.com/resume-examples/tec
 
 ## Links
 - Homepage: https://appliohq.com/
+- About Applio: https://appliohq.com/about
+- Methodology and editorial policy: https://appliohq.com/methodology
 - Pricing: https://appliohq.com/pricing
 - Free ATS Resume Checker: https://appliohq.com/ats-checker
 - Free Resume Templates (31, ATS-friendly): https://appliohq.com/resume-templates

@@ -2496,8 +2496,16 @@ let _resumeFolders = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume_folders') || '[]'); } catch { return []; }
 })();
 
+let _dismissedFromFolders = (function () {
+  try { return new Set(JSON.parse(localStorage.getItem('hf_dismissed_from_folders') || '[]')); } catch { return new Set(); }
+})();
+
 function _persistFolders() {
   localStorage.setItem('hf_resume_folders', JSON.stringify(_resumeFolders));
+}
+
+function _persistDismissed() {
+  localStorage.setItem('hf_dismissed_from_folders', JSON.stringify(Array.from(_dismissedFromFolders)));
 }
 
 function _getFolderForResume(entryId) {
@@ -2508,7 +2516,7 @@ function _autoGroupResumes() {
   const assigned = new Set();
   _resumeFolders.forEach(f => (f.resumeIds || []).forEach(id => assigned.add(id)));
 
-  const ungrouped = _allResumes.filter(e => !assigned.has(e.id));
+  const ungrouped = _allResumes.filter(e => !assigned.has(e.id) && !_dismissedFromFolders.has(e.id));
   if (!ungrouped.length) return;
 
   const byCompany = {};
@@ -2558,7 +2566,9 @@ function addResumeToFolder(folderId, resumeId) {
   if (!f) return;
   if (!f.resumeIds) f.resumeIds = [];
   if (!f.resumeIds.includes(resumeId)) f.resumeIds.push(resumeId);
+  _dismissedFromFolders.delete(resumeId);
   _persistFolders();
+  _persistDismissed();
 }
 window.addResumeToFolder = addResumeToFolder;
 
@@ -2579,7 +2589,9 @@ function removeResumeFromFolder(resumeId) {
     const i = f.resumeIds.indexOf(resumeId);
     if (i >= 0) f.resumeIds.splice(i, 1);
   });
+  _dismissedFromFolders.add(resumeId);
   _persistFolders();
+  _persistDismissed();
 }
 window.removeResumeFromFolder = removeResumeFromFolder;
 
@@ -2799,7 +2811,7 @@ function _showManageResumes(folderId) {
         close();
         _showFolderPicker(function (targetId) {
           moveResumeToFolder(entry.id, targetId);
-          _mountFolders();
+          _mountFolders(true);
           if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
         });
       };
@@ -2813,8 +2825,8 @@ function _showManageResumes(folderId) {
       delBtn.onclick = function () {
         removeResumeFromFolder(entry.id);
         f = _resumeFolders.find(function (x) { return x.id === folderId; });
-        if (f) { render(); _mountFolders(); }
-        else { close(); _mountFolders(); }
+        if (f) { render(); _mountFolders(true); }
+        else { close(); _mountFolders(true); }
       };
       row.appendChild(delBtn);
 
@@ -2830,9 +2842,9 @@ function _showManageResumes(folderId) {
 }
 window._showManageResumes = _showManageResumes;
 
-function _mountFolders() {
+function _mountFolders(skipAutoGroup) {
   if (typeof GlassFolder === 'undefined') return;
-  _autoGroupResumes();
+  if (!skipAutoGroup) _autoGroupResumes();
   const container = document.getElementById('rb-folders');
   if (!container) return;
   container.innerHTML = '';

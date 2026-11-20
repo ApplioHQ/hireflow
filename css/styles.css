@@ -1868,15 +1868,15 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .rb-folders-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 36px 28px;
+  gap: 28px 20px;
   align-items: flex-end;
   padding: 24px 0 40px;
 }
 .rb-folder-add {
   all: unset;
   box-sizing: border-box;
-  width: 260px;
-  height: 252px;
+  width: 200px;
+  height: 200px;
   border: 2px dashed rgba(255,255,255,.12);
   border-radius: 22px;
   display: flex;
@@ -1897,8 +1897,8 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 }
 .rb-folder-add svg { width: 24px; height: 24px; }
 @media (max-width: 768px) {
-  .rb-folders-wrap { justify-content: center; gap: 32px 24px; }
-  .rb-folder-add { width: 280px; height: 280px; }
+  .rb-folders-wrap { justify-content: center; gap: 24px 16px; }
+  .rb-folder-add { width: 200px; height: 200px; }
 }
 
 /* Three-dot menu button on resume cards */

@@ -2768,7 +2768,7 @@ function _mountFolders() {
       tone: 'dark',
       art: folder.art || 'aurora',
       seed: folder.seed || fi,
-      width: 260,
+      width: 200,
       appear: true,
       appearDelay: fi * 120,
       action: 'more',

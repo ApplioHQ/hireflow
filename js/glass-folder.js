@@ -568,18 +568,59 @@
           keyBtn.setAttribute('aria-expanded', 'false');
         }
 
-        keyBtn.addEventListener('click', function () {
+        // build dropdown menu for 'more' action
+        var menuDiv = null;
+        if (action === 'more' && menu.length) {
+          menuDiv = el('div', 'gf-menu');
+          menuDiv.setAttribute('role', 'menu');
+          menu.forEach(function (item) {
+            var mb = document.createElement('button');
+            mb.type = 'button';
+            mb.className = 'gf-menu-item' + (item.danger ? ' gf-menu-item--danger' : '');
+            mb.setAttribute('role', 'menuitem');
+            mb.textContent = item.label;
+            mb.addEventListener('click', function (e) {
+              e.stopPropagation();
+              menuDiv.removeAttribute('data-open');
+              keyBtn.setAttribute('aria-expanded', 'false');
+              menuOpen = false;
+              if (item.onSelect) item.onSelect();
+            });
+            menuDiv.appendChild(mb);
+          });
+          tilt.appendChild(menuDiv);
+        }
+
+        keyBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
           if (action === 'add') {
             var made = onAdd ? onAdd(files) : null;
             var file = made || { name: 'Untitled ' + (files.length + 1), meta: 'Just now' };
             files.push(file);
             renderFiles();
             metaSpan.textContent = metaText();
-            // bump animation
             front.classList.remove('gf-front--bump');
             void front.offsetWidth;
             front.classList.add('gf-front--bump');
             if (onFilesChange) onFilesChange(files);
+          } else if (action === 'more' && menuDiv) {
+            menuOpen = !menuOpen;
+            if (menuOpen) {
+              menuDiv.setAttribute('data-open', '');
+              keyBtn.setAttribute('aria-expanded', 'true');
+              var dismiss = function (ev) {
+                if (!menuDiv.contains(ev.target) && ev.target !== keyBtn) {
+                  menuDiv.removeAttribute('data-open');
+                  keyBtn.setAttribute('aria-expanded', 'false');
+                  menuOpen = false;
+                  document.removeEventListener('click', dismiss, true);
+                }
+              };
+              setTimeout(function () { document.addEventListener('click', dismiss, true); }, 0);
+            } else {
+              menuDiv.removeAttribute('data-open');
+              keyBtn.setAttribute('aria-expanded', 'false');
+            }
           }
         });
         tilt.appendChild(keyBtn);

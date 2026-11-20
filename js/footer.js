@@ -1,9 +1,10 @@
 /* footer.js, one shared site footer, injected on public pages for consistent
    internal linking (SEO) + trust signals. Uses the design tokens from styles.css,
-   so it adapts to light/dark automatically. Skips pages that already have a
-   <footer> (e.g. the landing page has its own). */
+   so it adapts to light/dark automatically. Existing static footers receive
+   the same final halftone panel rather than a duplicate footer. */
 (function () {
-  if (document.querySelector('footer.app-footer') || document.querySelector('.home-footer')) return;
+  var existingFooter = document.querySelector('footer.app-footer') || document.querySelector('.home-footer');
+  if (existingFooter) { mountHalftoneFooter(existingFooter); return; }
 
   var YEAR = new Date().getFullYear();
   var css = ''
@@ -138,4 +139,72 @@
   footer.className = 'app-footer';
   footer.innerHTML = html;
   document.body.appendChild(footer);
+  mountHalftoneFooter(footer);
+
+  // Native implementation of the supplied Halftone Wordmark Footer. It stays
+  // here, rather than in an unused React component, because this site ships
+  // buildless HTML and JavaScript to browsers.
+  function mountHalftoneFooter(host) {
+    if (!host || host.querySelector('.hwf-root')) return;
+    var style = document.createElement('style');
+    style.textContent = ''
+      + '.hwf-root{--hwf-bg:#0c0c0f;--hwf-ink:#f4f1ff;--hwf-warm:#6d4dfc;position:relative;isolation:isolate;overflow:hidden;height:500px;margin:42px -20px -30px;background:var(--hwf-bg);color:var(--hwf-ink);-webkit-font-smoothing:antialiased;}'
+      + '.hwf-root canvas{position:absolute;inset:0;width:100%;height:100%;display:block;max-width:none;pointer-events:auto;}.hwf-top{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) repeat(3,minmax(0,1fr));gap:24px;padding:clamp(28px,3.4vw,42px) clamp(22px,4vw,58px) 0;font:500 11px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;}.hwf-top a,.hwf-up{pointer-events:auto;color:inherit;text-decoration:none;opacity:.74;background:transparent;border:0;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;background-image:linear-gradient(currentColor,currentColor);background-position:0 100%;background-repeat:no-repeat;background-size:0 1px;transition:opacity .2s ease,background-size .3s ease;}.hwf-top a:hover,.hwf-up:hover{opacity:1;background-size:100% 1px;}.hwf-top a:focus-visible,.hwf-up:focus-visible{outline:1px solid currentColor;outline-offset:4px;opacity:1;}.hwf-brand{display:grid;gap:3px;}.hwf-brand strong{font:700 15px/1.3 var(--font-display,Inter,system-ui,sans-serif);letter-spacing:-.02em;text-transform:none;}.hwf-brand strong b{color:#9d84ff;}.hwf-brand span,.hwf-col h3{opacity:.48;font:inherit;}.hwf-col h3{margin:0;font-weight:500;}.hwf-col ul{list-style:none;margin:0;padding:0;}.hwf-rule{position:relative;z-index:1;display:flex;justify-content:flex-end;margin:clamp(18px,2.6vw,30px) clamp(22px,4vw,58px) 0;padding-top:13px;border-top:1px solid rgba(244,241,255,.16);font:500 11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;}.hwf-up{pointer-events:auto;}.hwf-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}@media(max-width:720px){.hwf-root{height:440px;margin-left:-16px;margin-right:-16px;}.hwf-top{grid-template-columns:1fr 1fr;row-gap:18px;padding-left:22px;padding-right:22px;}.hwf-brand{grid-column:1/-1;}.hwf-rule{margin-left:22px;margin-right:22px;}}@media(prefers-reduced-motion:reduce){.hwf-top a,.hwf-up{transition:none;}}';
+    document.head.appendChild(style);
+
+    var root = document.createElement('section');
+    root.className = 'hwf-root';
+    root.setAttribute('aria-label', 'Applio site footer');
+    root.innerHTML = '<canvas aria-hidden="true"></canvas><span class="hwf-sr">applio</span>'
+      + '<div class="hwf-top"><div class="hwf-brand"><strong><b>Applio</b> Career Studio</strong><span>Free tools for every job search</span></div>'
+      + '<nav class="hwf-col" aria-label="Resume"><h3>Resume</h3><ul><li><a href="/resume-builder">Build a resume</a></li><li><a href="/resume-templates">Templates</a></li><li><a href="/resume-examples">Examples</a></li></ul></nav>'
+      + '<nav class="hwf-col" aria-label="Tools"><h3>Tools</h3><ul><li><a href="/ats-checker">ATS checker</a></li><li><a href="/cover-letter-generator">Cover letters</a></li><li><a href="/interview-preparation">Interview prep</a></li></ul></nav>'
+      + '<nav class="hwf-col" aria-label="Company"><h3>Company</h3><ul><li><a href="/guides">Guides</a></li><li><a href="/privacy">Privacy</a></li><li><a href="mailto:support@appliohq.com">Contact</a></li></ul></nav></div>'
+      + '<div class="hwf-rule"><button class="hwf-up" type="button">Back to top</button></div>';
+    host.appendChild(root);
+
+    var canvas = root.querySelector('canvas');
+    var up = root.querySelector('.hwf-up');
+    if (up) up.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var dots = new Float32Array(0), count = 0, width = 0, height = 0, dpr = 1;
+    var px = -1e5, py = -1e5, raf = 0, visible = true, awake = true;
+    var ring = { x: 0, y: 0, t: -1 }, grainTile = null;
+    var ink = [244, 241, 255], warm = [109, 77, 252];
+    function radius(coverage, gap) { return Math.sqrt(Math.max(0, Math.min(1, coverage))) * gap * .56; }
+    function layout() {
+      var rect = root.getBoundingClientRect(); width = Math.max(1, Math.round(rect.width)); height = Math.max(1, Math.round(rect.height)); dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+      var mask = document.createElement('canvas'); mask.width = width; mask.height = height;
+      var m = mask.getContext('2d', { willReadFrequently: true }); if (!m) return;
+      m.font = '800 100px Inter,Arial,sans-serif'; var word = 'applio'; var fit = m.measureText(word).width ? width * 1.02 / m.measureText(word).width * 100 : 0;
+      m.font = '800 ' + fit + 'px Inter,Arial,sans-serif'; var box = m.measureText(word), cap = box.actualBoundingBoxAscent || fit * .72;
+      m.fillStyle = '#000'; m.textBaseline = 'alphabetic'; m.fillText(word, (width - box.width) / 2, height + cap * .2);
+      var img = m.getImageData(0, 0, width, height).data, gap = 6, cols = Math.ceil(width / gap), rows = Math.ceil(height / gap), values = [];
+      for (var gy = 0; gy < rows; gy++) for (var gx = 0; gx < cols; gx++) { var sum = 0; for (var sy = 0; sy < 3; sy++) for (var sx = 0; sx < 3; sx++) { var x = Math.min(width - 1, Math.floor(gx * gap + ((sx + .5) * gap) / 3)), y = Math.min(height - 1, Math.floor(gy * gap + ((sy + .5) * gap) / 3)); sum += img[(y * width + x) * 4 + 3]; } var coverage = sum / (9 * 255); if (coverage >= .06) { var hx = gx * gap + gap / 2, hy = gy * gap + gap / 2; values.push(hx, hy, 0, 0, hx, hy, radius(coverage, gap)); } }
+      dots = new Float32Array(values); count = values.length / 7;
+      grainTile = document.createElement('canvas'); grainTile.width = grainTile.height = 128; var g = grainTile.getContext('2d'); if (g) { var data = g.createImageData(128, 128); for (var i = 0; i < data.data.length; i += 4) { var v = Math.random() * 255; data.data[i] = data.data[i + 1] = data.data[i + 2] = v; data.data[i + 3] = Math.random() < .5 ? 0 : 255; } g.putImageData(data, 0, 0); } awake = true;
+    }
+    function draw(now) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#0c0c0f'; ctx.fillRect(0, 0, width, height);
+      var ringAge = ring.t < 0 ? 1e9 : now - ring.t, ringR = ringAge * .9, moving = false;
+      for (var i = 0; i < count; i++) { var j = i * 7, x = dots[j], y = dots[j + 1], vx = dots[j + 2], vy = dots[j + 3], hx = dots[j + 4], hy = dots[j + 5]; if (!reduced) { if (ringAge < 900) { var dxr = hx - ring.x, dyr = hy - ring.y, dr = Math.sqrt(dxr * dxr + dyr * dyr) + .001, band = 1 - Math.min(1, Math.abs(dr - ringR) / 26); if (band > 0) { var force = band * 3.2 * (1 - ringAge / 900); vx += dxr / dr * force; vy += dyr / dr * force; } } var dx = x - px, dy = y - py, distance = Math.sqrt(dx * dx + dy * dy) + .001; if (distance < 80) { var push = (1 - distance / 80) * 2.6; vx += dx / distance * push; vy += dy / distance * push; } vx = (vx + (hx - x) * .05) * .84; vy = (vy + (hy - y) * .05) * .84; x += vx; y += vy; if (Math.abs(vx) + Math.abs(vy) > .02 || Math.abs(x - hx) + Math.abs(y - hy) > .05) moving = true; else { x = hx; y = hy; vx = vy = 0; } dots[j] = x; dots[j + 1] = y; dots[j + 2] = vx; dots[j + 3] = vy; } var heat = Math.min(1, Math.hypot(x - hx, y - hy) / 28); ctx.fillStyle = heat > .02 ? 'rgb(' + Math.round(ink[0] + (warm[0] - ink[0]) * heat) + ',' + Math.round(ink[1] + (warm[1] - ink[1]) * heat) + ',' + Math.round(ink[2] + (warm[2] - ink[2]) * heat) + ')' : '#f4f1ff'; ctx.beginPath(); ctx.arc(x, y, dots[j + 6], 0, 6.2832); ctx.fill(); }
+      if (grainTile) { ctx.globalAlpha = .045; ctx.globalCompositeOperation = 'overlay'; var pattern = ctx.createPattern(grainTile, 'repeat'); if (pattern) { ctx.fillStyle = pattern; ctx.fillRect(0, 0, width, height); } ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+      awake = moving || ringAge < 900 || px > -1e4;
+    }
+    function loop(now) { raf = 0; if (!visible) return; draw(now); if (awake) raf = requestAnimationFrame(loop); }
+    function wake() { awake = true; if (!raf && visible) raf = requestAnimationFrame(loop); }
+    function point(e) { var b = canvas.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; }
+    canvas.addEventListener('pointermove', function (e) { var p = point(e); px = p.x; py = p.y; wake(); });
+    canvas.addEventListener('pointerleave', function () { px = py = -1e5; wake(); });
+    canvas.addEventListener('pointerdown', function (e) { if (reduced) return; var p = point(e); ring = { x: p.x, y: p.y, t: performance.now() }; wake(); });
+    layout(); draw(performance.now()); wake();
+    if (window.ResizeObserver) { var ro = new ResizeObserver(function () { layout(); wake(); }); ro.observe(root); }
+    if (window.IntersectionObserver) { var io = new IntersectionObserver(function (entries) { visible = entries[0] ? entries[0].isIntersecting : true; if (visible) wake(); }); io.observe(root); }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(); wake(); });
+  }
 })();

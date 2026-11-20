@@ -2738,6 +2738,98 @@ function _showFileContextMenu(file, index, evt) {
   setTimeout(function () { document.addEventListener('click', dismiss, true); }, 0);
 }
 
+function _showManageResumes(folderId) {
+  var f = _resumeFolders.find(function (x) { return x.id === folderId; });
+  if (!f) return;
+
+  var existing = document.getElementById('manage-resumes-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'manage-resumes-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+
+  function render() {
+    var entries = (f.resumeIds || [])
+      .map(function (id) { return _allResumes.find(function (e) { return e.id === id; }); })
+      .filter(Boolean);
+
+    modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+      + '<h3>' + esc(f.label) + '</h3>'
+      + '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">'
+      + entries.length + ' resume' + (entries.length === 1 ? '' : 's') + ' in this folder</p>'
+      + '<div id="manage-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;"></div>';
+
+    modal.querySelector('.modal-close').onclick = close;
+
+    var list = document.getElementById('manage-list') || modal.querySelector('#manage-list');
+
+    if (!entries.length) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:12px 0;">No resumes in this folder.</p>';
+      return;
+    }
+
+    entries.forEach(function (entry) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r-md);background:var(--bg-2);';
+
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;';
+      var nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      nameEl.textContent = entry.customName || entry.name || 'Untitled';
+      info.appendChild(nameEl);
+      if (entry.updatedAt) {
+        var meta = document.createElement('div');
+        meta.style.cssText = 'font-size:12px;color:var(--muted);';
+        meta.textContent = _timeAgo(entry.updatedAt);
+        info.appendChild(meta);
+      }
+      row.appendChild(info);
+
+      var moveBtn = document.createElement('button');
+      moveBtn.type = 'button';
+      moveBtn.className = 'btn btn-sm';
+      moveBtn.style.cssText = 'flex-shrink:0;font-size:12px;padding:4px 10px;';
+      moveBtn.textContent = 'Move';
+      moveBtn.onclick = function () {
+        close();
+        _showFolderPicker(function (targetId) {
+          moveResumeToFolder(entry.id, targetId);
+          goSection('dashboard');
+          if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
+        });
+      };
+      row.appendChild(moveBtn);
+
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn btn-sm';
+      delBtn.style.cssText = 'flex-shrink:0;font-size:12px;padding:4px 10px;color:var(--error,#ff6b5e);';
+      delBtn.textContent = 'Remove';
+      delBtn.onclick = function () {
+        removeResumeFromFolder(entry.id);
+        f = _resumeFolders.find(function (x) { return x.id === folderId; });
+        if (f) render();
+        else close();
+      };
+      row.appendChild(delBtn);
+
+      list.appendChild(row);
+    });
+  }
+
+  function close() { backdrop.remove(); }
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  render();
+}
+window._showManageResumes = _showManageResumes;
+
 function _mountFolders() {
   if (typeof GlassFolder === 'undefined') return;
   _autoGroupResumes();
@@ -2780,6 +2872,7 @@ function _mountFolders() {
       action: 'more',
       files: files,
       menu: [
+        { label: 'Manage resumes', onSelect: function () { _showManageResumes(folder.id); } },
         { label: 'Rename', onSelect: function () { renameFolder(folder.id); } },
         { label: 'New resume here', onSelect: function () {
           _doStartNewResume(folder.id);

@@ -455,6 +455,7 @@ function renderMain() {
     setTimeout(_bindDragReorder, 0);
     setTimeout(_bindSectionDrag, 0);
     _refreshCompletion();
+    if (currentSection === 'dashboard') _mountFolders();
   };
 
   // Use View Transitions API for a polished cross-fade when switching sections.
@@ -2922,8 +2923,6 @@ function renderDashboard() {
   const sub = (_allResumes.length > 0 || hasContent)
     ? "Jump back into your resume, or start somewhere new."
     : "Start fresh, drop in a job post, or pick a template. Every feature is free.";
-
-  setTimeout(_mountFolders, 0);
 
   return `
     <div class="rb-page">

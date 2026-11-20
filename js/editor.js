@@ -2478,6 +2478,21 @@ function startNewResume() {
 }
 window.startNewResume = startNewResume;
 
+function _resumeFolder(entry) {
+  const r = entry && entry.resume || {};
+  const jd = String(r.tailor && r.tailor.jobDescription || '').trim();
+  if (!jd) return { key: 'general', title: 'General resumes', subtitle: 'Not tailored to a specific role' };
+  let jobs = [];
+  try { jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); } catch (_) {}
+  if (!Array.isArray(jobs)) jobs = [];
+  const normalize = value => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 240).toLowerCase();
+  const probe = normalize(jd);
+  const savedJobId = String(r.tailor && r.tailor.jobId || '');
+  const match = jobs.find(job => String(job && job.id) === savedJobId) || jobs.find(job => normalize(job && job.jd) === probe);
+  if (match) return { key: 'job-' + String(match.id), title: String(match.title || 'Tailored role'), subtitle: match.company ? 'Application at ' + String(match.company) : 'Tailored application' };
+  return { key: 'tailored-' + probe.slice(0, 80), title: 'Tailored resumes', subtitle: 'Role details saved in the resume' };
+}
+
 function renderDashboard() {
   const p = resume.personal || {};
   const hasContent = _hasAnyResumeContent();
@@ -2488,42 +2503,28 @@ function renderDashboard() {
     ? "Jump back into your resume, or start somewhere new."
     : "Start fresh, drop in a job post, or pick a template. Every feature is free.";
 
-  // Build resume cards from the saved list.
-  let cards = '';
-  for (const entry of _allResumes) {
-    const r = entry.resume || {};
-    const rp = r.personal || {};
-    const name = entry.customName || entry.name || _resumeName(r);
-    const role = ((r.experience || [])[0] || {}).title || '';
-    const titleHtml = esc(name) + (role && !name.includes(role) ? ' <span class="rb-card-role">' + esc(role) + '</span>' : '');
-    const edited = entry.updatedAt ? ('Edited ' + _timeAgo(entry.updatedAt)) : 'Not saved yet';
-    const isActive = entry.id === _activeResumeId;
-    const template = (r.template || 'modern');
-    const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
-
-    cards += `
-      <div class="rb-rr-card ${isActive ? 'rb-rr-active' : ''}" onclick="openResume('${entry.id}')">
-        <div class="rb-rr-card-top">
-          <div class="rb-rr-card-title">${titleHtml}</div>
-          <button class="rb-rr-menu-btn" type="button" onclick="event.stopPropagation(); _toggleResumeMenu('${entry.id}')" aria-label="Resume options">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-          </button>
-        </div>
-        <div class="rb-rr-meta">
-          <div class="rb-rr-row">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${esc(edited)}
-          </div>
-          ${hasJd ? '<div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); openResume(\'' + entry.id + '\'); setTimeout(()=>goSection(\'tailor\'),50);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job</div>' : ''}
-        </div>
-        <div class="rb-rr-menu" id="rb-menu-${entry.id}" style="display:none;">
-          <button onclick="event.stopPropagation(); openResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
-          <button onclick="event.stopPropagation(); renameResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Rename</button>
-          <button onclick="event.stopPropagation(); duplicateResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate</button>
-          <button class="rb-rr-menu-danger" onclick="event.stopPropagation(); deleteResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
-        </div>
-      </div>`;
-  }
+  const folders = new Map();
+  _allResumes.forEach(entry => {
+    const folder = _resumeFolder(entry);
+    if (!folders.has(folder.key)) folders.set(folder.key, { ...folder, entries: [] });
+    folders.get(folder.key).entries.push(entry);
+  });
+  let foldersHtml = '';
+  folders.forEach(folder => {
+    const files = folder.entries.map(entry => {
+      const r = entry.resume || {};
+      const name = entry.customName || entry.name || _resumeName(r);
+      const role = ((r.experience || [])[0] || {}).title || '';
+      const edited = entry.updatedAt ? ('Edited ' + _timeAgo(entry.updatedAt)) : 'Not saved yet';
+      const versions = Array.isArray(r.versions) ? r.versions.length : 0;
+      return `<article class="rb-folder-file ${entry.id === _activeResumeId ? 'rb-folder-file-active' : ''}">
+        <button class="rb-folder-file-open" type="button" onclick="openResume('${entry.id}')"><span class="rb-folder-file-title">${esc(name)}${role && !name.includes(role) ? ' <em>' + esc(role) + '</em>' : ''}</span><span class="rb-folder-file-meta">${esc(edited)}${versions ? ' · ' + versions + ' saved version' + (versions === 1 ? '' : 's') : ''}</span></button>
+        <div class="rb-folder-file-actions"><button type="button" onclick="renameResume('${entry.id}')">Rename</button><button type="button" onclick="duplicateResume('${entry.id}')">Duplicate</button><button class="rb-folder-file-danger" type="button" onclick="deleteResume('${entry.id}')">Delete</button></div>
+      </article>`;
+    }).join('');
+    const count = folder.entries.length;
+    foldersHtml += `<details class="rb-role-folder"${count === 1 ? ' open' : ''}><summary><span class="rb-folder-tab" aria-hidden="true"></span><span class="rb-folder-copy"><span class="rb-folder-title">${esc(folder.title)}</span><span class="rb-folder-subtitle">${esc(folder.subtitle)}</span></span><span class="rb-folder-count">${count} resume${count === 1 ? '' : 's'}</span></summary><div class="rb-folder-pocket">${files}</div></details>`;
+  });
 
   return `
     <div class="rb-page">
@@ -2573,10 +2574,10 @@ function renderDashboard() {
       </div>
 
       <div class="rb-rr-grid">
-        ${cards}
-        <button class="rb-rr-card rb-rr-add" type="button" onclick="startNewResume()">
+        ${foldersHtml}
+        <button class="rb-role-folder rb-role-folder-add" type="button" onclick="startNewResume()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <div>${_allResumes.length ? 'New resume' : 'Start building'}</div>
+          <span>${_allResumes.length ? 'New role folder' : 'Start building'}</span>
         </button>
       </div>
     </div>`;
@@ -5758,6 +5759,7 @@ function _maybeDeepLinkTailor() {
         if (j.jd && String(j.jd).trim()) {
           resume.tailor = resume.tailor || { jobDescription: '', tailoredSummary: '' };
           resume.tailor.jobDescription = String(j.jd);
+          resume.tailor.jobId = String(j.id);
           save();
         }
       }

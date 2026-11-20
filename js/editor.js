@@ -2745,6 +2745,12 @@ function _mountFolders() {
   if (!container) return;
   container.innerHTML = '';
 
+  // Compute folder width from container: 4 columns with 20px gaps
+  const gap = 20;
+  const cols = 4;
+  const avail = container.getBoundingClientRect().width;
+  const cellWidth = Math.max(200, Math.min(340, Math.floor((avail - gap * (cols - 1)) / cols)));
+
   _resumeFolders.forEach((folder, fi) => {
     const resumeEntries = (folder.resumeIds || [])
       .map(id => _allResumes.find(e => e.id === id))
@@ -2768,7 +2774,7 @@ function _mountFolders() {
       tone: 'dark',
       art: folder.art || 'aurora',
       seed: folder.seed || fi,
-      width: 200,
+      width: cellWidth,
       appear: true,
       appearDelay: fi * 120,
       action: 'more',

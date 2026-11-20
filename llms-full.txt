@@ -59,6 +59,10 @@ An Applicant Tracking System (ATS) is software employers use to collect, parse, 
 - Best Free Resume Builder in 2026 (What to Look For): https://appliohq.com/guides/best-free-resume-builder
 - Resume & ATS Glossary (20 key terms defined, ATS, parsing, keyword optimization, action verbs, resume formats, and more): https://appliohq.com/guides/resume-glossary
 
+## Recent career articles
+- How to Write a Resume With No Experience: https://appliohq.com/blog/resume-with-no-experience
+- How to Write a Career Change Resume: https://appliohq.com/blog/career-change-resume
+
 
 ## Resume examples by role
 Role-specific resume examples (summary, skills, quantified bullet points) at https://appliohq.com/resume-examples:

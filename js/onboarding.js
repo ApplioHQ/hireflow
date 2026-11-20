@@ -18,7 +18,7 @@
   var TOTAL = 8;
   var step = 0;
   var data = {};
-  var overlay, track, progFill, dotsEl, statNum, statLabel, statDesc;
+  var overlay, track, progFill, dotsEl;
 
   var STAGE_MAP = {
     'Actively applying': 'active',
@@ -33,16 +33,6 @@
     '10+': 'expert'
   };
 
-  var STATS = [
-    { n: '90s', l: 'Average setup time', p: 'Users who finish setup get 3x more relevant AI suggestions' },
-    { n: '87%', l: 'Land more interviews', p: 'Tailored tools adapt to your search phase automatically' },
-    { n: '6', l: 'AI tools personalized', p: 'Target role powers salary, skill-gap, and interview prep' },
-    { n: '31', l: 'ATS-ready templates', p: 'Current role context helps AI write stronger bullets' },
-    { n: '34pt', l: 'Avg. ATS score boost', p: 'Experience level calibrates your salary benchmarks' },
-    { n: '150+', l: 'Cities benchmarked', p: 'Location unlocks local salary market insights' },
-    { n: '<10s', l: 'AI resume import', p: 'Free forever -- no credit card, no limits' },
-    { n: '✓', l: 'Workspace is ready', p: 'Trusted by professionals worldwide' }
-  ];
 
   var ICONS = {
     rocket: '<path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"/><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"/><path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>',
@@ -83,11 +73,7 @@
       + '.onb-dot.dn{background:rgba(109,77,252,.35);}'
       + '.onb-body{display:flex;flex:1;position:relative;z-index:2;overflow:hidden;}'
       + '.onb-left{flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;position:relative;}'
-      + '.onb-right{width:280px;background:rgba(255,255,255,.025);border-left:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:36px 28px;text-align:center;flex-shrink:0;}'
-      + '.onb-rn{font-size:48px;font-weight:800;color:#6d4dfc;line-height:1;margin-bottom:8px;font-variant-numeric:tabular-nums;}'
-      + '.onb-rl{font-size:14px;font-weight:600;color:#e6e9f5;margin-bottom:14px;}'
-      + '.onb-rp{font-size:12px;color:#9a9aa2;line-height:1.55;}'
-      + '.onb-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:48px 48px 48px 64px;opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .4s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1);overflow-y:auto;}'
+      + '.onb-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:48px;opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .4s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1);overflow-y:auto;}'
       + '.onb-screen.on{opacity:1;pointer-events:auto;transform:none;}'
       + '.onb-inner{width:100%;max-width:520px;}'
       + '.onb-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#8a73f8;margin-bottom:10px;}'
@@ -141,7 +127,7 @@
       + '.onb-cf{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;opacity:0;}'
       + '@keyframes onbCF{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(200px) rotate(720deg)}}'
       + '@media(prefers-reduced-motion:reduce){.onb-orb,.onb-logo{animation:none;}.onb-screen{transition:opacity .15s;transform:none!important;}}'
-      + '@media(max-width:768px){.onb-right{display:none;}.onb-screen{padding:32px 20px;}.onb-cards,.onb-exp,.onb-import{grid-template-columns:1fr 1fr;}}';
+      + '@media(max-width:768px){.onb-screen{padding:32px 20px;}.onb-cards,.onb-exp,.onb-import{grid-template-columns:1fr 1fr;}}';
     var st = document.createElement('style'); st.id = 'onb-css'; st.textContent = css;
     document.head.appendChild(st);
   }
@@ -155,13 +141,6 @@
     dotsEl.innerHTML = h;
   }
 
-  function updateStat(n) {
-    var s = STATS[n] || STATS[0];
-    if (statNum) statNum.textContent = s.n;
-    if (statLabel) statLabel.textContent = s.l;
-    if (statDesc) statDesc.textContent = s.p;
-  }
-
   function goTo(n) {
     var prev = overlay.querySelector('.onb-screen.on');
     if (prev) prev.classList.remove('on');
@@ -170,7 +149,6 @@
     if (next) next.classList.add('on');
     if (progFill) progFill.style.width = ((n + 1) / TOTAL * 100) + '%';
     updateDots();
-    updateStat(n);
     if (n === 7) buildSummary();
   }
 
@@ -473,20 +451,12 @@
       +     '<div class="onb-screen" data-s="6">' + s6() + '</div>'
       +     '<div class="onb-screen" data-s="7">' + s7() + '</div>'
       +   '</div>'
-      +   '<div class="onb-right">'
-      +     '<div class="onb-rn" id="onb-rn">' + STATS[0].n + '</div>'
-      +     '<div class="onb-rl" id="onb-rl">' + STATS[0].l + '</div>'
-      +     '<div class="onb-rp" id="onb-rp">' + STATS[0].p + '</div>'
-      +   '</div>'
       + '</div>';
     document.body.appendChild(overlay);
     document.documentElement.style.overflow = 'hidden';
 
     progFill = document.getElementById('onb-prog-fill');
     dotsEl = document.getElementById('onb-dots');
-    statNum = document.getElementById('onb-rn');
-    statLabel = document.getElementById('onb-rl');
-    statDesc = document.getElementById('onb-rp');
     updateDots();
 
     overlay.addEventListener('click', onClick);

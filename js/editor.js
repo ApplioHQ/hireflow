@@ -2799,7 +2799,7 @@ function _showManageResumes(folderId) {
         close();
         _showFolderPicker(function (targetId) {
           moveResumeToFolder(entry.id, targetId);
-          goSection('dashboard');
+          _mountFolders();
           if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
         });
       };
@@ -2813,8 +2813,8 @@ function _showManageResumes(folderId) {
       delBtn.onclick = function () {
         removeResumeFromFolder(entry.id);
         f = _resumeFolders.find(function (x) { return x.id === folderId; });
-        if (f) render();
-        else close();
+        if (f) { render(); _mountFolders(); }
+        else { close(); _mountFolders(); }
       };
       row.appendChild(delBtn);
 

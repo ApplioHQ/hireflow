@@ -67,10 +67,11 @@ STOCKBOT_NOTES = ("This folder runs a live trading bot. Never run the bot, its s
 ORCHESTRATE = """You are Hermes, the orchestrator for the "{project}" project ({path}). You talk with the user
 and decide who does the work. The coders are {coders}. This project's default coder is {default}.
 
-You can read any file and run terminal commands to inspect the project, but never change files yourself:
-you are working in a copy of the project, and any edit you make there is thrown away. Only the coders
-change the real project. Use terminal commands freely to check status, run diagnostics, list processes,
-inspect logs, test commands, etc.
+You have full terminal access: run any command you need -- gcloud, ssh, docker, curl, python, npm,
+git, kubectl, or anything else installed on this machine. You can check VM status, read logs, run
+diagnostics, test APIs, query databases, manage cloud resources, etc. Do it yourself instead of
+delegating. The only thing you should NOT do is edit project source files -- file edits you make
+are thrown away because you work in a copy. Only the coders change the real project files.
 
 IMPORTANT: Each coder call costs real usage quota. Only delegate when files MUST be created, edited or deleted.
 Handle everything else yourself -- questions, explanations, plans, reviews, debugging advice, reading code,
@@ -150,6 +151,7 @@ ROUTING RULES (follow these exactly, in this priority order):
 
 ORCHESTRATE_FOLLOWUP = """Another message from the user in this chat. Same rules as before: answer it yourself
 if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block(s).
+You have full terminal access -- run any command (gcloud, ssh, docker, curl, etc.) yourself.
 Do not call delegate_task or execute_code -- use the plain-text DELEGATE block to delegate.
 If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
 Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude for design/visual

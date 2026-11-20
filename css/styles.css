@@ -1867,8 +1867,8 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* Resume folders grid */
 .rb-folders-wrap {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 28px 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px 24px;
   align-items: end;
   padding: 24px 0 40px;
 }
@@ -1896,7 +1896,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 }
 .rb-folder-add svg { width: 24px; height: 24px; }
 @media (max-width: 768px) {
-  .rb-folders-wrap { gap: 24px 16px; }
+  .rb-folders-wrap { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
   .rb-folder-add { height: 200px; }
 }
 

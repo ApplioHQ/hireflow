@@ -2745,8 +2745,8 @@ function _mountFolders() {
   if (!container) return;
   container.innerHTML = '';
 
-  // Compute folder width from container: 4 columns with 20px gaps
-  const gap = 20;
+  // Compute folder width: 4 columns with 24px gaps
+  const gap = 24;
   const cols = 4;
   const avail = container.getBoundingClientRect().width;
   const cellWidth = Math.max(200, Math.min(340, Math.floor((avail - gap * (cols - 1)) / cols)));

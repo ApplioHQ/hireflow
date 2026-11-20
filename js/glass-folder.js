@@ -337,6 +337,7 @@
       var onAdd = opts.onAdd;
       var onFilesChange = opts.onFilesChange;
       var onFileSelect = opts.onFileSelect;
+      var onFileContextMenu = opts.onFileContextMenu;
       var menu = opts.menu || [];
       var labelPlacement = opts.labelPlacement || 'bottom-left';
       var width = opts.width || 340;
@@ -532,6 +533,13 @@
 
           sheetEl.addEventListener('click', function () {
             if (onFileSelect) onFileSelect(file, start + v);
+          });
+          sheetEl.addEventListener('contextmenu', function (e) {
+            if (onFileContextMenu) {
+              e.preventDefault();
+              e.stopPropagation();
+              onFileContextMenu(file, start + v, e);
+            }
           });
 
           var slotDiv = el('div', 'gf-sheet-slot');

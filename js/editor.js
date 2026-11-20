@@ -2457,8 +2457,7 @@ function _hasAnyResumeContent() {
 
 // Reset the current resume to the default shape, with a confirm when the
 // user has existing content so one accidental click can't wipe their work.
-function startNewResume() {
-  // Save the current resume to the list before creating a new one.
+function _doStartNewResume(folderId) {
   if (_hasAnyResumeContent()) {
     if (_activeResumeId) {
       _syncActiveToList();
@@ -2467,14 +2466,24 @@ function startNewResume() {
       _allResumes.push({ id, name: _resumeName(resume), resume: structuredClone(resume), updatedAt: resume.updatedAt || Date.now() });
     }
   }
-  // Create a fresh resume and assign it a new slot.
   _activeResumeId = _genId();
   resume = structuredClone(DEFAULT_RESUME);
   save();
   _allResumes.push({ id: _activeResumeId, name: 'New resume', resume: structuredClone(resume), updatedAt: Date.now() });
   _persistResumes();
+  if (folderId) addResumeToFolder(folderId, _activeResumeId);
   goSection('template');
   if (typeof toast === 'function') toast('New resume started', { type: 'success' });
+}
+
+function startNewResume(skipPicker) {
+  if (skipPicker || !_resumeFolders.length) {
+    _doStartNewResume(null);
+    return;
+  }
+  _showFolderPicker(function (folderId) {
+    _doStartNewResume(folderId);
+  });
 }
 window.startNewResume = startNewResume;
 
@@ -2556,13 +2565,29 @@ window.addResumeToFolder = addResumeToFolder;
 function renameFolder(folderId) {
   const f = _resumeFolders.find(x => x.id === folderId);
   if (!f) return;
-  const name = prompt('Rename folder:', f.label);
-  if (name === null || !name.trim()) return;
-  f.label = name.trim();
-  _persistFolders();
-  goSection('dashboard');
+  _showInputModal('Rename folder', 'Folder name', f.label, function (val) {
+    f.label = val;
+    _persistFolders();
+    goSection('dashboard');
+  });
 }
 window.renameFolder = renameFolder;
+
+function removeResumeFromFolder(resumeId) {
+  _resumeFolders.forEach(f => {
+    if (!f.resumeIds) return;
+    const i = f.resumeIds.indexOf(resumeId);
+    if (i >= 0) f.resumeIds.splice(i, 1);
+  });
+  _persistFolders();
+}
+window.removeResumeFromFolder = removeResumeFromFolder;
+
+function moveResumeToFolder(resumeId, targetFolderId) {
+  removeResumeFromFolder(resumeId);
+  addResumeToFolder(targetFolderId, resumeId);
+}
+window.moveResumeToFolder = moveResumeToFolder;
 
 function deleteFolder(folderId) {
   const idx = _resumeFolders.findIndex(x => x.id === folderId);
@@ -2575,12 +2600,143 @@ function deleteFolder(folderId) {
 window.deleteFolder = deleteFolder;
 
 function _promptNewFolder() {
-  const name = prompt('Name this application folder:', '');
-  if (name === null || !name.trim()) return;
-  createResumeFolder(name.trim());
-  goSection('dashboard');
+  _showInputModal('New folder', 'Folder name', '', function (val) {
+    createResumeFolder(val);
+    goSection('dashboard');
+  });
 }
 window._promptNewFolder = _promptNewFolder;
+
+function _showInputModal(title, placeholder, defaultVal, callback) {
+  var existing = document.getElementById('input-modal-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'input-modal-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+    + '<h3>' + esc(title) + '</h3>'
+    + '<input type="text" id="input-modal-field" class="form-control" placeholder="' + esc(placeholder) + '" value="' + esc(defaultVal || '') + '" style="width:100%;margin-bottom:16px;">'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+    + '<button type="button" id="input-modal-cancel" class="btn btn-sm">Cancel</button>'
+    + '<button type="button" id="input-modal-ok" class="btn btn-primary btn-sm">OK</button>'
+    + '</div>';
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  var field = document.getElementById('input-modal-field');
+  field.focus();
+  field.select();
+
+  function close() { backdrop.remove(); }
+  function submit() {
+    var val = field.value.trim();
+    if (!val) return;
+    close();
+    callback(val);
+  }
+
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  modal.querySelector('.modal-close').onclick = close;
+  document.getElementById('input-modal-cancel').onclick = close;
+  document.getElementById('input-modal-ok').onclick = submit;
+  field.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+}
+
+function _showFolderPicker(callback) {
+  var existing = document.getElementById('folder-picker-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'folder-picker-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+    + '<h3>Choose a folder</h3>'
+    + '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Where should this resume go?</p>'
+    + '<div id="folder-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>'
+    + '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">'
+    + '<button type="button" id="folder-picker-new" class="btn btn-sm" style="width:100%;justify-content:center;">+ New folder</button>'
+    + '</div>';
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  function close() { backdrop.remove(); }
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  modal.querySelector('.modal-close').onclick = close;
+
+  var list = document.getElementById('folder-picker-list');
+  _resumeFolders.forEach(function (f) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm';
+    btn.style.cssText = 'width:100%;justify-content:flex-start;text-align:left;padding:10px 14px;';
+    btn.innerHTML = '<span style="flex:1;">' + esc(f.label) + '</span>'
+      + '<span style="color:var(--muted);font-size:12px;">' + (f.resumeIds || []).length + ' resume' + ((f.resumeIds || []).length === 1 ? '' : 's') + '</span>';
+    btn.onclick = function () { close(); callback(f.id); };
+    list.appendChild(btn);
+  });
+
+  document.getElementById('folder-picker-new').onclick = function () {
+    close();
+    _showInputModal('New folder', 'Folder name', '', function (val) {
+      var folder = createResumeFolder(val);
+      callback(folder.id);
+    });
+  };
+}
+window._showFolderPicker = _showFolderPicker;
+
+function _showFileContextMenu(file, index, evt) {
+  var existing = document.querySelector('.gf-file-ctx');
+  if (existing) existing.remove();
+
+  var resumeId = file._resumeId;
+  if (!resumeId) return;
+
+  var currentFolder = _getFolderForResume(resumeId);
+  var menuEl = document.createElement('div');
+  menuEl.className = 'gf-file-ctx';
+  menuEl.style.cssText = 'position:fixed;z-index:200;min-width:180px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--sh-3);padding:4px 0;';
+  menuEl.style.left = Math.min(evt.clientX, window.innerWidth - 200) + 'px';
+  menuEl.style.top = Math.min(evt.clientY, window.innerHeight - 120) + 'px';
+
+  function item(label, danger, cb) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.cssText = 'all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 14px;font-size:13px;cursor:pointer;color:' + (danger ? 'var(--error,#ff6b5e)' : 'var(--fg)') + ';';
+    btn.textContent = label;
+    btn.onmouseenter = function () { btn.style.background = 'var(--bg-2)'; };
+    btn.onmouseleave = function () { btn.style.background = 'none'; };
+    btn.onclick = function () { menuEl.remove(); cb(); };
+    menuEl.appendChild(btn);
+  }
+
+  item('Move to...', false, function () {
+    _showFolderPicker(function (targetId) {
+      moveResumeToFolder(resumeId, targetId);
+      goSection('dashboard');
+      if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
+    });
+  });
+
+  item('Remove from folder', true, function () {
+    removeResumeFromFolder(resumeId);
+    goSection('dashboard');
+    if (typeof toast === 'function') toast('Resume removed from folder', { type: 'success' });
+  });
+
+  document.body.appendChild(menuEl);
+  function dismiss(e) {
+    if (!menuEl.contains(e.target)) { menuEl.remove(); document.removeEventListener('click', dismiss, true); }
+  }
+  setTimeout(function () { document.addEventListener('click', dismiss, true); }, 0);
+}
 
 function _mountFolders() {
   if (typeof GlassFolder === 'undefined') return;
@@ -2620,17 +2776,18 @@ function _mountFolders() {
       menu: [
         { label: 'Rename', onSelect: function () { renameFolder(folder.id); } },
         { label: 'New resume here', onSelect: function () {
-          startNewResume();
-          addResumeToFolder(folder.id, _activeResumeId);
+          _doStartNewResume(folder.id);
         }},
         { label: 'Delete folder', danger: true, onSelect: function () { deleteFolder(folder.id); } }
       ],
       onFileSelect: function (file) {
         if (file._resumeId) openResume(file._resumeId);
       },
+      onFileContextMenu: function (file, index, evt) {
+        _showFileContextMenu(file, index, evt);
+      },
       onAdd: function () {
-        startNewResume();
-        addResumeToFolder(folder.id, _activeResumeId);
+        _doStartNewResume(folder.id);
         return null;
       }
     });

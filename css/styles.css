@@ -1895,37 +1895,6 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* Meta row wrapper */
 .rb-rr-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: auto; }
 
-/* Role folders on the Resume Builder home. Native <details> makes the open
-   state keyboard-accessible without a JS-only disclosure control. */
-.rb-rr-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
-.rb-role-folder { position: relative; min-height: 164px; border: 1px solid rgba(157,133,255,.38); border-radius: 18px; background: linear-gradient(145deg, rgba(109,77,252,.24), rgba(22,22,28,.98) 44%); box-shadow: 0 18px 44px -30px rgba(0,0,0,.9); overflow: hidden; }
-.rb-role-folder::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(180px 90px at 92% 0%,rgba(161,136,255,.28),transparent 72%); }
-.rb-role-folder summary { list-style:none; position:relative; z-index:1; min-height:164px; padding:26px 22px 22px; display:flex; align-items:flex-end; gap:14px; cursor:pointer; user-select:none; }
-.rb-role-folder summary::-webkit-details-marker { display:none; }
-.rb-role-folder summary:focus-visible { outline:2px solid #c2b5ff; outline-offset:-3px; border-radius:inherit; }
-.rb-folder-tab { position:absolute; top:0; left:20px; width:116px; height:14px; border-radius:0 0 10px 10px; background:rgba(139,110,255,.72); box-shadow:0 1px 0 rgba(255,255,255,.28) inset; }
-.rb-folder-copy { min-width:0; display:grid; gap:5px; }
-.rb-folder-title { color:#f5f3ff; font-family:var(--font-display); font-size:18px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rb-folder-subtitle { color:#c4c1d2; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rb-folder-count { margin-left:auto; align-self:flex-start; color:#ddd8ff; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:5px 9px; font-size:12px; white-space:nowrap; }
-.rb-folder-pocket { position:relative; z-index:1; border-top:1px solid rgba(255,255,255,.1); background:rgba(8,8,11,.56); padding:10px; }
-.rb-folder-file { display:flex; align-items:center; gap:10px; min-width:0; border-radius:12px; padding:4px 5px; }
-.rb-folder-file:hover { background:rgba(255,255,255,.06); }
-.rb-folder-file-active { box-shadow:inset 2px 0 0 var(--accent); background:rgba(109,77,252,.13); }
-.rb-folder-file-open { min-width:0; flex:1; display:grid; gap:4px; text-align:left; color:inherit; font:inherit; padding:9px 8px; border:0; background:transparent; cursor:pointer; border-radius:9px; }
-.rb-folder-file-open:focus-visible,.rb-folder-file-actions button:focus-visible { outline:2px solid #c2b5ff; outline-offset:2px; }
-.rb-folder-file-title { color:#f2f1f8; font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rb-folder-file-title em { color:#aaa5ba; font-style:normal; font-weight:500; }
-.rb-folder-file-meta { color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rb-folder-file-actions { display:flex; gap:3px; opacity:0; transition:opacity .15s ease; }
-.rb-folder-file:hover .rb-folder-file-actions,.rb-folder-file:focus-within .rb-folder-file-actions { opacity:1; }
-.rb-folder-file-actions button { border:0; border-radius:7px; padding:6px 7px; color:#c7c4d2; background:transparent; font:inherit; font-size:12px; cursor:pointer; }
-.rb-folder-file-actions button:hover { color:#fff; background:rgba(255,255,255,.09); }
-.rb-folder-file-actions .rb-folder-file-danger:hover { color:#fda4af; background:rgba(244,63,94,.12); }
-.rb-role-folder-add { min-height:164px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; color:var(--muted); background:transparent; border:1px dashed rgba(157,133,255,.45); font:inherit; cursor:pointer; }
-.rb-role-folder-add:hover { color:#d9d2ff; border-color:var(--accent); background:rgba(109,77,252,.08); }
-.rb-role-folder-add svg { width:24px; height:24px; }
-
 @media (max-width: 900px) {
   .rb-actions { grid-template-columns: repeat(2, 1fr); }
   .rb-title { font-size: 22px; }
@@ -1933,10 +1902,6 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 }
 @media (max-width: 560px) {
   .rb-actions { grid-template-columns: 1fr; }
-  .rb-rr-grid { grid-template-columns: 1fr; }
-  .rb-role-folder summary { padding:22px 16px 18px; }
-  .rb-folder-file { align-items:flex-start; }
-  .rb-folder-file-actions { opacity:1; flex-wrap:wrap; justify-content:flex-end; }
 }
 
 /* ===== Editor mobile bottom nav + drawers (styles were missing) =====

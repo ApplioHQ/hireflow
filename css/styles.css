@@ -1864,6 +1864,43 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* Active resume card outline */
 .rb-rr-card.rb-rr-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 24px -8px rgba(109,77,252,.18); }
 
+/* Resume folders grid */
+.rb-folders-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 36px 28px;
+  align-items: flex-end;
+  padding: 24px 0 40px;
+}
+.rb-folder-add {
+  all: unset;
+  box-sizing: border-box;
+  width: 260px;
+  height: 252px;
+  border: 2px dashed rgba(255,255,255,.12);
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.rb-folder-add:hover {
+  border-color: var(--accent);
+  color: #c2b5ff;
+  background: rgba(109,77,252,.04);
+}
+.rb-folder-add svg { width: 24px; height: 24px; }
+@media (max-width: 768px) {
+  .rb-folders-wrap { justify-content: center; gap: 32px 24px; }
+  .rb-folder-add { width: 280px; height: 280px; }
+}
+
 /* Three-dot menu button on resume cards */
 .rb-rr-menu-btn {
   background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px;

@@ -2478,6 +2478,173 @@ function startNewResume() {
 }
 window.startNewResume = startNewResume;
 
+// ── Resume Folders: group resumes by job application target ──
+// Stored in hf_resume_folders as [{id, label, art, seed, resumeIds}].
+// Resumes not in any folder get auto-grouped by company from their experience.
+const ART_CYCLE = ['aurora', 'ember', 'dusk', 'verdant', 'glacier'];
+
+let _resumeFolders = (function () {
+  try { return JSON.parse(localStorage.getItem('hf_resume_folders') || '[]'); } catch { return []; }
+})();
+
+function _persistFolders() {
+  localStorage.setItem('hf_resume_folders', JSON.stringify(_resumeFolders));
+}
+
+function _getFolderForResume(entryId) {
+  return _resumeFolders.find(f => (f.resumeIds || []).includes(entryId));
+}
+
+function _autoGroupResumes() {
+  const assigned = new Set();
+  _resumeFolders.forEach(f => (f.resumeIds || []).forEach(id => assigned.add(id)));
+
+  const ungrouped = _allResumes.filter(e => !assigned.has(e.id));
+  if (!ungrouped.length) return;
+
+  const byCompany = {};
+  ungrouped.forEach(entry => {
+    const r = entry.resume || {};
+    const company = ((r.experience || [])[0] || {}).company || '';
+    const key = company.trim() || '_general';
+    if (!byCompany[key]) byCompany[key] = [];
+    byCompany[key].push(entry.id);
+  });
+
+  Object.keys(byCompany).forEach(key => {
+    const label = key === '_general' ? 'General' : key;
+    const existing = _resumeFolders.find(f => f.label === label);
+    if (existing) {
+      existing.resumeIds = (existing.resumeIds || []).concat(byCompany[key]);
+    } else {
+      _resumeFolders.push({
+        id: _genId(),
+        label: label,
+        art: ART_CYCLE[_resumeFolders.length % ART_CYCLE.length],
+        seed: Math.floor(Math.random() * 100),
+        resumeIds: byCompany[key]
+      });
+    }
+  });
+  _persistFolders();
+}
+
+function createResumeFolder(label) {
+  const name = (label || '').trim() || 'New application';
+  const folder = {
+    id: _genId(),
+    label: name,
+    art: ART_CYCLE[_resumeFolders.length % ART_CYCLE.length],
+    seed: Math.floor(Math.random() * 100),
+    resumeIds: []
+  };
+  _resumeFolders.push(folder);
+  _persistFolders();
+  return folder;
+}
+window.createResumeFolder = createResumeFolder;
+
+function addResumeToFolder(folderId, resumeId) {
+  const f = _resumeFolders.find(x => x.id === folderId);
+  if (!f) return;
+  if (!f.resumeIds) f.resumeIds = [];
+  if (!f.resumeIds.includes(resumeId)) f.resumeIds.push(resumeId);
+  _persistFolders();
+}
+window.addResumeToFolder = addResumeToFolder;
+
+function renameFolder(folderId) {
+  const f = _resumeFolders.find(x => x.id === folderId);
+  if (!f) return;
+  const name = prompt('Rename folder:', f.label);
+  if (name === null || !name.trim()) return;
+  f.label = name.trim();
+  _persistFolders();
+  goSection('dashboard');
+}
+window.renameFolder = renameFolder;
+
+function deleteFolder(folderId) {
+  const idx = _resumeFolders.findIndex(x => x.id === folderId);
+  if (idx < 0) return;
+  _resumeFolders.splice(idx, 1);
+  _persistFolders();
+  goSection('dashboard');
+  if (typeof toast === 'function') toast('Folder removed', { type: 'success' });
+}
+window.deleteFolder = deleteFolder;
+
+function _promptNewFolder() {
+  const name = prompt('Name this application folder:', '');
+  if (name === null || !name.trim()) return;
+  createResumeFolder(name.trim());
+  goSection('dashboard');
+}
+window._promptNewFolder = _promptNewFolder;
+
+function _mountFolders() {
+  if (typeof GlassFolder === 'undefined') return;
+  _autoGroupResumes();
+  const container = document.getElementById('rb-folders');
+  if (!container) return;
+  container.innerHTML = '';
+
+  _resumeFolders.forEach((folder, fi) => {
+    const resumeEntries = (folder.resumeIds || [])
+      .map(id => _allResumes.find(e => e.id === id))
+      .filter(Boolean);
+
+    const files = resumeEntries.map(entry => {
+      const r = entry.resume || {};
+      const name = entry.customName || entry.name || _resumeName(r);
+      const edited = entry.updatedAt ? _timeAgo(entry.updatedAt) : '';
+      const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
+      const meta = (hasJd ? 'Tailored' : '') + (hasJd && edited ? ' - ' : '') + (edited ? edited : '');
+      return {
+        name: name,
+        meta: meta || undefined,
+        _resumeId: entry.id
+      };
+    });
+
+    GlassFolder.create(container, {
+      label: folder.label,
+      tone: 'dark',
+      art: folder.art || 'aurora',
+      seed: folder.seed || fi,
+      width: 260,
+      appear: true,
+      appearDelay: fi * 120,
+      action: 'more',
+      files: files,
+      menu: [
+        { label: 'Rename', onSelect: function () { renameFolder(folder.id); } },
+        { label: 'New resume here', onSelect: function () {
+          startNewResume();
+          addResumeToFolder(folder.id, _activeResumeId);
+        }},
+        { label: 'Delete folder', danger: true, onSelect: function () { deleteFolder(folder.id); } }
+      ],
+      onFileSelect: function (file) {
+        if (file._resumeId) openResume(file._resumeId);
+      },
+      onAdd: function () {
+        startNewResume();
+        addResumeToFolder(folder.id, _activeResumeId);
+        return null;
+      }
+    });
+  });
+
+  // "New application" card
+  var addCard = document.createElement('button');
+  addCard.type = 'button';
+  addCard.className = 'rb-folder-add';
+  addCard.onclick = _promptNewFolder;
+  addCard.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><div>New application</div>';
+  container.appendChild(addCard);
+}
+
 function renderDashboard() {
   const p = resume.personal || {};
   const hasContent = _hasAnyResumeContent();
@@ -2488,42 +2655,7 @@ function renderDashboard() {
     ? "Jump back into your resume, or start somewhere new."
     : "Start fresh, drop in a job post, or pick a template. Every feature is free.";
 
-  // Build resume cards from the saved list.
-  let cards = '';
-  for (const entry of _allResumes) {
-    const r = entry.resume || {};
-    const rp = r.personal || {};
-    const name = entry.customName || entry.name || _resumeName(r);
-    const role = ((r.experience || [])[0] || {}).title || '';
-    const titleHtml = esc(name) + (role && !name.includes(role) ? ' <span class="rb-card-role">' + esc(role) + '</span>' : '');
-    const edited = entry.updatedAt ? ('Edited ' + _timeAgo(entry.updatedAt)) : 'Not saved yet';
-    const isActive = entry.id === _activeResumeId;
-    const template = (r.template || 'modern');
-    const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
-
-    cards += `
-      <div class="rb-rr-card ${isActive ? 'rb-rr-active' : ''}" onclick="openResume('${entry.id}')">
-        <div class="rb-rr-card-top">
-          <div class="rb-rr-card-title">${titleHtml}</div>
-          <button class="rb-rr-menu-btn" type="button" onclick="event.stopPropagation(); _toggleResumeMenu('${entry.id}')" aria-label="Resume options">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-          </button>
-        </div>
-        <div class="rb-rr-meta">
-          <div class="rb-rr-row">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${esc(edited)}
-          </div>
-          ${hasJd ? '<div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); openResume(\'' + entry.id + '\'); setTimeout(()=>goSection(\'tailor\'),50);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job</div>' : ''}
-        </div>
-        <div class="rb-rr-menu" id="rb-menu-${entry.id}" style="display:none;">
-          <button onclick="event.stopPropagation(); openResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
-          <button onclick="event.stopPropagation(); renameResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Rename</button>
-          <button onclick="event.stopPropagation(); duplicateResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate</button>
-          <button class="rb-rr-menu-danger" onclick="event.stopPropagation(); deleteResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
-        </div>
-      </div>`;
-  }
+  setTimeout(_mountFolders, 0);
 
   return `
     <div class="rb-page">
@@ -2569,16 +2701,10 @@ function renderDashboard() {
       </div>
 
       <div class="rb-rr-head">
-        <div class="rb-rr-title">Your resumes ${_allResumes.length ? '<span class="rb-count">' + _allResumes.length + '</span>' : ''}</div>
+        <div class="rb-rr-title">Your applications ${_allResumes.length ? '<span class="rb-count">' + _allResumes.length + ' resume' + (_allResumes.length === 1 ? '' : 's') + '</span>' : ''}</div>
       </div>
 
-      <div class="rb-rr-grid">
-        ${cards}
-        <button class="rb-rr-card rb-rr-add" type="button" onclick="startNewResume()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <div>${_allResumes.length ? 'New resume' : 'Start building'}</div>
-        </button>
-      </div>
+      <div class="rb-folders-wrap" id="rb-folders"></div>
     </div>`;
 }
 

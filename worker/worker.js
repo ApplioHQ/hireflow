@@ -1597,6 +1597,12 @@ async function saveOnboardingAnswers(req, env) {
   const record = {
     email: payload.email.toLowerCase(),
     stage: clean(answers.stage),
+    targetRole: clean(answers.targetRole),
+    company: clean(answers.company),
+    currentRole: clean(answers.currentRole),
+    seniority: clean(answers.seniority),
+    location: clean(answers.location),
+    importChoice: clean(answers.importChoice),
     challenge: clean(answers.challenge),
     heardFrom: clean(answers.heardFrom),
     ts: Date.now(),

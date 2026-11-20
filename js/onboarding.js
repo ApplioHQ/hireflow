@@ -1,220 +1,360 @@
-/* onboarding.js, mandatory first-run flow for new users.
-   Full-screen, immersive. Seven screens: welcome, 3 questions, import/build,
-   paste job description, match results. Triggers ONLY on first-time account
-   creation: the auth flow sets a one-shot `hf_onboard_new` flag when the server
-   reports isNew (signup or a brand-new Google account). Returning users logging
-   back in never see it, even on a fresh browser / cleared storage, because login
-   sets `hf_onboarded` instead. The flag is consumed on trigger so it fires once. */
+/* onboarding.js -- mandatory first-run flow for new users.
+   Full-screen, immersive. Eight screens: welcome, search stage, target role,
+   company/current role, experience level, location, import resume, summary.
+   Triggers ONLY on first-time signup via hf_onboard_new flag. */
 (function () {
   'use strict';
   try {
     if (!localStorage.getItem('hf_token')) return;
     if (localStorage.getItem('hf_onboarded')) return;
-    if (localStorage.getItem('hf_onboard_new') !== '1') return;  // signup-only
-    localStorage.removeItem('hf_onboard_new');                   // one-shot
+    if (localStorage.getItem('hf_onboard_new') !== '1') return;
+    localStorage.removeItem('hf_onboard_new');
   } catch (e) { return; }
 
   var API = (window.HIREFLOW_CONFIG && window.HIREFLOW_CONFIG.API_URL) || '';
   var TOKEN = null;
   try { TOKEN = localStorage.getItem('hf_token'); } catch (e) {}
 
-  var answers = { stage: '', challenge: '', heardFrom: '' };
+  var TOTAL = 8;
   var step = 0;
-  var TOTAL = 7;
-  var STEP_PCT = 100 / TOTAL;
+  var data = {};
+  var overlay, track, progFill, dotsEl, statNum, statLabel, statDesc;
 
-  var QUESTIONS = {
-    1: { key: 'stage', title: 'Where are you in your job search?', options: ['Actively applying now', 'Starting to look', 'Preparing for future opportunities', 'Just exploring'] },
-    2: { key: 'challenge', title: "What's your biggest challenge?", options: ['Getting past ATS filters', 'Writing strong bullets', 'Tailoring to each job', 'Interview preparation', 'Starting from scratch'] },
-    3: { key: 'heardFrom', title: 'How did you hear about Applio?', options: ['TikTok', 'Product Hunt', 'Google', 'Friend or colleague', 'Other'] },
+  var STAGE_MAP = {
+    'Actively applying': 'active',
+    'Starting to look': 'casual',
+    'Preparing for later': 'passive',
+    'Just exploring': 'exploring'
   };
+  var EXP_MAP = {
+    '0-2': 'entry',
+    '3-5': 'mid',
+    '6-10': 'senior',
+    '10+': 'expert'
+  };
+
+  var STATS = [
+    { n: '90s', l: 'Average setup time', p: 'Users who finish setup get 3x more relevant AI suggestions' },
+    { n: '87%', l: 'Land more interviews', p: 'Tailored tools adapt to your search phase automatically' },
+    { n: '6', l: 'AI tools personalized', p: 'Target role powers salary, skill-gap, and interview prep' },
+    { n: '31', l: 'ATS-ready templates', p: 'Current role context helps AI write stronger bullets' },
+    { n: '34pt', l: 'Avg. ATS score boost', p: 'Experience level calibrates your salary benchmarks' },
+    { n: '150+', l: 'Cities benchmarked', p: 'Location unlocks local salary market insights' },
+    { n: '<10s', l: 'AI resume import', p: 'Free forever -- no credit card, no limits' },
+    { n: '✓', l: 'Workspace is ready', p: 'Trusted by professionals worldwide' }
+  ];
+
+  var ICONS = {
+    rocket: '<path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"/><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"/><path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>',
+    send: '<path d="M10 14l11 -11"/><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"/>',
+    eye: '<path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>',
+    calendar: '<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/>',
+    compass: '<path d="M8 16l2 -6l6 -2l-2 6l-6 2"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>',
+    clock: '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/>',
+    upload: '<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/>',
+    filePlus: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M12 11l0 6"/><path d="M9 14l6 0"/>',
+    briefcase: '<path d="M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9"/><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M12 12l0 .01"/><path d="M3 13a20 20 0 0 0 18 0"/>',
+    mapPin: '<path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0"/>',
+    arrowRight: '<path d="M5 12l14 0"/><path d="M13 18l6 -6"/><path d="M13 6l6 6"/>'
+  };
+
+  function ico(name) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + '</svg>';
+  }
 
   function injectCSS() {
     if (document.getElementById('onb-css')) return;
     var css = ''
-      + '#onb-overlay{position:fixed;inset:0;z-index:99999;background:#07091a;color:var(--text,#e6e9f5);overflow:hidden;display:flex;flex-direction:column;font-family:inherit;}'
-      + '.onb-prog{height:4px;background:rgba(255,255,255,.08);flex-shrink:0;}'
-      + '.onb-prog-fill{height:100%;background:var(--accent,#6d4dfc);width:' + STEP_PCT + '%;transition:width .3s ease;}'
-      + '.onb-viewport{flex:1;overflow:hidden;position:relative;}'
-      + '.onb-track{display:flex;height:100%;width:' + (TOTAL * 100) + '%;transition:transform .25s ease;}'
-      + '.onb-screen{width:' + STEP_PCT + '%;height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:40px 24px;box-sizing:border-box;text-align:center;}'
-      + '.onb-inner{width:100%;max-width:620px;margin:auto 0;}'
-      + '.onb-logo{width:56px;height:56px;border-radius:15px;margin:0 auto 22px;display:block;box-shadow:0 12px 34px rgba(109,77,252,.4);}'
-      + '.onb-h1{font-size:clamp(26px,5vw,38px);font-weight:800;letter-spacing:-.5px;margin:0 0 10px;}'
-      + '.onb-tag{color:var(--muted,#9aa3c7);font-size:16px;margin:0 0 32px;}'
-      + '.onb-q{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.3px;margin:0 0 6px;}'
-      + '.onb-sub{color:var(--muted,#9aa3c7);font-size:14px;margin:0 0 26px;}'
-      + '.onb-cards{display:flex;flex-direction:column;gap:12px;text-align:left;}'
-      + '.onb-card{display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:14px;background:#0d1130;border:1.5px solid var(--border,#2a2f55);cursor:pointer;transition:border-color .15s,background .15s,transform .1s;font-size:16px;font-weight:600;color:var(--text,#e6e9f5);}'
-      + '.onb-card:hover{border-color:var(--accent,#6d4dfc);}'
-      + '.onb-card:active{transform:scale(.99);}'
-      + '.onb-card.sel{border-color:var(--accent,#6d4dfc);background:rgba(109,77,252,.12);}'
-      + '.onb-check{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--border,#2a2f55);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}'
-      + '.onb-card.sel .onb-check{background:var(--accent,#6d4dfc);border-color:var(--accent,#6d4dfc);}'
-      + '.onb-nav{display:flex;gap:12px;justify-content:center;margin-top:30px;}'
-      + '.onb-btn{border:0;border-radius:12px;font-size:16px;font-weight:700;padding:14px 30px;cursor:pointer;transition:opacity .15s,transform .1s;background:var(--accent,#6d4dfc);color:#fff;}'
-      + '.onb-btn:disabled{opacity:.4;cursor:not-allowed;}'
+      + '#onb-overlay{position:fixed;inset:0;z-index:99999;background:#07091a;color:#e6e9f5;overflow:hidden;display:flex;flex-direction:column;font-family:var(--font-display,Sora),-apple-system,BlinkMacSystemFont,sans-serif;}'
+      + '.onb-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}'
+      + '.onb-orb{position:absolute;border-radius:50%;mix-blend-mode:screen;filter:blur(80px);opacity:.3;}'
+      + '.onb-o1{width:340px;height:340px;background:radial-gradient(circle,#6d4dfc,transparent 70%);top:-80px;left:-60px;animation:onbD1 19s ease-in-out infinite;}'
+      + '.onb-o2{width:280px;height:280px;background:radial-gradient(circle,#8370ff,transparent 70%);bottom:-40px;right:-40px;animation:onbD2 23s ease-in-out infinite;}'
+      + '.onb-o3{width:200px;height:200px;background:radial-gradient(circle,#5a3ce8,transparent 70%);top:40%;left:50%;animation:onbD3 27s ease-in-out infinite;}'
+      + '@keyframes onbD1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,20px) scale(1.1)}}'
+      + '@keyframes onbD2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,-30px) scale(1.15)}}'
+      + '@keyframes onbD3{0%,100%{transform:translate(0,0) scale(.9)}50%{transform:translate(-40px,20px) scale(1.05)}}'
+      + '.onb-dots-pat{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);background-size:24px 24px;mask-image:radial-gradient(ellipse at 50% 40%,black 10%,transparent 65%);opacity:.5;}'
+      + '.onb-prog{position:relative;z-index:3;height:4px;background:rgba(255,255,255,.05);flex-shrink:0;}'
+      + '.onb-prog-fill{height:100%;background:linear-gradient(90deg,#5a3ce8,#8370ff);transition:width .5s cubic-bezier(.22,1,.36,1);border-radius:0 2px 2px 0;}'
+      + '.onb-dots{display:flex;gap:7px;justify-content:center;padding:16px 0 0;position:relative;z-index:3;}'
+      + '.onb-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.1);transition:all .3s ease;}'
+      + '.onb-dot.on{background:#6d4dfc;box-shadow:0 0 8px rgba(109,77,252,.5);}'
+      + '.onb-dot.dn{background:rgba(109,77,252,.35);}'
+      + '.onb-body{display:flex;flex:1;position:relative;z-index:2;overflow:hidden;}'
+      + '.onb-left{flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;position:relative;}'
+      + '.onb-right{width:230px;background:rgba(255,255,255,.025);border-left:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:28px 20px;text-align:center;flex-shrink:0;}'
+      + '.onb-rn{font-size:38px;font-weight:800;color:#6d4dfc;line-height:1;margin-bottom:5px;font-variant-numeric:tabular-nums;}'
+      + '.onb-rl{font-size:12px;font-weight:600;color:#e6e9f5;margin-bottom:12px;}'
+      + '.onb-rp{font-size:11px;color:#9a9aa2;line-height:1.5;}'
+      + '.onb-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:40px 32px 40px 40px;opacity:0;pointer-events:none;transform:translateY(16px);transition:opacity .4s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1);overflow-y:auto;}'
+      + '.onb-screen.on{opacity:1;pointer-events:auto;transform:none;}'
+      + '.onb-inner{width:100%;max-width:440px;}'
+      + '.onb-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#8a73f8;margin-bottom:8px;}'
+      + '.onb-h{font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 6px;}'
+      + '.onb-sub{font-size:13px;color:#9a9aa2;line-height:1.55;margin:0 0 24px;}'
+      + '.onb-logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#5a3ce8,#8370ff);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 0 0 0 rgba(109,77,252,.4);animation:onbPulse 2s ease infinite;}'
+      + '.onb-logo svg{width:22px;height:22px;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none;}'
+      + '@keyframes onbPulse{0%,100%{box-shadow:0 0 0 0 rgba(109,77,252,.4)}50%{box-shadow:0 0 0 12px rgba(109,77,252,0)}}'
+      + '.onb-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(109,77,252,.1);border:1px solid rgba(109,77,252,.22);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:600;color:#c2b8fd;margin-bottom:22px;}'
+      + '.onb-pill svg{width:14px;height:14px;}'
+      + '.onb-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}'
+      + '.onb-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);}'
+      + '.onb-card:hover{border-color:rgba(109,77,252,.4);background:rgba(109,77,252,.06);}'
+      + '.onb-card.sel{border-color:#6d4dfc;background:rgba(109,77,252,.12);transform:scale(1.015);box-shadow:0 0 20px rgba(109,77,252,.15);}'
+      + '.onb-card-ico{color:#8a73f8;margin-bottom:6px;}'
+      + '.onb-card-ico svg{width:22px;height:22px;}'
+      + '.onb-card-t{font-size:13px;font-weight:600;}'
+      + '.onb-card-d{font-size:11px;color:#9a9aa2;margin-top:3px;}'
+      + '.onb-inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 14px;color:#e6e9f5;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;}'
+      + '.onb-inp:focus{border-color:#6d4dfc;box-shadow:0 0 0 3px rgba(109,77,252,.2);}'
+      + '.onb-inp::placeholder{color:#555;}'
+      + '.onb-btn{display:inline-flex;align-items:center;gap:8px;background:#6d4dfc;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;}'
+      + '.onb-btn:hover{background:#8370ff;transform:translateY(-1px);box-shadow:0 8px 24px rgba(109,77,252,.3);}'
+      + '.onb-btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none;}'
       + '.onb-btn:not(:disabled):active{transform:scale(.98);}'
-      + '.onb-btn.ghost{background:transparent;border:1.5px solid var(--border,#2a2f55);color:var(--text,#e6e9f5);}'
-      + '.onb-build{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:left;margin-top:6px;}'
-      + '.onb-bcard{padding:26px 24px;border-radius:18px;background:#0d1130;border:1.5px solid var(--border,#2a2f55);display:flex;flex-direction:column;gap:10px;}'
-      + '.onb-bcard.primary{border-color:var(--accent,#6d4dfc);background:rgba(109,77,252,.08);transform:scale(1.02);}'
-      + '.onb-bico{width:44px;height:44px;color:var(--accent,#6d4dfc);}'
-      + '.onb-bt{font-size:19px;font-weight:800;}'
-      + '.onb-bd{color:var(--muted,#9aa3c7);font-size:14px;line-height:1.55;flex:1;}'
-      + '.onb-ta{width:100%;box-sizing:border-box;min-height:220px;margin-top:8px;padding:14px 16px;background:#0d1130;border:1.5px solid var(--border,#2a2f55);border-radius:14px;color:var(--text,#e6e9f5);font-size:14px;line-height:1.55;font-family:inherit;resize:vertical;}'
-      + '.onb-ta:focus{outline:none;border-color:var(--accent,#6d4dfc);}'
-      // Match results styles
-      + '.onb-match{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px;}'
-      + '.onb-ring{position:relative;width:120px;height:120px;}'
-      + '.onb-ring svg{display:block;}'
-      + '.onb-ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;}'
-      + '.onb-verdict-label{font-size:20px;font-weight:800;text-align:center;}'
-      + '.onb-verdict-why{color:var(--muted,#9aa3c7);font-size:13.5px;text-align:center;margin-top:2px;line-height:1.5;max-width:460px;}'
-      + '.onb-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;width:100%;margin-top:8px;text-align:left;}'
-      + '.onb-bar-row{}'
-      + '.onb-bar-hd{display:flex;justify-content:space-between;font-size:12.5px;}'
-      + '.onb-bar-hd span:first-child{color:var(--muted,#9aa3c7);}'
-      + '.onb-bar-hd span:last-child{font-weight:700;}'
-      + '.onb-bar-track{height:6px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:4px;}'
-      + '.onb-bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}'
-      + '.onb-kw{text-align:left;width:100%;margin-top:8px;}'
-      + '.onb-kw-title{font-size:13px;font-weight:700;margin-bottom:6px;}'
-      + '.onb-chip{display:inline-block;font-size:11.5px;padding:3px 10px;border-radius:99px;margin:3px 4px 0 0;}'
-      + '.onb-chip-ok{background:rgba(34,197,94,.14);color:#4ade80;border:1px solid rgba(34,197,94,.3);}'
-      + '.onb-chip-no{background:rgba(148,163,184,.14);color:#94a3b8;border:1px solid rgba(148,163,184,.25);}'
-      + '.onb-feedback{text-align:left;width:100%;margin-top:8px;}'
-      + '.onb-feedback h4{font-size:13px;font-weight:700;margin:8px 0 6px;}'
-      + '.onb-fb-list{list-style:none;padding:0;margin:0;}'
-      + '.onb-fb-list li{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;margin-bottom:5px;color:var(--muted,#9aa3c7);}'
-      + '.onb-skip{background:none;border:none;color:var(--muted,#9aa3c7);font-size:14px;cursor:pointer;text-decoration:underline;padding:4px;}'
-      + '.onb-skip:hover{color:var(--text,#e6e9f5);}'
-      + '.onb-jd-role-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}'
-      + '.onb-jd-input{width:100%;box-sizing:border-box;padding:12px 14px;background:#0d1130;border:1.5px solid var(--border,#2a2f55);border-radius:12px;color:var(--text,#e6e9f5);font-size:14px;font-family:inherit;}'
-      + '.onb-jd-input:focus{outline:none;border-color:var(--accent,#6d4dfc);}'
-      + '@media(max-width:768px){.onb-build{grid-template-columns:1fr;}.onb-bcard.primary{transform:none;}.onb-jd-role-row{grid-template-columns:1fr;}}'
-      + '@media(max-width:520px){.onb-bars{grid-template-columns:1fr;}}';
+      + '.onb-skip{background:none;border:none;color:#9a9aa2;font-size:12px;font-weight:600;cursor:pointer;padding:8px 0;font-family:inherit;}'
+      + '.onb-skip:hover{color:#e6e9f5;}'
+      + '.onb-nav{display:flex;align-items:center;gap:14px;margin-top:4px;}'
+      + '.onb-exp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}'
+      + '.onb-ec{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all .2s;}'
+      + '.onb-ec:hover{border-color:rgba(109,77,252,.4);background:rgba(109,77,252,.06);}'
+      + '.onb-ec.sel{border-color:#6d4dfc;background:rgba(109,77,252,.12);transform:scale(1.015);box-shadow:0 0 20px rgba(109,77,252,.15);}'
+      + '.onb-ec-n{font-size:20px;font-weight:800;color:#8a73f8;}'
+      + '.onb-ec-l{font-size:11px;color:#9a9aa2;margin-top:2px;}'
+      + '.onb-import{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}'
+      + '.onb-ic{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:22px 14px;cursor:pointer;text-align:center;transition:all .2s;}'
+      + '.onb-ic:hover{border-color:rgba(109,77,252,.4);}'
+      + '.onb-ic.pri{border-color:rgba(109,77,252,.3);background:rgba(109,77,252,.06);}'
+      + '.onb-ic.sel{border-color:#6d4dfc;background:rgba(109,77,252,.12);transform:scale(1.02);box-shadow:0 0 20px rgba(109,77,252,.12);}'
+      + '.onb-ic-ico{color:#8a73f8;margin-bottom:8px;}'
+      + '.onb-ic-ico svg{width:28px;height:28px;}'
+      + '.onb-ic-t{font-size:14px;font-weight:700;margin-bottom:3px;}'
+      + '.onb-ic-d{font-size:11px;color:#9a9aa2;}'
+      + '.onb-ta{width:100%;box-sizing:border-box;min-height:180px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#e6e9f5;font-size:14px;line-height:1.55;font-family:inherit;resize:vertical;outline:none;transition:border-color .2s;margin-bottom:12px;}'
+      + '.onb-ta:focus{border-color:#6d4dfc;}'
+      + '.onb-sum{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;margin-bottom:20px;}'
+      + '.onb-sr{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}'
+      + '.onb-sr span:first-child{color:#9a9aa2;}'
+      + '.onb-sr span:last-child{font-weight:600;}'
+      + '.onb-sr+.onb-sr{border-top:1px solid rgba(255,255,255,.06);}'
+      + '.onb-cf{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;opacity:0;}'
+      + '@keyframes onbCF{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(200px) rotate(720deg)}}'
+      + '@media(prefers-reduced-motion:reduce){.onb-orb,.onb-logo{animation:none;}.onb-screen{transition:opacity .15s;transform:none!important;}}'
+      + '@media(max-width:768px){.onb-right{display:none;}.onb-screen{padding:32px 20px;}.onb-cards,.onb-exp,.onb-import{grid-template-columns:1fr 1fr;}}';
     var st = document.createElement('style'); st.id = 'onb-css'; st.textContent = css;
     document.head.appendChild(st);
   }
 
-  var overlay, track, progFill;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
 
-  function iconBuilder() { return '<svg class="onb-bico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'; }
-  function iconFresh() { return '<svg class="onb-bico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'; }
-  function check() { return '<span class="onb-check"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'; }
-
-  function questionScreen(n) {
-    var q = QUESTIONS[n];
-    var cards = q.options.map(function (opt, i) {
-      var sel = answers[q.key] === opt ? ' sel' : '';
-      return '<div class="onb-card' + sel + '" data-q="' + q.key + '" data-opt="' + i + '">' + opt + check() + '</div>';
-    }).join('');
-    var canNext = !!answers[q.key];
-    return '<div class="onb-inner">'
-      + '<h2 class="onb-q">' + q.title + '</h2>'
-      + '<p class="onb-sub">This tailors Applio to you. One tap.</p>'
-      + '<div class="onb-cards" data-cards="' + q.key + '">' + cards + '</div>'
-      + '<div class="onb-nav"><button class="onb-btn" data-next ' + (canNext ? '' : 'disabled') + '>Next</button></div>'
-      + '</div>';
+  function updateDots() {
+    if (!dotsEl) return;
+    var h = '';
+    for (var i = 0; i < TOTAL; i++) h += '<div class="onb-dot ' + (i === step ? 'on' : i < step ? 'dn' : '') + '"></div>';
+    dotsEl.innerHTML = h;
   }
 
-  function buildScreenHTML() {
-    return '<div class="onb-inner" id="onb-build-inner">'
-      + '<h2 class="onb-q">Let\'s build your resume</h2>'
-      + '<p class="onb-sub">Pick one to get started. This is the fun part.</p>'
-      + '<div class="onb-build">'
-      +   '<div class="onb-bcard primary">' + iconBuilder()
-      +     '<div class="onb-bt">Import existing resume</div>'
-      +     '<div class="onb-bd">Paste your resume text and AI fills everything in seconds.</div>'
-      +     '<button class="onb-btn" data-import>Import resume</button>'
-      +   '</div>'
-      +   '<div class="onb-bcard">' + iconFresh()
-      +     '<div class="onb-bt">Start from scratch</div>'
-      +     '<div class="onb-bd">Fill in your details section by section.</div>'
-      +     '<button class="onb-btn ghost" data-fresh>Start fresh</button>'
-      +   '</div>'
-      + '</div>'
-      + '</div>';
+  function updateStat(n) {
+    var s = STATS[n] || STATS[0];
+    if (statNum) statNum.textContent = s.n;
+    if (statLabel) statLabel.textContent = s.l;
+    if (statDesc) statDesc.textContent = s.p;
   }
 
-  function importViewHTML(prefill) {
-    return '<div class="onb-inner">'
-      + '<h2 class="onb-q">Paste your resume</h2>'
-      + '<p class="onb-sub">Copy the text from your existing resume. AI reads it and fills every section.</p>'
-      + '<textarea class="onb-ta" id="onb-import-ta" placeholder="Paste your resume text here...">' + (prefill || '') + '</textarea>'
-      + '<div class="onb-nav">'
-      +   '<button class="onb-btn ghost" data-import-back>Back</button>'
-      +   '<button class="onb-btn" data-analyze>Analyze with AI</button>'
-      + '</div>'
-      + '</div>';
-  }
-
-  function jdScreenHTML() {
-    return '<div class="onb-inner">'
-      + '<h2 class="onb-q">See how your resume scores</h2>'
-      + '<p class="onb-sub">Paste any job posting you\'re interested in. Applio scores your resume against it instantly.</p>'
-      + '<textarea class="onb-ta" id="onb-jd-ta" placeholder="Paste the job description here..."></textarea>'
-      + '<div class="onb-jd-role-row">'
-      +   '<input class="onb-jd-input" id="onb-jd-role" type="text" placeholder="Role (optional)" maxlength="120">'
-      +   '<input class="onb-jd-input" id="onb-jd-company" type="text" placeholder="Company (optional)" maxlength="120">'
-      + '</div>'
-      + '<div class="onb-nav">'
-      +   '<button class="onb-btn" data-run-match>See my score →</button>'
-      + '</div>'
-      + '<div class="onb-nav" style="margin-top:4px;">'
-      +   '<button class="onb-skip" data-skip-match>Skip for now</button>'
-      + '</div>'
-      + '</div>';
-  }
-
-  function resultsPlaceholderHTML() {
-    return '<div class="onb-inner" id="onb-results-inner"></div>';
-  }
-
-  function screenHTML(n) {
-    if (n === 0) {
-      return '<div class="onb-inner">'
-        + '<img class="onb-logo" src="/logo.jpeg" alt="Applio">'
-        + '<h1 class="onb-h1">Welcome to Applio</h1>'
-        + '<p class="onb-tag">Your AI career copilot</p>'
-        + '<div class="onb-nav"><button class="onb-btn" data-next>Get started</button></div>'
-        + '</div>';
-    }
-    if (n >= 1 && n <= 3) return questionScreen(n);
-    if (n === 4) return buildScreenHTML();
-    if (n === 5) return jdScreenHTML();
-    if (n === 6) return resultsPlaceholderHTML();
-    return '';
-  }
-
-  function render() {
-    track.innerHTML = [];
-    for (var i = 0; i < TOTAL; i++) {
-      track.innerHTML += '<section class="onb-screen">' + screenHTML(i) + '</section>';
-    }
-    goTo(step, true);
-  }
-
-  function goTo(n, instant) {
+  function goTo(n) {
+    var prev = overlay.querySelector('.onb-screen.on');
+    if (prev) prev.classList.remove('on');
     step = n;
-    if (instant) track.style.transition = 'none';
-    track.style.transform = 'translateX(-' + (n * STEP_PCT) + '%)';
-    if (instant) requestAnimationFrame(function () { track.style.transition = ''; });
-    progFill.style.width = ((n + 1) / TOTAL * 100) + '%';
+    var next = overlay.querySelector('[data-s="' + n + '"]');
+    if (next) next.classList.add('on');
+    if (progFill) progFill.style.width = ((n + 1) / TOTAL * 100) + '%';
+    updateDots();
+    updateStat(n);
+    if (n === 7) buildSummary();
   }
 
-  function selectOption(key, optIdx) {
-    var q = Object.values(QUESTIONS).find(function (x) { return x.key === key; });
-    answers[key] = q.options[optIdx];
-    var screen = track.children[step];
-    screen.querySelectorAll('[data-cards="' + key + '"] .onb-card').forEach(function (c, i) {
-      c.classList.toggle('sel', i === optIdx);
-    });
-    var nx = screen.querySelector('[data-next]'); if (nx) nx.disabled = false;
+  // Screen 0: Welcome
+  function s0() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-logo">' + ico('rocket') + '</div>'
+      + '<h1 class="onb-h">Let\'s set up your career copilot</h1>'
+      + '<p class="onb-sub">We\'ll personalize your tools, templates, and AI suggestions based on where you are in your career.</p>'
+      + '<div class="onb-pill">' + ico('clock') + ' Takes about 90 seconds</div><br>'
+      + '<button class="onb-btn" data-go="1">Let\'s go <span style="margin-left:4px">&rarr;</span></button>'
+      + '</div>';
   }
 
-  function finishQuestionnaire() {
+  // Screen 1: Job search stage
+  function s1() {
+    var cards = [
+      ['send', 'Actively applying', 'Sending apps this week'],
+      ['eye', 'Starting to look', 'Browsing, not committed'],
+      ['calendar', 'Preparing for later', 'Building my toolkit now'],
+      ['compass', 'Just exploring', 'Curious what\'s here']
+    ];
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 1 of 7</div>'
+      + '<h2 class="onb-h">Where are you in your job search?</h2>'
+      + '<p class="onb-sub">This shapes which tools we surface first.</p>'
+      + '<div class="onb-cards">' + cards.map(function (c) {
+        var sel = data.stage === c[1] ? ' sel' : '';
+        return '<div class="onb-card' + sel + '" data-pick="stage" data-val="' + esc(c[1]) + '">'
+          + '<div class="onb-card-ico">' + ico(c[0]) + '</div>'
+          + '<div class="onb-card-t">' + esc(c[1]) + '</div>'
+          + '<div class="onb-card-d">' + esc(c[2]) + '</div></div>';
+      }).join('') + '</div>'
+      + '<button class="onb-btn" data-go="2"' + (data.stage ? '' : ' disabled') + '>Continue</button>'
+      + '</div>';
+  }
+
+  // Screen 2: Target role
+  function s2() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 2 of 7</div>'
+      + '<h2 class="onb-h">What role are you targeting?</h2>'
+      + '<p class="onb-sub">This powers salary insights, skill-gap analysis, and interview prep -- all tuned to your exact role.</p>'
+      + '<input class="onb-inp" id="onb-role" placeholder="e.g. Senior Product Manager" value="' + esc(data.targetRole || '') + '">'
+      + '<button class="onb-btn" id="onb-b2" data-go="3"' + (data.targetRole ? '' : ' disabled') + '>Continue</button>'
+      + '</div>';
+  }
+
+  // Screen 3: Company + current role
+  function s3() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 3 of 7</div>'
+      + '<h2 class="onb-h">Where do you work now?</h2>'
+      + '<p class="onb-sub">Current context helps the AI write better bullets and tailor suggestions.</p>'
+      + '<input class="onb-inp" id="onb-company" placeholder="Company name" value="' + esc(data.company || '') + '">'
+      + '<input class="onb-inp" id="onb-currentRole" placeholder="Current or most recent title" value="' + esc(data.currentRole || '') + '">'
+      + '<div class="onb-nav"><button class="onb-btn" data-go="4">Continue</button><button class="onb-skip" data-go="4">Skip this step</button></div>'
+      + '</div>';
+  }
+
+  // Screen 4: Experience level
+  function s4() {
+    var levels = [['0-2', 'Entry level'], ['3-5', 'Mid level'], ['6-10', 'Senior'], ['10+', 'Expert']];
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 4 of 7</div>'
+      + '<h2 class="onb-h">Years of experience?</h2>'
+      + '<p class="onb-sub">Calibrates salary benchmarks and seniority framing.</p>'
+      + '<div class="onb-exp">' + levels.map(function (l) {
+        var sel = data.exp === l[0] ? ' sel' : '';
+        return '<div class="onb-ec' + sel + '" data-pick="exp" data-val="' + l[0] + '"><div class="onb-ec-n">' + l[0] + '</div><div class="onb-ec-l">' + l[1] + '</div></div>';
+      }).join('') + '</div>'
+      + '<button class="onb-btn" data-go="5"' + (data.exp ? '' : ' disabled') + '>Continue</button>'
+      + '</div>';
+  }
+
+  // Screen 5: Location
+  function s5() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 5 of 7</div>'
+      + '<h2 class="onb-h">Where are you based?</h2>'
+      + '<p class="onb-sub">Unlocks salary insights benchmarked to your city.</p>'
+      + '<input class="onb-inp" id="onb-location" placeholder="e.g. San Francisco, CA" value="' + esc(data.location || '') + '">'
+      + '<div class="onb-nav"><button class="onb-btn" data-go="6">Continue</button><button class="onb-skip" data-go="6">Skip this step</button></div>'
+      + '</div>';
+  }
+
+  // Screen 6: Import resume
+  function s6() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">Step 6 of 7</div>'
+      + '<h2 class="onb-h">Bring your resume to life</h2>'
+      + '<p class="onb-sub">Import what you have, or start fresh -- AI helps either way.</p>'
+      + '<div class="onb-import">'
+      +   '<div class="onb-ic pri' + (data.importChoice === 'import' ? ' sel' : '') + '" data-pick="importChoice" data-val="import"><div class="onb-ic-ico">' + ico('upload') + '</div><div class="onb-ic-t">Import resume</div><div class="onb-ic-d">Paste text or upload</div></div>'
+      +   '<div class="onb-ic' + (data.importChoice === 'fresh' ? ' sel' : '') + '" data-pick="importChoice" data-val="fresh"><div class="onb-ic-ico">' + ico('filePlus') + '</div><div class="onb-ic-t">Start fresh</div><div class="onb-ic-d">Build from scratch</div></div>'
+      + '</div>'
+      + '<div id="onb-import-area" style="display:none;">'
+      +   '<textarea class="onb-ta" id="onb-import-ta" placeholder="Paste your resume text here..."></textarea>'
+      +   '<button class="onb-btn" id="onb-analyze-btn" data-analyze>Analyze with AI</button>'
+      + '</div>'
+      + '<button class="onb-btn" id="onb-b6" data-go="7"' + (data.importChoice ? '' : ' disabled') + ' style="' + (data.importChoice === 'import' ? 'display:none' : '') + '">Continue</button>'
+      + '</div>';
+  }
+
+  // Screen 7: Summary
+  function s7() {
+    return '<div class="onb-inner">'
+      + '<div class="onb-label">All set</div>'
+      + '<h2 class="onb-h">Your workspace is ready</h2>'
+      + '<p class="onb-sub">Here\'s what we personalized for you:</p>'
+      + '<div class="onb-sum" id="onb-sum"></div>'
+      + '<button class="onb-btn" data-finish>Start building <span style="margin-left:4px">&rarr;</span></button>'
+      + '</div>';
+  }
+
+  function buildSummary() {
+    var el = document.getElementById('onb-sum');
+    if (!el) return;
+    var rows = [
+      ['Search stage', data.stage],
+      ['Target role', data.targetRole],
+      ['Company', data.company],
+      ['Current role', data.currentRole],
+      ['Experience', data.exp ? data.exp + ' years' : null],
+      ['Location', data.location],
+      ['Resume', data.importChoice === 'import' ? 'Imported' : data.importChoice === 'fresh' ? 'Starting fresh' : null]
+    ];
+    el.innerHTML = rows.filter(function (r) { return r[1]; }).map(function (r) {
+      return '<div class="onb-sr"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>';
+    }).join('');
+    confetti();
+  }
+
+  function confetti() {
+    var cols = ['#6d4dfc', '#8370ff', '#5a3ce8', '#c2b8fd', '#a594ff'];
+    for (var i = 0; i < 25; i++) {
+      var d = document.createElement('div');
+      d.className = 'onb-cf';
+      d.style.left = (20 + Math.random() * 60) + '%';
+      d.style.top = '35%';
+      d.style.width = d.style.height = (4 + Math.random() * 4) + 'px';
+      d.style.background = cols[Math.floor(Math.random() * cols.length)];
+      d.style.animation = 'onbCF ' + (1.2 + Math.random() * .6) + 's ease-out ' + (Math.random() * .5) + 's forwards';
+      overlay.appendChild(d);
+    }
+  }
+
+  function captureInputs() {
+    var r = document.getElementById('onb-role');
+    if (r && r.value.trim()) data.targetRole = r.value.trim();
+    var c = document.getElementById('onb-company');
+    if (c && c.value.trim()) data.company = c.value.trim();
+    var cr = document.getElementById('onb-currentRole');
+    if (cr && cr.value.trim()) data.currentRole = cr.value.trim();
+    var loc = document.getElementById('onb-location');
+    if (loc && loc.value.trim()) data.location = loc.value.trim();
+  }
+
+  function saveToProfile() {
+    var profile;
+    try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}'); } catch (e) { profile = {}; }
+    if (data.stage && STAGE_MAP[data.stage]) profile.searchStatus = STAGE_MAP[data.stage];
+    if (data.targetRole) profile.targetRole = data.targetRole;
+    if (data.company) profile.company = data.company;
+    if (data.currentRole) profile.currentRole = data.currentRole;
+    if (data.exp && EXP_MAP[data.exp]) profile.seniority = EXP_MAP[data.exp];
+    if (data.location) profile.location = data.location;
+    profile.updatedAt = Date.now();
+    try { localStorage.setItem('hf_profile', JSON.stringify(profile)); } catch (e) {}
+    if (typeof window.pushProfile === 'function') {
+      try { window.pushProfile(); } catch (e) {}
+    }
+  }
+
+  function sendAnswers() {
+    var answers = {
+      stage: data.stage || '',
+      targetRole: data.targetRole || '',
+      company: data.company || '',
+      currentRole: data.currentRole || '',
+      seniority: (data.exp && EXP_MAP[data.exp]) || '',
+      location: data.location || '',
+      importChoice: data.importChoice || ''
+    };
     try { localStorage.setItem('hf_onboarding_answers', JSON.stringify(answers)); } catch (e) {}
     if (API && TOKEN) {
       fetch(API + '/onboarding-answers', {
@@ -223,233 +363,134 @@
         body: JSON.stringify({ answers: answers })
       }).catch(function () {});
     }
-    goTo(4);
   }
 
-  function finish(goPersonal) {
+  function finish() {
+    captureInputs();
+    saveToProfile();
+    sendAnswers();
     try { localStorage.setItem('hf_onboarded', '1'); } catch (e) {}
     if (overlay) { overlay.style.transition = 'opacity .2s'; overlay.style.opacity = '0'; setTimeout(function () { if (overlay) overlay.remove(); }, 210); }
     document.documentElement.style.overflow = '';
-    if (goPersonal && typeof goSection === 'function') { try { goSection('personal'); } catch (e) {} }
+    if (typeof goSection === 'function') { try { goSection('personal'); } catch (e) {} }
     if (typeof window.startAppWalkthrough === 'function') window.startAppWalkthrough();
   }
 
-  function showImportView() {
-    var prefill = '';
-    try { prefill = localStorage.getItem('hf_pending_import') || ''; localStorage.removeItem('hf_pending_import'); } catch (e) {}
-    var buildScreen = track.children[4];
-    buildScreen.innerHTML = importViewHTML(prefill);
-    var ta = document.getElementById('onb-import-ta'); if (ta) ta.focus();
-  }
-
-  function showBuildChoice() {
-    track.children[4].innerHTML = buildScreenHTML();
-  }
-
-  // ── Resume-to-text for ATS scoring ──
-  function resumeToText(r) {
-    var out = [], p = r.personal || {};
-    if (p.fullName) out.push(p.fullName);
-    if (p.summary) out.push(p.summary);
-    (r.experience || []).forEach(function (e) { out.push([e.title, e.company].filter(Boolean).join(' ')); if (e.description) out.push(e.description); });
-    (r.education || []).forEach(function (e) { out.push([e.degree, e.field, e.school].filter(Boolean).join(' ')); });
-    ((r.skills && r.skills.categories) || []).forEach(function (c) { if (c.items && c.items.length) out.push(c.items.join(', ')); });
-    (r.projects || []).forEach(function (pr) { out.push([pr.name, pr.tech, pr.description].filter(Boolean).join(' ')); });
-    return out.join('\n');
-  }
-
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
-
-  // ── Run the match ──
-  function runMatch() {
-    var ta = document.getElementById('onb-jd-ta');
-    var jd = ta ? (ta.value || '').trim() : '';
-    if (jd.length < 40) { if (typeof toast === 'function') toast('Paste the full job description first', { type: 'warn' }); if (ta) ta.focus(); return; }
-
-    var resume;
-    try { resume = JSON.parse(localStorage.getItem('hf_resume') || 'null'); } catch (e) { resume = null; }
-    if (!resume) { finish(true); return; }
-
-    var roleEl = document.getElementById('onb-jd-role');
-    var compEl = document.getElementById('onb-jd-company');
-    var role = roleEl ? roleEl.value.trim() : '';
-    var company = compEl ? compEl.value.trim() : '';
-
-    // Store the JD info for the results screen
-    _matchJD = jd;
-    _matchRole = role;
-    _matchCompany = company;
-
-    if (!window.AtsEngine || typeof window.AtsEngine.score !== 'function') {
-      // ATS engine not loaded, skip to finish
-      finish(true);
-      return;
-    }
-
-    var text = resumeToText(resume);
-    var result = window.AtsEngine.score(text, jd);
-    goTo(6);
-    renderMatchResults(result);
-  }
-
-  var _matchJD = '', _matchRole = '', _matchCompany = '';
-
-  function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
-
-  function renderMatchResults(r) {
-    var host = document.getElementById('onb-results-inner');
-    if (!host) return;
-
-    var score = r.score;
-    var col = scoreColor(score);
-    var verdict = score >= 75 ? 'Strong fit' : score >= 55 ? 'Worth a shot' : 'Some gaps to close';
-    var verdictSub = score >= 75
-      ? 'Your resume already covers most of what this job asks for.'
-      : score >= 55
-        ? 'You\'re close. A few tweaks could push you over the line.'
-        : 'There are some mismatches, but Applio can help you close the gap.';
-
-    var C = 2 * Math.PI * 42;
-
-    // Score ring
-    var ring = '<div class="onb-ring"><svg viewBox="0 0 100 100" width="120" height="120">'
-      + '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>'
-      + '<circle id="onb-ring-fill" cx="50" cy="50" r="42" fill="none" stroke="' + col + '" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset .8s ease;"/>'
-      + '</svg><div class="onb-ring-num" style="color:' + col + ';">' + score + '</div></div>';
-
-    // Breakdown bars
-    var bd = r.breakdown || {};
-    var bars = [['keywords', 'Keyword match'], ['formatting', 'Formatting'], ['impact', 'Impact'], ['completeness', 'Completeness']];
-    var barsHTML = '<div class="onb-bars">' + bars.map(function (b) {
-      var v = bd[b[0]]; if (typeof v !== 'number') v = 0;
-      var bc = scoreColor(v);
-      return '<div class="onb-bar-row"><div class="onb-bar-hd"><span>' + b[1] + '</span><span>' + v + '</span></div>'
-        + '<div class="onb-bar-track"><div class="onb-bar-fill" style="width:0%;background:' + bc + ';" data-target="' + v + '"></div></div></div>';
-    }).join('') + '</div>';
-
-    // Keywords
-    var kwHTML = '';
-    var matched = r.matchedKeywords || [], missing = r.missingKeywords || [];
-    if (matched.length || missing.length) {
-      kwHTML = '<div class="onb-kw">';
-      if (matched.length) {
-        kwHTML += '<div class="onb-kw-title">Matched</div>' + matched.map(function (k) { return '<span class="onb-chip onb-chip-ok">' + esc(k) + '</span>'; }).join('');
-      }
-      if (missing.length) {
-        kwHTML += '<div class="onb-kw-title" style="margin-top:12px;">Missing</div>' + missing.slice(0, 10).map(function (k) { return '<span class="onb-chip onb-chip-no">' + esc(k) + '</span>'; }).join('');
-      }
-      kwHTML += '</div>';
-    }
-
-    // Feedback
-    var fbHTML = '<div class="onb-feedback">';
-    if (r.wins && r.wins.length) {
-      fbHTML += '<h4 style="color:#4ade80;">What you\'re doing well</h4><ul class="onb-fb-list">' + r.wins.map(function (w) { return '<li><span style="color:#4ade80;flex-shrink:0;">✓</span><span>' + esc(w) + '</span></li>'; }).join('') + '</ul>';
-    }
-    if (r.issues && r.issues.length) {
-      fbHTML += '<h4 style="color:#f59e0b;">What to improve</h4><ul class="onb-fb-list">' + r.issues.map(function (w) { return '<li><span style="color:#f59e0b;flex-shrink:0;">→</span><span>' + esc(w) + '</span></li>'; }).join('') + '</ul>';
-    }
-    fbHTML += '</div>';
-
-    // CTAs
-    var saveCTA = (_matchRole || _matchCompany)
-      ? '<button class="onb-btn" data-save-match>Save this job &amp; start building →</button>'
-      : '<button class="onb-btn" data-finish-match>Start building your resume →</button>';
-
-    var ctaHTML = '<div class="onb-nav" style="margin-top:20px;">' + saveCTA + '</div>';
-    if (_matchRole || _matchCompany) {
-      ctaHTML += '<div class="onb-nav" style="margin-top:4px;"><button class="onb-skip" data-finish-match>Skip saving</button></div>';
-    }
-
-    host.innerHTML = '<h2 class="onb-q">Your match score</h2>'
-      + '<div class="onb-match">'
-      + ring
-      + '<div class="onb-verdict-label" style="color:' + col + ';">' + verdict + '</div>'
-      + '<div class="onb-verdict-why">' + verdictSub + '</div>'
-      + barsHTML
-      + kwHTML
-      + fbHTML
-      + '</div>'
-      + ctaHTML;
-
-    // Animate ring
-    requestAnimationFrame(function () {
-      var fill = document.getElementById('onb-ring-fill');
-      if (fill) fill.style.strokeDashoffset = String(C * (1 - score / 100));
-      // Animate bars
-      host.querySelectorAll('.onb-bar-fill').forEach(function (el) {
-        el.style.width = el.getAttribute('data-target') + '%';
-      });
-    });
-  }
-
-  function saveMatchJob() {
-    var role = _matchRole || 'Role';
-    var company = _matchCompany || 'Company';
-    var jobs;
-    try { jobs = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(jobs)) jobs = []; } catch (e) { jobs = []; }
-    var now = Date.now();
-    jobs.unshift({
-      id: now, addedAt: now, statusAt: now,
-      title: role, company: company, location: '', status: 'Saved',
-      jd: _matchJD.slice(0, 8000),
-      notes: 'Added during onboarding'
-    });
-    try {
-      localStorage.setItem('hf_jobs', JSON.stringify(jobs));
-      if (window.HFJobsSync) HFJobsSync.push();
-    } catch (e) {}
-    if (typeof toast === 'function') toast('Saved to Job Tracker', { type: 'success' });
-    finish(true);
-  }
-
   function onClick(e) {
-    var t = e.target.closest ? e.target.closest('[data-next],[data-opt],[data-import],[data-fresh],[data-analyze],[data-import-back],[data-run-match],[data-skip-match],[data-save-match],[data-finish-match]') : null;
+    var t = e.target.closest ? e.target.closest('[data-go],[data-pick],[data-analyze],[data-finish]') : null;
     if (!t) return;
-    if (t.hasAttribute('data-opt')) { selectOption(t.getAttribute('data-q'), +t.getAttribute('data-opt')); return; }
-    if (t.hasAttribute('data-next')) {
-      if (step === 3) return finishQuestionnaire();
-      if (step < 3) return goTo(step + 1);
+
+    if (t.hasAttribute('data-pick')) {
+      var key = t.getAttribute('data-pick');
+      var val = t.getAttribute('data-val');
+      data[key] = val;
+      var parent = t.parentNode;
+      if (parent) {
+        parent.querySelectorAll('[data-pick="' + key + '"]').forEach(function (c) {
+          c.classList.toggle('sel', c === t);
+        });
+      }
+      // Enable the continue button on the current screen
+      var screen = t.closest('.onb-screen');
+      if (screen) {
+        var btn = screen.querySelector('.onb-btn[data-go]');
+        if (btn) btn.disabled = false;
+      }
+      // Import choice: show/hide textarea
+      if (key === 'importChoice') {
+        var area = document.getElementById('onb-import-area');
+        var b6 = document.getElementById('onb-b6');
+        if (val === 'import') {
+          if (area) area.style.display = '';
+          if (b6) b6.style.display = 'none';
+          var ta = document.getElementById('onb-import-ta');
+          if (ta) setTimeout(function () { ta.focus(); }, 100);
+        } else {
+          if (area) area.style.display = 'none';
+          if (b6) { b6.style.display = ''; b6.disabled = false; }
+        }
+      }
       return;
     }
-    if (t.hasAttribute('data-import')) { showImportView(); return; }
-    if (t.hasAttribute('data-import-back')) { showBuildChoice(); return; }
-    if (t.hasAttribute('data-fresh')) { finish(true); return; }
+
     if (t.hasAttribute('data-analyze')) {
       var ta = document.getElementById('onb-import-ta');
       var text = ta ? ta.value : '';
-      if (!text.trim()) { if (typeof toast === 'function') toast('Paste your resume text first', { type: 'warn' }); return; }
+      if (!text.trim()) {
+        if (typeof toast === 'function') toast('Paste your resume text first', { type: 'warn' });
+        return;
+      }
       t.disabled = true; t.textContent = 'Analyzing...';
       Promise.resolve(typeof importResume === 'function' ? importResume(text) : false).then(function (ok) {
         if (ok) {
-          // Resume imported, show the JD step instead of finishing
-          goTo(5);
-          var jdTa = document.getElementById('onb-jd-ta');
-          if (jdTa) setTimeout(function () { jdTa.focus(); }, 300);
+          goTo(7);
         } else {
           t.disabled = false; t.textContent = 'Analyze with AI';
         }
       });
       return;
     }
-    if (t.hasAttribute('data-run-match')) { runMatch(); return; }
-    if (t.hasAttribute('data-skip-match')) { finish(true); return; }
-    if (t.hasAttribute('data-save-match')) { saveMatchJob(); return; }
-    if (t.hasAttribute('data-finish-match')) { finish(true); return; }
+
+    if (t.hasAttribute('data-go')) {
+      if (t.disabled) return;
+      captureInputs();
+      var target = +t.getAttribute('data-go');
+      goTo(target);
+      return;
+    }
+
+    if (t.hasAttribute('data-finish')) {
+      finish();
+      return;
+    }
+  }
+
+  function onInput(e) {
+    var el = e.target;
+    if (el.id === 'onb-role') {
+      data.targetRole = el.value.trim();
+      var b2 = document.getElementById('onb-b2');
+      if (b2) b2.disabled = !data.targetRole;
+    }
   }
 
   function start() {
     injectCSS();
     overlay = document.createElement('div');
     overlay.id = 'onb-overlay';
-    overlay.innerHTML = '<div class="onb-prog"><div class="onb-prog-fill" id="onb-prog-fill"></div></div>'
-      + '<div class="onb-viewport"><div class="onb-track" id="onb-track"></div></div>';
+    overlay.innerHTML = ''
+      + '<div class="onb-bg"><div class="onb-orb onb-o1"></div><div class="onb-orb onb-o2"></div><div class="onb-orb onb-o3"></div><div class="onb-dots-pat"></div></div>'
+      + '<div class="onb-prog"><div class="onb-prog-fill" id="onb-prog-fill" style="width:12.5%"></div></div>'
+      + '<div class="onb-dots" id="onb-dots"></div>'
+      + '<div class="onb-body">'
+      +   '<div class="onb-left">'
+      +     '<div class="onb-screen on" data-s="0">' + s0() + '</div>'
+      +     '<div class="onb-screen" data-s="1">' + s1() + '</div>'
+      +     '<div class="onb-screen" data-s="2">' + s2() + '</div>'
+      +     '<div class="onb-screen" data-s="3">' + s3() + '</div>'
+      +     '<div class="onb-screen" data-s="4">' + s4() + '</div>'
+      +     '<div class="onb-screen" data-s="5">' + s5() + '</div>'
+      +     '<div class="onb-screen" data-s="6">' + s6() + '</div>'
+      +     '<div class="onb-screen" data-s="7">' + s7() + '</div>'
+      +   '</div>'
+      +   '<div class="onb-right">'
+      +     '<div class="onb-rn" id="onb-rn">' + STATS[0].n + '</div>'
+      +     '<div class="onb-rl" id="onb-rl">' + STATS[0].l + '</div>'
+      +     '<div class="onb-rp" id="onb-rp">' + STATS[0].p + '</div>'
+      +   '</div>'
+      + '</div>';
     document.body.appendChild(overlay);
     document.documentElement.style.overflow = 'hidden';
-    track = document.getElementById('onb-track');
+
     progFill = document.getElementById('onb-prog-fill');
-    render();
+    dotsEl = document.getElementById('onb-dots');
+    statNum = document.getElementById('onb-rn');
+    statLabel = document.getElementById('onb-rl');
+    statDesc = document.getElementById('onb-rp');
+    updateDots();
+
     overlay.addEventListener('click', onClick);
+    overlay.addEventListener('input', onInput);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

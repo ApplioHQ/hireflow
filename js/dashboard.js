@@ -101,7 +101,7 @@
     // This is the only place profile work-context questions are proactively
     // surfaced. They remain optional and are kept separate from job-search
     // fields so people can skip them without blocking their workflow.
-    if (!PROFILE.company && !PROFILE.role) {
+    if (!PROFILE.company && !PROFILE.currentRole) {
       N.push({ tone: 'neutral', icon: 'target', title: 'Tell us about your work', text: 'Where you work and what you do helps us improve Applio. Optional, private, and never shown publicly.', cta: { label: 'Add details', href: 'profile' } });
     }
 

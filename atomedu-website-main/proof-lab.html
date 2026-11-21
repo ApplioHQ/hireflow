@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f2a36">
+  <meta name="description" content="Use atomEDU Proof Lab to solve supported math exactly, verify your steps, generate practice, and graph functions with a free in-house browser engine.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <title>Proof Lab | Free Math Solver and Step Checker | atomEDU</title>
+  <link rel="canonical" href="https://atom-edu.org/proof-lab">
+  <meta property="og:type" content="website"><meta property="og:site_name" content="atomEDU"><meta property="og:title" content="Proof Lab | Free Math Solver and Step Checker"><meta property="og:description" content="Solve, verify, practice, and graph with atomEDU's own deterministic math engine."><meta property="og:url" content="https://atom-edu.org/proof-lab"><meta property="og:image" content="https://atom-edu.org/images/atomedu-social.png"><meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="images/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;0,9..144,500&family=Roboto:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=launch-1">
+  <link rel="stylesheet" href="./vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="./graph/plotter.css?v=proof-lab-22">
+  <link rel="stylesheet" href="./math-lab.css?v=launch-3">
+  <script defer src="./site-i18n.js?v=launch-1"></script>
+  <script type="module" src="./math-lab.js?v=proof-lab-36"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Proof Lab",
+    "alternateName": "atomEDU Proof Lab",
+    "url": "https://atom-edu.org/proof-lab",
+    "description": "A free browser-based math solver, step checker, practice generator, and graphing workspace powered by atomEDU's own deterministic symbolic engine.",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Any modern web browser",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "creator": { "@type": "Organization", "name": "atomEDU", "url": "https://atom-edu.org/" },
+    "featureList": ["Exact math solving", "Step verification", "Ghost step reconstruction", "Seeded practice generation", "Interactive graphing"]
+  }
+  </script>
+</head>
+<body class="lab-app">
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <header class="lab-topbar">
+    <a class="lab-back" href="/" aria-label="Back to site"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13.5 5.5-6 6 6 6M8 11.5h11"/></svg><span class="lab-back-label">Back to site</span></a>
+    <a class="lab-art-link" href="/art-contest" aria-label="Art contest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.3a2 2 0 0 0 1.4-3.4 1.6 1.6 0 0 1 1.1-2.7H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3Z"/><circle cx="7.5" cy="11" r=".6"/><circle cx="10" cy="7" r=".6"/><circle cx="15" cy="7.5" r=".6"/><circle cx="17.5" cy="11" r=".6"/></svg><span>Art contest</span></a>
+    <a class="lab-topbar-brand" href="/" aria-label="atomEDU Proof Lab home"><span>atom<b>EDU</b></span><em>Proof Lab</em></a>
+    <div class="lab-topbar-actions">
+      <div class="lab-menu-wrap">
+        <button class="lab-topbar-button" id="tour-menu-button" type="button" aria-label="Help and tour" aria-haspopup="true" aria-expanded="false" aria-controls="tour-menu"><svg class="lab-help-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.8-2.5 2-2.5 4m0 3.5h.01"/></svg><span class="lab-action-label">Take a Tour</span></button>
+        <div class="lab-popover lab-tour-menu" id="tour-menu" hidden>
+          <h2>Take a Tour</h2>
+          <p>Get familiar with solving, checking, and graphing.</p>
+          <div class="lab-tour-preview"><button type="button" data-tour-view="solve"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h4l3-10 3 10h6M3 20h18"/></svg>Solve</button><button type="button" data-tour-view="check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>Check work</button><button type="button" data-tour-view="generate"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2ZM5 16l.7 2.3L8 19l-2.3.7L5 22l-.7-2.3L2 19l2.3-.7L5 16Z"/></svg>Generate</button><button type="button" data-tour-view="graph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M5 17c3-1 3-8 6-8s3 5 5 5 3-4 5-6"/></svg>Graph</button></div>
+          <button class="lab-tour-start" id="tour-start" type="button">Start tour <span aria-hidden="true">→</span></button>
+          <details class="lab-tour-examples"><summary>Examples</summary><div id="tour-examples" class="lab-tour-example-list"></div></details>
+          <div class="lab-tour-links"><button id="tour-coverage" type="button">Coverage and limits</button><button id="tour-keyboard" type="button">Math keyboard</button></div>
+        </div>
+      </div>
+      <div class="lab-menu-wrap">
+        <button class="lab-topbar-button lab-language-trigger" id="language-menu-button" type="button" aria-label="Language" aria-haspopup="true" aria-expanded="false" aria-controls="language-menu">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-2.6 2.3-4 5.4-4 9s1.4 6.7 4 9m0-18c2.6 2.3 4 5.4 4 9s-1.4 6.7-4 9"/></svg>
+          <span class="lab-action-label">Language</span>
+        </button>
+        <div class="lab-popover lab-language-menu" id="language-menu" hidden>
+          <h2>Language</h2>
+          <div class="language-list" data-i18n-ignore>
+            <button class="language-option" type="button" data-language="en" aria-pressed="true"><span class="language-name" lang="en">English</span></button>
+            <button class="language-option" type="button" data-language="es" aria-pressed="false"><span class="language-name" lang="es">Español</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main" id="workspace">
+    <div class="engine-notice" id="engine-notice" hidden>
+      <div><strong id="engine-notice-title">The math engine is unavailable.</strong><p id="engine-notice-message">Your inputs are ready to use once the engine is connected.</p></div>
+      <button class="button button-small button-secondary" id="retry-engine" type="button">Reconnect</button>
+    </div>
+
+    <div class="workbench" id="workbench">
+      <div class="input-column" id="lab-input-column">
+        <div class="rail-toolbar" aria-label="Workspace controls">
+          <button type="button" id="rail-undo" aria-label="Undo" title="Undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 6 6"/></svg></button>
+          <button type="button" id="rail-redo" aria-label="Redo" title="Redo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m5-5H10a6 6 0 0 0-6 6"/></svg></button>
+          <button type="button" id="rail-clear" aria-label="Clear current input" title="Clear current input"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
+          <button type="button" id="rail-collapse" aria-label="Collapse input panel" title="Collapse input panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 5-7 7 7 7m8-14-7 7 7 7"/></svg></button>
+        </div>
+        <div class="workspace-heading"><div><p class="eyebrow">PROOF LAB</p><h1>Work through the math.</h1></div><button class="text-button" id="coverage-link" type="button" aria-label="Coverage and limits">ⓘ</button></div>
+        <div class="workspace-toolbar">
+          <div class="view-tabs" role="tablist" aria-label="Proof Lab tools">
+        <button class="view-tab" id="tab-solve" role="tab" aria-selected="true" aria-controls="view-solve" tabindex="0" data-view="solve"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h4l3-10 3 10h6M3 20h18"/></svg>Solve</button>
+        <button class="view-tab" id="tab-check" role="tab" aria-selected="false" aria-controls="view-check" tabindex="-1" data-view="check"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>Check work</button>
+        <button class="view-tab" id="tab-generate" role="tab" aria-selected="false" aria-controls="view-generate" tabindex="-1" data-view="generate"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2Z"/></svg>Generate</button>
+        <button class="view-tab" id="tab-graph" role="tab" aria-selected="false" aria-controls="view-graph" tabindex="-1" data-view="graph"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M5 17c3-1 3-8 6-8s3 5 5 5 3-4 5-6"/></svg>Graph</button>
+          </div>
+          <span class="keyboard-hint"><kbd id="shortcut-modifier">⌘</kbd><kbd>Enter</kbd> to run</span>
+        </div>
+        <section class="input-panel" id="view-solve" role="tabpanel" aria-labelledby="tab-solve">
+          <div class="panel-heading"><span class="section-number">01</span><div><h2>Your problem</h2></div></div>
+          <form id="solve-form">
+            <label class="field-label" for="solve-input">Expression, equation, or problem</label>
+            <div class="math-field-mount" id="solve-field-mount"></div>
+            <details class="panel-options solve-options" id="solve-options">
+              <summary><span class="option-summary-icon" aria-hidden="true">⌁</span><span class="option-summary-copy"><strong>Fine-tune this problem</strong><small>Task, difficulty, domain, and specialized input</small></span></summary>
+              <div class="solve-options-body">
+              <div class="field-row solve-settings-grid">
+                <div class="field"><label class="field-label" for="solve-task">Task</label><select id="solve-task"><option value="">Auto-detect</option><option value="solve">Solve</option><option value="simplify">Simplify</option><option value="factor">Factor</option><option value="analyze">Analyze function</option><option value="conic">Analyze conic</option></select></div>
+                <div class="field"><label class="field-label" for="solve-difficulty">Difficulty</label><select id="solve-difficulty"><option value="">Auto-detect</option><option value="0.250">0.250 Foundation</option><option value="0.500">0.500 Developing</option><option value="0.750">0.750 Challenging</option></select></div>
+                <div class="field"><label class="field-label" for="solve-variable">Solve for</label><select id="solve-variable" aria-describedby="solve-variable-help"><option value="">Auto-detect</option><option value="x">x</option><option value="y">y</option><option value="l">l</option><option value="w">w</option><option value="a">a</option><option value="b">b</option><option value="c">c</option><option value="h">h</option><option value="n">n</option><option value="r">r</option><option value="t">t</option><option value="z">z</option></select><p class="field-help" id="solve-variable-help">Choose a target to rearrange a formula.</p></div>
+                <div class="field"><label class="field-label" for="solve-domain">Equation solutions</label><select id="solve-domain"><option value="real">Real numbers</option><option value="complex">Complex numbers</option></select></div>
+              </div>
+              <div class="advanced-mode-heading"><span>Specialized input</span><small>Use only when a standard expression is not enough.</small></div>
+              <div class="advanced-mode-grid">
+              <details class="advanced-input" id="structured-mode">
+                <summary><span class="advanced-mode-icon" aria-hidden="true">{ }</span><span><strong>Structured request</strong><small>Geometry, systems, and matrices</small></span></summary>
+                <div class="advanced-input-body">
+                <label class="structured-toggle"><input id="use-structured" type="checkbox"> Use structured JSON input</label>
+                <label class="field-label" for="structured-input">Structured request</label>
+                <textarea id="structured-input" class="structured-input" rows="5" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="structured-help" maxlength="20000" placeholder='{"kind":"matrix","operation":"inverse","matrix":[[1,2],[3,4]]}'></textarea>
+                <p class="field-help" id="structured-help">Use this mode for geometry givens, matrices, and other structured requests. The mathematical result is still typeset.</p>
+                </div>
+              </details>
+              <details class="advanced-input" id="word-mode">
+                <summary><span class="advanced-mode-icon advanced-mode-icon-word" aria-hidden="true">Aa</span><span><strong>Word problem</strong><small>Supported English templates</small></span></summary>
+                <div class="advanced-input-body">
+                <label class="structured-toggle"><input id="use-word-problem" type="checkbox"> Use word-problem input</label>
+                <label class="field-label" for="word-problem-input">Word problem</label>
+                <textarea id="word-problem-input" class="word-problem-input" rows="4" maxlength="512" placeholder="A taxi charges a $5 flat fee plus $2 per mile. If the total cost is $17, how many miles were traveled?"></textarea>
+                <p class="field-help">This uses strict fee/rate, consecutive-integer, discount, or mixture templates. Other wording is reported as unsupported, not guessed.</p>
+                </div>
+              </details>
+              </div>
+              </div>
+            </details>
+            <div class="form-error" id="solve-error" role="alert" hidden></div>
+            <button class="button button-primary run-button" id="solve-submit" type="submit"><span>Solve problem</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div hidden class="examples-disclosure"><div class="example-section"><div class="example-grid" id="solve-examples"></div><div class="example-groups" id="more-solve-examples"></div></div></div>
+          <details class="input-guide"><summary>Notation &amp; engine coverage</summary><div class="details-body"><p>Use the keyboard below to insert templates, then fill each gray box. Select part of an expression before inserting a fraction or power to wrap your selection.</p><p>Each field has an optional synchronized LaTeX source editor. Systems, geometry proofs, and matrix operations can also use Advanced structured mode.</p><p>Notation validation checks the LaTeX. Proof verification separately checks the mathematics using the engine’s supported rules. Neither a well-formed expression nor a graph establishes a proof.</p></div></details>
+        </section>
+
+        <section class="input-panel" id="view-check" role="tabpanel" aria-labelledby="tab-check" hidden>
+          <div class="panel-heading"><span class="section-number">01</span><div><h2>Show your work</h2><p>Check the reasoning, one transition at a time.</p></div></div>
+          <form id="check-form">
+            <label class="field-label" for="check-problem">Original problem</label>
+            <div class="math-field-mount" id="check-field-mount"></div>
+            <div class="steps-heading"><span class="field-label" id="work-steps-label">Your solution steps</span><span class="subtle">One line per step</span></div>
+            <div class="work-steps" id="work-steps" role="group" aria-labelledby="work-steps-label"></div>
+            <button class="button button-secondary button-small add-step" id="add-step" type="button"><span aria-hidden="true">+</span> Add a step</button>
+            <p class="field-help">Start with your first transformation. Skipped reasoning may appear as labeled Ghost steps. Use the visual math editor for each line; use Solve for structured systems and geometry.</p>
+            <div class="form-error" id="check-error" role="alert" hidden></div>
+            <button class="button button-primary run-button" id="check-submit" type="submit"><span>Check my work</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div hidden class="examples-disclosure"><div class="example-section"><div class="example-grid"><button class="example-button" data-check-example="valid" type="button">A correct solution</button><button class="example-button" data-check-example="mistake" type="button">Find the mistake</button><button class="example-button" data-check-example="skipped" type="button">A bigger leap</button><button class="example-button" id="clear-work" type="button">Start from scratch</button></div></div></div>
+          <details class="ghost-note"><summary>About Ghost steps</summary><div class="quiet-note"><span class="ghost-key" aria-hidden="true"></span><p><strong>Ghost steps fill in the gaps.</strong> They are reconstructed reasoning, separate from the lines you submitted. Their verification state is shown explicitly.</p></div></details>
+        </section>
+
+        <section class="input-panel" id="view-generate" role="tabpanel" aria-labelledby="tab-generate" hidden>
+          <div class="panel-heading"><span class="section-number">01</span><div><h2>Make room for practice</h2><p>Generate a problem from a supported rule family.</p></div></div>
+          <form id="generate-form">
+            <div class="field"><label class="field-label" for="generate-topic">Topic</label><select id="generate-topic" required disabled><option value="">Waiting for engine topics…</option></select></div>
+            <div class="difficulty-header"><label class="field-label" for="generate-difficulty">Difficulty</label><output for="generate-difficulty" id="difficulty-value">0.400</output></div>
+            <input id="generate-difficulty" class="difficulty-slider" type="range" min="0" max="1" step="0.001" value="0.4" aria-describedby="difficulty-help">
+            <div class="range-labels"><span>Foundation</span><span>Challenging</span></div>
+            <p class="sr-only" id="difficulty-help">Difficulty runs from 0.000 to 1.000. The engine may adjust its route to match the problem.</p>
+            <details class="panel-options generate-options"><summary>Advanced and seed</summary><p class="field-help">The engine may adjust its route to match the generated problem.</p><div class="field seed-field"><label class="field-label" for="generate-seed">Seed <span class="optional">optional</span></label><div class="seed-controls"><input id="generate-seed" type="text" maxlength="100" placeholder="Leave blank for a fresh problem" autocomplete="off" aria-describedby="seed-help"><button class="icon-button" id="random-seed" type="button" aria-label="Choose a random seed">↻</button></div><p class="field-help" id="seed-help">Reuse a topic, difficulty, and seed for repeatable practice.</p></div></details>
+            <div class="form-error" id="generate-error" role="alert" hidden></div>
+            <button class="button button-primary run-button" id="generate-submit" type="submit"><span>Generate problem</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="practice-note"><span class="practice-symbol" aria-hidden="true">x²</span><h3>Try it in your own way.</h3><p>Send a generated problem to Check work to write your own solution, or open it in Solve to inspect the proof.</p></div>
+        </section>
+        <section class="graph-editor" id="graph-editor" aria-label="Graph expressions" hidden>
+          <h2 class="sr-only">Graph expressions</h2>
+          <div id="graph-sidebar-host" class="atom-graph graph-editor-shell"></div>
+        </section>
+      </div>
+
+      <section class="result-panel" id="result-panel" aria-labelledby="result-heading" aria-busy="false">
+        <div class="result-toolbar"><div class="result-title"><span class="section-number">02</span><h2 id="result-heading">The reasoning</h2></div><button class="text-button" id="copy-result" type="button" hidden>Copy result <span aria-hidden="true">⧉</span></button></div>
+        <div id="result-content"></div>
+        <div class="result-loading" id="result-loading" hidden><span class="spinner" aria-hidden="true"></span><strong id="loading-title">Working through the problem…</strong><p>Waiting for the local engine.</p><button class="text-button" type="button" id="cancel-run">Cancel</button></div>
+      </section>
+      <section class="graph-workspace" id="view-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
+      <span id="graph" class="sr-only" aria-hidden="true"></span>
+      <div id="graph-workspace-canvas" class="graph-workspace-canvas" aria-label="Interactive graphing workspace"></div>
+      </section>
+    </div>
+    <button class="rail-expand" id="rail-expand" type="button" aria-label="Open input panel" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 5 7 7-7 7M5 5l7 7-7 7"/></svg></button>
+    <button class="keyboard-toggle" id="keyboard-toggle" type="button" aria-label="Open math keyboard" aria-controls="math-keypad" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M6 9h1m3 0h1m3 0h1m3 0h.1M6 12h1m3 0h1m3 0h1m3 0h.1M7 15h10"/></svg><span aria-hidden="true">▴</span></button>
+
+    <section class="math-keypad" id="math-keypad" aria-label="Math keyboard"></section>
+
+    <button class="coverage-fab" id="coverage-fab" type="button" aria-label="Open coverage and limits" aria-controls="coverage"><span aria-hidden="true">i</span></button>
+    <dialog class="coverage-dialog" id="coverage" aria-labelledby="coverage-heading">
+      <div class="coverage-dialog-card">
+        <div class="coverage-dialog-toolbar"><span>Proof Lab information</span><button id="coverage-close" type="button" aria-label="Close coverage and limits">×</button></div>
+        <section class="coverage-panel" tabindex="-1">
+          <div class="coverage-intro"><p class="eyebrow">BUILT AROUND RULES</p><h2 class="heading-display" id="coverage-heading">Know the boundaries.</h2><p>Coverage comes from the connected engine. LaTeX notation validation and mathematical proof verification are separate checks. Selected algebra and geometry families are supported.</p></div>
+          <div class="coverage-content"><div class="coverage-list" id="coverage-list"><p class="subtle">Connect the engine to see its declared topics.</p></div><details class="capability-details"><summary>Engine capabilities</summary><pre id="capabilities-content">Waiting for the engine.</pre></details></div>
+        </section>
+      </div>
+    </dialog>
+  </main>
+  <dialog class="tour-dialog" id="tour-dialog" aria-labelledby="tour-title">
+    <div class="tour-dialog-head"><span class="tour-count" id="tour-count">1 of 5</span><button type="button" id="tour-close" aria-label="Close tour">×</button></div>
+    <div class="tour-illustration" id="tour-illustration" aria-hidden="true"></div>
+    <h2 id="tour-title">Start with a problem</h2>
+    <p id="tour-description">Type in the math field or use the math pad to build an expression visually.</p>
+    <div class="tour-progress" id="tour-progress" aria-hidden="true"></div>
+    <div class="tour-actions"><button type="button" id="tour-previous">Back</button><button type="button" id="tour-next">Next</button></div>
+  </dialog>
+  <p class="sr-only" id="live-status" role="status" aria-live="polite" aria-atomic="true"></p>
+  <noscript><div class="noscript-message">Proof Lab needs JavaScript to connect to the local math engine. Enable it and reload this page.</div></noscript>
+  <script src="site.js?v=proof-lab-9"></script>
+</body>
+</html>

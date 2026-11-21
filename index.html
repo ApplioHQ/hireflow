@@ -17,7 +17,7 @@
 <meta name="twitter:description" content="Build an ATS-optimized resume in minutes. Tailor it to any job, get an instant ATS score, and export to PDF. Free forever.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://appliohq.com/img/screens/home.png">
-<link rel="icon" href="logo.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,6 +25,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Applio">
 <meta name="theme-color" content="#111113">
+<meta name="color-scheme" content="dark light">
 <link rel="preconnect" href="https://hireflow-api.pritamavuthu7.workers.dev" crossorigin>
 <link rel="dns-prefetch" href="https://hireflow-api.pritamavuthu7.workers.dev">
 <link rel="stylesheet" href="css/styles.css">
@@ -61,37 +62,7 @@
   "offers": {
     "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD",
     "description": "Every Applio feature is free and unlimited. No paid plans, no credit card."
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "312",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
-  "review": [
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Jordan M." },
-      "datePublished": "2026-08-12",
-      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-      "reviewBody": "The AI tailoring feature saved me hours. I got three callbacks in my first week after switching to Applio."
-    },
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Priya S." },
-      "datePublished": "2026-07-28",
-      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-      "reviewBody": "Best free resume builder I've tried. The ATS score checker actually tells you what to fix instead of just giving a number."
-    },
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Alex T." },
-      "datePublished": "2026-09-01",
-      "reviewRating": { "@type": "Rating", "ratingValue": "4", "bestRating": "5" },
-      "reviewBody": "Clean templates and the job-match tool is super useful. Cannot believe it is all free."
-    }
-  ]
+  }
 }
 </script>
 <script type="application/ld+json">
@@ -114,7 +85,7 @@
     { "@type": "Question", "name": "Is Applio really free to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely. Every feature is free and unlimited, the full resume builder, all templates, unlimited PDF downloads, the ATS checker, AI tailoring, cover letters, interview prep, and job tracker. No paid plans and no credit card required." } },
     { "@type": "Question", "name": "How does the AI tailor my resume?", "acceptedAnswer": { "@type": "Answer", "text": "You paste a job description and our AI rewrites your bullets, optimizes keywords, and rewrites your summary to match what the role is asking for, grounded in your actual experience, never inventing things." } },
     { "@type": "Question", "name": "What is ATS and why does it matter?", "acceptedAnswer": { "@type": "Answer", "text": "An Applicant Tracking System (ATS) is software most mid-size and large employers use to collect and filter resumes before a person reviews them. A resume that is not ATS-friendly, on formatting or keywords, can be filtered out early. Applio scores your resume against the ATS rubric and tells you exactly what to fix." } },
-    { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Passwords are securely hashed and never stored in plain text. Payment data is handled by Stripe directly. Your resume data is encrypted in transit and at rest." } },
+    { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Passwords are securely hashed and never stored in plain text. Applio does not request payment details. Your resume data is encrypted in transit and at rest." } },
     { "@type": "Question", "name": "Is Applio just a resume builder?", "acceptedAnswer": { "@type": "Answer", "text": "The resume is the core, and it's what most people come for: recruiter-ready templates, one-click tailoring to any job, and a real 0-100 ATS score with the exact fixes to make. Once your resume is landing interviews, the same free account also helps with cover letters, interview prep, job tracking, and AI career coaching." } },
     { "@type": "Question", "name": "Does Applio help after I land the job?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Once you're in the role, the same free account keeps helping: a First 90 Days onboarding plan, a Win Journal to log accomplishments as they happen with a weekly reminder, a brag-doc generator for performance reviews and raises, and a Skill Gap Coach that shows what your next role requires." } },
     { "@type": "Question", "name": "How is Applio different from other resume builders?", "acceptedAnswer": { "@type": "Answer", "text": "Three things: a real 0-100 ATS score with the exact keywords and formatting to fix (not a vague grade), AI that only uses your real experience and never invents jobs or numbers, and 31 recruiter-ready templates that export clean PDFs, all free with no watermark. Everything is designed around one outcome: a resume that gets you interviews." } }
@@ -179,7 +150,7 @@
 <!-- ============ NAV ============ -->
 <nav class="home-nav" id="home-nav">
   <div class="home-nav-in">
-  <a href="#top" class="home-brand"><img src="logo.jpeg" width="32" height="32" alt="Applio"><span>Applio</span></a>
+  <a href="#top" class="home-brand"><img src="logo-mark.png" width="32" height="32" alt="Applio"><span>Applio</span></a>
   <div class="home-nav-links" id="nav-links">
     <a href="/resume-templates">Templates</a>
     <a href="ats-checker">ATS Checker</a>
@@ -337,16 +308,16 @@
   <!-- ============ STATS STRIP (inside hero) ============
        Lives INSIDE the hero so #hero-waves (position:absolute inset:0)
        naturally extends its wavy background over these stats, one
-       continuous scene instead of two separate canvases. '250+ job
-       seekers' is the visual anchor; four supporting stats sit beside it. -->
+       continuous scene instead of two separate canvases. The free-product
+       message is the visual anchor; four supporting stats sit beside it. -->
   <div class="hero-stats" aria-label="Applio in numbers">
     <div class="container hs-container">
       <div class="hs-hero">
-        <div class="hs-hero-eyebrow">Trusted by</div>
+        <div class="hs-hero-eyebrow">Built for job seekers</div>
         <div class="hs-hero-num">
-          <span data-magic-ticker="250" data-magic-ticker-duration="1500">0</span><span class="hs-hero-suffix">+</span>
+          <span>Free</span>
         </div>
-        <div class="hs-hero-label">Job seekers building better resumes with Applio</div>
+        <div class="hs-hero-label">Resume tools for every job search</div>
       </div>
       <div class="hs-divider" aria-hidden="true"></div>
       <div class="hs-grid">
@@ -393,7 +364,7 @@
         <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
         <h3>Your resume doesn't pass ATS</h3>
         <p>Most companies screen resumes with an ATS. If yours isn't optimized for it, it ranks low and can slip past a recruiter unseen. You may never know.</p>
-        <div class="problem-stat"><span class="stat-big">98%</span><span class="stat-tail">of Fortune 500s screen resumes with an ATS</span></div>
+        <div class="problem-stat"><span class="stat-big">ATS</span><span class="stat-tail">is widely used for online applications</span></div>
       </div>
       <div class="problem-card problem-card--orange">
         <div class="problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
@@ -436,25 +407,25 @@
     <div class="ats-edu-visual">
       <div class="ats-funnel">
         <div class="ats-funnel-stage s1">
-          <div class="ats-funnel-num">250</div>
-          <div class="ats-funnel-text"><strong>Resumes submitted</strong> per corporate job posting on average</div>
+          <div class="ats-funnel-num">Many</div>
+          <div class="ats-funnel-text"><strong>Applications</strong> can compete for each opening</div>
         </div>
         <div class="ats-funnel-arrow">↓</div>
         <div class="ats-funnel-stage s2">
-          <div class="ats-funnel-num">~12</div>
-          <div class="ats-funnel-text"><strong>Pass ATS filters</strong> the rest are never seen by a human</div>
+          <div class="ats-funnel-num">Keywords</div>
+          <div class="ats-funnel-text"><strong>Relevant language</strong> helps systems find your experience</div>
         </div>
         <div class="ats-funnel-arrow">↓</div>
         <div class="ats-funnel-stage s3">
-          <div class="ats-funnel-num">4-6</div>
-          <div class="ats-funnel-text"><strong>Get interviewed</strong> these resumes matched the job</div>
+          <div class="ats-funnel-num">Clarity</div>
+          <div class="ats-funnel-text"><strong>Clear evidence</strong> makes your fit easier to evaluate</div>
         </div>
       </div>
     </div>
     <div class="ats-edu-copy">
-      <h2>Most resumes are rejected<br>before a human reads them. <span>Yours might be too.</span></h2>
-      <p>An ATS (Applicant Tracking System) scans every resume for the right keywords, formatting, and structure. If it doesn't find them, your application is filtered out, no matter how qualified you are.</p>
-      <p>Applio gives you the exact ATS score a recruiter's system would, shows you what's missing, and fixes it. In 30 seconds, not 30 minutes.</p>
+      <h2>Make your resume easier<br>for recruiters and ATS to read. <span>Start with a clearer match.</span></h2>
+      <p>An ATS (Applicant Tracking System) helps employers organize and search applications. Clear formatting and accurate, relevant language help both software and people understand your experience.</p>
+      <p>Applio gives you a practical compatibility score, highlights missing keywords, and suggests focused improvements based on the job description.</p>
       <a href="ats-checker" class="ats-edu-cta">Check your resume's ATS score free →</a>
     </div>
   </div>
@@ -700,10 +671,10 @@
       { name: 'Applio Resume Builder', tech: 'React, TypeScript, Cloudflare Workers', description: 'Open-source AI resume builder; grew to 80+ active users in first 3 months' },
       { name: 'papers-with-code-search', tech: 'Next.js, SBERT', description: 'Semantic paper search using sentence embeddings; 1.4K GitHub stars' }
     ],
-    certifications: [ { name: 'AWS Certified Developer', issuer: 'Amazon', date: '2023' } ],
-    awards: [ { name: 'Northwind Innovation Award', issuer: 'Northwind Inc.', date: '2024', description: 'For leading the design-system launch adopted across 5 products.' } ],
-    leadership: [ { title: 'Frontend Guild Lead', org: 'Northwind', start: '2023', end: 'Present', description: 'Runs biweekly technical review across 12 engineers; wrote hiring rubric adopted org-wide.' } ],
-    volunteer: [ { role: 'Coding Instructor', org: 'CodeNow', start: '2021', end: '2023', description: 'Taught intro JavaScript to 40+ high schoolers across 6 cohorts.' } ],
+    certifications: [ { name: 'AWS Certified Developer', issuer: 'Amazon', date: '2025' } ],
+    awards: [ { name: 'Northwind Innovation Award', issuer: 'Northwind Inc.', date: '2026', description: 'For leading the design-system launch adopted across 5 products.' } ],
+    leadership: [ { title: 'Frontend Guild Lead', org: 'Northwind', start: '2025', end: 'Present', description: 'Runs biweekly technical review across 12 engineers; wrote hiring rubric adopted org-wide.' } ],
+    volunteer: [ { role: 'Coding Instructor', org: 'CodeNow', start: '2024', end: '2026', description: 'Taught intro JavaScript to 40+ high schoolers across 6 cohorts.' } ],
     publications: []
   };
 
@@ -884,7 +855,7 @@
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Always grounded in your real experience</li>
         </ul>
         <div class="spot-actions">
-          <span class="spot-metric">+38 ATS pts avg</span>
+          <span class="spot-metric">Targeted keyword guidance</span>
         </div>
       </div>
       <div class="spot-mock">
@@ -1185,7 +1156,7 @@
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Is my data secure?</span><span class="faq-icon"></span></summary>
-        <div class="faq-content"><p>Passwords are securely hashed and never stored in plain text. Payment data is handled by Stripe directly, Applio never touches your card. Your resume data is encrypted in transit and at rest.</p></div>
+        <div class="faq-content"><p>Passwords are securely hashed and never stored in plain text. Applio does not request payment details. Your resume data is encrypted in transit and at rest.</p></div>
       </details>
       <details>
         <summary><span class="faq-q"><span class="faq-lead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>Is Applio just a resume builder?</span><span class="faq-icon"></span></summary>
@@ -1216,7 +1187,7 @@
       <span class="liquid-btn-blur" aria-hidden="true"></span>
       <span class="liquid-btn-label">Build My Resume Free →</span>
     </a>
-    <p class="final-tagline">2-minute setup · No credit card · Cancel anytime</p>
+    <p class="final-tagline">2-minute setup · No credit card · No subscription</p>
     <!-- Liquid-glass SVG filter (ported from the 21st.dev LiquidButton) -->
     <svg class="liquid-glass-defs" aria-hidden="true" width="0" height="0" style="position:absolute">
       <defs>
@@ -1237,7 +1208,7 @@
   <div class="container">
     <div class="footer-row">
       <div class="footer-brand">
-        <div class="home-brand"><img src="logo.jpeg" width="32" height="32" alt="Applio"><span>Applio</span></div>
+        <div class="home-brand"><img src="logo-mark.png" width="32" height="32" alt="Applio" loading="lazy"><span>Applio</span></div>
         <p>The free AI resume builder that gets you interviews.</p>
         <div class="footer-social">
           <a href="https://www.tiktok.com/@applioai" target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok">
@@ -1275,7 +1246,7 @@
       <div class="footer-seo">
         <div class="subhead">Popular resume examples</div>
         <div class="footer-seo-links">
-          <a href="/resume-examples/software-engineer">Software Engineer</a><a href="/resume-examples/registered-nurse">Registered Nurse</a><a href="/resume-examples/project-manager">Project Manager</a><a href="/resume-examples/data-analyst">Data Analyst</a><a href="/resume-examples/accountant">Accountant</a><a href="/resume-examples/teacher">Teacher</a><a href="/resume-examples/marketing-manager">Marketing Manager</a><a href="/resume-examples/sales-representative">Sales Representative</a><a href="/resume-examples/customer-service-representative">Customer Service</a><a href="/resume-examples/front-end-developer">Front-End Developer</a><a href="/resume-examples/product-manager">Product Manager</a><a href="/resume-examples/business-analyst">Business Analyst</a><a href="/resume-examples">All 138 resume examples →</a>
+          <a href="/resume-examples/software-engineer">Software Engineer</a><a href="/resume-examples/registered-nurse">Registered Nurse</a><a href="/resume-examples/project-manager">Project Manager</a><a href="/resume-examples/data-analyst">Data Analyst</a><a href="/resume-examples/accountant">Accountant</a><a href="/resume-examples/teacher">Teacher</a><a href="/resume-examples/marketing-manager">Marketing Manager</a><a href="/resume-examples/sales-representative">Sales Representative</a><a href="/resume-examples/customer-service-representative">Customer Service</a><a href="/resume-examples/front-end-developer">Front-End Developer</a><a href="/resume-examples/product-manager">Product Manager</a><a href="/resume-examples/business-analyst">Business Analyst</a><a href="/resume-examples">All 142 resume examples →</a>
         </div>
       </div>
       <div class="footer-seo">
@@ -1291,6 +1262,7 @@
 
 <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
 
+<script src="js/footer.js"></script>
 <script src="js/config.js"></script>
 <script src="js/plan.js"></script>
 <script src="js/waves.js"></script>

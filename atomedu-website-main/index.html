@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="kPdAPa3IWQS_MODxNTTW7o3dTl60K0SqGFS_cwct0Gw" />
+  <title>atomEDU Proof Lab | Free Math Solver and Step Checker</title>
+  <meta name="description" content="atomEDU Proof Lab is a free, in-house math engine that solves supported problems, verifies each step, generates practice, and graphs functions in your browser." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="theme-color" content="#1f2a36" />
+  <link rel="canonical" href="https://atom-edu.org/" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="atomEDU" />
+  <meta property="og:title" content="atomEDU Proof Lab | Show the work. Find the step." />
+  <meta property="og:description" content="A free, browser-based math solver and proof checker powered by atomEDU's own deterministic math engine." />
+  <meta property="og:url" content="https://atom-edu.org/" />
+  <meta property="og:image" content="https://atom-edu.org/images/atomedu-social.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="atomEDU Proof Lab, show the work and find the step" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="atomEDU Proof Lab" />
+  <meta name="twitter:description" content="Free exact math solving, step checking, practice generation, and graphing in your browser." />
+  <meta name="twitter:image" content="https://atom-edu.org/images/atomedu-social.png" />
+  <link rel="icon" href="images/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;0,9..144,500&family=Roboto:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=launch-1" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://atom-edu.org/#organization",
+        "name": "atomEDU",
+        "url": "https://atom-edu.org/",
+        "logo": "https://atom-edu.org/images/logo.svg",
+        "description": "atomEDU builds Proof Lab, a free browser-based math solver and step checker powered by an in-house deterministic math engine.",
+        "foundingLocation": { "@type": "Place", "name": "O'Fallon, Missouri" },
+        "founder": [
+          { "@type": "Person", "name": "Pritam Avuthu" },
+          { "@type": "Person", "name": "Rahul Awasthi" },
+          { "@type": "Person", "name": "Akshaj Sanikommu" }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://atom-edu.org/#website",
+        "url": "https://atom-edu.org/",
+        "name": "atomEDU",
+        "publisher": { "@id": "https://atom-edu.org/#organization" },
+        "inLanguage": ["en", "es"]
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://atom-edu.org/proof-lab#app",
+        "name": "Proof Lab",
+        "alternateName": "atomEDU Proof Lab",
+        "url": "https://atom-edu.org/proof-lab",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any modern web browser",
+        "browserRequirements": "JavaScript enabled",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "creator": { "@id": "https://atom-edu.org/#organization" },
+        "featureList": ["Exact math solving", "Step-by-step proof checking", "Practice generation", "Interactive graphing", "English and Spanish interface"]
+      },
+      {
+        "@type": "Event",
+        "name": "atomEDU Proof Lab Launch Stream",
+        "description": "The official atomEDU launch stream introducing Proof Lab.",
+        "startDate": "2026-11-20T19:00:00-06:00",
+        "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+        "eventStatus": "https://schema.org/EventScheduled",
+        "location": { "@type": "VirtualLocation", "url": "https://atom-edu.org/#launch" },
+        "organizer": { "@id": "https://atom-edu.org/#organization" },
+        "offers": { "@type": "Offer", "url": "https://atom-edu.org/#launch", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "What is atomEDU?", "acceptedAnswer": { "@type": "Answer", "text": "atomEDU is the team behind Proof Lab, a free browser-based math tool that solves supported problems, checks student reasoning, generates practice, and graphs functions." } },
+          { "@type": "Question", "name": "Is atomEDU an AI wrapper?", "acceptedAnswer": { "@type": "Answer", "text": "No. Proof Lab uses atomEDU's own deterministic symbolic math engine. It parses expressions, applies explicit mathematical rules, tracks restrictions, and replays proof certificates before showing a verified result." } },
+          { "@type": "Question", "name": "What is Proof Lab?", "acceptedAnswer": { "@type": "Answer", "text": "Proof Lab is atomEDU's free math solver, step checker, practice generator, and graphing workspace for selected Algebra 1, Algebra 2, Geometry, and Precalculus topics." } },
+          { "@type": "Question", "name": "Is Proof Lab free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Proof Lab is free, requires no account, and runs its supported symbolic math workflows directly in the browser." } }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <img class="mark" src="images/logo.svg" alt="" />
+        <span class="word">atom<b>EDU</b></span>
+      </a>
+      <nav class="nav">
+        <a data-nav="/" href="/">Home</a>
+        <a data-nav="/features" href="/features">Features</a>
+        <a data-nav="/learn" href="/learn">Learn</a>
+        <a data-nav="/art-contest" href="/art-contest">Art contest</a>
+        <a data-nav="/about" href="/about">About</a>
+        <a data-nav="/contact" href="/contact">Contact</a>
+        <a class="cta" href="/proof-lab">Start math</a>
+      </nav>
+      <button class="menu-btn" aria-label="Menu">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+    <div class="mobile-nav">
+      <div class="inner">
+        <a data-nav="/" href="/">Home</a>
+        <a data-nav="/features" href="/features">Features</a>
+        <a data-nav="/learn" href="/learn">Learn</a>
+        <a data-nav="/art-contest" href="/art-contest">Art contest</a>
+        <a data-nav="/about" href="/about">About</a>
+        <a data-nav="/contact" href="/contact">Contact</a>
+        <a class="cta" href="/proof-lab">Start math</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+  <!-- Hero board -->
+  <section class="board" aria-label="Featured">
+    <article class="slide is-active" data-credit="Graph made in Desmos. Screenshot by Awasthi, Nov 11 2026.">
+      <div class="slide-bg" style="background-image:url('images/bg1.png')"></div>
+      <div class="slide-scrim"></div>
+      <div class="slide-content"><div class="inner">
+        <p class="slide-label">Live launch | Friday, November 20, 2026 | 7:00 PM CST</p>
+        <h1 class="slide-title heading-display">atomEDU launches tonight at 7 PM CST.</h1>
+        <p class="slide-sub">Join the launch stream for the official release of Proof Lab. See the in-house math engine solve, verify, generate, and graph in real time.</p>
+        <div class="slide-actions">
+          <a class="btn btn-accent" href="/proof-lab">Start math</a>
+          <a class="btn btn-light" href="#launch">Launch details</a>
+        </div>
+      </div></div>
+    </article>
+
+    <article class="slide" data-credit="Cosmic Cliffs in the Carina Nebula. NASA, ESA, CSA, STScI. Accessed November 11 2026 by Awasthi.">
+      <div class="slide-bg" style="background-image:url('images/bg2.jpg')"></div>
+      <div class="slide-scrim"></div>
+      <div class="slide-content"><div class="inner">
+        <p class="slide-label">Check your work</p>
+        <h1 class="slide-title heading-display">Find the step that changed the answer.</h1>
+        <p class="slide-sub">Write your own solution. Proof Lab checks supported transitions and shows Ghost steps when you skip reasoning.</p>
+        <div class="slide-actions">
+          <a class="btn btn-accent" href="/proof-lab">Check my work</a>
+          <a class="btn btn-light" href="/features">See the features</a>
+        </div>
+      </div></div>
+    </article>
+
+    <article class="slide" data-credit="Cape Mallow by AJ Higgs, CC BY 4.0, via Wikimedia Commons. Accessed November 11 2026 by Awasthi.">
+      <div class="slide-bg" style="background-image:url('images/bg3.jpg')"></div>
+      <div class="slide-scrim"></div>
+      <div class="slide-content"><div class="inner">
+        <p class="slide-label">Explore the graph</p>
+        <h1 class="slide-title heading-display">See the curve. Verify the proof.</h1>
+        <p class="slide-sub">Pan, zoom, and compare functions. A graph helps you explore; the math engine checks the reasoning.</p>
+        <div class="slide-actions">
+          <a class="btn btn-accent" href="/proof-lab">Open Proof Lab</a>
+        </div>
+      </div></div>
+    </article>
+
+    <div class="board-edge left"><button class="arrow" aria-label="Previous"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button></div>
+    <div class="board-edge right"><button class="arrow" aria-label="Next"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button></div>
+
+    <div class="board-dots">
+      <button class="on" aria-label="Slide 1"></button>
+      <button aria-label="Slide 2"></button>
+      <button aria-label="Slide 3"></button>
+    </div>
+
+    <div class="board-foot">
+      <span class="board-credit">Graph made in Desmos. Screenshot by Awasthi, Nov 11 2026.</span>
+      <button class="board-info" aria-label="Image credits">i</button>
+    </div>
+
+    <div class="board-attrib" hidden>
+      <h3>Image credits</h3>
+      <p>The first slide is a Desmos graph screenshot. The second is NASA's Webb image of the Cosmic Cliffs. The third is Cape Mallow by AJ Higgs, CC BY 4.0, via Wikimedia Commons. Both photographs were accessed November 11 2026 by Awasthi.</p>
+      <p><a href="/legal#attributions">Full attributions</a></p>
+    </div>
+  </section>
+
+  <section class="launch-strip" id="launch" aria-labelledby="launch-title">
+    <div class="wrap launch-strip-inner">
+      <div><p class="kicker">Launch stream</p><h2 class="heading-display" id="launch-title">Proof Lab goes live today.</h2></div>
+      <dl class="launch-facts"><div><dt>Date</dt><dd>Friday, November 20, 2026</dd></div><div><dt>Time</dt><dd>7:00 PM CST</dd></div><div><dt>Where</dt><dd>Online launch stream</dd></div></dl>
+    </div>
+  </section>
+
+  <section class="section home-explainer-section">
+    <div class="wrap home-dual">
+      <article>
+        <p class="kicker">atomEDU Proof Lab</p>
+        <h2 class="block-title heading-display">Reason through the mathematics</h2>
+        <div class="prose">
+          <p>Proof Lab works through supported math problems and checks the reasoning, not just the final answer. Its rule-based engine handles the math directly in your browser.</p>
+          <p>Use the visual editor, inspect a worked solution, or submit your own steps. Verified results stay separate from partial or unsupported work.</p>
+        </div>
+        <a class="textlink" href="/proof-lab">Open Proof Lab →</a>
+      </article>
+      <article>
+        <p class="kicker">atomEDU for Teachers</p>
+        <h2 class="block-title heading-display">Create the room. Teach it live.</h2>
+        <div class="prose">
+          <p>Build a one-time Orbit Room for live, question-by-question instruction, or launch a password-protected timed quiz in Atom Lockdown Browser.</p>
+          <p>Students join with a code. Teachers get a live lobby, scoring, integrity events, individual results, and complete class analytics without creating accounts.</p>
+        </div>
+        <a class="textlink" href="/teachers">Open atomEDU for Teachers
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <!-- Coverage -->
+  <section class="section">
+    <div class="wrap col">
+      <p class="kicker">Coverage</p>
+      <h2 class="block-title heading-display">What it checks today</h2>
+      <p class="classes"><span class="now">Selected Algebra 1, Algebra 2, Geometry, and Precalculus families are supported.</span> That includes equations, inequalities, functions, systems, conics, coordinate geometry, exact unit-circle and vector rules, and explicit-premise geometry proofs. Coverage is rule-by-rule, not a promise to solve every textbook problem. Proof Lab lists its supported topics inside the tool.</p>
+      <a class="textlink" href="/proof-lab#coverage" style="margin-top:1.3rem;display:inline-flex">See current coverage →</a>
+    </div>
+  </section>
+
+  <section class="section band credibility-section" aria-labelledby="credibility-title">
+    <div class="wrap home-dual">
+      <article>
+        <p class="kicker">Built, not wrapped</p>
+        <h2 class="block-title heading-display" id="credibility-title">Our engine does the mathematics.</h2>
+        <div class="prose">
+          <p>Proof Lab is not a chat interface placed over somebody else's model. atomEDU built the parser, exact arithmetic, solver routes, step verifier, proof certificates, practice generator, and graphing workspace that power the product.</p>
+          <p>Each supported result must survive explicit mathematical rules and certificate replay. If the engine cannot verify a case, Proof Lab labels the limit instead of inventing an answer.</p>
+        </div>
+      </article>
+      <article>
+        <p class="kicker">Connected by choice</p>
+        <h2 class="block-title heading-display">Partners build trust. Integrations prove utility.</h2>
+        <div class="prose">
+          <p>Official partners show that outside organizations are willing to work with atomEDU. Product integrations show that Proof Lab fits into the tools students and teachers already use.</p>
+          <p>The logos are supporting evidence, not borrowed credibility. Google, GitHub, Notion, Dropbox, and other integrations do not perform or certify the math. The verification engine remains atomEDU's own technology.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section band partners-section" aria-labelledby="partners-title">
+    <div class="wrap">
+      <h2 class="partners-title" id="partners-title">Our Featured Partners</h2>
+      <div class="partner-logo-row">
+        <div class="partner-logo-unit">
+          <a class="partner-mark partner-vcboom" href="https://vcboom.com/?promo=PARTNER-ATOMEDU" target="_blank" rel="noopener noreferrer" aria-label="Visit VC Boom"><img src="images/vc-boom-partner-logo.svg" alt="VC Boom" /></a>
+        </div>
+        <div class="partner-logo-unit">
+          <div class="partner-mark partner-med"><img src="images/medaestheticsos-partner-badge.svg" alt="MedAestheticsOS official technology partner" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section integrations-section" aria-labelledby="integrations-title">
+    <div class="wrap">
+      <h2 class="partners-title" id="integrations-title">Integrations</h2>
+      <div class="integration-grid">
+        <article class="integration-card classroom-integration">
+          <img src="images/google-classroom-icon.png" width="80" height="80" alt="Google Classroom icon" />
+          <div>
+            <h3>For use with Google Classroom™</h3>
+            <p>Share a link to the graph you made in Proof Lab. Your teacher can add it to a Classroom assignment, material, or announcement.</p>
+            <a class="textlink" href="/proof-lab#graph">Make and share a graph <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="integration-card google-drive-integration">
+          <img src="https://www.gstatic.com/images/branding/productlogos/drive_2026/v2/web-64dp/logo_drive_2026_color_2x_web_64dp.png" width="80" height="80" alt="Google Drive logo" loading="lazy" />
+          <div>
+            <h3>Google Drive™</h3>
+            <p>Save a graph JSON file directly to your own Google Drive. You approve access limited to files this app creates or opens.</p>
+            <a class="textlink" href="/proof-lab#graph">Open graph export <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="integration-card notion-integration">
+          <img src="https://www.notion.so/front-static/logo-ios.png" width="80" height="80" alt="Notion logo" loading="lazy" />
+          <div>
+            <h3>Notion</h3>
+            <p>Save a graph as a new child page in your own Notion workspace. You select the destination page when Notion asks for access.</p>
+            <a class="textlink" href="/proof-lab#graph">Open graph export <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="integration-card">
+          <span class="integration-placeholder" aria-hidden="true">+</span>
+          <div>
+            <h3>Zapier</h3>
+            <p class="integration-status">Coming soon</p>
+            <p>Automated workflows with Zapier are not available yet.</p>
+          </div>
+        </article>
+        <article class="integration-card dropbox-integration">
+          <img src="https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png" width="80" height="80" alt="Dropbox logo" loading="lazy" />
+          <div>
+            <h3>Dropbox</h3>
+            <p>Save a graph file to your own Dropbox with Dropbox Saver. You choose where it goes.</p>
+            <a class="textlink" href="/proof-lab#graph">Open graph export <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="integration-card github-integration">
+          <img src="images/github-lockup.svg" width="120" height="80" alt="GitHub logo" loading="lazy" />
+          <div>
+            <h3>GitHub</h3>
+            <p>Save a graph as an unlisted Gist in your own GitHub account. GitHub will ask you to allow Gist access before the export.</p>
+            <a class="textlink" href="/proof-lab#graph">Open graph export <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+      </div>
+      <p class="integration-attribution">Google Classroom and Google Drive are trademarks of Google LLC. atomEDU is not affiliated with or endorsed by Google.</p>
+      <p class="integration-attribution">Other product names belong to their respective owners. Their mention does not imply affiliation or endorsement.</p>
+    </div>
+  </section>
+
+  <section class="section faq-section" aria-labelledby="faq-title">
+    <div class="wrap col">
+      <p class="kicker">Questions, answered</p>
+      <h2 class="block-title heading-display" id="faq-title">What makes atomEDU different?</h2>
+      <div class="qa">
+        <div><h3>What is atomEDU?</h3><p>atomEDU is the team behind Proof Lab, a free browser-based learning tool for solving supported math, checking student reasoning, generating practice, and exploring graphs.</p></div>
+        <div><h3>Is atomEDU an AI wrapper?</h3><p>No. Proof Lab uses atomEDU's own deterministic symbolic math engine. It parses the problem, applies explicit rules, tracks restrictions, and replays proof certificates before it displays a verified result.</p></div>
+        <div><h3>What is Proof Lab?</h3><p>Proof Lab is a math solver, step checker, practice generator, and graphing workspace for selected Algebra 1, Algebra 2, Geometry, and Precalculus topics.</p></div>
+        <div><h3>Is Proof Lab free and private?</h3><p>Yes. Proof Lab requires no account, and supported symbolic work runs directly in your browser. Work stays in the current session unless you choose to export or share it.</p></div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-card">
+        <div class="footer-banner">
+          <img class="bg" src="images/footer.svg" alt="" />
+          <div class="shade"></div>
+          <div class="content">
+            <h2 class="heading-display">Bring the math. Show the proof.</h2>
+            <p>Solve a problem, check your own steps, or generate a new one. Proof Lab is free and runs in your browser.</p>
+            <div class="actions">
+              <a class="btn btn-accent" href="/proof-lab">Start math</a>
+              <a class="btn btn-light" href="/features">See the features</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="brand" style="margin-bottom:0.3rem">
+              <img class="mark" src="images/logo.svg" alt="" style="width:32px;height:32px" />
+              <span class="word" style="color:#f1ece4">atom<b>EDU</b></span>
+            </div>
+            <p class="about">A free math proof tool for working through problems, checking reasoning, and seeing where a step goes wrong.</p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="/proof-lab">Proof Lab</a></li>
+              <li><a href="/features">Features</a></li>
+              <li><a href="/learn">How it works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="/legal#privacy">Privacy</a></li>
+              <li><a href="/legal#terms">Terms</a></li>
+              <li><a href="/legal#attributions">Attributions</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>
+            <div class="footer-site">atom-edu.org</div>
+            <span>&copy; <span id="yr"></span> atomEDU. Free for students.</span>
+          </div>
+          <span>Maintained by Avuthu, Awasthi, and Sanikommu.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site-i18n.js?v=launch-1"></script>
+  <script src="site.js?v=proof-lab-4"></script>
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

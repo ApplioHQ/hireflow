@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Best Match | Applio</title>
-<link rel="icon" href="logo.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -37,13 +37,6 @@
     "price": "0",
     "priceCurrency": "USD",
     "description": "Completely free, no credit card required"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.5",
-    "ratingCount": "87",
-    "bestRating": "5",
-    "worstRating": "1"
   }
 }
 </script>
@@ -135,11 +128,14 @@
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
-  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <div class="brand"><img src="logo-mark.png" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <div class="topbar-right">
     <span id="health-badge"></span>
     <span id="plan-pill"></span>
-    <button class="theme-toggle" onclick="toggleTheme()"></button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="icon"></span>
+      <span class="label"></span>
+    </button>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
   </div>
 </header>
@@ -292,7 +288,6 @@ async function runMatch(){
   if (jd.length < 40) { toast('Paste a fuller job description first (a few lines).', {type:'warn'}); return; }
   const cands = _candidates.filter(c => c.type === 'saved' || (typeof c.content === 'string' && c.content.trim().length >= 40));
   if (cands.length < 1) { toast('Add at least one resume (paste a few lines or use your saved resume).', {type:'warn'}); return; }
-  if (isFree() && !hasFreeAiUse('ats')) { showUpgradeModal('ats'); return; }
 
   if (typeof skeleton === 'function') {
     document.getElementById('bm-results').innerHTML = skeleton('cards', { count: cands.length, cols: cands.length >= 3 ? 3 : 2 });
@@ -358,8 +353,8 @@ function _renderResults(scored, paywalled, attempted){
   if (paywalled) {
     html += `<div style="text-align:center; margin-top:16px; padding:20px; background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg);">
       <p style="font-size:14px; margin-bottom:6px;"><strong>Scored ${ok.length} of ${attempted} resumes.</strong></p>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">You've used your free ATS scoring trials. Upgrade to compare unlimited resumes.</p>
-      <a href="pricing" class="btn btn-primary">${ICON('sparkle')} <span>Unlock unlimited matching</span></a>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">Some resume scores could not be completed right now. Please try again in a moment.</p>
+      <button type="button" class="btn btn-primary" onclick="runMatch()">${ICON('refresh')} <span>Try again</span></button>
     </div>`;
   }
   res.innerHTML = html;
@@ -411,24 +406,16 @@ function _rowHTML(s, idx, isBest){
   document.getElementById('bm-run').addEventListener('click', runMatch);
 
   const planPill = document.getElementById('plan-pill');
-  if (isPaid()) planPill.innerHTML = `<button class="pill success" onclick="openBillingPortal()" style="cursor:pointer;">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-  else planPill.innerHTML = `<a class="btn btn-primary btn-xs" href="pricing">${ICON('sparkle','ico ico-sm')} <span>Upgrade</span></a>`;
+  planPill.innerHTML = `<span class="pill success">${ICON('sparkle','ico ico-sm')} Free</span>`;
 
   _renderCandidates();
 
   const banner = document.getElementById('bm-banner');
-  if (isFree()) {
-    const left = freeAiUsesLeft('ats');
-    if (left <= 0) {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">You've used your free match, running it again needs <a href="pricing" style="color:var(--accent);">Premium</a>.</p>`;
-    } else {
-      banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;"><strong style="color:var(--accent);">${left} free ${left===1?'match':'matches'}</strong> left. Then it's Premium.</p>`;
-    }
-  }
+  banner.innerHTML = `<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">Free, unlimited resume matching with no credit card.</p>`;
 })();
 </script>
   <script src="js/acctcenter.js"></script>
-<script src="/js/appshell.js"></script>
+<script src="/js/appshell.js?v=20261110d"></script>
 <script src="/js/pwa.js" defer></script>
 </body>
 </html>

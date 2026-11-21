@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Editor | Applio</title>
-<link rel="icon" href="logo.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@
 <body class="app-body">
 
 <header class="app-topbar">
-  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <div class="brand"><img src="logo-mark.png" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <div class="topbar-right">
     <span id="save-status" role="status" aria-live="polite" style="font-size:12px; font-weight:600; min-width:96px; text-align:right; white-space:nowrap;"></span>
     <span id="health-badge"></span>
@@ -52,13 +52,13 @@
         </div>
         <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="toggleTheme()">
           <span class="acct-row-label">Appearance</span>
-          <span class="acct-row-val theme-toggle"></span>
+          <span class="acct-row-val theme-toggle"><span class="icon"></span><span class="label"></span></span>
         </button>
         <button class="acct-row acct-row-btn" id="acct-admin-console" type="button" role="menuitem" style="display:none;color:#fca5a5;" onclick="closeAcctMenu(); location.href='admin';">
           <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Admin Console</span>
         </button>
-        <button class="acct-row acct-row-btn" id="acct-manage-sub" type="button" role="menuitem" style="display:none;" onclick="closeAcctMenu(); openBillingPortal();">
-          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>Manage / cancel subscription</span>
+        <button class="acct-row acct-row-btn" type="button" role="menuitem" onclick="closeAcctMenu(); location.href='profile';">
+          <span class="acct-row-main"><span class="acct-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Edit profile</span>
         </button>
         <div class="acct-sep"></div>
         <button class="acct-row acct-row-btn" type="button" role="menuitem" id="acct-referral-btn" onclick="openReferralPanel(); closeAcctMenu();">
@@ -112,6 +112,9 @@
     <div class="sidebar-item" data-section="analysis" data-icon="beaker"></div>
     <div class="sidebar-item" data-section="modernize" data-icon="clock"></div>
     <div class="sidebar-item" data-section="quickfix" data-icon="check"></div>
+    <div class="sidebar-item" data-section="linkedin" data-icon="user"></div>
+    <div class="sidebar-item" data-section="interview" data-icon="chat"></div>
+    <div class="sidebar-item" data-section="sixsec" data-icon="gauge"></div>
 
     <div class="sidebar-section">Setup</div>
     <div class="sidebar-item" data-section="template" data-icon="doc"></div>
@@ -188,15 +191,27 @@
   </div>
 </div>
 
+<!-- Version diff modal -->
+<div class="modal-backdrop" id="modal-vdiff">
+  <div class="modal" style="max-width:640px;">
+    <button class="modal-close" onclick="closeModal('vdiff')">×</button>
+    <h3 id="modal-vdiff-title">Version Diff</h3>
+    <div id="vdiff-body" style="margin-top:12px;max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
-<script src="js/notify.js"></script>
+<script src="js/notify.js?v=20261106"></script>
 <script src="js/plan.js"></script>
 <script src="js/resume-file.js"></script>
 <script src="js/templates.js"></script>
 <script src="js/jobsync.js"></script>
 <script src="js/inline-ai.js"></script>
-<script src="js/editor.js"></script>
+<script src="js/version-diff.js"></script>
+<script src="js/jd-redflags.js"></script>
+<script src="js/keyword-heatmap.js"></script>
+<script src="js/editor.js?v=20261120b"></script>
 <script src="js/health-badge.js"></script>
 <script src="js/copilot-rail.js"></script>
 <script src="js/command-palette.js"></script>
@@ -272,13 +287,14 @@ document.getElementById('mob-preview-btn').addEventListener('click', function() 
 });
 </script>
 
+  <script src="js/glass-folder.js"></script>
   <script src="js/attribution.js"></script>
   <script src="js/ats-engine.js"></script>
   <script src="js/onboarding.js"></script>
   <script src="js/walkthrough.js"></script>
   <script src="js/whatsnew.js"></script>
   <script src="js/avatar-photo.js"></script>
-<script src="/js/appshell.js"></script>
+<script src="/js/appshell.js?v=20261110d"></script>
 <script src="/js/pwa.js" defer></script>
 </body>
 </html>

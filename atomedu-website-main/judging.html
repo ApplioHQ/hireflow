@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Art Contest Judging | atomEDU</title>
+  <link rel="icon" href="images/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;0,9..144,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="art-contest.css?v=contest-4" />
+  <link rel="stylesheet" href="judging.css?v=contest-5" />
+  <script src="contest-config.js?v=2026-11-15"></script>
+  <script src="judging.js?v=contest-5" defer></script>
+  <script src="site.js" defer></script>
+  <script src="site-i18n.js?v=founders-3" defer></script>
+</head>
+<body class="contest-page judging-page">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/"><img class="mark" src="images/logo.svg" alt="" /><span class="word">atom<b>EDU</b></span></a>
+      <nav class="nav" aria-label="Main navigation">
+        <a data-nav="/" href="/">Home</a><a data-nav="/features" href="/features">Features</a><a data-nav="/learn" href="/learn">Learn</a><a data-nav="/art-contest" href="/art-contest">Art contest</a><a data-nav="/about" href="/about">About</a><a data-nav="/contact" href="/contact">Contact</a><a class="cta" href="/proof-lab">Start math</a>
+      </nav>
+      <button class="menu-btn" type="button" aria-label="Menu"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    </div>
+    <div class="mobile-nav"><div class="inner"><a data-nav="/" href="/">Home</a><a data-nav="/features" href="/features">Features</a><a data-nav="/learn" href="/learn">Learn</a><a data-nav="/art-contest" href="/art-contest">Art contest</a><a data-nav="/about" href="/about">About</a><a data-nav="/contact" href="/contact">Contact</a><a class="cta" href="/proof-lab">Start math</a></div></div>
+  </header>
+  <main class="judge-shell">
+    <div class="judge-title"><p class="section-index">PRIVATE WORKSPACE</p><h1 class="heading-display">Daily judging</h1><p>Score every entry, review the top two, and confirm the daily results.</p></div>
+
+    <section class="judge-panel login-panel" id="login-panel" aria-labelledby="login-title"><div class="login-ornament" aria-hidden="true">✳</div><p class="section-index">JUDGE ACCESS</p><h2 class="heading-display" id="login-title">Enter the judging password.</h2><p>Access is checked by the contest server for every request. This page does not store the password after you leave.</p><form id="login-form"><label for="judge-password">Password</label><div class="login-row"><input id="judge-password" type="password" autocomplete="current-password" required /><button class="btn btn-accent" id="login-button" type="submit">Open judging</button></div><p class="judge-message" id="login-message" role="alert" hidden></p></form></section>
+
+    <section id="dashboard" hidden aria-label="Judging dashboard"><div class="judge-toolbar"><div class="judge-date-control"><label for="contest-date">Contest date <span>Central time</span></label><div><input id="contest-date" type="date" required /><button class="btn btn-primary" id="load-date" type="button">Load date</button></div><small>Only the current contest date is available from the judging API.</small></div><div class="judge-toolbar-actions"><button class="btn btn-ghost" id="refresh-judging" type="button">Sync live date</button><button class="btn btn-ghost" id="sign-out" type="button">Sign out</button></div></div><p class="judge-message" id="dashboard-message" role="status" aria-live="polite" hidden></p><div class="judge-summary"><div><small>DATE</small><strong id="summary-date">-</strong></div><div><small>SUBMISSIONS</small><strong id="summary-count">-</strong></div><div><small>WINNER</small><strong id="summary-winner">-</strong></div><div><small>RUNNER-UP</small><strong id="summary-runner-up">-</strong></div></div><div class="judge-criteria"><strong>Judging guide</strong><span>Score Beauty, Creativity, and Complexity from 0 to 10 for each entry. Save all scores, then review the top two before publishing. Resolve every tied total before submitting.</span></div><div class="judge-list-heading"><div><p class="section-index">ENTRIES</p><h2 class="heading-display">Submissions</h2></div><span id="list-caption">Choose a date to load entries.</span></div><div class="judge-grid" id="submission-list"></div><div class="judge-submit-bar" id="judge-submit-bar" hidden><p>All entries are scored. Results stay private until you confirm.</p><button class="btn btn-accent" id="submit-scores" type="button">Submit scores</button></div></section>
+    <dialog class="results-dialog" id="results-dialog" aria-labelledby="results-title"><div class="results-dialog-inner"><p class="section-index">FINAL REVIEW</p><h2 class="heading-display" id="results-title">Confirm daily results</h2><p class="results-warning">Nothing is public yet. Confirming will publish the winner and runner-up, archive both images, and permanently delete every other submission for this date.</p><p class="results-date" id="results-date"></p><div class="results-places"><article><span>DAILY WINNER</span><img id="preview-winner-image" alt="" hidden /><div id="preview-winner-placeholder" class="judge-image-placeholder">Loading image...</div><strong id="preview-winner-name"></strong><small id="preview-winner-score"></small></article><article id="preview-runner-card"><span>RUNNER-UP</span><img id="preview-runner-image" alt="" hidden /><div id="preview-runner-placeholder" class="judge-image-placeholder">Loading image...</div><strong id="preview-runner-name"></strong><small id="preview-runner-score"></small></article></div><p class="judge-message" id="results-message" role="alert" hidden></p><div class="results-actions"><button class="btn btn-ghost" id="cancel-results" type="button">Go back</button><button class="btn btn-accent" id="confirm-results" type="button">Confirm submission</button></div></div></dialog>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-card">
+        <div class="footer-banner">
+          <img class="bg" src="images/footer.svg" alt="" />
+          <div class="shade"></div>
+          <div class="content">
+            <h2 class="heading-display">Bring the math. Show the proof.</h2>
+            <p>Solve a problem, check your own steps, or generate a new one. Proof Lab is free and runs in your browser.</p>
+            <div class="actions">
+              <a class="btn btn-accent" href="/proof-lab">Start math</a>
+              <a class="btn btn-light" href="/features">See the features</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="brand" style="margin-bottom:0.3rem">
+              <img class="mark" src="images/logo.svg" alt="" style="width:32px;height:32px" />
+              <span class="word" style="color:#f1ece4">atom<b>EDU</b></span>
+            </div>
+            <p class="about">A free math proof tool for working through problems, checking reasoning, and seeing where a step goes wrong.</p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="/proof-lab">Proof Lab</a></li>
+              <li><a href="/features">Features</a></li>
+              <li><a href="/learn">How it works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="/legal#privacy">Privacy</a></li>
+              <li><a href="/legal#terms">Terms</a></li>
+              <li><a href="/legal#attributions">Attributions</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>
+            <div class="footer-site">atom-edu.org</div>
+            <span>&copy; <span id="yr"></span> atomEDU. Free for students.</span>
+          </div>
+          <span>Maintained by Avuthu, Awasthi, and Sanikommu.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

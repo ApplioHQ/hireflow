@@ -44,6 +44,22 @@ async function loadCurrentUser() {
   return CURRENT_USER;
 }
 
+async function loadCurrentProfile() {
+  const token = localStorage.getItem('hf_token');
+  if (!token) return null;
+  try {
+    const r = await fetch(API_BASE + '/profile', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!data || !data.profile || typeof data.profile !== 'object') return null;
+    localStorage.setItem('hf_profile', JSON.stringify(data.profile));
+    document.dispatchEvent(new Event('applio:profile-loaded'));
+    return data.profile;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ============ Expired-session guard (shared by every page) ============
 // Tokens last 30 days, so a returning user routinely arrives with a dead one. Each
 // page makes its own authed fetches and almost none checked for 401, so a dead
@@ -331,7 +347,7 @@ async function openBillingPortal() {
 }
 
 function signOutFromMenu() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_tour_done_v1'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_walkthrough_done'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 
@@ -474,7 +490,10 @@ async function _applioPageBoot() {
   const here = (location.pathname.split('/').pop() || '/').toLowerCase();
   const isLogin = here === 'login';
 
-  if (localStorage.getItem('hf_token')) await loadCurrentUser();
+  if (localStorage.getItem('hf_token')) {
+    const user = await loadCurrentUser();
+    if (user) await loadCurrentProfile();
+  }
   if (!isLogin) await checkSiteStatus();
 
   // Any stale founding-member promo flag is cleared without showing anything:

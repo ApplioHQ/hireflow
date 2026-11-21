@@ -36,7 +36,7 @@ id = "84f236c3086b4ca7809be72b6969ea62"
 # NO-OP until env.RESEND_API_KEY is set (see runWeeklyWinNudge), so this is inert
 # and costs ~nothing until email is deliberately activated.
 [triggers]
-crons = ["0 16 * * 5", "0 14 * * *"]
+crons = ["0 16 * * 5", "0 14 * * *", "0 9 * * *"]
 
 [vars]
 ALLOWED_ORIGIN = "https://appliohq.com,https://www.appliohq.com,https://codehost-commit.github.io"
@@ -52,6 +52,11 @@ GOOGLE_CLIENT_ID = ""
 # the id of a gateway you actually created (Dashboard > AI > AI Gateway); a wrong/
 # missing id makes EVERY AI call fail. "" and "default" both mean "no gateway".
 AI_GATEWAY_ID = ""
+# Authoritative PDF rendering uses Cloudflare Browser Rendering's REST API.
+# Set these as Worker secrets before enabling it:
+#   npx wrangler secret put CF_BROWSER_RENDERING_ACCOUNT_ID
+#   npx wrangler secret put CF_BROWSER_RENDERING_TOKEN
+# Until then the export UI falls back to the browser print flow.
 
 # ---------------------------------------------------------------------------
 # Staging, `wrangler deploy --env staging`  (worker: hireflow-api-staging)

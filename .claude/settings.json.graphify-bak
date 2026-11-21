@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "applio": {
+      "command": "node",
+      "args": ["/Users/pritamavuthu/Projects/hireflow-main/mcp/index.js"],
+      "env": {
+        "APPLIO_TOKEN": ""
+      }
+    }
+  }
+}

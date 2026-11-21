@@ -1,0 +1,26 @@
+# atomEDU
+
+> atomEDU builds Proof Lab, a free browser-based math solver and step checker powered by an in-house deterministic symbolic engine.
+
+atomEDU is a student-founded education technology team in O'Fallon, Missouri. Proof Lab is not an AI chat wrapper. Its owned engine parses mathematical input, performs exact arithmetic, applies explicit rule families, tracks restrictions, and replays proof certificates before displaying a verified result. Unsupported cases are labeled instead of guessed.
+
+## Primary pages
+
+- [Proof Lab](https://atom-edu.org/proof-lab): Solve supported problems, check work, generate practice, and graph functions.
+- [Features](https://atom-edu.org/features): Product capabilities, verification model, and current scope.
+- [How it works](https://atom-edu.org/learn): Guide to Proof Lab's modes and Ghost steps.
+- [atomEDU for Teachers](https://atom-edu.org/teachers): Create one-time Orbit Rooms and password-protected classroom quizzes with live monitoring and reports.
+- [About atomEDU](https://atom-edu.org/about): Mission, founders, and approach.
+- [Current coverage](https://atom-edu.org/proof-lab#coverage): The engine's declared supported topics and limits.
+- [Privacy and terms](https://atom-edu.org/legal): Product privacy, terms, and attributions.
+
+## Product facts
+
+- Proof Lab is free and requires no account.
+- atomEDU for Teachers requires no account; temporary live sessions support up to 50 students and expire automatically.
+- Supported symbolic workflows run in the browser.
+- The four main modes are Solve, Check work, Generate, and Graph.
+- The engine covers selected Algebra 1, Algebra 2, Geometry, and Precalculus rule families.
+- Graphing is numerical exploration and is kept separate from exact proof verification.
+- The interface supports English and Spanish.
+- Founders and maintainers: Pritam Avuthu, Rahul Awasthi, and Akshaj Sanikommu.

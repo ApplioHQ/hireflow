@@ -1,0 +1,177 @@
+/* Scoped graph workspace. Works with native inputs and host-supplied MathLive fields. */
+.atom-graph {
+  --graph-paper: #fff;
+  --graph-ink: var(--ink, #1f2a36);
+  --graph-muted: var(--muted, #6d6a61);
+  --graph-line: var(--line, #d8d2c8);
+  --graph-height: 520px;
+  color: var(--graph-ink);
+  background: var(--graph-paper);
+  border: 1px solid var(--graph-line);
+  border-radius: 13px;
+  overflow: hidden;
+  min-width: 0;
+  font: 13px/1.5 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  isolation: isolate;
+}
+.atom-graph *, .atom-graph *::before, .atom-graph *::after { box-sizing: border-box; }
+:is(.atom-graph, #graph-sidebar-host) [hidden] { display: none !important; }
+.atom-graph button, .atom-graph input, .atom-graph select { font: inherit; color: inherit; }
+.atom-graph button { cursor: pointer; touch-action: manipulation; }
+.atom-graph button:disabled, .atom-graph select:disabled { cursor: default; opacity: .45; }
+.atom-graph button:focus-visible, .atom-graph input:focus-visible, .atom-graph select:focus-visible, .atom-graph summary:focus-visible, .atom-graph canvas:focus-visible { outline: 2px solid #bf5a2e; outline-offset: -2px; }
+.atom-graph .graph-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--graph-line); background: #fff; }
+.atom-graph .graph-heading { display: flex; align-items: center; gap: 10px; }
+.atom-graph .graph-heading strong { font-weight: 650; font-size: 14px; }
+.atom-graph .graph-numerical-badge { color: #7a6440; background: #f7f0df; border: 1px solid #e8dcc1; border-radius: 4px; font-size: 9px; font-weight: 550; letter-spacing: .3px; padding: 2px 6px; white-space: nowrap; }
+.atom-graph .graph-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.atom-graph .graph-actions button, .atom-graph .graph-apply { background: #fff; border: 1px solid #d8dee6; border-radius: 8px; min-width: 40px; min-height: 40px; padding: 7px 11px; font-size: 12px; font-weight: 600; }
+.atom-graph .graph-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; color: #27394d; box-shadow: 0 1px 2px #162a410c; }
+.atom-graph .graph-actions button svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.atom-graph .graph-actions button:hover, .atom-graph .graph-apply:hover { background: #f3f7fb; border-color: #aebfd1; }
+.atom-graph .graph-actions button:active { background: #e9f1f9; transform: translateY(1px); }
+.atom-graph .graph-actions [data-graph-action^="zoom-"] { padding: 7px; }
+.atom-graph .graph-actions [data-graph-action^="zoom-"] svg { width: 20px; height: 20px; stroke-width: 2; }
+.atom-graph .graph-body { display: grid; grid-template-columns: minmax(230px, 285px) minmax(0, 1fr); min-width: 0; }
+.atom-graph .graph-sidebar { min-width: 0; max-height: calc(var(--graph-height) + 35px); overflow-y: auto; border-right: 1px solid var(--graph-line); padding: 16px 12px; background: #fff; scrollbar-width: thin; }
+.atom-graph .graph-list-heading { display: flex; justify-content: space-between; color: var(--graph-muted); font-size: 10px; font-weight: 650; letter-spacing: .7px; text-transform: uppercase; padding: 0 3px 10px; }
+.atom-graph .graph-count { font-weight: 400; font-variant-numeric: tabular-nums; }
+.atom-graph .graph-expression-list { display: grid; gap: 9px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-actions button { min-height: 29px; padding: 4px 7px; border: 1px solid #cbd7e4; border-radius: 6px; background: #f8fafc; color: #344b60; font: 600 10px/1.3 'Space Grotesk', 'Inter', system-ui, sans-serif; cursor: pointer; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-actions button:hover { background: #edf4fa; border-color: #9bb4cd; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-actions button:disabled { opacity: .45; cursor: default; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-actions button:focus-visible { outline: 2px solid #bf5a2e; outline-offset: 2px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-curve-note { margin: 5px 2px 0; color: #667582; font-size: 10px; line-height: 1.45; }
+.atom-graph .graph-expression-row { position: relative; display: grid; grid-template-columns: 23px 25px minmax(0, 1fr) 26px; align-items: center; gap: 4px; min-width: 0; min-height: 58px; border: 1px solid var(--graph-line); border-radius: 8px; background: #fff; padding: 5px 6px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-expression-controls { display: contents; }
+:is(.atom-graph, #graph-sidebar-host) .graph-visibility-label { position: relative; grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 22px; height: 24px; cursor: pointer; }
+:is(.atom-graph, #graph-sidebar-host) .graph-visibility { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+:is(.atom-graph, #graph-sidebar-host) .graph-visibility-label:focus-within { outline: 2px solid #3265a5; border-radius: 4px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-expression-number { display: block; color: #5d6d7c; font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; }
+:is(.atom-graph, #graph-sidebar-host) .graph-color { grid-column: 2; grid-row: 1; display: block; width: 23px; height: 23px; border: 1px solid #d8dee6; border-radius: 50%; padding: 2px; background: #fff; cursor: pointer; }
+:is(.atom-graph, #graph-sidebar-host) .graph-color::-webkit-color-swatch-wrapper { padding: 0; }
+:is(.atom-graph, #graph-sidebar-host) .graph-color::-webkit-color-swatch { border: 0; border-radius: 50%; }
+:is(.atom-graph, #graph-sidebar-host) .graph-color::-moz-color-swatch { border: 0; border-radius: 50%; }
+:is(.atom-graph, #graph-sidebar-host) .graph-delete { grid-column: 4; grid-row: 1; display: grid; place-items: center; width: 26px; height: 26px; background: transparent; border: 0; color: #718096; font-size: 19px; border-radius: 5px; line-height: 1; align-self: start; }
+:is(.atom-graph, #graph-sidebar-host) .graph-delete:hover { background: #fbefeb; color: #a13b2e; }
+.atom-graph .graph-expression-field { grid-column: 3; grid-row: 1; display: block; width: 100%; min-width: 0; margin: 3px 0; border: 1px solid transparent; border-radius: 4px; background: transparent; padding: 7px 4px; color: var(--graph-ink); font-size: 17px; }
+.atom-graph input.graph-expression-field { font-family: "SFMono-Regular", Consolas, monospace; font-size: 14px; letter-spacing: -.3px; min-height: 42px; }
+.atom-graph .graph-expression-field:focus, .atom-graph .graph-expression-field:focus-within { border-color: #d4c5b6; background: #fffdf9; box-shadow: none; }
+.atom-graph math-field.graph-expression-field { font-size: 21px; min-height: 48px; padding: 2px 1px; overflow-x: auto; }
+:is(.atom-graph, #graph-sidebar-host) button.graph-imported-formula { display: block; width: 100%; min-height: 48px; overflow-x: auto; border: 0; background: transparent; padding: 7px 4px; color: var(--graph-ink); text-align: left; white-space: nowrap; cursor: text; font-size: 14px; }
+:is(.atom-graph, #graph-sidebar-host) button.graph-imported-formula:hover { background: #f3f7fb; }
+:is(.atom-graph, #graph-sidebar-host) button.graph-imported-formula .rendered-math { font-size: 14px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-hidden .graph-expression-field, :is(.atom-graph, #graph-sidebar-host) .graph-row-hidden .graph-expression-number { opacity: .5; }
+:is(.atom-graph, #graph-sidebar-host) .graph-expression-message { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 5px; margin: 0; color: #857044; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+:is(.atom-graph, #graph-sidebar-host) .graph-expression-error { position: absolute; top: 5px; right: 35px; width: 16px; padding: 0; margin: 0; }
+:is(.atom-graph, #graph-sidebar-host) .graph-expression-error .graph-message-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+:is(.atom-graph, #graph-sidebar-host) .graph-warning-icon { display: inline-flex; flex: none; color: #b45309; margin-top: 1px; cursor: help; }
+:is(.atom-graph, #graph-sidebar-host) .graph-warning-icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-invalid { border-color: #e8c2b5; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-draft { border-style: dashed; border-color: #d7dee7; background: #f8fafc; opacity: .64; cursor: text; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-draft:focus-within { opacity: 1; border-color: #94b4d5; background: #fff; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-draft .graph-visibility-label { pointer-events: none; }
+:is(.atom-graph, #graph-sidebar-host) .graph-row-draft .graph-color { opacity: .55; pointer-events: none; }
+.lab-app #graph-sidebar-host .graph-expression-list .graph-expression-row { grid-template-columns: 23px 25px minmax(0, 1fr) 26px; gap: 4px; min-height: 58px; padding: 5px 6px; border-left: 1px solid #dce2e8; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-visibility-label { grid-column: 1; grid-row: 1; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-visibility { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-expression-number { display: block; color: #5d6d7c; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-color { grid-column: 2; grid-row: 1; width: 23px; height: 23px; margin: 0; justify-self: center; align-self: center; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-expression-field { grid-column: 3; grid-row: 1; min-height: 48px; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-delete { grid-column: 4; grid-row: 1; font-size: 19px; align-self: start; }
+.lab-app #graph-sidebar-host .graph-expression-row .graph-expression-message { grid-column: 1 / -1; padding: 0; }
+.lab-app #graph-sidebar-host .graph-expression-list .graph-row-draft { border: 1px dashed #d7dee7; background: #f8fafc; }
+.lab-app #graph-sidebar-host .graph-expression-list .graph-row-draft:focus-within { border-color: #94b4d5; background: #fff; }
+.lab-app #graph-sidebar-host .graph-expression-list .graph-row-invalid { border-color: #e8c2b5; }
+.atom-graph .graph-example-label { display: block; color: var(--graph-muted); margin-top: 16px; font-size: 10px; }
+.atom-graph .graph-examples { display: block; width: 100%; margin-top: 5px; background: var(--graph-paper); border: 1px solid var(--graph-line); border-radius: 5px; padding: 7px 4px; min-height: 34px; font-size: 11px; }
+.atom-graph .graph-parameters { padding: 15px 0 3px; }
+.atom-graph .graph-parameters h3 { margin: 0 0 10px; font-size: 11px; font-weight: 650; }
+.atom-graph .graph-parameter { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; margin-bottom: 12px; }
+.atom-graph .graph-parameter label { font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+.atom-graph .graph-parameter input { grid-row: 2; grid-column: 1 / -1; width: 100%; accent-color: #bf5a2e; margin: 0; min-height: 26px; }
+.atom-graph .graph-parameter-limits { font-size: 9px; color: #8a9084; align-self: center; }
+.atom-graph .graph-window { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--graph-line); }
+.atom-graph .graph-window summary { font-size: 11px; color: var(--graph-ink); cursor: pointer; }
+.atom-graph .graph-window-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.atom-graph .graph-window-inputs label { font-size: 10px; color: var(--graph-muted); }
+.atom-graph .graph-window-inputs input { width: 100%; min-width: 0; display: block; background: var(--graph-paper); border: 1px solid var(--graph-line); padding: 6px; border-radius: 4px; margin-top: 3px; font-size: 11px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-window-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-window-modes label { min-width: 0; font-size: 10px; color: var(--graph-muted, #6d6a61); }
+:is(.atom-graph, #graph-sidebar-host) .graph-window-modes label:last-child { grid-column: 1 / -1; }
+:is(.atom-graph, #graph-sidebar-host) .graph-window-modes select { display: block; width: 100%; min-height: 30px; margin-top: 3px; padding: 4px 6px; border: 1px solid var(--graph-line, #d8d2c8); border-radius: 4px; background: var(--graph-paper, #fff); font-size: 11px; }
+.atom-graph .graph-equal-label { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--graph-ink); margin-bottom: 12px; }
+.atom-graph .graph-equal-label input { accent-color: #bf5a2e; }
+.atom-graph .graph-window-error { color: #a13b2e; font-size: 10px; margin: 5px 0 0; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-import { margin-top: 17px; padding-top: 15px; border-top: 1px solid var(--graph-line); }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-import summary { color: var(--graph-ink); font-size: 13px; font-weight: 650; cursor: pointer; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-panel { display: grid; gap: 10px; padding-top: 12px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-panel > p:first-child { margin: 0; color: #627080; font-size: 11px; line-height: 1.5; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop { position: relative; display: grid; place-items: center; gap: 3px; min-height: 115px; padding: 12px; border: 1.5px dashed #a7bbd0; border-radius: 10px; background: #f5f9fd; color: #27394d; text-align: center; cursor: pointer; transition: background .16s, border-color .16s; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop:hover, .atom-graph .graph-image-drop.is-dragging { background: #eaf3fc; border-color: #3972ae; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop:focus-within { outline: 2px solid #3972ae; outline-offset: 2px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop-icon { font-size: 29px; line-height: 1; color: #3972ae; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop strong { font-size: 12px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-drop small { font-size: 10px; color: #697c8c; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-name { margin: 0; color: #526779; font-size: 10px; overflow-wrap: anywhere; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-preview { display: block; width: 100%; max-height: 155px; object-fit: contain; border: 1px solid #dde5ee; border-radius: 8px; background: #fff; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-style-label { display: flex; justify-content: space-between; align-items: center; gap: 9px; font-size: 11px; font-weight: 650; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-style { width: 145px; padding: 7px 9px; border: 1px solid #cbd7e4; border-radius: 7px; background: #fff; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-convert { min-height: 39px; padding: 8px 11px; border: 1px solid #22374b; border-radius: 8px; background: #22374b; color: #fff; font-weight: 700; font-size: 12px; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-convert:hover { background: #355471; }
+:is(.atom-graph, #graph-sidebar-host) .graph-image-status { min-height: 2.5em; margin: 0; color: #57697b; font-size: 11px; line-height: 1.45; }
+.graph-import-overlay { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(20, 31, 43, .5); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.graph-import-card { width: min(420px, 100%); padding: 30px; border: 1px solid #e2eaf2; border-radius: 18px; background: rgba(255, 255, 255, .94); box-shadow: 0 25px 85px #14202c44; color: #223346; text-align: center; font-family: 'Space Grotesk', system-ui, sans-serif; }
+.graph-import-card h2 { margin: 14px 0 6px; font-size: 21px; line-height: 1.2; }
+.graph-import-card p { margin: 6px 0 16px; font-size: 13px; color: #617286; }
+.graph-import-spinner { display: inline-block; width: 41px; height: 41px; border: 4px solid #c9d8e8; border-top-color: #2d6ed0; border-radius: 50%; animation: graph-import-spin .8s linear infinite; }
+.graph-import-track { height: 7px; overflow: hidden; border-radius: 999px; background: #e3eaf1; }
+.graph-import-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: #2d6ed0; transition: width .18s; }
+.graph-import-card .graph-import-eta { margin: 9px 0 18px; font-variant-numeric: tabular-nums; }
+.graph-import-cancel { min-width: 96px; padding: 8px 15px; border: 1px solid #cbd6e2; border-radius: 8px; background: #fff; color: #32495f; font-size: 12px; font-weight: 700; cursor: pointer; }
+.graph-import-cancel:hover { background: #eef4fa; }
+@keyframes graph-import-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .graph-import-spinner { animation-duration: 2s; } .graph-import-track span { transition: none; } }
+.atom-graph .graph-expression-help { color: #818779; font-size: 10px; line-height: 1.6; margin: 14px 2px 0; }
+.atom-graph .graph-plot-area { min-width: 0; display: flex; flex-direction: column; }
+.atom-graph .graph-stage { position: relative; width: 100%; height: var(--graph-height); min-height: 240px; min-width: 0; overflow: hidden; background: #fff; }
+.atom-graph .graph-canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; background: #fff; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.atom-graph.graph-dragging .graph-canvas { cursor: grabbing; }
+.atom-graph .graph-coordinate-readout { position: absolute; top: 10px; right: 10px; color: var(--graph-ink); background: #fff; border: 1px solid var(--graph-line); border-radius: 4px; padding: 4px 8px; font: 10px/1.4 "SFMono-Regular", Consolas, monospace; white-space: pre; pointer-events: none; font-variant-numeric: tabular-nums; }
+.atom-graph .graph-trace { position: absolute; left: 10px; bottom: 20px; max-width: calc(100% - 20px); overflow-wrap: anywhere; padding: 6px 9px; background: #fff; color: var(--graph-ink); border: 1px solid var(--graph-line); border-radius: 4px; font: 10px/1.5 "SFMono-Regular", Consolas, monospace; pointer-events: none; }
+.atom-graph .graph-plot-help { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #818779; padding: 9px 12px; font-size: 9px; border-top: 1px solid #eeeee6; margin-top: auto; }
+.atom-graph .graph-disclaimer { border-top: 1px solid var(--graph-line); background: #fff; padding: 10px 16px; color: var(--graph-muted); font-size: 10px; line-height: 1.6; }
+.lab-app .graph-workspace-canvas .atom-graph .graph-actions button { min-width: 40px; min-height: 40px; padding: 7px 9px; font-size: 12px; }
+.atom-graph.graph-compact { --graph-height: 330px; }
+.atom-graph.graph-compact .graph-body { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); }
+.atom-graph.graph-compact .graph-sidebar { max-height: calc(var(--graph-height) + 45px); }
+.atom-graph.graph-compact .graph-toolbar { padding: 10px 12px; }
+.atom-graph.graph-compact .graph-numerical-badge { display: none; }
+/* Container queries accommodate a graph embedded in a narrow result panel. */
+.atom-graph { container-type: inline-size; }
+@container (max-width: 640px) {
+  .atom-graph .graph-body { display: flex; flex-direction: column-reverse; }
+  .atom-graph .graph-sidebar { max-height: 340px; border-right: 0; border-top: 1px solid var(--graph-line); }
+  .atom-graph .graph-toolbar { flex-wrap: wrap; gap: 8px; }
+  .atom-graph .graph-stage { height: min(var(--graph-height), 65vw); min-height: 280px; }
+  .atom-graph .graph-actions { gap: 4px; }
+  .atom-graph .graph-expression-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+  .atom-graph .graph-plot-help span:last-child { display: none; }
+}
+@container (max-width: 520px) {
+  .atom-graph .graph-heading { display: none; }
+  .atom-graph .graph-toolbar { justify-content: center; }
+  .atom-graph .graph-actions { justify-content: center; gap: 5px; }
+  .atom-graph .graph-actions button span { display: none; }
+}
+@media (max-width: 600px) {
+  .atom-graph .graph-body { display: flex; flex-direction: column-reverse; }
+  .atom-graph .graph-sidebar { max-height: 340px; border-right: 0; border-top: 1px solid var(--graph-line); }
+  .atom-graph .graph-toolbar { flex-wrap: wrap; gap: 8px; }
+  .atom-graph .graph-stage { height: min(var(--graph-height), 65vw); min-height: 280px; }
+  .atom-graph .graph-actions button { min-height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) { .atom-graph * { scroll-behavior: auto; } }
+@media print { .atom-graph .graph-sidebar, .atom-graph .graph-toolbar, .atom-graph .graph-plot-help, .atom-graph .graph-coordinate-readout { display: none; } .atom-graph .graph-body { display: block; } }

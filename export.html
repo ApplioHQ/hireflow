@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Export | Applio</title>
-<link rel="icon" href="logo.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -41,7 +41,7 @@
 </head>
 <body class="app-body-scroll">
 <header class="app-topbar">
-  <div class="brand"><img src="logo.jpeg" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
+  <div class="brand"><img src="logo-mark.png" width="32" height="32" class="brand-logo" alt="Applio"><span>Applio</span></div>
   <div class="topbar-right">
     <span id="download-pill"></span>
   </div>
@@ -92,7 +92,7 @@
         <div style="font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4;">Compress spacing and text so everything fits on a single page.</div>
       </div>
       <button class="btn btn-primary btn-block" onclick="tryExport(SELECTED_FORMAT)" id="btn-pdf"></button>
-      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="tryExport('pdf')">Print</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="printFrame()">Print</button>
       <div id="download-info" style="margin-top:14px; font-size:12px; color:var(--muted); text-align:center;"></div>
       <!-- Hidden until Google OAuth verification is complete -->
       <div id="gdoc-section" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
@@ -126,6 +126,13 @@ const resume = (function () {
   try { return JSON.parse(localStorage.getItem('hf_resume') || '{}'); }
   catch { return {}; }  // corrupt storage must not white-screen the export page
 })();
+
+function _resumeForExport(source) {
+  const copy = JSON.parse(JSON.stringify(source || {}));
+  delete copy.versions;
+  delete copy.tailor;
+  return copy;
+}
 
 let _exportFrame = null;
 
@@ -297,10 +304,19 @@ function render() {
     sizer.appendChild(_exportFrame);
     container.appendChild(sizer);
   }
-  const doc = _renderClean();
-  const apply = () => { _expPaginate(doc); _expScale(doc); };
-  apply();
-  setTimeout(apply, 60);
+  try {
+    const doc = _renderClean();
+    const apply = () => { _expPaginate(doc); _expScale(doc); };
+    apply();
+    setTimeout(apply, 60);
+  } catch (e) {
+    console.error('Resume preview failed:', e);
+    _exportFrame = null;
+    container.innerHTML = '<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;text-align:center;color:var(--text);">' +
+      '<div style="font-weight:700;font-size:16px;margin-bottom:8px;">We could not render this preview</div>' +
+      '<div style="color:var(--muted);font-size:13px;margin-bottom:18px;">Return to the editor and review the imported sections, then try exporting again.</div>' +
+      '<a class="btn btn-primary" href="editor">Back to editor</a></div>';
+  }
 }
 window.addEventListener('resize', () => {
   if (_exportFrame && _exportFrame.contentDocument && _exportFrame.contentDocument.querySelector('.hf-doc')) _expScale(_exportFrame.contentDocument);
@@ -413,12 +429,64 @@ async function tryExport(fmt) {
       updatePills();
     } catch(e) { console.warn('download tracking failed', e); }
   }
-  if (fmt === 'pdf') { printFrame(); _trackExport('download_pdf'); }
+  if (fmt === 'pdf') {
+    try {
+      const rendered = await downloadAuthoritativePdf();
+      if (!rendered) printFrame();
+      _trackExport('download_pdf');
+    } catch (e) {
+      if (e && e.code === 'resume_too_large') {
+        printFrame();
+        _trackExport('export_print');
+        if (typeof toast === 'function') toast('Your resume is ready to save through your browser print dialog.', { type: 'info' });
+      } else {
+        if (typeof toast === 'function') toast(e.message || 'PDF export failed. Please try again.', { type: 'error' });
+        return;
+      }
+    }
+  }
   else if (fmt === 'html') exportHTML();
   else if (fmt === 'txt') exportTXT();
-  // Non-blocking feedback prompt shortly after the download completes.
-  setTimeout(showExportFeedbackPrompt, 1500);
-  setTimeout(showInterviewWinPrompt, 2000);
+  // Ask once after a successful export. A submission is private by default; public
+  // use remains a separate, explicit approval in testimonial settings.
+  setTimeout(showPostExportTestimonialModal, 900);
+  setTimeout(showExportFeedbackPrompt, 2200);
+  setTimeout(showInterviewWinPrompt, 2800);
+}
+
+function _exportTestimonialCanAsk() {
+  try { var t = parseInt(localStorage.getItem('hf_export_testimonial_asked') || '0', 10); return !t || Date.now() - t > 120 * 864e5; } catch (_) { return true; }
+}
+function showPostExportTestimonialModal() {
+  if (!TOKEN || !_exportTestimonialCanAsk() || document.getElementById('export-testimonial-modal')) return;
+  try { localStorage.setItem('hf_export_testimonial_asked', String(Date.now())); } catch (_) {}
+  var profile = {}; try { profile = JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}; } catch (_) {}
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay testimonial-modal-overlay'; overlay.id = 'export-testimonial-modal';
+  overlay.innerHTML = '<section class="modal testimonial-modal" role="dialog" aria-modal="true" aria-labelledby="export-testimonial-title">'
+    + '<button class="testimonial-modal-close" type="button" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+    + '<p class="testimonial-modal-kicker">Your resume is ready</p><h2 id="export-testimonial-title">How did Applio help?</h2>'
+    + '<p>A quick note helps us learn what works. This stays private unless you later choose to share it.</p>'
+    + '<textarea class="testimonial-modal-field" rows="3" maxlength="1000" placeholder="Applio helped me..."></textarea>'
+    + '<div class="testimonial-modal-fields"><input class="testimonial-modal-field" data-tst-role maxlength="120" placeholder="Role (optional)"><input class="testimonial-modal-field" data-tst-company maxlength="120" placeholder="Company (optional)"></div>'
+    + '<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--r-sm);background:var(--accent-ghost);margin-bottom:20px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--accent-text)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span style="font-size:var(--fs-xs);color:var(--muted);line-height:1.45;">Saved privately by default. You can review and approve publication later in your testimonial settings.</span></div>'
+    + '<div class="testimonial-modal-actions"><button class="btn btn-ghost" type="button" data-tst-skip>Not now</button><button class="btn btn-primary" type="button" data-tst-save>Save privately</button></div>'
+    + '</section>';
+  document.body.appendChild(overlay);
+  var fields = overlay.querySelectorAll('.testimonial-modal-field');
+  if (fields[1]) fields[1].value = profile.role || '';
+  if (fields[2]) fields[2].value = profile.company || '';
+  function close() { overlay.remove(); }
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+  overlay.querySelector('.testimonial-modal-close').onclick = close;
+  overlay.querySelector('[data-tst-skip]').onclick = close;
+  overlay.querySelector('[data-tst-save]').onclick = function () {
+    var quote = (fields[0].value || '').trim(); if (!quote) { fields[0].focus(); return; }
+    var btn = this; btn.disabled = true; btn.textContent = 'Saving…';
+    fetch(window.HIREFLOW_CONFIG.API_URL + '/testimonial', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN }, body: JSON.stringify({ action: 'revise', quote: quote, attribution: 'anonymous', title: (fields[1].value || '').trim(), company: (fields[2].value || '').trim() }) })
+      .then(function (r) { if (!r.ok) throw new Error(); overlay.querySelector('.testimonial-modal').innerHTML = '<p class="testimonial-modal-kicker">Saved privately</p><h2>Thank you.</h2><p>You can review your quote and choose exactly where it may be featured at any time.</p><div class="testimonial-modal-actions"><a class="btn btn-secondary" href="/testimonial">Review testimonial settings</a><button class="btn btn-primary" type="button" data-tst-done>Done</button></div>'; overlay.querySelector('[data-tst-done]').onclick = close; })
+      .catch(function () { btn.disabled = false; btn.textContent = 'Save privately'; });
+  };
 }
 
 // ============ Testimonial ask (fired right after a reported win) ============
@@ -624,7 +692,7 @@ async function exportToGdoc() {
     const r = await fetch(window.HIREFLOW_CONFIG.API_URL + '/export-gdoc', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume }),
+      body: JSON.stringify({ resume: _resumeForExport(resume) }),
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Export failed');
@@ -725,6 +793,36 @@ function _resumeFilename(ext) {
     .replace(/\s+/g, '_').replace(/[^\w-]/g, '');
   const base = name ? name + '_Resume' : 'resume';
   return ext ? base + '.' + ext : base;
+}
+
+// Final PDF files come from Cloudflare's pinned Chromium renderer. That makes the
+// downloaded page layout independent of the visitor's browser, installed fonts,
+// or print-dialog scale settings. A missing server renderer is intentionally not a
+// hard failure during rollout: users retain the existing browser-print export.
+async function downloadAuthoritativePdf() {
+  if (!TOKEN || !window.HIREFLOW_CONFIG || !window.HIREFLOW_CONFIG.API_URL) return false;
+  const button = document.getElementById('btn-pdf');
+  if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+  try {
+    const response = await fetch(window.HIREFLOW_CONFIG.API_URL + '/resume/pdf', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resume: _resumeForExport(resume) }),
+    });
+    if (!response.ok) {
+      let data = {}; try { data = await response.json(); } catch (_) {}
+      if (data.code === 'renderer_unavailable') return false;
+      const error = new Error(data.error || 'PDF export failed');
+      error.code = data.code;
+      throw error;
+    }
+    const blob = await response.blob();
+    if (!blob.size || blob.type !== 'application/pdf') throw new Error('The PDF renderer returned an invalid file');
+    download(blob, _resumeFilename('pdf'));
+    return true;
+  } finally {
+    if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+  }
 }
 function exportHTML() {
   // Render clean first so the downloaded file has no canvas/sheet chrome.
@@ -833,7 +931,7 @@ function updatePills() {
 })();
 </script>
   <script src="js/acctcenter.js"></script>
-  <script src="/js/appshell.js"></script>
+<script src="/js/appshell.js?v=20261110d"></script>
 <script src="/js/pwa.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+{
+  "name": "atomEDU Proof Lab",
+  "short_name": "Proof Lab",
+  "description": "Free exact math solving, step checking, practice generation, and graphing.",
+  "start_url": "/proof-lab",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f5f2",
+  "theme_color": "#1f2a36",
+  "icons": [{ "src": "/images/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

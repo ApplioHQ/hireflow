@@ -34,6 +34,12 @@ const DEFAULT_RESUME = {
   versions: []
 };
 
+function _resumeSnapshot(source) {
+  const snapshot = JSON.parse(JSON.stringify(source || {}));
+  delete snapshot.versions;
+  return snapshot;
+}
+
 // Deep-merge any loaded resume against the default shape so a valid-but-partial or
 // legacy record (missing customize / personal / skills.categories / tailor) can never
 // white-screen the editor (renderPreview reads resume.customize.accent on every render).
@@ -48,6 +54,9 @@ function _normalizeResume(raw) {
   }
   for (const k of Object.keys(raw)) { if (!(k in base)) base[k] = raw[k]; }   // keep custom-section arrays
   if (!base.skills || !Array.isArray(base.skills.categories)) base.skills = { categories: [] };
+  base.versions = Array.isArray(base.versions) ? base.versions.slice(0, 25).map(function (version) {
+    return Object.assign({}, version, { data: _resumeSnapshot(version && version.data) });
+  }) : [];
   return base;
 }
 
@@ -205,6 +214,9 @@ const SECTION_INFO = {
   ats:           { label: 'ATS Check',      icon: 'check' },
   analysis:      { label: 'AI Analysis',    icon: 'beaker' },
   modernize:     { label: 'Age-Proof',      icon: 'clock' },
+  linkedin:      { label: 'LinkedIn',       icon: 'user' },
+  interview:     { label: 'Interview Prep', icon: 'chat' },
+  sixsec:        { label: '6-Sec Scan',    icon: 'gauge' },
   dashboard:     { label: 'Dashboard',      icon: 'chart' },
   quickfix:      { label: 'Quick Fixes',    icon: 'check' },
   customize:     { label: 'Customize',      icon: 'settings' }
@@ -288,8 +300,16 @@ function hydrate() {
   // Account center identity (avatar initials, email, plan label)
   const acctEmail = (CURRENT_USER && CURRENT_USER.email) || localStorage.getItem('hf_email') || '';
   const initials = acctEmail ? acctEmail.trim().charAt(0).toUpperCase() : 'A';
+  let avatar = '';
+  try { avatar = (JSON.parse(localStorage.getItem('hf_profile') || '{}') || {}).avatar || ''; } catch (e) {}
   ['acct-avatar', 'acct-avatar-lg'].forEach(function (id) {
-    const el = document.getElementById(id); if (el) el.textContent = initials;
+    const el = document.getElementById(id); if (!el) return;
+    if (avatar) {
+      el.innerHTML = `<img src="${avatar}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+      el.style.overflow = 'hidden';
+    } else {
+      el.textContent = initials;
+    }
   });
   const emEl = document.getElementById('acct-email'); if (emEl) emEl.textContent = acctEmail || 'Account';
   const plEl = document.getElementById('acct-plan-label'); if (plEl) plEl.textContent = _admin ? 'Admin · full access' : 'Everything free';
@@ -384,7 +404,7 @@ function goSection(key) {
   _closeMobileDrawers && _closeMobileDrawers();
   // Track AI-tool section visits separately (they have their own AI counters);
   // track general content sections so we know which resume sections users actually fill in.
-  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','assistant']);
+  const AI_SECTIONS = new Set(['tailor','ats','analysis','modernize','quickfix','interview','linkedin','sixsec','assistant']);
   if (!AI_SECTIONS.has(key)) track('section_visit', { variant: key });
 }
 
@@ -395,6 +415,7 @@ const SECTIONS = {
   certifications: renderCertifications, awards: renderAwards, leadership: renderLeadership,
   volunteer: renderVolunteer, publications: renderPublications,
   tailor: renderTailor, ats: renderATS, analysis: renderAnalysis, modernize: renderModernize,
+  linkedin: renderLinkedIn, interview: renderInterview, sixsec: renderSixSec,
   dashboard: renderDashboard, quickfix: renderQuickFix, customize: renderCustomize
 };
 
@@ -430,9 +451,11 @@ function renderMain() {
     setTimeout(_wireAutoGrow, 60);
     renderPreview();
     if (currentSection === 'skills') setTimeout(_bindTagInput, 0);
+    if (currentSection === 'tailor') setTimeout(() => _renderJDRedFlags(resume.tailor.jobDescription, 'tailor-redflags'), 0);
     setTimeout(_bindDragReorder, 0);
     setTimeout(_bindSectionDrag, 0);
     _refreshCompletion();
+    if (currentSection === 'dashboard') _mountFolders();
   };
 
   // Use View Transitions API for a polished cross-fade when switching sections.
@@ -1070,6 +1093,102 @@ const TEMPLATE_THUMBS = {
     <rect x="8" y="84" width="20" height="1.8" rx=".5" fill="#1a73e8"/><rect x="8" y="87.4" width="69" height=".7" fill="#dadce0"/>
     <rect x="8" y="92" width="54" height="1.3" rx=".5" fill="#dadce0"/>
   </svg>`,
+  notion: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="8" y="9" width="48" height="6.5" rx="1" fill="#37352f"/>
+    <rect x="8" y="18" width="30" height="1.8" rx=".5" fill="#787774"/>
+    <rect x="8" y="23" width="16" height="3" rx="1.5" fill="#f1f1ef"/><rect x="26" y="23" width="22" height="3" rx="1.5" fill="#f1f1ef"/><rect x="50" y="23" width="14" height="3" rx="1.5" fill="#f1f1ef"/>
+    <rect x="8" y="30" width="69" height=".5" fill="#e3e2e0"/>
+    <rect x="8" y="35" width="16" height="1.6" rx=".5" fill="#9b9a97" style="font-variant:small-caps"/>
+    <rect x="8" y="39.5" width="2" height="9" fill="#e3e2e0"/>
+    <rect x="13" y="40" width="30" height="1.6" rx=".5" fill="#37352f"/><rect x="55" y="40" width="14" height="1.4" rx=".5" fill="#9b9a97"/>
+    <rect x="13" y="44" width="55" height="1.3" rx=".5" fill="#d4d4d4"/><rect x="13" y="48" width="48" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="54.5" width="2" height="9" fill="#e3e2e0"/>
+    <rect x="13" y="55" width="28" height="1.6" rx=".5" fill="#37352f"/><rect x="55" y="55" width="14" height="1.4" rx=".5" fill="#9b9a97"/>
+    <rect x="13" y="59" width="52" height="1.3" rx=".5" fill="#d4d4d4"/><rect x="13" y="63" width="46" height="1.3" rx=".5" fill="#d4d4d4"/>
+    <rect x="8" y="72" width="16" height="1.6" rx=".5" fill="#9b9a97"/>
+    <rect x="8" y="77" width="14" height="3" rx="1.5" fill="#f1f1ef"/><rect x="24" y="77" width="18" height="3" rx="1.5" fill="#f1f1ef"/><rect x="44" y="77" width="16" height="3" rx="1.5" fill="#f1f1ef"/>
+    <rect x="8" y="82" width="20" height="3" rx="1.5" fill="#f1f1ef"/><rect x="30" y="82" width="12" height="3" rx="1.5" fill="#f1f1ef"/>
+  </svg>`,
+  sidebar: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="24" height="110" fill="#111827"/>
+    <rect x="5" y="10" width="14" height="14" rx="7" fill="#6d4dfc"/>
+    <rect x="5" y="28" width="14" height="2.5" rx="1" fill="#fff"/>
+    <rect x="5" y="33" width="10" height="1.5" rx=".5" fill="#6d4dfc" opacity=".8"/>
+    <rect x="5" y="40" width="8" height="1.2" rx=".5" fill="#6d4dfc"/><rect x="5" y="42.5" width="12" height=".6" fill="#1f2937"/>
+    <rect x="5" y="46" width="14" height="1" rx=".5" fill="rgba(255,255,255,.4)"/>
+    <rect x="5" y="49" width="12" height="1" rx=".5" fill="rgba(255,255,255,.4)"/>
+    <rect x="5" y="52" width="14" height="1" rx=".5" fill="rgba(255,255,255,.4)"/>
+    <rect x="5" y="59" width="8" height="1.2" rx=".5" fill="#6d4dfc"/><rect x="5" y="61.5" width="12" height=".6" fill="#1f2937"/>
+    <rect x="5" y="65" width="6" height="2" rx="1" fill="rgba(255,255,255,.08)"/><rect x="12" y="65" width="6" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+    <rect x="5" y="69" width="8" height="2" rx="1" fill="rgba(255,255,255,.08)"/><rect x="5" y="73" width="6" height="2" rx="1" fill="rgba(255,255,255,.08)"/>
+    <rect x="5" y="80" width="8" height="1.2" rx=".5" fill="#6d4dfc"/><rect x="5" y="82.5" width="12" height=".6" fill="#1f2937"/>
+    <rect x="5" y="86" width="14" height="1" rx=".5" fill="rgba(255,255,255,.35)"/>
+    <rect x="5" y="89" width="12" height="1" rx=".5" fill="rgba(255,255,255,.35)"/>
+    <rect x="30" y="10" width="20" height="2.5" rx="1" fill="#6d4dfc"/><rect x="30" y="14" width="47" height="1.2" fill="#6d4dfc" opacity=".25"/>
+    <rect x="30" y="19" width="45" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="30" y="23" width="40" height="1.5" rx=".5" fill="#94a3b8"/>
+    <rect x="30" y="32" width="20" height="2.5" rx="1" fill="#6d4dfc"/><rect x="30" y="36" width="47" height="1.2" fill="#6d4dfc" opacity=".25"/>
+    <rect x="30" y="41" width="36" height="1.6" rx=".5" fill="#1f2937"/><rect x="73" y="41" width="7" height="1.4" rx=".5" fill="#9ca3af"/>
+    <rect x="30" y="45" width="42" height="1.3" rx=".5" fill="#d1d5db"/><rect x="30" y="49" width="38" height="1.3" rx=".5" fill="#d1d5db"/>
+    <rect x="30" y="56" width="36" height="1.6" rx=".5" fill="#1f2937"/><rect x="73" y="56" width="7" height="1.4" rx=".5" fill="#9ca3af"/>
+    <rect x="30" y="60" width="40" height="1.3" rx=".5" fill="#d1d5db"/><rect x="30" y="64" width="35" height="1.3" rx=".5" fill="#d1d5db"/>
+  </svg>`,
+  federal: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="18" y="9" width="49" height="5.5" rx="1" fill="#000"/>
+    <rect x="22" y="17" width="41" height="1.5" rx=".5" fill="#333"/>
+    <rect x="8" y="22" width="69" height="2" fill="#000"/>
+    <rect x="8" y="30" width="32" height="2.2" rx=".5" fill="#000"/><rect x="8" y="33.5" width="69" height="1" fill="#000"/>
+    <rect x="8" y="38" width="58" height="1.5" rx=".5" fill="#999"/><rect x="8" y="42" width="65" height="1.5" rx=".5" fill="#999"/>
+    <rect x="8" y="50" width="24" height="2.2" rx=".5" fill="#000"/><rect x="8" y="53.5" width="69" height="1" fill="#000"/>
+    <rect x="8" y="58" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="58" width="15" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="62" width="65" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="66" width="60" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="70" width="63" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="78" width="24" height="2.2" rx=".5" fill="#000"/><rect x="8" y="81.5" width="69" height="1" fill="#000"/>
+    <rect x="8" y="86" width="36" height="1.6" rx=".5" fill="#333"/><rect x="62" y="86" width="15" height="1.4" rx=".5" fill="#999"/>
+    <rect x="8" y="90" width="62" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="94" width="57" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  academic: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="14" y="9" width="57" height="5.5" rx="1" fill="#1e3a5f"/>
+    <rect x="26" y="17" width="33" height="1.5" rx=".5" fill="#555" opacity=".8"/>
+    <rect x="18" y="21" width="49" height="1.2" rx=".5" fill="#666"/>
+    <rect x="8" y="26" width="69" height=".5" fill="#1e3a5f"/>
+    <rect x="8" y="31" width="40" height="2" rx=".5" fill="#1e3a5f" opacity=".7"/>
+    <rect x="8" y="34.4" width="69" height=".4" fill="#1e3a5f" opacity=".25"/>
+    <rect x="8" y="39" width="60" height="1.4" rx=".5" fill="#999" opacity=".7"/>
+    <rect x="8" y="47" width="52" height="2" rx=".5" fill="#1e3a5f" opacity=".7"/>
+    <rect x="8" y="50.4" width="69" height=".4" fill="#1e3a5f" opacity=".25"/>
+    <rect x="8" y="55" width="34" height="1.6" rx=".5" fill="#333"/><rect x="62" y="55" width="15" height="1.4" rx=".5" fill="#666" opacity=".7"/>
+    <rect x="8" y="59" width="62" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="63" width="56" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="70" width="34" height="1.6" rx=".5" fill="#333"/><rect x="62" y="70" width="15" height="1.4" rx=".5" fill="#666" opacity=".7"/>
+    <rect x="8" y="74" width="60" height="1.3" rx=".5" fill="#cfcfcf"/><rect x="8" y="78" width="54" height="1.3" rx=".5" fill="#cfcfcf"/>
+    <rect x="8" y="86" width="32" height="2" rx=".5" fill="#1e3a5f" opacity=".7"/>
+    <rect x="8" y="89.4" width="69" height=".4" fill="#1e3a5f" opacity=".25"/>
+    <rect x="8" y="94" width="58" height="1.3" rx=".5" fill="#cfcfcf"/>
+  </svg>`,
+  infographic: `<svg viewBox="0 0 85 110" xmlns="http://www.w3.org/2000/svg">
+    <rect width="85" height="110" fill="#fff"/>
+    <rect x="0" y="0" width="85" height="30" fill="#6d4dfc"/>
+    <circle cx="72" cy="15" r="16" fill="rgba(255,255,255,.06)"/>
+    <rect x="8" y="6" width="44" height="5.5" rx="1" fill="#fff"/>
+    <rect x="8" y="14" width="26" height="1.8" rx=".5" fill="rgba(255,255,255,.7)"/>
+    <rect x="8" y="20" width="16" height="1.2" rx=".5" fill="rgba(255,255,255,.55)"/><rect x="28" y="20" width="20" height="1.2" rx=".5" fill="rgba(255,255,255,.55)"/>
+    <rect x="8" y="36" width="14" height="1.8" rx=".5" fill="#6d4dfc"/><rect x="24" y="36.7" width="53" height="1" fill="#6d4dfc" opacity=".15"/>
+    <rect x="24" y="42" width="10" height="1" rx=".5" fill="#374151"/><rect x="36" y="42" width="36" height="4" rx="2" fill="#e5e7eb"/><rect x="36" y="42" width="30" height="4" rx="2" fill="#6d4dfc" opacity=".4"/>
+    <rect x="24" y="49" width="8" height="1" rx=".5" fill="#374151"/><rect x="36" y="49" width="36" height="4" rx="2" fill="#e5e7eb"/><rect x="36" y="49" width="24" height="4" rx="2" fill="#6d4dfc" opacity=".4"/>
+    <rect x="24" y="56" width="10" height="1" rx=".5" fill="#374151"/><rect x="36" y="56" width="36" height="4" rx="2" fill="#e5e7eb"/><rect x="36" y="56" width="20" height="4" rx="2" fill="#6d4dfc" opacity=".4"/>
+    <rect x="8" y="67" width="18" height="1.8" rx=".5" fill="#6d4dfc"/><rect x="28" y="67.7" width="49" height="1" fill="#6d4dfc" opacity=".15"/>
+    <rect x="8" y="72.5" width="2" height="8" fill="#6d4dfc" opacity=".2"/>
+    <circle cx="9" cy="74" r="3" fill="#6d4dfc"/>
+    <rect x="14" y="73" width="30" height="1.6" rx=".5" fill="#1f2937"/><rect x="60" y="73" width="14" height="1.4" rx=".5" fill="#9ca3af"/>
+    <rect x="14" y="77" width="55" height="1.3" rx=".5" fill="#d1d5db"/>
+    <rect x="8" y="84.5" width="2" height="8" fill="#6d4dfc" opacity=".2"/>
+    <circle cx="9" cy="86" r="3" fill="#6d4dfc"/>
+    <rect x="14" y="85" width="28" height="1.6" rx=".5" fill="#1f2937"/><rect x="60" y="85" width="14" height="1.4" rx=".5" fill="#9ca3af"/>
+    <rect x="14" y="89" width="52" height="1.3" rx=".5" fill="#d1d5db"/>
+  </svg>`,
 };
 
 // ============ Personal ============
@@ -1654,6 +1773,34 @@ function _qfDateFormat() {
   }];
 }
 
+function _qfBulletLength() {
+  var issues = [];
+  _qfBullets().forEach(function (b) {
+    var lines = b.desc.split('\n').filter(function (l) { return l.replace(/^\s*[*\-•]\s*/, '').trim(); });
+    var long = 0, short = 0;
+    lines.forEach(function (l) {
+      var w = l.trim().split(/\s+/).length;
+      if (w > 30) long++;
+      if (w < 4 && w > 0) short++;
+    });
+    if (long) issues.push({ level: 'info', title: long + ' overly long bullet' + (long > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Keep bullets under 25-30 words. Long bullets lose the recruiter in the 6-second scan.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+    if (short) issues.push({ level: 'info', title: short + ' very short bullet' + (short > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Bullets under 4 words lack substance. Expand with context and impact.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+  });
+  return issues;
+}
+
+function _qfFirstPerson() {
+  var issues = [];
+  _qfBullets().forEach(function (b) {
+    var count = 0;
+    b.desc.split('\n').forEach(function (l) {
+      if (/^\s*[*\-•]?\s*I\s/i.test(l) || /\bmy\b.*\b(?:role|team|work|project|responsibility)\b/i.test(l)) count++;
+    });
+    if (count) issues.push({ level: 'info', title: count + ' first-person reference' + (count > 1 ? 's' : '') + ' in "' + b.label + '"', detail: 'Resumes conventionally drop "I" and "my". Start with an action verb instead.', action: { type: 'goto', section: b.key, focus: b.key + '.' + b.idx + '.description' } });
+  });
+  return issues;
+}
+
 const QF_CHECKS = [
   { name: 'Strong action verbs', fn: _qfWeakVerbs },
   { name: 'Quantified impact', fn: _qfMissingMetrics },
@@ -1662,6 +1809,8 @@ const QF_CHECKS = [
   { name: 'Summary length', fn: _qfSummary },
   { name: 'No duplicate skills', fn: _qfDupSkills },
   { name: 'Consistent date formats', fn: _qfDateFormat },
+  { name: 'Bullet length', fn: _qfBulletLength },
+  { name: 'No first-person pronouns', fn: _qfFirstPerson },
 ];
 
 // Flat list of the current render's actionable issues, indexed by qfAction().
@@ -1879,8 +2028,23 @@ function _renderTailorStructured(r) {
         </div>`).join('') + `</div>`;
   }
   if (emph.length) html += `<div class="tailor-block tailor-card"><div class="tailor-block-head">What to emphasize</div><ul class="ai-rec-list">${emph.map(e => `<li class="ai-rec"><span class="ai-rec-ico">${ICON('sparkle', 'ico ico-sm')}</span><span>${esc(_deName(e))}</span></li>`).join('')}</ul></div>`;
+  html += _tailorTrackerCTA();
   return `<div class="tailor-result">${html || '<p class="ai-para">Tailoring complete, no changes suggested.</p>'}</div>`;
 }
+function _tailorTrackerCTA() {
+  const jd = (resume.tailor && resume.tailor.jobDescription || '').trim();
+  if (jd.length < 30) return '';
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem('hf_jobs') || '[]'); if (!Array.isArray(arr)) arr = []; } catch { arr = []; }
+  const already = arr.some(j => j.tailored && j.notes && jd.slice(0, 100) === (j.notes || '').slice(0, 100));
+  if (already) return '<div class="tailor-block" style="text-align:center;padding:10px 0;"><span style="font-size:12px;color:var(--muted);">' + ICON('check','ico ico-sm') + ' Already saved to your job tracker</span></div>';
+  return '<div class="tailor-block" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);">' +
+    '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">Track this application?</div>' +
+    '<div style="font-size:12px;color:var(--muted);margin-top:2px;">Save to your job tracker so you can follow up later.</div></div>' +
+    '<button class="btn btn-primary btn-sm" onclick="saveTailorToTracker()" style="flex-shrink:0;white-space:nowrap;">' + ICON('briefcase','ico ico-sm') + ' I applied</button>' +
+  '</div>';
+}
+
 function _copyTailorBullet(btn) {
   const t = btn.getAttribute('data-t') || '';
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(
@@ -1995,11 +2159,22 @@ function _aiHead(tone, icon, title, sub, runFn, runLabel, runClass) {
     + '<button class="btn ' + runClass + ' btn-sm" onclick="' + runFn + '" style="white-space:nowrap;">'
     + ICON('sparkle', 'ico ico-sm') + ' ' + runLabel + '</button></div></div>';
 }
-// One loading affordance: the dotted globe, rendered inline into a tool's result host.
+let _aiInlineLoaderId = 0;
+// One loading affordance: the shared animated dot grid, rendered inline into a tool's result host.
 function _aiToolLoading(label) {
-  return '<div class="ai-tool-loading"><div class="ai-globe"><div class="ai-globe-inner">' +
-    '<div class="ai-globe-ring"></div><div class="ai-globe-ring"></div><div class="ai-globe-ring"></div>' +
-    '<div class="ai-globe-eq"></div></div></div><span>' + esc(label) + '</span></div>';
+  const id = 'ai-inline-loader-' + (++_aiInlineLoaderId);
+  setTimeout(function () {
+    const slot = document.getElementById(id);
+    if (!slot || typeof window.createAiDotLoader !== 'function') return;
+    const light = document.documentElement.classList.contains('light-mode');
+    const loader = window.createAiDotLoader(110, light
+      ? { active: '#5b4ee5', inactive: 'rgba(57,48,135,.13)', glow: 'rgba(91,78,229,.42)' }
+      : { active: '#a5b4fc', inactive: 'rgba(255,255,255,.12)', glow: 'rgba(129,140,248,.7)' });
+    slot.appendChild(loader.el);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) loader.staticFrame();
+    else loader.start();
+  }, 0);
+  return '<div class="ai-tool-loading"><div class="ai-dot-loader" id="' + id + '" aria-hidden="true"></div><span>' + esc(label) + '</span></div>';
 }
 
 function renderTailor() {
@@ -2017,9 +2192,10 @@ function renderTailor() {
           </div>
           <textarea data-bind="tailor.jobDescription" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
-            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value)"
+            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value);_renderJDRedFlags(this.value,'tailor-redflags')"
           >${esc(resume.tailor.jobDescription)}</textarea>
         </div>
+        <div id="tailor-redflags" style="margin-top:14px;"></div>
         <div id="tailor-result" style="margin-top:18px;">
         ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
           <div class="ai-result-box ai-result-indigo">
@@ -2066,8 +2242,9 @@ function renderATS() {
           </div>
           <textarea id="ats-jd" rows="9"
             placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
-            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value)"></textarea>
+            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value);_runJDRedFlags(this.value)"></textarea>
         </div>
+        <div id="jd-redflags-result"></div>
         <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
@@ -2083,6 +2260,7 @@ async function _atsPaste() {
       ta.value = txt.trim();
       const wc = document.getElementById('ats-wc');
       if (wc) wc.textContent = _jdWordCount(ta.value);
+      _runJDRedFlags(ta.value);
       ta.focus();
     } else {
       toast('Clipboard is empty, copy a job description first.', { type: 'warn' });
@@ -2111,7 +2289,7 @@ function renderModernize() {
       ${_aiHead('violet', 'clock', 'Age-Proof', 'Spot details that read as dated or reveal age, and get concrete fixes', 'aiModernize()', 'Age-proof', 'btn-primary')}
       <div class="ai-card-body">
         <div id="modernize-result">${resume.modernize ? _modernizePanel(resume.modernize) : _modernizeEmptyState()}</div>
-        ${navRow('analysis','dashboard')}
+        ${navRow('analysis','linkedin')}
       </div>
     </div>`;
 }
@@ -2280,8 +2458,7 @@ function _hasAnyResumeContent() {
 
 // Reset the current resume to the default shape, with a confirm when the
 // user has existing content so one accidental click can't wipe their work.
-function startNewResume() {
-  // Save the current resume to the list before creating a new one.
+function _doStartNewResume(folderId) {
   if (_hasAnyResumeContent()) {
     if (_activeResumeId) {
       _syncActiveToList();
@@ -2290,16 +2467,452 @@ function startNewResume() {
       _allResumes.push({ id, name: _resumeName(resume), resume: structuredClone(resume), updatedAt: resume.updatedAt || Date.now() });
     }
   }
-  // Create a fresh resume and assign it a new slot.
   _activeResumeId = _genId();
   resume = structuredClone(DEFAULT_RESUME);
   save();
   _allResumes.push({ id: _activeResumeId, name: 'New resume', resume: structuredClone(resume), updatedAt: Date.now() });
   _persistResumes();
+  if (folderId) addResumeToFolder(folderId, _activeResumeId);
   goSection('template');
   if (typeof toast === 'function') toast('New resume started', { type: 'success' });
 }
+
+function startNewResume(skipPicker) {
+  if (skipPicker || !_resumeFolders.length) {
+    _doStartNewResume(null);
+    return;
+  }
+  _showFolderPicker(function (folderId) {
+    _doStartNewResume(folderId);
+  });
+}
 window.startNewResume = startNewResume;
+
+// ── Resume Folders: group resumes by job application target ──
+// Stored in hf_resume_folders as [{id, label, art, seed, resumeIds}].
+// Resumes not in any folder get auto-grouped by company from their experience.
+const ART_CYCLE = ['aurora', 'ember', 'dusk', 'verdant', 'glacier'];
+
+let _resumeFolders = (function () {
+  try { return JSON.parse(localStorage.getItem('hf_resume_folders') || '[]'); } catch { return []; }
+})();
+
+let _dismissedFromFolders = (function () {
+  try { return new Set(JSON.parse(localStorage.getItem('hf_dismissed_from_folders') || '[]')); } catch { return new Set(); }
+})();
+
+function _persistFolders() {
+  localStorage.setItem('hf_resume_folders', JSON.stringify(_resumeFolders));
+}
+
+function _persistDismissed() {
+  localStorage.setItem('hf_dismissed_from_folders', JSON.stringify(Array.from(_dismissedFromFolders)));
+}
+
+function _getFolderForResume(entryId) {
+  return _resumeFolders.find(f => (f.resumeIds || []).includes(entryId));
+}
+
+function _autoGroupResumes() {
+  const assigned = new Set();
+  _resumeFolders.forEach(f => (f.resumeIds || []).forEach(id => assigned.add(id)));
+
+  const ungrouped = _allResumes.filter(e => !assigned.has(e.id) && !_dismissedFromFolders.has(e.id));
+  if (!ungrouped.length) return;
+
+  const byCompany = {};
+  ungrouped.forEach(entry => {
+    const r = entry.resume || {};
+    const company = ((r.experience || [])[0] || {}).company || '';
+    const key = company.trim() || '_general';
+    if (!byCompany[key]) byCompany[key] = [];
+    byCompany[key].push(entry.id);
+  });
+
+  Object.keys(byCompany).forEach(key => {
+    const label = key === '_general' ? 'General' : key;
+    const existing = _resumeFolders.find(f => f.label === label);
+    if (existing) {
+      existing.resumeIds = (existing.resumeIds || []).concat(byCompany[key]);
+    } else {
+      _resumeFolders.push({
+        id: _genId(),
+        label: label,
+        art: ART_CYCLE[_resumeFolders.length % ART_CYCLE.length],
+        seed: Math.floor(Math.random() * 100),
+        resumeIds: byCompany[key]
+      });
+    }
+  });
+  _persistFolders();
+}
+
+function createResumeFolder(label) {
+  const name = (label || '').trim() || 'New application';
+  const folder = {
+    id: _genId(),
+    label: name,
+    art: ART_CYCLE[_resumeFolders.length % ART_CYCLE.length],
+    seed: Math.floor(Math.random() * 100),
+    resumeIds: []
+  };
+  _resumeFolders.push(folder);
+  _persistFolders();
+  return folder;
+}
+window.createResumeFolder = createResumeFolder;
+
+function addResumeToFolder(folderId, resumeId) {
+  const f = _resumeFolders.find(x => x.id === folderId);
+  if (!f) return;
+  if (!f.resumeIds) f.resumeIds = [];
+  if (!f.resumeIds.includes(resumeId)) f.resumeIds.push(resumeId);
+  _dismissedFromFolders.delete(resumeId);
+  _persistFolders();
+  _persistDismissed();
+}
+window.addResumeToFolder = addResumeToFolder;
+
+function renameFolder(folderId) {
+  const f = _resumeFolders.find(x => x.id === folderId);
+  if (!f) return;
+  _showInputModal('Rename folder', 'Folder name', f.label, function (val) {
+    f.label = val;
+    _persistFolders();
+    goSection('dashboard');
+  });
+}
+window.renameFolder = renameFolder;
+
+function removeResumeFromFolder(resumeId) {
+  _resumeFolders.forEach(f => {
+    if (!f.resumeIds) return;
+    const i = f.resumeIds.indexOf(resumeId);
+    if (i >= 0) f.resumeIds.splice(i, 1);
+  });
+  _dismissedFromFolders.add(resumeId);
+  _persistFolders();
+  _persistDismissed();
+}
+window.removeResumeFromFolder = removeResumeFromFolder;
+
+function moveResumeToFolder(resumeId, targetFolderId) {
+  removeResumeFromFolder(resumeId);
+  addResumeToFolder(targetFolderId, resumeId);
+}
+window.moveResumeToFolder = moveResumeToFolder;
+
+function deleteFolder(folderId) {
+  const idx = _resumeFolders.findIndex(x => x.id === folderId);
+  if (idx < 0) return;
+  _resumeFolders.splice(idx, 1);
+  _persistFolders();
+  goSection('dashboard');
+  if (typeof toast === 'function') toast('Folder removed', { type: 'success' });
+}
+window.deleteFolder = deleteFolder;
+
+function _promptNewFolder() {
+  _showInputModal('New folder', 'Folder name', '', function (val) {
+    createResumeFolder(val);
+    goSection('dashboard');
+  });
+}
+window._promptNewFolder = _promptNewFolder;
+
+function _showInputModal(title, placeholder, defaultVal, callback) {
+  var existing = document.getElementById('input-modal-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'input-modal-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+    + '<h3>' + esc(title) + '</h3>'
+    + '<input type="text" id="input-modal-field" class="form-control" placeholder="' + esc(placeholder) + '" value="' + esc(defaultVal || '') + '" style="width:100%;margin-bottom:16px;">'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+    + '<button type="button" id="input-modal-cancel" class="btn btn-sm">Cancel</button>'
+    + '<button type="button" id="input-modal-ok" class="btn btn-primary btn-sm">OK</button>'
+    + '</div>';
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  var field = document.getElementById('input-modal-field');
+  field.focus();
+  field.select();
+
+  function close() { backdrop.remove(); }
+  function submit() {
+    var val = field.value.trim();
+    if (!val) return;
+    close();
+    callback(val);
+  }
+
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  modal.querySelector('.modal-close').onclick = close;
+  document.getElementById('input-modal-cancel').onclick = close;
+  document.getElementById('input-modal-ok').onclick = submit;
+  field.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+}
+
+function _showFolderPicker(callback) {
+  var existing = document.getElementById('folder-picker-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'folder-picker-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+    + '<h3>Choose a folder</h3>'
+    + '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Where should this resume go?</p>'
+    + '<div id="folder-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>'
+    + '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">'
+    + '<button type="button" id="folder-picker-new" class="btn btn-sm" style="width:100%;justify-content:center;">+ New folder</button>'
+    + '</div>';
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  function close() { backdrop.remove(); }
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  modal.querySelector('.modal-close').onclick = close;
+
+  var list = document.getElementById('folder-picker-list');
+  _resumeFolders.forEach(function (f) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm';
+    btn.style.cssText = 'width:100%;justify-content:flex-start;text-align:left;padding:10px 14px;';
+    btn.innerHTML = '<span style="flex:1;">' + esc(f.label) + '</span>'
+      + '<span style="color:var(--muted);font-size:12px;">' + (f.resumeIds || []).length + ' resume' + ((f.resumeIds || []).length === 1 ? '' : 's') + '</span>';
+    btn.onclick = function () { close(); callback(f.id); };
+    list.appendChild(btn);
+  });
+
+  document.getElementById('folder-picker-new').onclick = function () {
+    close();
+    _showInputModal('New folder', 'Folder name', '', function (val) {
+      var folder = createResumeFolder(val);
+      callback(folder.id);
+    });
+  };
+}
+window._showFolderPicker = _showFolderPicker;
+
+function _showFileContextMenu(file, index, evt) {
+  var existing = document.querySelector('.gf-file-ctx');
+  if (existing) existing.remove();
+
+  var resumeId = file._resumeId;
+  if (!resumeId) return;
+
+  var currentFolder = _getFolderForResume(resumeId);
+  var menuEl = document.createElement('div');
+  menuEl.className = 'gf-file-ctx';
+  menuEl.style.cssText = 'position:fixed;z-index:200;min-width:180px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--sh-3);padding:4px 0;';
+  menuEl.style.left = Math.min(evt.clientX, window.innerWidth - 200) + 'px';
+  menuEl.style.top = Math.min(evt.clientY, window.innerHeight - 120) + 'px';
+
+  function item(label, danger, cb) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.cssText = 'all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 14px;font-size:13px;cursor:pointer;color:' + (danger ? 'var(--error,#ff6b5e)' : 'var(--fg)') + ';';
+    btn.textContent = label;
+    btn.onmouseenter = function () { btn.style.background = 'var(--bg-2)'; };
+    btn.onmouseleave = function () { btn.style.background = 'none'; };
+    btn.onclick = function () { menuEl.remove(); cb(); };
+    menuEl.appendChild(btn);
+  }
+
+  item('Move to...', false, function () {
+    _showFolderPicker(function (targetId) {
+      moveResumeToFolder(resumeId, targetId);
+      goSection('dashboard');
+      if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
+    });
+  });
+
+  item('Remove from folder', true, function () {
+    removeResumeFromFolder(resumeId);
+    goSection('dashboard');
+    if (typeof toast === 'function') toast('Resume removed from folder', { type: 'success' });
+  });
+
+  document.body.appendChild(menuEl);
+  function dismiss(e) {
+    if (!menuEl.contains(e.target)) { menuEl.remove(); document.removeEventListener('click', dismiss, true); }
+  }
+  setTimeout(function () { document.addEventListener('click', dismiss, true); }, 0);
+}
+
+function _showManageResumes(folderId) {
+  var f = _resumeFolders.find(function (x) { return x.id === folderId; });
+  if (!f) return;
+
+  var existing = document.getElementById('manage-resumes-backdrop');
+  if (existing) existing.remove();
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'manage-resumes-backdrop';
+  backdrop.className = 'modal-backdrop open';
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+
+  function render() {
+    var entries = (f.resumeIds || [])
+      .map(function (id) { return _allResumes.find(function (e) { return e.id === id; }); })
+      .filter(Boolean);
+
+    modal.innerHTML = '<button class="modal-close" type="button">&times;</button>'
+      + '<h3>' + esc(f.label) + '</h3>'
+      + '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">'
+      + entries.length + ' resume' + (entries.length === 1 ? '' : 's') + ' in this folder</p>'
+      + '<div id="manage-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;"></div>';
+
+    modal.querySelector('.modal-close').onclick = close;
+
+    var list = document.getElementById('manage-list') || modal.querySelector('#manage-list');
+
+    if (!entries.length) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:12px 0;">No resumes in this folder.</p>';
+      return;
+    }
+
+    entries.forEach(function (entry) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r-md);background:var(--bg-2);';
+
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;';
+      var nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      nameEl.textContent = entry.customName || entry.name || 'Untitled';
+      info.appendChild(nameEl);
+      if (entry.updatedAt) {
+        var meta = document.createElement('div');
+        meta.style.cssText = 'font-size:12px;color:var(--muted);';
+        meta.textContent = _timeAgo(entry.updatedAt);
+        info.appendChild(meta);
+      }
+      row.appendChild(info);
+
+      var moveBtn = document.createElement('button');
+      moveBtn.type = 'button';
+      moveBtn.className = 'btn btn-sm';
+      moveBtn.style.cssText = 'flex-shrink:0;font-size:12px;padding:4px 10px;';
+      moveBtn.textContent = 'Move';
+      moveBtn.onclick = function () {
+        close();
+        _showFolderPicker(function (targetId) {
+          moveResumeToFolder(entry.id, targetId);
+          _mountFolders(true);
+          if (typeof toast === 'function') toast('Resume moved', { type: 'success' });
+        });
+      };
+      row.appendChild(moveBtn);
+
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn btn-sm';
+      delBtn.style.cssText = 'flex-shrink:0;font-size:12px;padding:4px 10px;color:var(--error,#ff6b5e);';
+      delBtn.textContent = 'Remove';
+      delBtn.onclick = function () {
+        removeResumeFromFolder(entry.id);
+        f = _resumeFolders.find(function (x) { return x.id === folderId; });
+        if (f) { render(); _mountFolders(true); }
+        else { close(); _mountFolders(true); }
+      };
+      row.appendChild(delBtn);
+
+      list.appendChild(row);
+    });
+  }
+
+  function close() { backdrop.remove(); }
+  backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  render();
+}
+window._showManageResumes = _showManageResumes;
+
+function _mountFolders(skipAutoGroup) {
+  if (typeof GlassFolder === 'undefined') return;
+  if (!skipAutoGroup) _autoGroupResumes();
+  const container = document.getElementById('rb-folders');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Compute folder width: 4 columns with 24px gaps
+  const gap = 24;
+  const cols = 4;
+  const avail = container.getBoundingClientRect().width;
+  const cellWidth = Math.max(200, Math.min(340, Math.floor((avail - gap * (cols - 1)) / cols)));
+
+  _resumeFolders.forEach((folder, fi) => {
+    const resumeEntries = (folder.resumeIds || [])
+      .map(id => _allResumes.find(e => e.id === id))
+      .filter(Boolean);
+
+    const files = resumeEntries.map(entry => {
+      const r = entry.resume || {};
+      const name = entry.customName || entry.name || _resumeName(r);
+      const edited = entry.updatedAt ? _timeAgo(entry.updatedAt) : '';
+      const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
+      const meta = (hasJd ? 'Tailored' : '') + (hasJd && edited ? ' - ' : '') + (edited ? edited : '');
+      return {
+        name: name,
+        meta: meta || undefined,
+        _resumeId: entry.id
+      };
+    });
+
+    GlassFolder.create(container, {
+      label: folder.label,
+      tone: 'dark',
+      art: folder.art || 'aurora',
+      seed: folder.seed || fi,
+      width: cellWidth,
+      appear: true,
+      appearDelay: fi * 120,
+      action: 'more',
+      files: files,
+      menu: [
+        { label: 'Manage resumes', onSelect: function () { _showManageResumes(folder.id); } },
+        { label: 'Rename', onSelect: function () { renameFolder(folder.id); } },
+        { label: 'New resume here', onSelect: function () {
+          _doStartNewResume(folder.id);
+        }},
+        { label: 'Delete folder', danger: true, onSelect: function () { deleteFolder(folder.id); } }
+      ],
+      onFileSelect: function (file) {
+        if (file._resumeId) openResume(file._resumeId);
+      },
+      onFileContextMenu: function (file, index, evt) {
+        _showFileContextMenu(file, index, evt);
+      },
+      onAdd: function () {
+        _doStartNewResume(folder.id);
+        return null;
+      }
+    });
+  });
+
+  // "New application" card
+  var addCard = document.createElement('button');
+  addCard.type = 'button';
+  addCard.className = 'rb-folder-add';
+  addCard.onclick = _promptNewFolder;
+  addCard.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><div>New application</div>';
+  container.appendChild(addCard);
+}
 
 function renderDashboard() {
   const p = resume.personal || {};
@@ -2310,43 +2923,6 @@ function renderDashboard() {
   const sub = (_allResumes.length > 0 || hasContent)
     ? "Jump back into your resume, or start somewhere new."
     : "Start fresh, drop in a job post, or pick a template. Every feature is free.";
-
-  // Build resume cards from the saved list.
-  let cards = '';
-  for (const entry of _allResumes) {
-    const r = entry.resume || {};
-    const rp = r.personal || {};
-    const name = entry.customName || entry.name || _resumeName(r);
-    const role = ((r.experience || [])[0] || {}).title || '';
-    const titleHtml = esc(name) + (role && !name.includes(role) ? ' <span class="rb-card-role">' + esc(role) + '</span>' : '');
-    const edited = entry.updatedAt ? ('Edited ' + _timeAgo(entry.updatedAt)) : 'Not saved yet';
-    const isActive = entry.id === _activeResumeId;
-    const template = (r.template || 'modern');
-    const hasJd = !!(r.tailor && (r.tailor.jobDescription || '').trim());
-
-    cards += `
-      <div class="rb-rr-card ${isActive ? 'rb-rr-active' : ''}" onclick="openResume('${entry.id}')">
-        <div class="rb-rr-card-top">
-          <div class="rb-rr-card-title">${titleHtml}</div>
-          <button class="rb-rr-menu-btn" type="button" onclick="event.stopPropagation(); _toggleResumeMenu('${entry.id}')" aria-label="Resume options">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-          </button>
-        </div>
-        <div class="rb-rr-meta">
-          <div class="rb-rr-row">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${esc(edited)}
-          </div>
-          ${hasJd ? '<div class="rb-rr-row rb-rr-link" onclick="event.stopPropagation(); openResume(\'' + entry.id + '\'); setTimeout(()=>goSection(\'tailor\'),50);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Tailored to a job</div>' : ''}
-        </div>
-        <div class="rb-rr-menu" id="rb-menu-${entry.id}" style="display:none;">
-          <button onclick="event.stopPropagation(); openResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
-          <button onclick="event.stopPropagation(); renameResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Rename</button>
-          <button onclick="event.stopPropagation(); duplicateResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate</button>
-          <button class="rb-rr-menu-danger" onclick="event.stopPropagation(); deleteResume('${entry.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
-        </div>
-      </div>`;
-  }
 
   return `
     <div class="rb-page">
@@ -2382,7 +2958,7 @@ function renderDashboard() {
           <div class="rb-a-desc">Browse ${TEMPLATE_DEFS.length} recruiter-ready layouts.</div>
         </button>
 
-        <a class="rb-action" href="cover-letter-generator">
+        <a class="rb-action" href="cover-letter">
           <div class="rb-ic rb-ic-amber">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
           </div>
@@ -2392,16 +2968,10 @@ function renderDashboard() {
       </div>
 
       <div class="rb-rr-head">
-        <div class="rb-rr-title">Your resumes ${_allResumes.length ? '<span class="rb-count">' + _allResumes.length + '</span>' : ''}</div>
+        <div class="rb-rr-title">Your applications ${_allResumes.length ? '<span class="rb-count">' + _allResumes.length + ' resume' + (_allResumes.length === 1 ? '' : 's') + '</span>' : ''}</div>
       </div>
 
-      <div class="rb-rr-grid">
-        ${cards}
-        <button class="rb-rr-card rb-rr-add" type="button" onclick="startNewResume()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <div>${_allResumes.length ? 'New resume' : 'Start building'}</div>
-        </button>
-      </div>
+      <div class="rb-folders-wrap" id="rb-folders"></div>
     </div>`;
 }
 
@@ -2409,13 +2979,16 @@ function renderDashboard() {
 function _toggleResumeMenu(id) {
   const menu = document.getElementById('rb-menu-' + id);
   if (!menu) return;
+  const card = menu.closest('.rb-rr-card');
   const showing = menu.style.display !== 'none';
   // Close all menus first.
   document.querySelectorAll('.rb-rr-menu').forEach(m => m.style.display = 'none');
+  document.querySelectorAll('.rb-rr-card.rb-rr-menu-open').forEach(c => c.classList.remove('rb-rr-menu-open'));
   if (!showing) {
     menu.style.display = '';
+    if (card) card.classList.add('rb-rr-menu-open');
     // Close on outside click.
-    const close = (e) => { if (!menu.contains(e.target)) { menu.style.display = 'none'; document.removeEventListener('click', close, true); } };
+    const close = (e) => { if (!menu.contains(e.target)) { menu.style.display = 'none'; if (card) card.classList.remove('rb-rr-menu-open'); document.removeEventListener('click', close, true); } };
     setTimeout(() => document.addEventListener('click', close, true), 0);
   }
 }
@@ -2894,7 +3467,7 @@ function _bestFlowRoot(preview) {
 
 let PAGE_W = 816;          // page width (Letter 816 / A4 794 at 96dpi); set by _syncPaperDims
 const SHEET_GAP = 24;      // gap between page sheets (true px)
-const CANVAS_PAD = 0;      // canvas margin around the page column — 0 so the page fills the preview edge-to-edge (true px)
+const CANVAS_PAD = 20;     // canvas margin around the page column (true px)
 let CANVAS_W = PAGE_W + CANVAS_PAD * 2;  // full iframe width incl. side margins; set by _syncPaperDims
 const MAX_SHEETS = 40;     // safety cap so pathological content can't run away (covers even long academic CVs)
 
@@ -2934,19 +3507,26 @@ function _paginate(doc) {
   // fonts-ready re-run, when the body was already paginated on entry).
   doc._lastRatio = (body.scrollHeight || doc.documentElement.scrollHeight) / PAGE_PX;
 
-  // --- Wrap the resume (everything except the <style> tag) into a centered 816px
-  // page column. The body is transparent so the page sits directly on the preview
-  // panel (no gray desk), filling the preview edge-to-edge. The .preview-mini
-  // container supplies the paper color + shadow. ---
+  // --- Wrap the resume (everything except the <style> tag) into a centered page
+  // column on a visible desk. Each sheet stays its physical Letter/A4 size and
+  // the desk makes the continuation gutter unambiguous in the editor. ---
   const col = doc.createElement('div');
   col.className = 'hf-doc';
   col.style.cssText = 'position:relative; width:' + PAGE_W + 'px; margin:0 auto;';
   _contentEls(body).forEach(el => col.appendChild(el));
   body.appendChild(col);
-  body.style.background = 'transparent';
+  body.style.background = '#e9eaef';
   body.style.width = CANVAS_W + 'px';
   body.style.padding = CANVAS_PAD + 'px 0';
   body.style.margin = '0';
+
+  // Resume templates use height:100% to make a short document fill one sheet.
+  // In a paginated preview that caps the root at one page and lets a long CV
+  // paint past its edge without contributing to layout. Let each rendered root
+  // grow naturally before measuring breaks.
+  _contentEls(col).forEach(el => {
+    el.style.setProperty('height', 'auto', 'important');
+  });
 
   // --- Paginate via the SHARED decision (HFPaginate in templates.js), the exact
   // same code that shapes the exported PDF, so the preview is true WYSIWYG. Measure
@@ -2986,6 +3566,9 @@ function _paginate(doc) {
       const b = el.getBoundingClientRect().bottom - colTop;
       if (b > bottom) bottom = b;
     });
+    const flowBox = flow.getBoundingClientRect();
+    const flowBottom = flowBox.top - colTop + Math.max(flowBox.height, flow.scrollHeight || 0);
+    bottom = Math.max(bottom, flowBottom);
     const cap = (window.HFPaginate && HFPaginate.MAX_SHEETS) || 40;
     const tail = (window.HFPaginate && HFPaginate.TAIL) || 8;
     const needed = bottom <= PAGE_PX + tail ? 1
@@ -3011,11 +3594,22 @@ function _paginate(doc) {
     num.className = 'hf-sheet hf-sheet-num';
     num.textContent = 'Page ' + (i + 1) + ' of ' + totalPages;
     num.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX + 6) +
-      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#8a93a6; z-index:0;';
+      'px; text-align:center; font:600 10px -apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:.04em; color:#687386; z-index:3; pointer-events:none;';
     col.appendChild(num);
+    if (i < totalPages - 1) {
+      const gap = doc.createElement('div');
+      gap.className = 'hf-sheet hf-page-gap';
+      gap.style.cssText = 'position:absolute; left:0; right:0; top:' + (i * step + PAGE_PX) + 'px; height:' + SHEET_GAP +
+        'px; background:#e9eaef; border-top:1px solid rgba(0,0,0,.10); border-bottom:1px solid rgba(0,0,0,.08); z-index:2; pointer-events:none;';
+      col.appendChild(gap);
+    }
   }
-  // +1 extra gap so the final page's number label has room below the last sheet.
-  col.style.minHeight = (totalPages * PAGE_PX + totalPages * SHEET_GAP) + 'px';
+  // Reserve every complete sheet plus a final label gutter. This keeps an almost
+  // empty final page at its real Letter/A4 height instead of cropping the canvas
+  // to the final content block.
+  const canvasHeight = totalPages * PAGE_PX + totalPages * SHEET_GAP;
+  col.style.minHeight = canvasHeight + 'px';
+  body.style.minHeight = (canvasHeight + CANVAS_PAD * 2) + 'px';
   return totalPages;
 }
 
@@ -3225,7 +3819,7 @@ function _buildFullOverlay() {
   _fullOverlay.id = 'full-preview-overlay';
   _fullOverlay.innerHTML =
     '<div class="fp-bar">' +
-      '<div class="fp-left"><span class="fp-brand"><img src="logo.jpeg" width="22" height="22" alt="">Preview</span>' +
+      '<div class="fp-left"><span class="fp-brand"><img src="logo-mark.png" width="22" height="22" alt="">Preview</span>' +
         '<span class="fp-nav" id="fp-nav"><button id="fp-prev" title="Previous page" aria-label="Previous page">‹</button>' +
         '<span class="fp-pageno" id="fp-pageno">1 page</span>' +
         '<button id="fp-next" title="Next page" aria-label="Next page">›</button></span>' +
@@ -3446,8 +4040,7 @@ async function saveResume(silent) {
   if (IS_ANON) { _promptSignup('save your resume and pick up on any device'); return; }
   resume.versions = resume.versions || [];
   // Snapshot excludes versions array to prevent recursive nesting
-  const { versions: _v, ...snap } = resume;
-  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: JSON.parse(JSON.stringify(snap)) });
+  resume.versions.unshift({ ts: Date.now(), label: 'Manual save', data: _resumeSnapshot(resume) });
   resume.versions = resume.versions.slice(0, 10);
   save();
   let cloudOk = false;
@@ -3476,7 +4069,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 function signOut() {
-  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_tour_done_v1'].forEach(k => localStorage.removeItem(k));
+  ['hf_token','hf_email','hf_resume','hf_jobs','hf_jobs_ts','hf_profile','hf_ai_results','hf_welcome','hf_onboarded','hf_onboarding_answers','hf_first_action_done','hf_walkthrough_done'].forEach(k => localStorage.removeItem(k));
   location.href = '/';
 }
 
@@ -3585,11 +4178,24 @@ async function ai(endpoint, body) {
     showUpgradeModal('ai', endpoint === 'analyze' ? 'analysis' : endpoint);
     throw new Error('Premium required');
   }
-  const r = await fetch(API + '/ai/' + endpoint, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-    body: JSON.stringify(body)
-  });
+  // AI imports can take longer than ordinary requests, especially for multi-page
+  // resumes, but they must not leave the editor behind an overlay forever.
+  const controller = endpoint === 'parse' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
+  let r;
+  try {
+    r = await fetch(API + '/ai/' + endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify(body),
+      signal: controller ? controller.signal : undefined
+    });
+  } catch (e) {
+    if (controller && controller.signal.aborted) throw new Error('Resume import timed out');
+    throw e;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
   // Session expired or revoked (tokens last 30 days, so returning users hit this).
   // Without this it falls through to the generic error and tells them "Something went
   // wrong, please try again", which can never succeed and leaves them retrying a dead
@@ -3847,6 +4453,9 @@ function _aiErrMsg(e) {
   if (/usage limit|limit reached|quota|neuron|429|too many/i.test(m)) {
     return 'The daily AI limit was reached. It resets shortly, please try again later.';
   }
+  if (/resume import timed out/i.test(m)) {
+    return 'This resume is taking too long to import. Try again, or paste the most recent pages first.';
+  }
   if (/empty response|model error|502|503|timeout|timed out|network|failed to fetch|overload/i.test(m)) {
     return 'The AI is busy right now, give it a few seconds and try again.';
   }
@@ -3973,71 +4582,91 @@ function showAiSuggestion({ title, text, original, apply, hint }) {
   bd.id = 'ai-suggest-bd';
   bd.className = 'app-dialog-bd';
   document.body.appendChild(bd);
-  requestAnimationFrame(() => bd.classList.add('app-dialog-bd-in'));
   _aiSuggestState = { text, apply };
-  // Focus trap for the suggestion dialog
-  const dialog = bd.querySelector('.app-dialog');
-  if (dialog) {
-    const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const trap = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    dialog.addEventListener('keydown', trap);
-    bd._focusTrap = trap;
-    bd._focusDialog = dialog;
-    first?.focus();
-  }
-  // Show a before -> after comparison when we have the original, so the user sees
-  // exactly what the AI sharpened, not just a block of new text.
   const hasBefore = original != null && String(original).trim().length > 0;
-  // No-op guard: if the AI returned the content essentially unchanged (already strong),
-  // don't fake an "improved version", tell the user plainly and drop the Apply button.
   const noChange = hasBefore && _diffMagnitude(original, text) === 0;
+
+  const _arrowDown = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 13l-6 6"/><path d="M6 13l6 6"/></svg>';
+  const _closeIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>';
+
+  const chips = hasBefore && !noChange ? _changeSummary(original, text) : [];
+  const chipsHtml = chips.map(c => {
+    var cls = 'ai-df-chip';
+    if (c.startsWith('+')) cls += ' ai-chip-add';
+    else if (c.startsWith('-')) cls += ' ai-chip-cut';
+    return `<span class="${cls}">${esc(c)}</span>`;
+  }).join('');
+
   const bodyInner = noChange ? `
         <div class="ai-nochange">
           <div class="ai-nochange-ico">${ICON('check')}</div>
           <div class="ai-nochange-title">Already looking strong</div>
-          <div class="ai-nochange-sub">These lines already follow resume best practices, distinct action verbs, tight phrasing, and real metrics, so the AI kept them as they are. Add more detail or a specific number if you want it to have more to work with.</div>
+          <div class="ai-nochange-sub">These lines already follow resume best practices -- distinct action verbs, tight phrasing, and real metrics -- so the AI kept them as they are.</div>
         </div>` : hasBefore ? `
-        <div class="ai-df-summary">${_changeSummary(original, text).map(c => `<span class="ai-df-chip">${esc(c)}</span>`).join('')}</div>
-        <div class="ai-df-legend">
-          <span><ins class="ai-df-ins">added</ins></span>
-          <span><del class="ai-df-del">removed</del></span>
-          <button type="button" class="ai-df-toggle" onclick="_aiToggleDiff(this)">Show clean version</button>
+        <div class="ai-ba-block ai-ba-before">
+          <span class="ai-ba-label">Before</span>
+          <div class="ai-ba-text"><p>${esc(original)}</p></div>
         </div>
-        <div id="ai-df-diff">${_renderImproveDiff(original, text)}</div>
-        <div id="ai-df-clean" style="display:none;"><div class="ai-body">${_renderAiBody(text)}</div></div>
+        <div class="ai-ba-arrow">${_arrowDown}</div>
+        <div class="ai-ba-block ai-ba-after" id="ai-ba-after">
+          <span class="ai-ba-label">After</span>
+          <div class="ai-body">${_renderAiBody(text)}</div>
+        </div>
+        <div id="ai-df-diff" style="display:none;">${_renderImproveDiff(original, text)}</div>
+        ${chipsHtml ? `<div class="ai-df-summary" style="margin-top:16px;">${chipsHtml}</div>` : ''}
         ` : `<div class="ai-body">${_renderAiBody(text)}</div>`;
+
   bd.innerHTML = `
     <div class="app-dialog ai-suggest">
       <div class="ai-suggest-head">
-        <span class="ai-suggest-spark">${ICON('sparkle')}</span>
-        <h3>${esc(title || 'AI Suggestion')}</h3>
-        <button class="modal-close" onclick="closeAiSuggest()" aria-label="Close">×</button>
+        <h3>${esc(title || 'AI suggestion')}</h3>
+        <button class="modal-close" onclick="closeAiSuggest()" aria-label="Close">${_closeIcon}</button>
       </div>
       <div class="ai-suggest-body">${bodyInner}</div>
       ${hint ? `<p class="ai-suggest-hint">${esc(hint)}</p>` : ''}
       <div class="ai-suggest-actions">
-        ${apply && !noChange ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Use improved version</span></button>` : ''}
-        ${noChange ? '' : `<button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>`}
-        <button class="btn btn-ghost" onclick="closeAiSuggest()">${(apply && !noChange) ? 'Keep original' : (noChange ? 'Got it' : 'Close')}</button>
+        ${hasBefore && !noChange ? `<button class="ai-suggest-toggle" onclick="_aiToggleDiff(this)">Show changes</button>` : '<span></span>'}
+        <div class="ai-suggest-actions-right">
+          <button class="btn btn-ghost" onclick="closeAiSuggest()">${(apply && !noChange) ? 'Keep original' : (noChange ? 'Got it' : 'Close')}</button>
+          ${noChange ? '' : `<button class="btn btn-secondary" onclick="_copyAiSuggestion()">Copy</button>`}
+          ${apply && !noChange ? `<button class="btn btn-primary" onclick="_applyAiSuggestion()">${ICON('check','ico ico-sm')} <span>Use improved</span></button>` : ''}
+        </div>
       </div>
     </div>`;
   bd.addEventListener('click', e => { if (e.target === bd) closeAiSuggest(); });
   document.addEventListener('keydown', _aiSuggestKey);
+  // Origin-aware animation: scale from the last-clicked button position
+  const dialog = bd.querySelector('.app-dialog');
+  if (dialog && window._lastAiClickY) {
+    const rect = dialog.getBoundingClientRect();
+    const originY = Math.max(0, Math.min(100, ((window._lastAiClickY - rect.top) / (rect.height || 1)) * 100));
+    dialog.style.transformOrigin = '50% ' + originY + '%';
+  }
+  requestAnimationFrame(() => {
+    bd.classList.add('app-dialog-bd-in');
+    if (dialog) {
+      const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const trap = (e) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      dialog.addEventListener('keydown', trap);
+      bd._focusTrap = trap;
+      bd._focusDialog = dialog;
+      first?.focus();
+    }
+  });
 }
-// Toggle between the change-diff (default) and the clean improved text.
 function _aiToggleDiff(btn) {
-  const diff = document.getElementById('ai-df-diff'), clean = document.getElementById('ai-df-clean');
-  if (!diff || !clean) return;
-  const showClean = diff.style.display !== 'none';
-  diff.style.display = showClean ? 'none' : '';
-  clean.style.display = showClean ? '' : 'none';
-  btn.textContent = showClean ? 'Show changes' : 'Show clean version';
+  const diff = document.getElementById('ai-df-diff'), after = document.getElementById('ai-ba-after');
+  if (!diff || !after) return;
+  const showDiff = diff.style.display === 'none';
+  diff.style.display = showDiff ? '' : 'none';
+  after.style.display = showDiff ? 'none' : '';
+  btn.textContent = showDiff ? 'Show clean version' : 'Show changes';
 }
 function _aiSuggestKey(e) { if (e.key === 'Escape') closeAiSuggest(); }
 function closeAiSuggest() {
@@ -4065,6 +4694,10 @@ function _applyAiSuggestion() {
 // Improve one specific entry. `idx` targets the exact card the button lives on, so
 // every entry (not just the first) can be improved independently.
 async function aiImprove(target, idx = 0) {
+  if (event) window._lastAiClickY = event.clientY;
+  // Optimistic shimmer on the card being improved
+  const _shimCard = document.querySelector(`.drag-item[data-drag-key="${target}"][data-drag-idx="${idx}"] .item-card`);
+  if (_shimCard) _shimCard.classList.add('ai-shimmer');
   aiLoading('Improving your ' + (target === 'summary' ? 'summary' : target) + '…');
   try {
     // Send the exact text being improved plus role/company context so the AI writes
@@ -4099,7 +4732,7 @@ async function aiImprove(target, idx = 0) {
       : ((resume[target] || [])[idx] && (resume[target][idx].title || resume[target][idx].role || resume[target][idx].name)) || _titleCase(target);
     showAiSuggestion({ title: 'Improved: ' + entryLabel, text: suggestion, original: text, apply });
   } catch(e) { if (e.message !== 'Premium required') toast(_aiErrMsg(e), { type: 'error' }); }
-  finally { aiLoadingDone(); }
+  finally { aiLoadingDone(); if (_shimCard) _shimCard.classList.remove('ai-shimmer'); }
 }
 
 // Map a rendered bullet index (Nth non-empty line) back to its raw line in the
@@ -4117,6 +4750,7 @@ function _bulletRawIndex(desc, bulletIdx) {
 // Inline per-bullet AI: improve/quantify/shorten/rewrite a SINGLE bullet, then
 // write just that line back. Reuses the proven aiStream + suggestion flow.
 async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
+  if (event) window._lastAiClickY = event.clientY;
   const item = (resume[section] || [])[entryIdx];
   if (!item) return;
   const field = ('description' in item) ? 'description' : ('abstract' in item) ? 'abstract' : null;
@@ -4130,7 +4764,7 @@ async function aiImproveBullet(section, entryIdx, bulletIdx, mode) {
   if (!bulletText) return toast('Add some text to this bullet first.', { type: 'warn' });
   const INSTR = {
     improve: 'Make this one bullet stronger and more specific. Return a single bullet line.',
-    quantify: 'Rewrite this one bullet to include a concrete metric or number (keep it truthful). Return a single bullet line.',
+    quantify: 'Use a metric only if this original bullet explicitly states one. Otherwise, keep the improvement qualitative. Return a single bullet line.',
     shorten: 'Make this one bullet more concise without losing impact. Return a single bullet line.',
     rewrite: 'Rewrite this one bullet more impactfully with a strong action verb. Return a single bullet line.'
   };
@@ -4250,7 +4884,7 @@ async function aiTailor() {
       // the user's original summary is always recoverable from version history.
       if ((resume.personal.summary || '').trim()) {
         resume.versions = resume.versions || [];
-        resume.versions.unshift({ ts: Date.now(), label: 'Before AI tailor', data: JSON.parse(JSON.stringify(resume)) });
+        resume.versions.unshift({ ts: Date.now(), label: 'Before AI tailor', data: _resumeSnapshot(resume) });
         if (resume.versions.length > 25) resume.versions.length = 25;
       }
       resume.personal.summary = r.summary;
@@ -4318,6 +4952,29 @@ function _trackerDialog(title, company, jd) {
     close();
     toast('Added to Job Tracker', { type: 'success' });
   };
+}
+
+function _runJDRedFlags(text) {
+  var host = document.getElementById('jd-redflags-result');
+  if (!host || !window.scanJDRedFlags) return;
+  if (!text || text.trim().length < 40) { host.innerHTML = ''; return; }
+  var r = scanJDRedFlags(text);
+  if (!r.flags.length) { host.innerHTML = ''; return; }
+  var sevIcon = { red: '<span style="color:#ef4444;">&#9679;</span>', yellow: '<span style="color:#f59e0b;">&#9679;</span>' };
+  var html = '<div style="margin:12px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card,var(--bg));">' +
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+    '<span style="font-weight:700;font-size:13px;">Job Posting Red Flags</span>' +
+    '<span style="margin-left:auto;font-size:12px;font-weight:600;color:' + (r.score >= 70 ? '#22c55e' : r.score >= 40 ? '#f59e0b' : '#ef4444') + ';">' + r.score + '/100</span></div>';
+  r.flags.forEach(function (f) {
+    html += '<div style="display:flex;gap:6px;align-items:flex-start;margin:6px 0;font-size:12px;line-height:1.5;">' +
+      (sevIcon[f.severity] || sevIcon.yellow) +
+      '<div><strong>' + f.title + '</strong><br><span style="color:var(--muted);">' + f.detail + '</span>' +
+      (f.quote ? '<br><span style="color:var(--muted);font-style:italic;font-size:11px;">' + f.quote.replace(/</g, '&lt;') + '</span>' : '') +
+      '</div></div>';
+  });
+  html += '</div>';
+  host.innerHTML = html;
 }
 
 async function aiATS() {
@@ -4455,7 +5112,14 @@ function _renderATSResult(r) {
       </div>` : ''}
       ${matched.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#4ade80;text-transform:none;font-size:13px;letter-spacing:0;">${okSvg} Matched keywords <span style="color:var(--muted);font-weight:600;">(${matched.length})</span></div><div class="ats-chips">${matched.map(k => chip(k, 'ats-chip-ok')).join('')}</div></div>` : ''}
       ${missChips.length ? `<div class="ats-kw-section"><div class="ats-kw-title" style="color:#fbbf24;text-transform:none;font-size:13px;letter-spacing:0;">${warnSvg} Missing from your resume <span style="color:var(--muted);font-weight:600;">(${missChips.length})</span></div><div class="ats-chips">${missChips.map(k => chip(k, 'ats-chip-miss')).join('')}</div></div>` : ''}
+      ${(matched.length || missChips.length) ? `<div class="ats-heatmap-row" style="display:flex;align-items:center;gap:10px;margin:8px 0 4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--fg);cursor:pointer;">
+          <input type="checkbox" id="ats-heatmap-toggle" style="accent-color:#6d4dfc;width:15px;height:15px;cursor:pointer;"> Show on resume
+        </label>
+        <span id="ats-heatmap-legend" style="opacity:.8;"></span>
+      </div>` : ''}
       ${fixes.length ? `<div class="ats-fix-section"><div class="ats-fix-title">Do these next, biggest gain first</div>${fixHtml}</div>` : ''}
+      ${_renderRedFlags(jdText)}
       ${_atsNextSteps(score, missChips.length)}
     </div>`;
 
@@ -4474,6 +5138,20 @@ function _renderATSResult(r) {
       })(performance.now());
     }
   });
+
+  // Keyword heatmap toggle
+  var hmToggle = document.getElementById('ats-heatmap-toggle');
+  var hmLegend = document.getElementById('ats-heatmap-legend');
+  if (hmToggle && window.keywordHeatmap) {
+    if (hmLegend) hmLegend.innerHTML = keywordHeatmap.legend();
+    hmToggle.addEventListener('change', function () {
+      var iframe = document.querySelector('.right-panel iframe');
+      var doc = iframe && iframe.contentDocument;
+      if (!doc) return;
+      if (this.checked) keywordHeatmap.apply(doc, matched, missChips);
+      else keywordHeatmap.clear(doc);
+    });
+  }
 
 }
 
@@ -4765,6 +5443,136 @@ function _relTime(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+// ---- JD Red Flag Scanner (integrated into ATS results) ----
+function _renderRedFlags(jdText) {
+  if (!window.scanJDRedFlags || !jdText || jdText.trim().length < 30) return '';
+  var result = window.scanJDRedFlags(jdText);
+  if (!result || !result.flags || !result.flags.length) return '';
+  var sevColor = function (s) { return s === 'red' ? '#ef4444' : '#f59e0b'; };
+  var flags = result.flags.map(function (f) {
+    return '<div class="ats-fix" style="border-left:3px solid ' + sevColor(f.severity) + ';padding-left:10px;margin-bottom:8px;">'
+      + '<div style="font-weight:650;color:var(--text);font-size:13px;">'
+      + '<span style="color:' + sevColor(f.severity) + ';">' + (f.severity === 'red' ? ICON('alert','ico ico-sm') : ICON('alert','ico ico-sm')) + '</span> '
+      + esc(f.title) + '</div>'
+      + (f.detail ? '<div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55;">' + esc(f.detail) + '</div>' : '')
+      + (f.quote ? '<div style="font-size:12px;font-style:italic;color:var(--muted);margin-top:2px;opacity:.7;">"' + esc(f.quote) + '"</div>' : '')
+      + '</div>';
+  }).join('');
+  var scoreColor = result.score >= 70 ? '#22c55e' : result.score >= 40 ? '#f59e0b' : '#ef4444';
+  return '<div style="margin-top:16px;padding:14px;background:var(--bg-2);border-radius:10px;border:1px solid var(--border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+    + '<span style="font-size:13px;font-weight:700;color:var(--text);">' + ICON('alert','ico ico-sm') + ' Job Posting Red Flags</span>'
+    + '<span style="font-size:12px;font-weight:700;color:' + scoreColor + ';">Posting health: ' + result.score + '/100</span>'
+    + '</div>' + flags + '</div>';
+}
+
+// ---- 6-Second Recruiter Scan Simulator ----
+function renderSixSec() {
+  return `
+    <div class="section-card ai-card ai-card-amber">
+      ${_aiHead('amber', 'gauge', '6-Second Scan', 'See what a recruiter notices in their first 6-second glance at your resume', '_startSixSecScan()', 'Start scan', 'btn-primary')}
+      <div class="ai-card-body">
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">
+          Recruiters spend an average of <strong>6 seconds</strong> on a first-pass resume scan.
+          This tool blurs your resume preview, then reveals it section by section to show what stands out
+          in that critical window -- and what gets missed.
+        </div>
+        <div id="sixsec-result"></div>
+        ${navRow('interview','quickfix')}
+      </div>
+    </div>`;
+}
+
+var _sixSecTimer = null;
+function _startSixSecScan() {
+  var host = document.getElementById('sixsec-result');
+  if (!host) return;
+  if (_sixSecTimer) { clearInterval(_sixSecTimer); _sixSecTimer = null; }
+
+  var p = resume.personal || {};
+  var checks = [];
+  if ((p.fullName || '').trim()) checks.push({ pass: true, label: 'Name visible', detail: 'Your name is the first thing recruiters look for.' });
+  else checks.push({ pass: false, label: 'Name missing', detail: 'Without a name, your resume gets skipped instantly.' });
+
+  if ((p.email || '').trim() || (p.phone || '').trim()) checks.push({ pass: true, label: 'Contact info present', detail: 'Recruiters check they can reach you.' });
+  else checks.push({ pass: false, label: 'No contact info', detail: 'No way to reach you = instant rejection.' });
+
+  var hasTitle = (p.summary || '').trim().length >= 10;
+  if (hasTitle) checks.push({ pass: true, label: 'Summary/headline exists', detail: 'A strong opening line anchors the 6-second scan.' });
+  else checks.push({ pass: false, label: 'No summary or headline', detail: 'The top of your resume is blank real estate. Add a 1-2 line professional summary.' });
+
+  var exp = resume.experience || [];
+  if (exp.length && exp[0].title) checks.push({ pass: true, label: 'Most recent role visible', detail: '"' + exp[0].title + '" at the top of experience is what recruiters see next.' });
+  else checks.push({ pass: false, label: 'No recent role', detail: 'Experience section is empty or missing a title -- recruiters move on.' });
+
+  var hasDates = exp.length && (exp[0].start || exp[0].end);
+  if (hasDates) checks.push({ pass: true, label: 'Dates present', detail: 'Recruiters check for tenure and gaps.' });
+  else if (exp.length) checks.push({ pass: false, label: 'Missing dates', detail: 'No dates on your most recent role raises a red flag.' });
+
+  var skills = (resume.skills && resume.skills.categories || []).flatMap(function (c) { return c.items || []; });
+  if (skills.length >= 3) checks.push({ pass: true, label: 'Skills section populated', detail: skills.length + ' skills listed. Recruiters keyword-scan this section.' });
+  else checks.push({ pass: false, label: 'Skills section thin', detail: 'Only ' + skills.length + ' skills. This section gets scanned for ATS keywords.' });
+
+  var bullets = [];
+  exp.forEach(function (e) { (e.description || '').split('\n').forEach(function (l) { var t = l.replace(/^\s*[*\-•]\s*/, '').trim(); if (t) bullets.push(t); }); });
+  var hasMetrics = bullets.some(function (b) { return /[\d$%]/.test(b); });
+  if (hasMetrics) checks.push({ pass: true, label: 'Metrics catch the eye', detail: 'Numbers and $ amounts pop visually during a quick scan.' });
+  else if (bullets.length) checks.push({ pass: false, label: 'No quantified results', detail: 'No numbers, $, or % in your bullets. Metrics are what recruiters remember.' });
+
+  var passed = checks.filter(function (c) { return c.pass; }).length;
+  var score = Math.round(passed / checks.length * 100);
+  var color = score >= 70 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+  var label = score >= 80 ? 'Your resume passes the 6-second test' : score >= 50 ? 'Some elements need work' : 'Major gaps in the first impression';
+
+  var secs = 6;
+  var revealed = 0;
+  host.innerHTML =
+    '<div style="text-align:center;margin:16px 0 20px;">' +
+      '<div id="sixsec-timer" style="font-size:48px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1;">' + secs + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:4px;">seconds remaining</div>' +
+    '</div>' +
+    '<div id="sixsec-checks" style="display:flex;flex-direction:column;gap:6px;"></div>' +
+    '<div id="sixsec-summary" style="display:none;margin-top:16px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);text-align:center;"></div>';
+
+  var checksHost = document.getElementById('sixsec-checks');
+  var timerEl = document.getElementById('sixsec-timer');
+  var summaryEl = document.getElementById('sixsec-summary');
+
+  function revealNext() {
+    if (revealed >= checks.length) {
+      clearInterval(_sixSecTimer); _sixSecTimer = null;
+      if (timerEl) timerEl.textContent = '0';
+      if (summaryEl) {
+        summaryEl.style.display = 'block';
+        summaryEl.innerHTML =
+          '<div style="font-size:36px;font-weight:900;color:' + color + ';line-height:1;">' + score + '<span style="font-size:16px;font-weight:600;">/100</span></div>' +
+          '<div style="font-size:13px;font-weight:600;margin-top:4px;color:' + color + ';">' + label + '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:6px;">' + passed + ' of ' + checks.length + ' first-impression checks passed</div>';
+      }
+      return;
+    }
+    var c = checks[revealed];
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;';
+    row.innerHTML =
+      '<span style="flex-shrink:0;margin-top:1px;font-size:14px;">' + (c.pass ? '<span style="color:#22c55e;">&#10003;</span>' : '<span style="color:#ef4444;">&#10007;</span>') + '</span>' +
+      '<div><div style="font-size:13px;font-weight:600;color:var(--fg);">' + c.label + '</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:1px;">' + c.detail + '</div></div>';
+    checksHost.appendChild(row);
+    requestAnimationFrame(function () { row.style.opacity = '1'; row.style.transform = 'translateY(0)'; });
+    revealed++;
+  }
+
+  var interval = Math.floor(6000 / (checks.length + 1));
+  revealNext();
+  _sixSecTimer = setInterval(function () {
+    secs--;
+    if (timerEl) timerEl.textContent = Math.max(0, secs);
+    revealNext();
+    if (revealed >= checks.length) { clearInterval(_sixSecTimer); _sixSecTimer = null; }
+  }, interval);
+}
+
 function renderVersions() {
   const versions = resume.versions || [];
   if (!versions.length) {
@@ -4787,12 +5595,27 @@ function renderVersions() {
           ${new Date(v.ts).toLocaleString()} &nbsp;·&nbsp; ${_relTime(v.ts)}
         </div>
       </div>
-      <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
-        ${i === 0 ? 'Current' : 'Restore'}
-      </button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="diffVersion(${i})" title="Compare with current">${ICON('eye','ico')} Diff</button>
+        <button class="btn btn-secondary btn-xs" onclick="restoreVersion(${i})" ${i===0?'disabled title="This is the latest version"':''}>
+          ${i === 0 ? 'Current' : 'Restore'}
+        </button>
+      </div>
     </div>`).join('');
   document.getElementById('version-list').innerHTML = list;
 }
+function diffVersion(i) {
+  const versions = resume.versions || [];
+  const snap = versions[i] && versions[i].data;
+  if (!snap) return;
+  const current = _resumeSnapshot(resume);
+  const diff = window.versionDiff.compute(current, snap);
+  document.getElementById('modal-vdiff-title').textContent =
+    'Diff: Current vs ' + (versions[i].label || new Date(versions[i].ts).toLocaleString());
+  document.getElementById('vdiff-body').innerHTML = window.versionDiff.render(diff);
+  openModal('vdiff');
+}
+
 async function restoreVersion(i) {
   const ok = await confirmDialog({
     title: 'Restore this version?',
@@ -4813,6 +5636,306 @@ async function restoreVersion(i) {
   save(); closeModal('version'); renderMain();
   toast('Version restored', { type: 'success' });
   track('version_restore');
+}
+
+// ============ JD Red Flags (client-side, via js/jd-redflags.js) ============
+function _renderJDRedFlags(text, hostId) {
+  const host = document.getElementById(hostId);
+  if (!host || !window.scanJDRedFlags) return;
+  if (!text || text.trim().length < 30) { host.innerHTML = ''; return; }
+  const r = scanJDRedFlags(text);
+  if (!r.flags.length) {
+    host.innerHTML = '<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--muted);">' +
+      '<span style="color:#4ade80;font-size:16px;">&#10003;</span> No red flags detected in this job description.</div>';
+    return;
+  }
+  const sevColor = { red: '#ef4444', yellow: '#eab308' };
+  const sevLabel = { red: 'Red flag', yellow: 'Caution' };
+  const catIcons = { culture: '🏢', turnover: '🔄', compensation: '💰', scope: '📋', discrimination: '⚠️', unrealistic: '🎯' };
+  const cards = r.flags.map(f =>
+    '<div style="display:flex;gap:10px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;">' +
+      '<div style="flex-shrink:0;font-size:18px;">' + (catIcons[f.category] || '⚠️') + '</div>' +
+      '<div style="min-width:0;">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+          '<span style="font-size:10px;font-weight:700;text-transform:uppercase;color:' + (sevColor[f.severity] || '#eab308') + ';letter-spacing:.5px;">' + (sevLabel[f.severity] || 'Note') + '</span>' +
+          '<span style="font-size:13px;font-weight:600;color:var(--fg);">' + esc(f.title) + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;">' + esc(f.detail) + '</div>' +
+        (f.quote ? '<div style="font-size:11px;color:var(--muted);opacity:.7;margin-top:4px;font-style:italic;">\"' + esc(f.quote) + '\"</div>' : '') +
+      '</div>' +
+    '</div>'
+  ).join('');
+  const scoreColor = r.score >= 70 ? '#4ade80' : r.score >= 40 ? '#eab308' : '#ef4444';
+  host.innerHTML =
+    '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-2);border-bottom:1px solid var(--border);">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--fg);">JD Red Flag Scanner</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<span style="font-size:11px;color:var(--muted);">Trust score</span>' +
+          '<span style="font-size:14px;font-weight:700;color:' + scoreColor + ';">' + r.score + '/100</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;padding:10px 14px;">' + cards + '</div>' +
+    '</div>';
+}
+window._renderJDRedFlags = _renderJDRedFlags;
+
+// ============ LinkedIn Optimizer ============
+function renderLinkedIn() {
+  return `
+    <div class="section-card ai-card ai-card-sky">
+      ${_aiHead('sky', 'user', 'LinkedIn Optimizer', 'AI-powered headline and About section, grounded in your resume', 'aiLinkedInGen()', 'Optimize', 'btn-primary')}
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label>Target role</label>
+          <input id="li-role" placeholder="e.g. Senior Product Manager" value="${esc((resume.personal && resume.personal.summary || '').split(/[,.\n]/)[0].trim().slice(0, 80))}">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Current LinkedIn headline <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <input id="li-headline" placeholder="Paste your current headline so we can improve it">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Current LinkedIn About <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+          <textarea id="li-about" rows="5" placeholder="Paste your current About section, or leave blank and we'll write one from scratch."></textarea>
+        </div>
+        <div id="li-result" style="margin-top:18px;"></div>
+        ${navRow('modernize','interview')}
+      </div>
+    </div>`;
+}
+
+async function aiLinkedInGen() {
+  const role = (document.getElementById('li-role').value || '').trim();
+  const headline = (document.getElementById('li-headline').value || '').trim();
+  const about = (document.getElementById('li-about').value || '').trim();
+  if (!role && !headline && !about) {
+    toast('Add your target role or paste your current headline first.', { type: 'warn' });
+    document.getElementById('li-role').focus();
+    return;
+  }
+  const host = document.getElementById('li-result');
+  host.innerHTML = _aiToolLoading('Crafting your LinkedIn profile...');
+  aiLoadingStart();
+  try {
+    const r = await ai('linkedin', { role, currentHeadline: headline, currentAbout: about, resume: _resumeSnapshot(resume) });
+    track('ai_linkedin');
+    let html = '<div class="ai-result-box ai-result-sky"><div class="ai-result-label">✦ LinkedIn Optimization</div><div style="padding:14px;">';
+    if (r.headline) {
+      html += '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">Headline</div>' +
+        '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:14px;font-weight:600;line-height:1.5;">' + esc(r.headline) + '</div>' +
+        '<button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent);toast(\'Headline copied!\',{type:\'success\'})">Copy headline</button>' +
+      '</div>';
+    }
+    if (r.about) {
+      html += '<div style="margin-bottom:16px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;">About Section</div>' +
+        '<div id="li-about-result" style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;white-space:pre-wrap;">' + esc(r.about) + '</div>' +
+        '<button class="btn btn-ghost btn-xs" style="margin-top:6px;" onclick="navigator.clipboard.writeText(document.getElementById(\'li-about-result\').textContent);toast(\'About section copied!\',{type:\'success\'})">Copy About</button>' +
+      '</div>';
+    }
+    if (r.tips && r.tips.length) {
+      html += '<div style="margin-top:12px;">' +
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;">Profile Tips</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        r.tips.map(t => '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg-2);border-radius:8px;border:1px solid var(--border);font-size:12px;line-height:1.5;"><span style="color:#38bdf8;flex-shrink:0;">&#10070;</span><span>' + esc(t) + '</span></div>').join('') +
+        '</div></div>';
+    }
+    html += '</div></div>';
+    host.innerHTML = html;
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  finally { aiLoadingDone(); }
+}
+window.aiLinkedInGen = aiLinkedInGen;
+
+// ============ Interview Prep ============
+function renderInterview() {
+  return `
+    <div class="section-card ai-card ai-card-amber">
+      ${_aiHead('amber', 'chat', 'Interview Prep', 'Practice questions tailored to your resume and target role', 'aiInterviewPrep()', 'Generate Questions', 'btn-primary')}
+      <div class="ai-card-body">
+        <div class="form-field">
+          <label>Role you're interviewing for</label>
+          <input id="iv-role" placeholder="e.g. Backend Engineer at Stripe">
+        </div>
+        <div class="form-field" style="margin-top:10px;">
+          <label>Job description <span style="color:var(--muted);font-weight:400;">(optional, improves relevance)</span></label>
+          <textarea id="iv-jd" rows="5" placeholder="Paste the job description for more targeted questions."></textarea>
+        </div>
+        <div id="iv-result" style="margin-top:18px;"></div>
+        ${navRow('linkedin','sixsec')}
+      </div>
+    </div>`;
+}
+
+let _ivQCounter = 0;
+function _renderInterviewResult(text) {
+  if (!text) return '';
+  _ivQCounter = 0;
+  const lines = text.split('\n');
+  let html = '', inSection = false;
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    const sectionMatch = trimmed.match(/^\[(.+)\]$/);
+    if (sectionMatch) {
+      if (inSection) html += '</div>';
+      html += '<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:8px;">' + esc(sectionMatch[1]) + '</div>';
+      inSection = true;
+      return;
+    }
+    const qMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+    if (qMatch) {
+      const qId = 'iv-q-' + (++_ivQCounter);
+      const qText = qMatch[2];
+      html += '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;" id="' + qId + '">' +
+        '<div style="display:flex;gap:8px;align-items:flex-start;">' +
+          '<span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">' + esc(qMatch[1]) + '</span>' +
+          '<div style="flex:1;font-size:13px;font-weight:600;line-height:1.5;">' + esc(qText) + '</div>' +
+          '<button class="btn btn-ghost btn-xs iv-practice-btn" data-qid="' + qId + '" data-q="' + esc(qText) + '" onclick="ivTogglePractice(this.dataset.qid,this.dataset.q)" style="flex-shrink:0;white-space:nowrap;">' + ICON('mic','ico ico-sm') + ' Practice</button>' +
+        '</div>' +
+        '<div class="iv-practice-zone" id="' + qId + '-zone" style="display:none;"></div>';
+      return;
+    }
+    const tipMatch = trimmed.match(/^Tip:\s*(.+)/);
+    if (tipMatch) {
+      html += '<div style="margin-top:6px;padding:6px 10px;background:rgba(251,191,36,.08);border-radius:6px;border:1px solid rgba(251,191,36,.2);font-size:12px;color:var(--muted);line-height:1.5;">' +
+        '<span style="color:#fbbf24;font-weight:600;">Tip:</span> ' + esc(tipMatch[1]) + '</div></div>';
+      return;
+    }
+    html += '<div style="font-size:12px;color:var(--muted);line-height:1.5;padding:2px 0;">' + esc(trimmed) + '</div>';
+  });
+  if (inSection) html += '</div>';
+  return html;
+}
+
+async function aiInterviewPrep() {
+  const role = (document.getElementById('iv-role').value || '').trim();
+  const jd = (document.getElementById('iv-jd').value || '').trim();
+  if (!role) {
+    toast('Enter the role you are interviewing for.', { type: 'warn' });
+    document.getElementById('iv-role').focus();
+    return;
+  }
+  const host = document.getElementById('iv-result');
+  host.innerHTML = _aiToolLoading('Preparing interview questions...');
+  aiLoadingStart();
+  try {
+    const r = await ai('interview', { role, jobDescription: jd, resume: _resumeSnapshot(resume) });
+    track('ai_interview');
+    const body = typeof r === 'string' ? r : (r && r.text) || '';
+    host.innerHTML = '<div class="ai-result-box ai-result-amber"><div class="ai-result-label">✦ Interview Questions</div><div style="padding:14px;">' +
+      _renderInterviewResult(body) + '</div></div>';
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  finally { aiLoadingDone(); }
+}
+window.aiInterviewPrep = aiInterviewPrep;
+
+// ---- Interview Practice Mode ----
+function ivTogglePractice(qId, questionText) {
+  const zone = document.getElementById(qId + '-zone');
+  if (!zone) return;
+  if (zone.style.display !== 'none') { zone.style.display = 'none'; return; }
+  zone.style.display = 'block';
+  if (zone.dataset.init) return;
+  zone.dataset.init = '1';
+  zone.innerHTML =
+    '<div style="margin-top:10px;">' +
+      '<textarea id="' + qId + '-ans" rows="5" placeholder="Type your answer here. Use STAR format: Situation, Task, Action, Result." style="width:100%;box-sizing:border-box;"></textarea>' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-top:8px;">' +
+        '<button class="btn btn-primary btn-sm" data-qid="' + esc(qId) + '" data-q="' + esc(questionText) + '" onclick="ivSubmitAnswer(this.dataset.qid,this.dataset.q)">' + ICON('sparkle','ico ico-sm') + ' Score my answer</button>' +
+        '<span style="font-size:11px;color:var(--muted);">AI will evaluate structure, impact, and clarity</span>' +
+      '</div>' +
+      '<div id="' + qId + '-fb" style="margin-top:12px;"></div>' +
+    '</div>';
+}
+window.ivTogglePractice = ivTogglePractice;
+
+async function ivSubmitAnswer(qId, questionText) {
+  const ta = document.getElementById(qId + '-ans');
+  const answer = (ta && ta.value || '').trim();
+  if (!answer) { toast('Write your answer first.', { type: 'warn' }); if (ta) ta.focus(); return; }
+  const role = (document.getElementById('iv-role').value || '').trim() || 'the target role';
+  const fb = document.getElementById(qId + '-fb');
+  if (!fb) return;
+  fb.innerHTML = _aiToolLoading('Scoring your answer...');
+  aiLoadingStart();
+  try {
+    const r = await ai('interview-feedback', { question: questionText, answer, role });
+    track('ai_interview_practice');
+    fb.innerHTML = _renderFeedbackResult(r);
+  } catch (e) {
+    if (e.message !== 'Premium required' && e.message !== 'Sign up required') {
+      fb.innerHTML = '';
+      toast(_aiErrMsg(e), { type: 'error' });
+    } else fb.innerHTML = '';
+  } finally { aiLoadingDone(); }
+}
+window.ivSubmitAnswer = ivSubmitAnswer;
+
+function _renderFeedbackResult(r) {
+  if (!r) return '';
+  const score = typeof r.score === 'number' ? r.score : 50;
+  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const band = score >= 90 ? 'Excellent' : score >= 70 ? 'Strong' : score >= 50 ? 'Needs work' : 'Major gaps';
+
+  let html = '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
+  // Score header
+  html += '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-2);border-bottom:1px solid var(--border);">';
+  html += '<div style="position:relative;width:52px;height:52px;flex-shrink:0;">' +
+    '<svg viewBox="0 0 36 36" style="width:52px;height:52px;transform:rotate(-90deg);">' +
+      '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" stroke-width="3"/>' +
+      '<circle cx="18" cy="18" r="15.9" fill="none" stroke="' + color + '" stroke-width="3" stroke-dasharray="' + score + ' 100" stroke-linecap="round"/>' +
+    '</svg>' +
+    '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:' + color + ';">' + score + '</span>' +
+  '</div>';
+  html += '<div><div style="font-size:14px;font-weight:600;">' + band + '</div>';
+  if (r.feedback) html += '<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px;">' + esc(typeof r.feedback === 'string' ? r.feedback.split('\n')[0] : r.feedback) + '</div>';
+  html += '</div></div>';
+
+  // Breakdown bars
+  if (r.breakdown) {
+    html += '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">';
+    var dims = [['Structure (STAR)', r.breakdown.structure], ['Impact & results', r.breakdown.impact], ['Clarity', r.breakdown.clarity]];
+    dims.forEach(function(d) {
+      var v = typeof d[1] === 'number' ? d[1] : 50;
+      var c = v >= 80 ? '#22c55e' : v >= 60 ? '#f59e0b' : '#ef4444';
+      html += '<div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px;">' +
+          '<span>' + d[0] + '</span><span style="color:' + c + ';">' + v + '/100</span>' +
+        '</div>' +
+        '<div style="height:5px;border-radius:3px;background:var(--border);overflow:hidden;">' +
+          '<div style="height:100%;width:' + v + '%;background:' + c + ';border-radius:3px;transition:width .4s ease;"></div>' +
+        '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Strengths & improvements
+  var feedback = typeof r.feedback === 'string' ? r.feedback : '';
+  var strengths = [], improvements = [];
+  feedback.split('\n').forEach(function(line) {
+    var t = line.trim();
+    if (t.match(/^[✓]\s/)) strengths.push(t.slice(2));
+    else if (t.match(/^[→]\s/) || t.match(/^->\s/)) improvements.push(t.slice(2).trim() || t.slice(3));
+  });
+  if (strengths.length) {
+    html += '<div style="padding:0 16px 8px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#22c55e;margin-bottom:6px;">Strengths</div>';
+    strengths.forEach(function(s) {
+      html += '<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.5;margin-bottom:4px;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span><span>' + esc(s) + '</span></div>';
+    });
+    html += '</div>';
+  }
+  if (improvements.length) {
+    html += '<div style="padding:0 16px 12px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#f59e0b;margin-bottom:6px;">Improvements</div>';
+    improvements.forEach(function(s) {
+      html += '<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.5;margin-bottom:4px;"><span style="color:#f59e0b;flex-shrink:0;">&#8594;</span><span>' + esc(s) + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 // Coerce whatever /ai/parse returns into the exact shape the editor renders, so
@@ -4877,7 +6000,7 @@ async function importFromLinkedIn() {
   
   const redirectUri = `${CFG.API_URL}/auth/linkedin/callback`;
   const state = btoa(JSON.stringify({ ts: Date.now() }));
-  const scope = 'r_liteprofile r_emailaddress';
+  const scope = 'openid profile email';
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent(scope)}`;
   
   // Open popup
@@ -5194,6 +6317,7 @@ async function _hydrateFromCloud() {
   // First-run onboarding (js/onboarding.js) now owns the welcome + import-first flow for
   // new users (no hf_onboarded). The old welcome overlay is retired.
   await loadCurrentUser();
+  if (typeof loadCurrentProfile === 'function') await loadCurrentProfile();
   await _hydrateFromCloud();
   _ensureCustomSections();
   hydrate();
@@ -5227,6 +6351,13 @@ async function _hydrateFromCloud() {
   }
 
   document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + Shift + Z: dev reset panel (works even when typing)
+    if (e[MOD] && e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+      e.preventDefault();
+      _toggleDevResetPanel();
+      return;
+    }
+
     if (isTyping(e)) return;
 
     // Cmd/Ctrl + 1-9: jump to sidebar section
@@ -5268,8 +6399,69 @@ async function _hydrateFromCloud() {
       if (sidebar) sidebar.classList.remove('mob-open');
       const overlay = document.getElementById('sidebar-overlay');
       if (overlay) overlay.classList.remove('show');
+      // Also close dev reset panel
+      const devPanel = document.getElementById('dev-reset-bd');
+      if (devPanel) devPanel.remove();
       return;
     }
+
   });
+
+  function _toggleDevResetPanel() {
+    var old = document.getElementById('dev-reset-bd');
+    if (old) { old.remove(); return; }
+
+    var RESETS = [
+      { label: 'Replay onboarding flow', desc: 'Clears onboarding flags only. Your resume, jobs, and account stay.', keys: ['hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done'], set: { 'hf_onboard_new': '1' } },
+      { label: 'Replay walkthrough tour', desc: 'Re-shows the guided editor tour on next page load.', keys: ['hf_walkthrough_done'] },
+      { label: 'Replay auto-score popup', desc: 'Re-triggers the first-visit resume score.', keys: ['hf_seen_score'] },
+      { label: 'Clear AI result cache', desc: 'Forgets cached AI results (tailor, ATS, etc). Resume content stays.', keys: ['hf_ai_results'] },
+      { label: 'Clear job tracker', desc: 'Removes all saved jobs from the tracker. Resume stays.', keys: ['hf_jobs', 'hf_jobs_ts'] },
+      { label: 'Full fresh-user reset', desc: 'Clears everything EXCEPT your login token and email -- you stay signed in but see the app as a new user.', keys: ['hf_resume', 'hf_resumes', 'hf_active_id', 'hf_jobs', 'hf_jobs_ts', 'hf_profile', 'hf_ai_results', 'hf_welcome', 'hf_onboarded', 'hf_onboarding_answers', 'hf_first_action_done', 'hf_walkthrough_done', 'hf_seen_score', 'hf_seen'], set: { 'hf_onboard_new': '1' } },
+    ];
+
+    var bd = document.createElement('div');
+    bd.id = 'dev-reset-bd';
+    bd.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(8,10,25,.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+    var html = '<div style="background:var(--bg-card,#1a1b2e);border:1px solid var(--border);border-radius:12px;max-width:460px;width:100%;padding:20px 24px;max-height:80vh;overflow-y:auto;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h3 style="margin:0;font-size:15px;">Dev reset panel</h3>' +
+        '<button id="dev-reset-close" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">&times;</button>' +
+      '</div>' +
+      '<p style="font-size:11px;color:var(--muted);margin:0 0 14px;">Each button snapshots the affected keys before clearing, so you can undo from the console:<br><code style="font-size:10px;">_devResetUndo()</code></p>';
+
+    RESETS.forEach(function(r, i) {
+      var isDanger = i === RESETS.length - 1;
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;' + (i ? 'border-top:1px solid var(--border);' : '') + '">' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">' + r.label + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px;">' + r.desc + '</div></div>' +
+        '<button class="btn btn-sm ' + (isDanger ? 'btn-danger' : 'btn-secondary') + '" data-idx="' + i + '" style="flex-shrink:0;white-space:nowrap;">' + (isDanger ? 'Reset' : 'Run') + '</button>' +
+      '</div>';
+    });
+    html += '</div>';
+    bd.innerHTML = html;
+    document.body.appendChild(bd);
+
+    bd.addEventListener('click', function(e) {
+      if (e.target === bd || e.target.id === 'dev-reset-close') { bd.remove(); return; }
+      var btn = e.target.closest('button[data-idx]');
+      if (!btn) return;
+      var r = RESETS[parseInt(btn.dataset.idx, 10)];
+      if (!r) return;
+      // Snapshot before clearing
+      var snap = {};
+      r.keys.forEach(function(k) { var v = localStorage.getItem(k); if (v !== null) snap[k] = v; });
+      window._devResetSnapshot = snap;
+      window._devResetUndo = function() {
+        Object.keys(snap).forEach(function(k) { localStorage.setItem(k, snap[k]); });
+        if (typeof toast === 'function') toast('Undo applied, reload to take effect.', { type: 'info' });
+      };
+      // Clear
+      r.keys.forEach(function(k) { localStorage.removeItem(k); });
+      if (r.set) Object.keys(r.set).forEach(function(k) { localStorage.setItem(k, r.set[k]); });
+      bd.remove();
+      if (typeof toast === 'function') toast(r.label + ' -- reload to take effect. Undo: _devResetUndo() in console.', { type: 'success', duration: 5000 });
+    });
+  }
 })();
 

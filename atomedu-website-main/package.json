@@ -1,0 +1,22 @@
+{
+  "name": "atom-verified-math",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Owned exact math engine with local LaTeX editing, verification, and graphing.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build-vendor.js",
+    "postinstall": "node scripts/build-vendor.js",
+    "start": "python3 -m http.server 8080 --bind 127.0.0.1",
+    "benchmark": "node scripts/benchmark.js",
+    "benchmark:curriculum": "node scripts/curriculum-benchmark.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "katex": "0.19.1",
+    "mathlive": "0.111.4"
+  }
+}

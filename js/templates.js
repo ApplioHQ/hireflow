@@ -184,18 +184,25 @@ function applySectionToggles(safe) {
 function withFallback(resume, mini, marginsKey) {
   const r = resume || {};
   const empty = { fullName:'', email:'', phone:'', location:'', linkedin:'', github:'', website:'', summary:'' };
+  const records = key => Array.isArray(r[key]) ? r[key].filter(item => item && typeof item === 'object' && !Array.isArray(item)) : [];
+  const personal = r.personal && typeof r.personal === 'object' && !Array.isArray(r.personal) ? r.personal : {};
+  const customize = r.customize && typeof r.customize === 'object' && !Array.isArray(r.customize) ? r.customize : {};
+  const categories = r.skills && Array.isArray(r.skills.categories)
+    ? r.skills.categories.filter(category => category && typeof category === 'object' && !Array.isArray(category))
+      .map(category => ({ name: String(category.name || 'All'), items: Array.isArray(category.items) ? category.items.filter(item => typeof item === 'string') : [] }))
+    : [];
   const safe = {
-    personal: Object.assign({}, empty, r.personal || {}),
-    experience: Array.isArray(r.experience) ? r.experience : [],
-    education: Array.isArray(r.education) ? r.education : [],
-    skills: (r.skills && Array.isArray(r.skills.categories)) ? r.skills : { categories: [] },
-    projects: Array.isArray(r.projects) ? r.projects : [],
-    certifications: Array.isArray(r.certifications) ? r.certifications : [],
-    awards: Array.isArray(r.awards) ? r.awards : [],
-    leadership: Array.isArray(r.leadership) ? r.leadership : [],
-    volunteer: Array.isArray(r.volunteer) ? r.volunteer : [],
-    publications: Array.isArray(r.publications) ? r.publications : [],
-    customize: r.customize || {},
+    personal: Object.assign({}, empty, personal),
+    experience: records('experience'),
+    education: records('education'),
+    skills: { categories },
+    projects: records('projects'),
+    certifications: records('certifications'),
+    awards: records('awards'),
+    leadership: records('leadership'),
+    volunteer: records('volunteer'),
+    publications: records('publications'),
+    customize,
     template: r.template || 'modern',
     _marginsKey: marginsKey
   };
@@ -677,7 +684,7 @@ function tConsulting(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-consulting { font-family: var(--app-font, Georgia, 'Times New Roman', serif); color:#1a1a1a; height:100%;
+      .t-consulting { font-family: var(--app-font, Georgia, 'Times New Roman', serif); color:#1a1a1a; min-height:100%;
         padding: calc(6% * var(--app-margin,1)) calc(8% * var(--app-margin,1)); line-height:1.34; }
       .t-consulting .name { text-align:center; font-size:212%; font-weight:700; letter-spacing:.01em; }
       .t-consulting .contact { text-align:center; font-size:85%; color:#333; margin-top:1.4%; }
@@ -706,7 +713,7 @@ function tFaang(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-faang { font-family: var(--app-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); color:#202124; height:100%;
+      .t-faang { font-family: var(--app-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif); color:#202124; min-height:100%;
         padding: calc(5.5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.35; }
       .t-faang .name { font-size:202%; font-weight:800; letter-spacing:-.02em; color:#111; }
       .t-faang .contact { font-size:84%; color:#5f6368; margin-top:1.1%; }
@@ -735,7 +742,7 @@ function tHarvard(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
   return `
     <style>
-      .t-harvard { font-family: var(--app-font, Georgia, "Times New Roman", serif); color:#111; padding: calc(6% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); height:100%; }
+      .t-harvard { font-family: var(--app-font, Georgia, "Times New Roman", serif); color:#111; padding: calc(6% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); min-height:100%; }
       .t-harvard .h-name { text-align:center; font-size:210%; font-weight:700; letter-spacing:.01em; }
       .t-harvard .h-contact { text-align:center; font-size:82%; color:#333; margin-top:4px; }
       .t-harvard .h-contact span:not(:last-child)::after { content:"  \\2022  "; color:#888; }
@@ -762,7 +769,7 @@ function tStanford(r, accent) {
   const st = customizeStyleAttr(r.customize, r._marginsKey);
   return `
     <style>
-      .t-stanford { font-family: var(--app-font, "Helvetica Neue", Arial, sans-serif); color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); height:100%; }
+      .t-stanford { font-family: var(--app-font, "Helvetica Neue", Arial, sans-serif); color:#1a1a1a; padding: calc(6.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); min-height:100%; }
       .t-stanford .s-name { font-size:230%; font-weight:800; letter-spacing:-.02em; line-height:1; }
       .t-stanford .s-contact { font-size:81%; color:#555; margin-top:9px; display:flex; flex-wrap:wrap; gap:2.5%; }
       .t-stanford h2 { font-size:79%; font-weight:700; text-transform: var(--app-upper, uppercase); letter-spacing:.18em; color:#111; margin: calc(5.5% * var(--app-space,1)) 0 calc(2% * var(--app-space,1)); }
@@ -790,7 +797,7 @@ function tJake(r, accent) {
   const contact = [p.phone, p.email, p.linkedin, p.github, p.website, p.location].filter(Boolean);
   return `
     <style>
-      .t-jake { font-family: var(--app-font), "Helvetica Neue", Arial, sans-serif; color:#111; padding: calc(5.5% * var(--app-margin,1)) calc(6.5% * var(--app-margin,1)); height:100%; }
+      .t-jake { font-family: var(--app-font), "Helvetica Neue", Arial, sans-serif; color:#111; padding: calc(5.5% * var(--app-margin,1)) calc(6.5% * var(--app-margin,1)); min-height:100%; }
       .t-jake .j-name { text-align:center; font-size:220%; font-weight:700; letter-spacing:-.01em; }
       .t-jake .j-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; }
       .t-jake .j-contact span:not(:last-child)::after { content:"  |  "; color:#aaa; }
@@ -1140,7 +1147,7 @@ function tWharton(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-wharton { font-family: var(--app-font, "Times New Roman", Times, serif); color:#111; height:100%;
+      .t-wharton { font-family: var(--app-font, "Times New Roman", Times, serif); color:#111; min-height:100%;
         padding: calc(5.5% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.34; }
       .t-wharton .w-name { text-align:center; font-size:200%; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
       .t-wharton .w-contact { text-align:center; font-size:82%; color:#333; margin-top:5px; padding-bottom:calc(2% * var(--app-space,1)); border-bottom:1.2px solid #111; }
@@ -1172,7 +1179,7 @@ function tMit(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.github, p.website].filter(Boolean);
   return `
     <style>
-      .t-mit { font-family: var(--app-font, "Helvetica Neue", Helvetica, Arial, sans-serif); color:#111; height:100%;
+      .t-mit { font-family: var(--app-font, "Helvetica Neue", Helvetica, Arial, sans-serif); color:#111; min-height:100%;
         padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.36; }
       .t-mit .m-head { border-bottom: 3px solid ${c}; padding-bottom: calc(2% * var(--app-space,1)); margin-bottom: calc(3% * var(--app-space,1)); }
       .t-mit .m-name { font-size: 215%; font-weight:800; letter-spacing:-.01em; }
@@ -1208,7 +1215,7 @@ function tPlain(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-plain { font-family: var(--app-font, "Times New Roman", Times, Georgia, serif); color:#111; height:100%;
+      .t-plain { font-family: var(--app-font, "Times New Roman", Times, Georgia, serif); color:#111; min-height:100%;
         padding: calc(5% * var(--app-margin,1)) calc(7% * var(--app-margin,1)); line-height:1.38; }
       .t-plain .p-name { font-size:210%; font-weight:700; text-align:center; letter-spacing:.01em; }
       .t-plain .p-contact { text-align:center; font-size:85%; color:#333; margin-top:4px; }
@@ -1242,7 +1249,7 @@ function tGoogledocs(r, accent) {
   const contact = [p.email, p.phone, p.location, p.linkedin, p.website].filter(Boolean);
   return `
     <style>
-      .t-gdocs { font-family: var(--app-font, Arial, "Helvetica Neue", Helvetica, sans-serif); color:#202124; height:100%;
+      .t-gdocs { font-family: var(--app-font, Arial, "Helvetica Neue", Helvetica, sans-serif); color:#202124; min-height:100%;
         padding: calc(6% * var(--app-margin,1)) calc(7.5% * var(--app-margin,1)); line-height:1.4; }
       .t-gdocs .g-name { font-size: 200%; font-weight:700; color:#202124; letter-spacing:-.01em; }
       .t-gdocs .g-title { font-size:105%; color:${c}; margin-top:2px; font-weight:500; }
@@ -1540,6 +1547,9 @@ function resumeDocHTML(bodyHTML, pageWidth) {
     font-feature-settings:"kern" 1,"liga" 1,"tnum" 1,"lnum" 1;
     font-variant-numeric: lining-nums tabular-nums; }
   * { box-sizing:border-box; }
+  /* Templates may fill a short page, but must never cap a long resume. Natural
+     flow lets the shared paginator move overflow onto continuation pages. */
+  body > div[class^="t-"] { height:auto !important; min-height:0 !important; overflow:visible !important; }
   @page { size:${pageSize}; margin:0; }
   /* Two-page support: don't split an entry across the page break, and keep a
      section heading with its content. */
@@ -1641,13 +1651,10 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
 
   // Best "flow root": the element that actually holds the resume's top-level blocks.
   function flowRoot(root) {
-    var named = root.querySelector('.body');
+    var template = root.querySelector('div[class^="t-"]') || root;
+    var named = template.querySelector('.body');
     if (named) return named;
-    var best = root.firstElementChild || root, bn = best.children ? best.children.length : 0;
-    root.querySelectorAll('div, section, main').forEach(function (el) {
-      if (el.children.length > bn) { best = el; bn = el.children.length; }
-    });
-    return best;
+    return template;
   }
 
   // Break-units: descend into any block taller than a page (with >1 child) so a
@@ -1659,7 +1666,12 @@ if (typeof window !== 'undefined') window.fitDocToOnePage = fitDocToOnePage;
       var kids = el.children
         ? Array.prototype.slice.call(el.children).filter(function (c) { return !(c.classList && c.classList.contains('hf-pagebreak')); })
         : [];
-      var tooTall = el.getBoundingClientRect().height > pageH;
+      // scrollHeight captures the real content height, including any legacy or
+      // user-supplied template that constrains its outer box, and lets us descend
+      // into the entries that can safely start a continuation page.
+      var boxHeight = el.getBoundingClientRect().height;
+      var contentHeight = Math.max(boxHeight, el.scrollHeight || 0);
+      var tooTall = contentHeight > pageH;
       if (tooTall && kids.length > 1 && depth < MAX_DEPTH) { kids.forEach(function (gc) { collect(gc, depth + 1); }); }
       else units.push(el);
     }

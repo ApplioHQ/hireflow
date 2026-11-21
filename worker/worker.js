@@ -22,7 +22,7 @@ const SMART_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 // model can never fabricate facts the candidate didn't actually provide. This is the
 // single most important guardrail for output quality/trust.
 const GROUNDING = `GROUNDING, the most important rule, overrides everything else if in conflict:
-Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. If a specific detail (like a metric) is missing, keep the statement qualitative, never fabricate one. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
+Use ONLY facts explicitly present in the candidate's input. Never invent, assume, infer, extrapolate, or embellish. Do NOT add numbers, percentages, dollar amounts, metrics, dates, job titles, company names, team sizes, technologies, tools, degrees, certifications, or achievements that are not clearly stated in the input. A number or quantitative claim may appear only when that exact detail appears in the input. Never convert a qualitative statement into a numeric claim, use a typical industry metric, or fill in a missing detail. If a specific detail is missing, keep the statement qualitative. When unsure whether something is supported, leave it out. Accurate and modest always beats impressive and false.
 Never use em dashes; use commas, periods, or parentheses instead.`;
 
 // AI endpoints that require Premium/Lifetime
@@ -117,6 +117,31 @@ export default {
       return gdriveCallback(req, url, env).catch(e => new Response(`<html><body><script>window.opener&&window.opener.postMessage({type:'gdrive_error',error:${JSON.stringify(e.message)}},'*');window.close();</script><p>Error: ${e.message}</p></body></html>`, { status: 500, headers: { "Content-Type": "text/html" } }));
     }
 
+    // The PDF renderer loads this one-time, opaque source document from the static
+    // renderer page. It is deliberately outside the normal auth flow because the
+    // headless browser has no user session; the 256-bit render token is the access
+    // control and expires from KV within minutes.
+    if (path === "/resume/render-source" && req.method === "GET") {
+      return getResumeRenderSource(url, env).then(source => {
+        if (url.searchParams.get("format") === "script") {
+          const body = "window.__APPLIO_RENDER_SOURCE__=" + JSON.stringify(source).replace(/</g, "\\u003c") + ";";
+          return withCors(new Response(body, {
+            headers: { ...SECURITY_HEADERS, "Content-Type": "application/javascript; charset=utf-8" },
+          }), cors);
+        }
+        return json(source, 200, cors);
+      }).catch(e => json({ error: e.message || "Render source unavailable" }, e.status || 500, cors));
+    }
+
+    // Use Cloudflare Browser Rendering as the authoritative PDF engine. It returns
+    // an actual PDF response rather than JSON, so keep it outside the generic route
+    // wrapper below.
+    if (path === "/resume/pdf" && req.method === "POST") {
+      return renderResumePdf(req, env)
+        .then(response => withCors(response, cors))
+        .catch(e => json({ error: e.message || "PDF export failed" }, e.status || 500, cors));
+    }
+
     // Public personal website: /p/:slug renders a portfolio page from a user's
     // opted-in resume data. No auth, HTML response. Only fields the user chose
     // to publish are included; contact details are hidden unless opted in.
@@ -130,7 +155,7 @@ export default {
       if (path === "/auth/signup")             return json(await signup(req, env), 200, cors);
       if (path === "/auth/login")              return json(await login(req, env), 200, cors);
       if (path === "/auth/google")             return json(await googleAuth(req, env), 200, cors);
-      if (path === "/auth/linkedin/callback")  return json(await linkedinCallback(req, env), 200, cors);
+      if (path === "/auth/linkedin/callback")  return linkedinCallback(req, env);
       if (path === "/me")                      return json(await me(req, env), 200, cors);
       if (path === "/me/sync")                 return json(await syncWithStripe(req, env), 200, cors);
       if (path === "/status")                  return json(await getStatus(req, env), 200, cors);
@@ -149,6 +174,7 @@ export default {
       if (path === "/consent" && req.method === "POST") return json(await setConsent(req, env), 200, cors);
       if (path === "/testimonial" && req.method === "GET")  return json(await getTestimonial(req, env), 200, cors);
       if (path === "/testimonial" && req.method === "POST") return json(await setTestimonial(req, env), 200, cors);
+      if (path === "/testimonials/public" && req.method === "GET") return json(await getPublicTestimonials(env), 200, cors);
       if (path === "/admin/testimonials")              return json(await adminListTestimonials(req, env), 200, cors);
       if (path === "/jobs" && req.method === "GET")  return json(await getJobs(req, env), 200, cors);
       if (path === "/jobs" && req.method === "POST") return json(await saveJobs(req, env), 200, cors);
@@ -163,7 +189,6 @@ export default {
       if (path === "/admin/ai-disable")        return json(await adminSetAIDisabled(req, env), 200, cors);
       if (path === "/admin/maintenance")       return json(await adminSetMaintenance(req, env), 200, cors);
       if (path === "/admin/admin-access")      return json(await adminSetAdminAccess(req, env), 200, cors);
-      if (path === "/admin/audit-log")         return json(await adminAuditLog(req, env), 200, cors);
       if (path === "/admin/test-win-nudge")    return json(await adminTestWinNudge(req, env), 200, cors);
       if (path === "/admin/excluded-ips")      return json(await adminExcludedIps(req, env), 200, cors);
       if (path === "/referral/code" && req.method === "POST") return json(await referralGetCode(req, env), 200, cors);
@@ -185,11 +210,13 @@ export default {
     }
   },
 
-  // Cron: Fridays 16:00 UTC = weekly win nudge + review nudge; daily 14:00 UTC = re-engagement drip + post-download review.
+  // Each cron gets its own job. Keeping them separate prevents a Friday event from
+  // sending every campaign at once; outreach routines remain idempotent via KV.
   // All inert until env.RESEND_API_KEY is configured.
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
-    ctx.waitUntil(runPostDownloadReviewNudge(env).catch(() => {}));
+    if (event.cron === "0 16 * * 5") ctx.waitUntil(runWeeklyWinNudge(env).catch(() => {}));
+    if (event.cron === "0 14 * * *") ctx.waitUntil(runPostDownloadReviewNudge(env).catch(() => {}));
+    if (event.cron === "0 9 * * *") ctx.waitUntil(runTestimonialFollowup(env).catch(() => {}));
     // Re-engagement drip disabled until ready to activate
     // ctx.waitUntil(runReEngagementDrip(env).catch(() => {}));
   },
@@ -749,7 +776,7 @@ async function linkedinCallback(req, env) {
 
     // Build resume text from LinkedIn profile
     const profileText = [
-      firstName && lastName ? `${firstName} ${lastName}` : '',
+      profile.name || [firstName, lastName].filter(Boolean).join(' '),
       email ? `Email: ${email}` : '',
       headline ? `Headline: ${headline}` : '',
       '---',
@@ -909,18 +936,36 @@ async function _readAllUserRecords(env) {
   return users;
 }
 
+async function _readAllProfileRecords(env) {
+  const keys = [];
+  let cursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "profile:", cursor });
+    for (const k of page.keys) keys.push(k.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  const profiles = [];
+  const BATCH = 60;
+  for (let i = 0; i < keys.length; i += BATCH) {
+    const raws = await Promise.all(keys.slice(i, i + BATCH).map(name => env.HIREFLOW_KV.get(name)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      let profile; try { profile = JSON.parse(raw); } catch { continue; }
+      if (profile && typeof profile === "object" && !Array.isArray(profile)) profiles.push(profile);
+    }
+  }
+  return profiles;
+}
+
 async function adminListUsers(req, env) {
   await requireAdmin(req, env);
   const records = await _readAllUserRecords(env);
-  // Emails are sent to the client (same precedent as /feedback/list) so the admin
-  // can mask-display and target a delete call; admin.html never renders the raw
-  // address, only _maskEmail(u.email).
-  const users = records.map(u => ({
-    email: u.email || "",
-    plan: u.plan || "free",
-    createdAt: u.createdAt || 0,
-    lastSeen: u.lastSeen || u.createdAt || 0,
-  }));
+  // Privacy: individual users are never displayed in the admin, so we never send
+  // emails (or any per-user PII) to the client. Emails remain stored/logged in KV.
+  // We return only the plan for each record, which is all the admin needs to show
+  // aggregate counts (total users, paid users).
+  const users = records.map(u => ({ plan: u.plan || "free" }));
   return { users, total: users.length };
 }
 
@@ -959,16 +1004,11 @@ async function adminAnalytics(req, env) {
   await requireAdmin(req, env);
   const now = Date.now();
   const DAY = 86400000;
-  // Period selector for the two Overview charts (signups + page views). Wired to
-  // the .period-sel control in admin.html; anything else not passed here (daily
-  // breakdown, hero KPIs) intentionally keeps its own fixed window.
-  const reqDays = parseInt(new URL(req.url).searchParams.get("days"), 10);
-  const chartDays = [7, 30, 90].includes(reqDays) ? reqDays : 30;
 
   const plans = { free: 0, premium: 0, lifetime: 0 };
   let total = 0, totalDownloads = 0;
   let signupsToday = 0, last7Signups = 0, last30Signups = 0, prev7Signups = 0;
-  let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, dormant = 0;
+  let activeSubs = 0, stripeLinked = 0, everDownloaded = 0, exportedUsers = 0, dormant = 0;
   let usedAi = 0, activated = 0;   // activation = has used AI or exported at least once
   // Self-reported outcomes (logged at export): interviews and offers.
   let interviewUsers = 0, interviewEvents = 0, offerEvents = 0, winsLast30 = 0;
@@ -976,19 +1016,15 @@ async function adminAnalytics(req, env) {
   let activeToday = 0, wau = 0, mau = 0, returning = 0, aiRepeat = 0, totalAiUses = 0;
   let activePremiumSubs = 0;   // recurring subs still in their paid period -> drives MRR
   let compedPremium = 0;       // early-bird comps: active Premium but NOT paying
-  let premiumChurn7 = 0, premiumChurn30 = 0; // active premium expiring in 7/30 days
   const todayStr = tzDay(now);
   // Monthly prices (mirror the pricing page). MRR counts recurring Premium only; Lifetime
   // is one-time revenue, reported separately so the two aren't conflated.
   const PREMIUM_MO = 9.99, LIFETIME_ONCE = 39.99;
 
-  // Pre-seed the last 90 days to 0 so the sparkline is continuous. Seeded wider
-  // than any chartDays choice (7/30/90) so dailyBreakdown's fixed 30-day lookups
-  // below stay correct regardless of which period the chart response is sliced to.
-  const SIGNUPS_SEED_DAYS = 90;
-  const signupsByDayFull = {};
-  for (let i = SIGNUPS_SEED_DAYS - 1; i >= 0; i--) {
-    signupsByDayFull[tzDay(now - i * DAY)] = 0;
+  // Pre-seed the last 30 UTC days to 0 so the sparkline is continuous.
+  const signupsByDay = {};
+  for (let i = 29; i >= 0; i--) {
+    signupsByDay[tzDay(now - i * DAY)] = 0;
   }
 
   // Read all user records in parallel batches (fast + bounded), then aggregate.
@@ -1020,8 +1056,11 @@ async function adminAnalytics(req, env) {
     const dl = Number(u.downloadsUsed) || 0;
     totalDownloads += dl;
     if (dl > 0) everDownloaded++;
+    const features = u.features || {};
+    const hasExported = dl > 0 || Number(features.download_pdf) > 0 || Number(features.export_gdoc) > 0 || Number(features.export_print) > 0;
+    if (hasExported) exportedUsers++;
     if (u.aiUsed) usedAi++;
-    if (u.aiUsed || dl > 0) activated++;
+    if (u.aiUsed || hasExported) activated++;
     if (u.stripeCustomerId) stripeLinked++;
     // Active paid: lifetime never expires; premium counts if its period end is in the future.
     const premiumActive = plan === "premium" && (Number(u.currentPeriodEnd) || 0) * 1000 > now;
@@ -1032,13 +1071,6 @@ async function adminAnalytics(req, env) {
       // so revenue isn't overstated. Tally them separately.
       if (u.promoEarlyBird && !u.stripeCustomerId) compedPremium++;
       else activePremiumSubs++;
-      // Churn risk: premium subs expiring soon.
-      const periodEnd = Number(u.currentPeriodEnd) || 0;
-      if (periodEnd) {
-        const daysLeft = (periodEnd * 1000 - now) / DAY;
-        if (daysLeft <= 7) premiumChurn7++;
-        else if (daysLeft <= 30) premiumChurn30++;
-      }
     }
 
     // ---- Retention / repeat usage ----
@@ -1063,10 +1095,10 @@ async function adminAnalytics(req, env) {
       else if (age <= 14 * DAY) prev7Signups++;
       if (age <= 30 * DAY) last30Signups++;
       const day = tzDay(created);
-      if (day in signupsByDayFull) signupsByDayFull[day]++;
+      if (day in signupsByDay) signupsByDay[day]++;
     }
-    // Dormant: joined more than 7 days ago and never downloaded anything.
-    if (created && now - created > 7 * DAY && dl === 0) dormant++;
+    // Dormant: joined more than 7 days ago and has neither used AI nor exported.
+    if (created && now - created > 7 * DAY && !u.aiUsed && !hasExported) dormant++;
 
     // Interview / offer outcomes the user self-reported at export. `interviewWins`
     // is [{outcome:'interview'|'offer'|'no', ts}]; count real wins only.
@@ -1102,63 +1134,82 @@ async function adminAnalytics(req, env) {
 
   // Anonymous website traffic (from the page-view beacon in js/theme.js).
   const num = async (key) => parseInt(await env.HIREFLOW_KV.get(key) || "0", 10) || 0;
-
-  // Batch all independent KV counter reads in parallel to avoid sequential
-  // round-trips that push the function past the Workers wall-clock limit.
-  const [pageViews, visitors, pageViewsToday, visitorsToday] = await Promise.all([
-    num("stats:pv:total"), num("stats:uv:total"),
-    num(`stats:pv:${todayStr}`), num(`stats:uv:${todayStr}`),
-  ]);
-
-  const last7Days = Array.from({ length: 7 }, (_, i) => tzDay(now - (6 - i) * DAY));
-  const pv7Vals = await Promise.all(last7Days.map(d => num(`stats:pv:${d}`)));
-  const pageViewsLast7 = pv7Vals.reduce((s, v) => s + v, 0);
-
-  const chartDayKeys = Array.from({ length: chartDays }, (_, i) => tzDay(now - (chartDays - 1 - i) * DAY));
-  const pvDayVals = await Promise.all(chartDayKeys.map(d => num(`stats:pv:${d}`)));
+  const pageViews = await num("stats:pv:total");
+  const visitors = await num("stats:uv:total");
+  const pageViewsToday = await num(`stats:pv:${todayStr}`);
+  const visitorsToday = await num(`stats:uv:${todayStr}`);
+  let pageViewsLast7 = 0;
   const pvByDay = {};
-  chartDayKeys.forEach((d, i) => { pvByDay[d] = pvDayVals[i]; });
+  for (let i = 6; i >= 0; i--) {
+    const day = tzDay(now - i * DAY);
+    const v = await num(`stats:pv:${day}`);
+    pvByDay[day] = v; pageViewsLast7 += v;
+  }
 
   // AI feature usage (real successful uses, from _bumpAiUsage on the /ai/ endpoints).
-  const [aiUses, aiToday] = await Promise.all([num("stats:ai:total"), num(`stats:ai:${todayStr}`)]);
-  const ai7Vals = await Promise.all(last7Days.map(d => num(`stats:ai:${d}`)));
-  const aiLast7 = ai7Vals.reduce((s, v) => s + v, 0);
-
+  const aiUses = await num("stats:ai:total");
+  const aiToday = await num(`stats:ai:${todayStr}`);
+  let aiLast7 = 0;
+  for (let i = 6; i >= 0; i--) {
+    aiLast7 += await num(`stats:ai:${tzDay(now - i * DAY)}`);
+  }
   const AI_ACTIONS = ["tailor", "ats", "analyze", "improve", "cover-letter", "letter", "interview",
-    "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse"];
-  const aiActionVals = await Promise.all(AI_ACTIONS.map(a => num(`stats:ai:action:${a}`)));
+    "interview-feedback", "assistant", "autopilot", "skills", "skill-gap", "salary", "win", "parse",
+    "linkedin", "modernize"];
   const aiByAction = {};
-  AI_ACTIONS.forEach((a, i) => { if (aiActionVals[i]) aiByAction[a] = aiActionVals[i]; });
+  for (const a of AI_ACTIONS) {
+    const v = await num(`stats:ai:action:${a}`);
+    if (v) aiByAction[a] = v;
+  }
 
   // Early-bird promo status for the admin panel.
   const eb = await _getEarlyBird(env);
 
   // Non-AI feature usage counters (from /track beacon).
   const FEATURE_NAMES = [
-    "template_select", "download_pdf", "export_gdoc", "export_print",
+    "template_select", "section_visit", "version_restore", "version_save",
+    "download_pdf", "export_gdoc", "export_print",
     "job_tracker_open", "job_tracker_save", "cover_letter_open",
     "interview_prep_open", "salary_open", "skill_gap_open",
-    "version_restore", "resume_import", "referral_open",
+    "resume_import", "referral_open", "feedback_open",
     "onboarding_complete",
   ];
-  const TEMPLATE_IDS = ["harvard", "stanford", "modern", "minimal", "deedy",
-    "twocolumn", "healthcare", "sales", "ats", "classic", "creative", "tech"];
-  const [featureVals, templateVals] = await Promise.all([
-    Promise.all(FEATURE_NAMES.map(f => num(`stats:feature:${f}`))),
-    Promise.all(TEMPLATE_IDS.map(t => num(`stats:feature:template_select:${t}`))),
-  ]);
   const featureUsage = {};
-  FEATURE_NAMES.forEach((f, i) => { if (featureVals[i]) featureUsage[f] = featureVals[i]; });
+  for (const f of FEATURE_NAMES) {
+    const v = await num(`stats:feature:${f}`);
+    if (v) featureUsage[f] = v;
+  }
+  // Template variants share a prefix with daily template_select counters. Read the
+  // actual variant keys so new templates appear automatically, while excluding the
+  // YYYY-MM-DD daily counters.
+  const templateKeys = [];
+  let templateCursor;
+  do {
+    const page = await env.HIREFLOW_KV.list({ prefix: "stats:feature:template_select:", cursor: templateCursor });
+    for (const key of page.keys) {
+      const variant = key.name.slice("stats:feature:template_select:".length);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(variant)) templateKeys.push({ name: key.name, variant });
+    }
+    templateCursor = page.list_complete ? undefined : page.cursor;
+  } while (templateCursor);
   const templatePicks = {};
-  TEMPLATE_IDS.forEach((t, i) => { if (templateVals[i]) templatePicks[t] = templateVals[i]; });
-
+  for (let i = 0; i < templateKeys.length; i += 60) {
+    const batch = templateKeys.slice(i, i + 60);
+    const values = await Promise.all(batch.map(({ name }) => num(name)));
+    values.forEach((value, index) => {
+      if (value) templatePicks[batch[index].variant] = value;
+    });
+  }
   // 7-day feature activity for key actions.
-  const FL7_KEYS = ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"];
-  const fl7Vals = await Promise.all(FL7_KEYS.map(f =>
-    Promise.all(last7Days.map(d => num(`stats:feature:${f}:${d}`))).then(vs => vs.reduce((s, v) => s + v, 0))
-  ));
   const featureLast7 = {};
-  FL7_KEYS.forEach((f, i) => { if (fl7Vals[i]) featureLast7[f] = fl7Vals[i]; });
+  for (const f of ["download_pdf", "export_gdoc", "template_select", "cover_letter_open", "interview_prep_open"]) {
+    let total7 = 0;
+    for (let i = 6; i >= 0; i--) {
+      const day = tzDay(now - i * DAY);
+      total7 += await num(`stats:feature:${f}:${day}`);
+    }
+    if (total7) featureLast7[f] = total7;
+  }
   // Per-user feature breadth: count users who have used each non-AI feature.
   const usersByNonAiFeature = {};
   for (const u of records) {
@@ -1166,6 +1217,30 @@ async function adminAnalytics(req, env) {
     for (const k in u.features) {
       if ((Number(u.features[k]) || 0) > 0) usersByNonAiFeature[k] = (usersByNonAiFeature[k] || 0) + 1;
     }
+  }
+
+  // ---- Profile onboarding (company, role, aggregate opt-in, email consent) ----
+  // These fields are stored under profile:<email>, rather than user:<email>.
+  const profileCompanies = {};
+  const profileRoles = {};
+  let profileCompanyOptInCount = 0;
+  let profileEmailConsentCount = 0;
+  let profileHasCompany = 0;
+  let profileHasRole = 0;
+  const profiles = await _readAllProfileRecords(env);
+  for (const profile of profiles) {
+    const company = typeof profile.company === "string" ? profile.company.trim().toLowerCase() : "";
+    const role = typeof profile.role === "string" ? profile.role.trim().toLowerCase() : "";
+    if (company) {
+      profileHasCompany++;
+      profileCompanies[company] = (profileCompanies[company] || 0) + 1;
+    }
+    if (role) {
+      profileHasRole++;
+      profileRoles[role] = (profileRoles[role] || 0) + 1;
+    }
+    if (profile.companyAggregateOptIn === true) profileCompanyOptInCount++;
+    if (profile.testimonialFollowupEmail === true) profileEmailConsentCount++;
   }
 
   // ---- Onboarding selections ----------------------------------------------
@@ -1236,6 +1311,16 @@ async function adminAnalytics(req, env) {
     stage: onbStage,
     challenge: onbChallenge,
     heardFrom: onbHeardFrom,
+    // Profile onboarding (company, role, aggregate opt-in, email consent)
+    profile: {
+      totalUsers: total,
+      hasCompany: profileHasCompany,
+      hasRole: profileHasRole,
+      companyOptInCount: profileCompanyOptInCount,
+      emailConsentCount: profileEmailConsentCount,
+      topCompanies: profileCompanies,
+      topRoles: profileRoles,
+    },
   };
 
   // ---- Daily breakdown (last 30 days) --------------------------------------
@@ -1256,28 +1341,22 @@ async function adminAnalytics(req, env) {
     ]);
     return {
       day,
-      signups: signupsByDayFull[day] || 0,
+      signups: signupsByDay[day] || 0,
       visitors, pageviews, aiUses,
       exports: pdf + gdoc + print,
     };
   }));
 
-  // Chart response: slice the full seeded window down to the requested period.
-  const signupsByDay = {};
-  Object.keys(signupsByDayFull).slice(-chartDays).forEach(k => { signupsByDay[k] = signupsByDayFull[k]; });
-
   return {
     total, plans, conversionRate, totalDownloads, avgDownloads,
     signupsToday, last7Signups, last30Signups, prev7Signups, signupTrend,
-    activeSubs, stripeLinked, everDownloaded, activationRate, dormant,
+    activeSubs, stripeLinked, everDownloaded, exportedUsers, activationRate, dormant,
     usedAi, activated,
     // Retention / repeat usage
     activeToday, wau, mau, returning, returnRate, stickiness,
     aiRepeat, aiRepeatRate, avgAiPerUser, totalAiUses,
     // Revenue
     payingCustomers, activePremiumSubs, compedPremium, mrr, lifetimeRevenue,
-    // Churn risk: active premium expiring soon
-    premiumChurn7, premiumChurn30,
     // Early-bird promo
     earlyBird: {
       enabled: !!eb.enabled, limit: eb.limit,
@@ -1286,7 +1365,7 @@ async function adminAnalytics(req, env) {
       endsAt: eb.endsAt, grantDays: eb.grantDays || 60,
       open: _earlyBirdOpen(eb, now),
     },
-    signupsByDay, chartDays, dailyBreakdown, attribution, onboarding, channels, geoCountry, geoCity,
+    signupsByDay, dailyBreakdown, attribution, onboarding, channels, geoCountry, geoCity,
     pageViews, visitors, pageViewsToday, visitorsToday, pageViewsLast7, pvByDay,
     aiUses, aiToday, aiLast7, aiByAction, usersByFeature,
     featureUsage, templatePicks, featureLast7, usersByNonAiFeature,
@@ -1304,65 +1383,40 @@ async function adminDeleteUser(req, env) {
   return { ok: true, email };
 }
 
-// Audit trail for the highest-blast-radius admin actions (AI kill switch,
-// maintenance mode, ADMIN tier access). Single KV list, read-modify-write like
-// trackPageview's counters: fine here too, since these are rare human-triggered
-// actions, not high-frequency writes. Capped so the log can't grow unbounded.
-const AUDIT_LOG_MAX = 50;
-async function recordAudit(env, actor, action, params) {
-  let log = [];
-  try { log = JSON.parse(await env.HIREFLOW_KV.get("audit:log") || "[]"); } catch { log = []; }
-  log.push({ actor, action, params: params || {}, ts: Date.now() });
-  if (log.length > AUDIT_LOG_MAX) log = log.slice(-AUDIT_LOG_MAX);
-  await env.HIREFLOW_KV.put("audit:log", JSON.stringify(log));
-}
-
-async function adminAuditLog(req, env) {
-  await requireAdmin(req, env, true);
-  let log = [];
-  try { log = JSON.parse(await env.HIREFLOW_KV.get("audit:log") || "[]"); } catch { log = []; }
-  return { log: log.slice().reverse() };
-}
-
 async function adminSetAIDisabled(req, env) {
-  const payload = await requireAdmin(req, env, true);
+  await requireAdmin(req, env, true);
   const { minutes } = await req.json();
   const m = parseInt(minutes, 10);
   if (m && m > 0) {
     const until = Math.floor(Date.now()/1000) + (m * 60);
     await env.HIREFLOW_KV.put("system:ai_disabled_until", String(until));
-    await recordAudit(env, payload.email, "ai_disable", { minutes: m });
     return { ok: true, aiDisabledUntil: until };
   }
   await env.HIREFLOW_KV.delete("system:ai_disabled_until");
-  await recordAudit(env, payload.email, "ai_enable", {});
   return { ok: true, aiDisabledUntil: null };
 }
 
 async function adminSetMaintenance(req, env) {
-  const payload = await requireAdmin(req, env, true);
+  await requireAdmin(req, env, true);
   const { minutes } = await req.json();
   const m = parseInt(minutes, 10);
   if (m && m > 0) {
     const until = Math.floor(Date.now()/1000) + (m * 60);
     await env.HIREFLOW_KV.put("system:maintenance_until", String(until));
-    await recordAudit(env, payload.email, "maintenance_on", { minutes: m });
     return { ok: true, maintenanceUntil: until };
   }
   await env.HIREFLOW_KV.delete("system:maintenance_until");
-  await recordAudit(env, payload.email, "maintenance_off", {});
   return { ok: true, maintenanceUntil: null };
 }
 
 async function adminSetAdminAccess(req, env) {
-  const payload = await requireAdmin(req, env, true);
+  await requireAdmin(req, env, true);
   const { enabled } = await req.json();
   if (enabled === false) {
     await env.HIREFLOW_KV.put("system:admin_disabled", "1");
   } else {
     await env.HIREFLOW_KV.delete("system:admin_disabled");
   }
-  await recordAudit(env, payload.email, enabled === false ? "admin_access_off" : "admin_access_on", {});
   return { ok: true, adminEnabled: enabled !== false };
 }
 
@@ -1390,6 +1444,99 @@ async function getResume(req, env) {
   const payload = await authenticate(req, env);
   const raw = await env.HIREFLOW_KV.get(`resume:${payload.email.toLowerCase()}`);
   return { resume: raw ? JSON.parse(raw) : null };
+}
+
+// ============ Authoritative PDF rendering ================================
+// The editor's HTML preview is intentionally fast and local. Final PDFs are
+// rendered by Cloudflare's pinned Chromium build so every user receives the same
+// page breaks, fonts, and paper geometry regardless of their own browser.
+const PDF_RENDER_TTL = 180;
+const PDF_RENDER_MAX_BYTES = 350000;
+
+function resumeForPdf(resume) {
+  const clean = JSON.parse(JSON.stringify(resume));
+  delete clean.versions;
+  delete clean.tailor;
+  return clean;
+}
+
+function newRenderToken() {
+  return bufToHex(crypto.getRandomValues(new Uint8Array(32)));
+}
+
+function pdfFilename(resume) {
+  const name = String(resume && resume.personal && resume.personal.fullName || "resume")
+    .trim().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
+  return (name || "resume") + "_Resume.pdf";
+}
+
+async function getResumeRenderSource(url, env) {
+  const token = String(url.searchParams.get("token") || "");
+  if (!/^[a-f0-9]{64}$/i.test(token)) throw err(404, "Render source not found");
+  const raw = await env.HIREFLOW_KV.get(`resume-render:${token}`);
+  if (!raw) throw err(404, "Render source expired");
+  let stored;
+  try { stored = JSON.parse(raw); } catch { throw err(404, "Render source not found"); }
+  if (!stored || !stored.resume || typeof stored.resume !== "object") throw err(404, "Render source not found");
+  return { resume: stored.resume };
+}
+
+async function renderResumePdf(req, env) {
+  const payload = await authenticate(req, env);
+  const body = await req.json().catch(() => ({}));
+  const resume = body && body.resume;
+  if (!resume || typeof resume !== "object" || Array.isArray(resume)) {
+    return json({ error: "A resume is required" }, 400);
+  }
+  const renderResume = resumeForPdf(resume);
+  const encoded = JSON.stringify(renderResume);
+  if (encoded.length > PDF_RENDER_MAX_BYTES) {
+    return json({ error: "This resume has too much content to render as a PDF. Use Print to save it through your browser, or trim nonessential text and try again.", code: "resume_too_large" }, 413);
+  }
+  if (!env.CF_BROWSER_RENDERING_ACCOUNT_ID || !env.CF_BROWSER_RENDERING_TOKEN) {
+    return json({ error: "The secure PDF renderer is not enabled", code: "renderer_unavailable" }, 503);
+  }
+
+  const token = newRenderToken();
+  await env.HIREFLOW_KV.put(`resume-render:${token}`, JSON.stringify({
+    resume: renderResume,
+    email: payload.email,
+    createdAt: Date.now(),
+  }), { expirationTtl: PDF_RENDER_TTL });
+
+  const site = String(env.SITE_URL || "https://appliohq.com").replace(/\/$/, "");
+  const rendererUrl = `${site}/resume-pdf.html?token=${token}`;
+  const paper = renderResume.customize && renderResume.customize.paperSize === "A4" ? "A4" : "Letter";
+  let upstream;
+  try {
+    upstream = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CF_BROWSER_RENDERING_ACCOUNT_ID)}/browser-rendering/pdf`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.CF_BROWSER_RENDERING_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: rendererUrl,
+          pdfOptions: { format: paper, printBackground: true, margin: { top: "0", right: "0", bottom: "0", left: "0" } },
+        }),
+      }
+    );
+  } catch {
+    return json({ error: "The PDF renderer is temporarily unavailable", code: "renderer_unavailable" }, 503);
+  }
+  if (!upstream.ok) {
+    return json({ error: "The PDF renderer could not finish this document", code: "renderer_failed" }, 502);
+  }
+  return new Response(upstream.body, {
+    status: 200,
+    headers: {
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${pdfFilename(resume)}"`,
+    },
+  });
 }
 
 // ============ Career profile (dashboard: goals, target role, win journal) ============
@@ -1450,6 +1597,12 @@ async function saveOnboardingAnswers(req, env) {
   const record = {
     email: payload.email.toLowerCase(),
     stage: clean(answers.stage),
+    targetRole: clean(answers.targetRole),
+    company: clean(answers.company),
+    currentRole: clean(answers.currentRole),
+    seniority: clean(answers.seniority),
+    location: clean(answers.location),
+    importChoice: clean(answers.importChoice),
     challenge: clean(answers.challenge),
     heardFrom: clean(answers.heardFrom),
     ts: Date.now(),
@@ -1689,8 +1842,6 @@ function canPublishTestimonial(doc, channel) {
 // publish them MANUALLY on the approved channels. There is no auto-publish anywhere.
 async function adminListTestimonials(req, env) {
   await requireAdmin(req, env);
-  const url = new URL(req.url);
-  const limit = Math.max(1, Math.min(500, parseInt(url.searchParams.get("limit"), 10) || 50));
   const out = [];
   let cursor;
   do {
@@ -1704,8 +1855,36 @@ async function adminListTestimonials(req, env) {
     }
   } while (cursor);
   out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  const total = out.length;
-  return { testimonials: out.slice(0, limit), total };
+  return { testimonials: out };
+}
+
+// Public feed for Wall of Wins. It contains only the content a user explicitly
+// approved for the website channel; email, consent logs, and unpublished drafts
+// never leave KV through this endpoint.
+async function getPublicTestimonials(env) {
+  const out = [];
+  let cursor;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "testimonial:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      try {
+        const doc = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null");
+        if (!canPublishTestimonial(doc, "website")) continue;
+        out.push({
+          quote: String(doc.quote).trim(),
+          attribution: doc.attribution === "anonymous" ? "anonymous" : "name",
+          name: doc.attribution === "anonymous" ? "" : String(doc.name || "").slice(0, 120),
+          title: String(doc.title || "").slice(0, 120),
+          company: String(doc.company || "").slice(0, 120),
+          outcomeClaim: String(doc.outcomeClaim || "").slice(0, 300),
+          updatedAt: Number(doc.updatedAt || 0)
+        });
+      } catch { /* skip malformed KV documents */ }
+    }
+  } while (cursor && out.length < 100);
+  out.sort((a, b) => b.updatedAt - a.updatedAt);
+  return { testimonials: out.slice(0, 100), total: out.length };
 }
 
 // ============ Job tracker (cross-device sync of the application pipeline) ============
@@ -2188,30 +2367,23 @@ async function saveFeedback(req, env) {
 
 async function listFeedback(req, env) {
   await requireAdmin(req, env);
-  const url = new URL(req.url);
-  const limit = Math.max(1, Math.min(500, parseInt(url.searchParams.get("limit"), 10) || 50));
-  // Keys are feedback:<ts>:<email> with a fixed-width ts, so KV.list() prefix scan
-  // returns them oldest-first (lexicographic order == chronological order). List
-  // every key name (cheap) but only fetch the values for the most recent `limit`
-  // of them, so a growing feedback inbox doesn't turn every admin refresh into an
-  // ever-larger fetch-everything pass.
   const keys = [];
   let cursor;
   do {
     const page = await env.HIREFLOW_KV.list({ prefix: "feedback:", cursor, limit: 1000 });
-    for (const k of page.keys) keys.push(k.name);
+    keys.push(...page.keys);
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
-  const total = keys.length;
-  const recentKeys = keys.slice(-limit);
   const feedback = [];
-  for (const name of recentKeys) {
-    const raw = await env.HIREFLOW_KV.get(name);
-    if (!raw) continue;
-    try { feedback.push(JSON.parse(raw)); } catch {}
+  for (let i = 0; i < keys.length; i += 60) {
+    const raws = await Promise.all(keys.slice(i, i + 60).map(key => env.HIREFLOW_KV.get(key.name)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      try { feedback.push(JSON.parse(raw)); } catch {}
+    }
   }
   feedback.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-  return { feedback, total };
+  return { feedback };
 }
 
 // ============ Weekly "log your win" email nudge (cron-driven) ============
@@ -2573,7 +2745,7 @@ async function runAI(env, system, user, opts = {}) {
 // yields nothing. If both streaming attempts fail, falls back to non-streaming
 // runAI (which has its own model-fallback chain). This mirrors runAI's
 // resilience so a single flaky model can't take down all streaming AI.
-async function runAIStream(env, system, user, opts = {}) {
+async function runAIStream(env, system, user, opts = {}, onSuccess, transformOutput) {
   const wanted = opts.model || FAST_MODEL;
   const other = wanted === FAST_MODEL ? SMART_MODEL : FAST_MODEL;
   const chain = [wanted, other];
@@ -2597,17 +2769,31 @@ async function runAIStream(env, system, user, opts = {}) {
       try {
         const res = await env.AI.run(model, payload);
         let emitted = false;
+        let output = "";
         if (res && typeof res[Symbol.asyncIterator] === "function") {
           for await (const part of res) {
             const token = part && (part.response || (part.choices && part.choices[0] && part.choices[0].delta && part.choices[0].delta.content) || "");
-            if (token) { await send(token); emitted = true; }
+            if (token) {
+              if (transformOutput) output += token;
+              else await send(token);
+              emitted = true;
+            }
           }
         } else {
           // Non-streaming response from this model: emit full text as one chunk.
           const text = _aiText(res).trim();
-          if (text) { await send(text); emitted = true; }
+          if (text) {
+            if (transformOutput) output = text;
+            else await send(text);
+            emitted = true;
+          }
         }
-        if (emitted) { done(); return; }
+        if (emitted) {
+          if (transformOutput) await send(transformOutput(output));
+          try { if (onSuccess) await onSuccess(); } catch (_) {}
+          done();
+          return;
+        }
         // Empty response, try the next model.
         lastErr = new Error(`${model} returned empty stream`);
         console.error(`AI stream ${model} empty response, falling back`);
@@ -2620,7 +2806,12 @@ async function runAIStream(env, system, user, opts = {}) {
     // has its own model-fallback chain and different gateway attempts.
     try {
       const text = await runAI(env, system, user, opts);
-      if (text) { await send(text); done(); return; }
+      if (text) {
+        await send(transformOutput ? transformOutput(text) : text);
+        try { if (onSuccess) await onSuccess(); } catch (_) {}
+        done();
+        return;
+      }
     } catch (e) { lastErr = e; }
 
     // Everything failed. Emit an error the client can classify.
@@ -2649,29 +2840,30 @@ async function aiStream(req, env, action, cors) {
   try { payload = await authenticate(req, env); } catch (e) { return fail(401, e.message || "Unauthorized"); }
 
   const isAdmin = payload.role === "admin" || payload.role === "super";
-  if (!isAdmin) {
-    const aiUntil = parseInt(await env.HIREFLOW_KV.get("system:ai_disabled_until") || "0", 10);
-    if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
-  }
 
   let body;
   try { body = await req.json(); } catch { return fail(400, "Invalid request body"); }
 
+  let trackedUser = null;
   if (!isAdmin) {
-    const user = await getUser(env, payload.email).catch(() => null);
-    if (!user) return fail(404, "User not found");
-    const paid = isPaidPlan(user);
-    // Applio is 100% free: no Premium gate on any AI action here either.
     const rlDay = new Date().toISOString().slice(0, 10);
     const rlKey = `airate:${(payload.email || "").toLowerCase()}:${rlDay}`;
-    const rlUsed = parseInt(await env.HIREFLOW_KV.get(rlKey).catch(() => "0") || "0", 10);
-    const rlCap = paid ? PAID_AI_DAILY : FREE_AI_DAILY;
+    const [user, rlRaw, aiUntilRaw] = await Promise.all([
+      getUser(env, payload.email).catch(() => null),
+      env.HIREFLOW_KV.get(rlKey).catch(() => "0"),
+      env.HIREFLOW_KV.get("system:ai_disabled_until").catch(() => "0"),
+    ]);
+    const aiUntil = parseInt(aiUntilRaw || "0", 10);
+    if (aiUntil > Math.floor(Date.now() / 1000)) return fail(503, "Service temporarily unavailable.");
+    if (!user) return fail(404, "User not found");
+    trackedUser = user;
+    const rlUsed = parseInt(rlRaw || "0", 10);
+    const rlCap = isPaidPlan(user) ? PAID_AI_DAILY : FREE_AI_DAILY;
     if (rlUsed >= rlCap) return fail(429, "Daily AI limit reached. Try again tomorrow.");
     env.HIREFLOW_KV.put(rlKey, String(rlUsed + 1), { expirationTtl: 172800 }).catch(() => {});
   }
 
-  // Build the same prompt that aiDispatch/aiImprove would use, then stream it.
-  // Currently only "improve" is called from the frontend streaming path.
+  // Build the prompt, then stream it. Only "improve" is called from the frontend.
   let sysPrompt, userPrompt, aiOpts = {};
   if (action === "improve") {
     const { target, text, context } = body;
@@ -2679,17 +2871,41 @@ async function aiStream(req, env, action, cors) {
     const ctx = context || {};
     const role = String(ctx.role || "").slice(0, 120);
     const company = String(ctx.company || "").slice(0, 120);
-    const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.` : "";
+    const groundingInput = `${text}\n${role}\n${company}`;
+    const roleLine = role ? `CONTEXT: This content is for the role "${role}"${company ? ` at ${company}` : ""}. Make every line clearly relevant to that role and the seniority it implies.\n` : "";
     const isSummary = target === "summary" || target === "personal";
-    sysPrompt = isSummary
-      ? `You are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\n\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths (skills, domains, or scope), concrete nouns, not adjectives.\n- Ends with the value the candidate brings to a hiring manager.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "hard-working", "go-getter", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Write like a hiring manager describing the candidate to their boss: plain, specific, no corporate theater.\n- Plain text only, no markdown, no headers, no quotation marks.\n\nOUTPUT: Only the rewritten summary. Nothing else.`
-      : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.\n${roleLine}\n\nEvery bullet: [strong action verb] + [what you did] + [the measurable result or scope].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs (overused AI clichés): Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored. Use plain verbs instead.\n- Lead with impact. Include a metric ONLY if present in or directly implied by the input. NEVER invent numbers.\n- Write like a hiring manager describing work to their boss: plain, specific, no corporate theater.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
-    userPrompt = `Original content:\n${text}\n\nRewrite it.`;
+    const mode = String(ctx.mode || "improve");
+    const isSingleBullet = !!ctx.instruction;
+
+    if (isSummary) {
+      sysPrompt = GROUNDING + `\n\nYou are an elite executive resume writer. Rewrite the candidate's professional summary into a sharp, recruiter-facing pitch.\n${roleLine}\nWRITE IT SO IT:\n- Is 2-3 sentences, 40-60 words MAX, tight, zero filler.\n- Opens with a strong identity statement using only facts in the input.\n- Names 2-3 standout specific strengths, concrete nouns, not adjectives.\n- Active voice; third-person implied (no "I", no "you").\n- BANNED buzzwords: "results-driven", "dynamic", "passionate", "synergy", "self-starter", "team player", "detail-oriented", "spearheaded", "leveraged", "utilized", "orchestrated", "pioneered", "championed".\n- Plain text only, no markdown.\n\nOUTPUT: Only the rewritten summary. Nothing else.`;
+      userPrompt = `Original:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 200, temperature: 0.3 };
+    } else if (isSingleBullet) {
+      const modeInstr = {
+        improve: "Make this bullet stronger and more specific.",
+        quantify: "Rewrite this bullet using a metric only when the original bullet explicitly provides one. Otherwise, keep it qualitative.",
+        shorten: "Make this bullet more concise without losing impact.",
+        rewrite: "Rewrite this bullet more impactfully with a strong action verb."
+      };
+      sysPrompt = GROUNDING + `\nYou are an elite resume writer. ${modeInstr[mode] || modeInstr.improve}\n${roleLine}\nRULES:\n- Output EXACTLY one bullet, no bullet marker, no preamble.\n- One sentence, 12-20 words, starting with a strong past-tense verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated.\n- Include a metric ONLY if present in the input. NEVER invent numbers.\n- Plain text only.\n\nOUTPUT: Only the single rewritten bullet. Nothing else.`;
+      userPrompt = `Original bullet:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 80, temperature: 0.25 };
+    } else {
+      sysPrompt = GROUNDING + `\n\nYou are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets.\n${roleLine}\nEvery bullet: [strong action verb] + [what you did] + [an outcome or scope stated in the input].\n\nHARD RULES:\n- Output 3-6 bullets, one per line, each starting with "• ".\n- Each bullet is ONE sentence, 12-20 words.\n- Begin each bullet with a DISTINCT strong past-tense verb. Never reuse a verb.\n- BANNED verbs: Spearheaded, Leveraged, Utilized, Orchestrated, Pioneered, Championed, Facilitated, Synergized, Endeavored.\n- Include a metric ONLY when it is explicitly stated in the input. Otherwise, keep the result qualitative.\n- Plain text only. No markdown, no headers.\n\nOUTPUT: Only the bullets. Nothing else.`;
+      userPrompt = `Original content:\n${text}\n\nRewrite it.`;
+      aiOpts = { max_tokens: 360, temperature: 0.25 };
+    }
   } else {
     return fail(404, "Streaming not supported for this action");
   }
 
-  const stream = await runAIStream(env, sysPrompt, userPrompt, aiOpts);
+  const stream = await runAIStream(env, sysPrompt, userPrompt, aiOpts, async () => {
+    if (!trackedUser) return;
+    _recordUserFeature(trackedUser, action);
+    await putUser(env, trackedUser);
+    await _bumpAiUsage(env, action);
+  }, output => _safeImproveText(output, text, groundingInput, isSummary));
   return new Response(stream, { headers: sseHeaders });
 }
 
@@ -2819,13 +3035,13 @@ OUTPUT: Only the rewritten summary. Nothing else.`
     : `You are an elite executive resume writer. Rewrite the ${target} content into tight, achievement-focused bullets a top recruiter would love.
 ${roleLine}
 
-Every bullet follows the impact formula:  [strong action verb] + [what you did] + [the measurable result or scope].
+Every bullet follows the impact formula: [strong action verb] + [what you did] + [an outcome or scope stated in the input].
 
 HARD RULES, follow exactly:
 - Output 3-6 bullets, one per line, each starting with "• ".
 - Each bullet is ONE sentence, 12-20 words. Never a second sentence or trailing "which…" clause.
 - Begin each bullet with a DISTINCT strong past-tense verb (Led, Built, Shipped, Reduced, Designed, Drove, Architected, Launched, Cut, Scaled, Automated, Negotiated). Never reuse a verb.
-- Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if present in or directly implied by the input. NEVER invent numbers.
+- Lead with impact. Include a metric (%, $, time, scale, users, headcount) ONLY if explicitly stated in the input. Otherwise, keep the result qualitative.
 - Keep real facts; prefer concrete outcomes over stacked adjectives.
 - BANNED openers/phrases (never use): "Responsible for", "Worked on", "Helped", "Assisted with", "Tasked with", "Duties included", "Successfully", "In order to", "Various".
 - BANNED verbs (overused AI-resume clichés, never use): "Spearheaded", "Leveraged", "Utilized", "Orchestrated", "Pioneered", "Championed", "Facilitated", "Synergized", "Endeavored". Use plain, specific verbs instead (Led, Built, Cut, Shipped, Grew, Ran, Designed, Reduced, Automated, Launched, Negotiated, Delivered).
@@ -2836,11 +3052,11 @@ Before answering, silently self-check each bullet: unique strong verb? not a ban
 
 EXAMPLES (weak input → strong bullet):
   "Responsible for the website and worked on making it faster."
-    → "• Rebuilt the marketing site in Next.js, cutting page load time 40%."
+    → "• Improved the marketing site experience by refining performance and usability."
   "Helped the sales team with reports and did some analysis to find trends."
-    → "• Built weekly sales dashboards in SQL, surfacing trends that lifted quota attainment."
+    → "• Built sales reports and analyzed trends to support the sales team."
   "Managed engineers and shipped features."
-    → "• Led a team of engineers to ship three core features across two product launches."
+    → "• Led engineers through delivery of core product features."
 
 OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.`;
   const sys = GROUNDING + "\n\n" + body;
@@ -2857,7 +3073,7 @@ OUTPUT: Only the bullets, one per line, each starting with "• ". Nothing else.
   // For bullets, enforce format + strip banned openers in CODE so a chatty model can
   // never slip fluff past us: one tight sentence per bullet, ≤20 words, distinct verbs.
   if (!isSummary) cleaned = _tightenBullets(cleaned);
-  return { text: cleaned };
+  return { text: _safeImproveText(cleaned, text, `${text}\n${role}\n${company}`, isSummary) };
 }
 
 // ============ Polish one win-journal note into a resume-ready bullet ============
@@ -2914,6 +3130,20 @@ function _tightenBullets(out) {
     if (bullets.length >= 6) break;
   }
   return bullets.length ? bullets.join("\n") : out;
+}
+
+const _QUANTITATIVE_TOKEN_RE = /(?:[$€£]\s*)?\b\d[\d,]*(?:\.\d+)?(?:\s*%|\s*(?:k|m|b|hours?|days?|weeks?|months?|years?|people|employees|engineers|users|clients|customers|projects|features|reports))?\b|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|dozen|hundred|thousand|million|billion|couple|several)\b/gi;
+
+function _hasUnsupportedQuantity(output, input) {
+  const source = String(input || "").toLowerCase().replace(/\s+/g, "");
+  const tokens = String(output || "").match(_QUANTITATIVE_TOKEN_RE) || [];
+  return tokens.some(token => !source.includes(token.toLowerCase().replace(/\s+/g, "")));
+}
+
+function _safeImproveText(output, original, groundingInput, isSummary) {
+  if (!_hasUnsupportedQuantity(output, groundingInput)) return output;
+  const source = String(original || "").trim();
+  return isSummary ? source : _tightenBullets(source);
 }
 
 // ============ Generative-output safety net =====================================
@@ -4766,6 +4996,63 @@ async function sendReviewEmail(env, email, flavour) {
 const REVIEW_NUDGE_MAX_SENDS = 100;
 const REVIEW_NUDGE_SCAN_CAP = 3000;
 const REVIEW_NUDGE_DELAY_MS = 7 * 86400 * 1000;
+
+// Testimonial outreach is strictly opt-in through testimonial_contact consent.
+// The email only invites private feedback; publication still needs the separate,
+// itemized approval enforced by canPublishTestimonial().
+const TESTIMONIAL_FOLLOWUP_MAX_SENDS = 100;
+const TESTIMONIAL_FOLLOWUP_SCAN_CAP = 3000;
+const TESTIMONIAL_FOLLOWUP_DELAY_MS = 7 * 86400 * 1000;
+const TESTIMONIAL_FOLLOWUP_WINDOW_MS = 48 * 3600 * 1000;
+
+async function sendTestimonialFollowupEmail(env, email) {
+  const site = (env.SITE_URL || "https://appliohq.com").replace(/\/$/, "");
+  const footer = await commercialEmailFooter(env, email, "testimonial_contact");
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f5f8;"><div style="font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:36px 26px;color:#20242e;background:#ffffff;">
+    <div style="font-weight:800;font-size:20px;color:#4f46e5;letter-spacing:-.3px;margin-bottom:26px;">Applio</div>
+    <p style="font-size:21px;font-weight:700;color:#0f172a;line-height:1.35;margin:0 0 16px;">How is the job search going?</p>
+    <p style="margin:0 0 16px;color:#3a4150;">You asked us to check in after your first export. If Applio has been useful, we’d be grateful for a sentence about your experience.</p>
+    <p style="margin:0 0 28px;"><a href="${site}/testimonial-email" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 24px;border-radius:8px;">Share private feedback &rarr;</a></p>
+    <p style="margin:0;color:#3a4150;">Nothing you write is public unless you later review and explicitly approve exactly where it can be used.</p>
+    ${footer}</div></body></html>`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ from: env.MAIL_FROM || "Applio <hello@appliohq.com>", to: [email], subject: "How is your job search going?", html }) });
+    return r.ok ? { ok: true } : { ok: false, error: `HTTP ${r.status}` };
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+}
+
+async function runTestimonialFollowup(env) {
+  if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };
+  const now = Date.now(); let cursor, scanned = 0, sent = 0;
+  do {
+    const list = await env.HIREFLOW_KV.list({ prefix: "user:", cursor, limit: 1000 });
+    cursor = list.list_complete ? null : list.cursor;
+    for (const k of list.keys) {
+      if (scanned >= TESTIMONIAL_FOLLOWUP_SCAN_CAP || sent >= TESTIMONIAL_FOLLOWUP_MAX_SENDS) { cursor = null; break; }
+      scanned++;
+      const email = k.name.slice("user:".length).toLowerCase();
+      if (!email || !email.includes("@") || await env.HIREFLOW_KV.get(`testimonial_followup_sent:${email}`)) continue;
+      let user, consent, profile;
+      try { user = JSON.parse(await env.HIREFLOW_KV.get(k.name) || "null"); } catch { continue; }
+      try { consent = JSON.parse(await env.HIREFLOW_KV.get(`consent:${email}`) || "null"); } catch { consent = null; }
+      try { profile = JSON.parse(await env.HIREFLOW_KV.get(`profile:${email}`) || "null"); } catch { profile = null; }
+      // A checked profile preference and an auditable affirmative consent are both
+      // required. Missing/legacy consent means no email.
+      if (!profile || profile.testimonialFollowupEmail !== true || !consent || !consent.testimonial_contact || consent.testimonial_contact.status !== true) continue;
+      const firstExport = Number(user && user.firstDownloadAt || 0);
+      const elapsed = now - firstExport;
+      if (!firstExport || elapsed < TESTIMONIAL_FOLLOWUP_DELAY_MS || elapsed > TESTIMONIAL_FOLLOWUP_DELAY_MS + TESTIMONIAL_FOLLOWUP_WINDOW_MS) continue;
+      if (!(await canSendOutreach(env, email, "testimonial_contact"))) continue;
+      const res = await sendTestimonialFollowupEmail(env, email);
+      if (res.ok) {
+        sent++;
+        await env.HIREFLOW_KV.put(`testimonial_followup_sent:${email}`, String(now));
+        await markOutreachSent(env, email, "testimonial_contact", 3650);
+      }
+    }
+  } while (cursor);
+  return { ok: true, scanned, sent };
+}
 
 async function runPostDownloadReviewNudge(env) {
   if (!env.RESEND_API_KEY) return { ok: false, reason: "email not configured" };

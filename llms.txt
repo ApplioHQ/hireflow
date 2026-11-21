@@ -49,3 +49,5 @@ Applio is a 100% free AI resume builder that helps job seekers build ATS-optimiz
 - Documentation: https://appliohq.com/connect
 - Guides: https://appliohq.com/guides/
 - Pricing (Free): https://appliohq.com/pricing
+- About Applio: https://appliohq.com/about
+- Methodology and editorial policy: https://appliohq.com/methodology

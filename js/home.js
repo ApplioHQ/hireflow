@@ -111,9 +111,12 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-// ----- Nav: solidify background on scroll -----
+// ----- Nav: solidify background on scroll + auto-hide on scroll down -----
 const homeNav = document.querySelector('.home-nav');
 const scrollProgress = document.getElementById('scroll-progress');
+// Auto-hide nav on scroll down (JS fallback for browsers without scroll-state queries)
+let _lastScrollY = 0;
+const _hasScrollState = CSS.supports && CSS.supports('container-type', 'scroll-state');
 const bttEl = document.getElementById('back-to-top');
 const stickyEl = document.getElementById('sticky-cta');
 // Cache layout-dependent values so the scroll handler never forces a reflow.
@@ -132,7 +135,17 @@ window.addEventListener('scroll', rafThrottle(() => {
   const y = window.scrollY;
   // Hysteresis: detach early, re-attach only back near the very top, so the
   // state never flickers when the scroll hovers at the threshold.
-  if (homeNav) { if (y > 20) homeNav.classList.add('home-nav-solid'); else if (y < 6) homeNav.classList.remove('home-nav-solid'); }
+  if (homeNav) {
+    if (y > 20) homeNav.classList.add('home-nav-solid'); else if (y < 6) homeNav.classList.remove('home-nav-solid');
+    if (!_hasScrollState) {
+      var clamped = Math.max(0, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
+      var delta = clamped - _lastScrollY;
+      if (Math.abs(delta) > 5) {
+        homeNav.classList.toggle('nav-hidden', delta > 0 && clamped > homeNav.offsetHeight);
+        _lastScrollY = clamped;
+      }
+    }
+  }
   if (bttEl) bttEl.classList.toggle('visible', y > 500);
   // Sticky mini-CTA: show after the hero, hide near the footer/final CTA
   if (stickyEl) {

@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "atom-contest-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://atom-edu.org"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "atom-contest",
+    "migrations_dir": "migrations"
+  }],
+  "r2_buckets": [{
+    "binding": "IMAGES",
+    "bucket_name": "atom-contest-private"
+  }],
+  "triggers": { "crons": ["0 * * * *"] },
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}

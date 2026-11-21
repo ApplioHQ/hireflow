@@ -1,0 +1,20 @@
+{
+  "$schema": "../contest-api/node_modules/wrangler/config-schema.json",
+  "name": "atom-integrations-api",
+  "main": "index.js",
+  "compatibility_date": "2026-11-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://atom-edu.org",
+    "API_ORIGIN": "https://atom-integrations-api.archimedes-api1.workers.dev",
+    "GITHUB_CLIENT_ID": "Ov23liLNNtv48fHf3n2A",
+    "NOTION_CLIENT_ID": "41ad872b-594c-8182-9f39-00375553f8f0",
+    "NOTION_PUBLIC": "true"
+  },
+  "ratelimits": [
+    { "name": "DOWNLOAD_LIMITER", "namespace_id": "34001106", "simple": { "limit": 30, "period": 60 } },
+    { "name": "DOWNLOAD_BUDGET", "namespace_id": "34001107", "simple": { "limit": 1000, "period": 60 } },
+    { "name": "OAUTH_LIMITER", "namespace_id": "34001108", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}

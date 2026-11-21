@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proof Lab Features | Math Solver, Step Checker and Graph</title>
+  <meta name="description" content="Explore atomEDU Proof Lab's in-house math engine, exact solver, step checker with Ghost steps, practice generator, visual editor, and interactive graph." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="https://atom-edu.org/features" />
+  <meta property="og:type" content="website" /><meta property="og:site_name" content="atomEDU" /><meta property="og:title" content="Proof Lab Features | atomEDU" /><meta property="og:description" content="Exact solving, step verification, practice generation, and graphing powered by atomEDU's own math engine." /><meta property="og:url" content="https://atom-edu.org/features" /><meta property="og:image" content="https://atom-edu.org/images/atomedu-social.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="images/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;0,9..144,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=proof-lab-4" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <img class="mark" src="images/logo.svg" alt="" />
+        <span class="word">atom<b>EDU</b></span>
+      </a>
+      <nav class="nav">
+        <a data-nav="/" href="/">Home</a>
+        <a data-nav="/features" href="/features">Features</a>
+        <a data-nav="/learn" href="/learn">Learn</a>
+        <a data-nav="/art-contest" href="/art-contest">Art contest</a>
+        <a data-nav="/about" href="/about">About</a>
+        <a data-nav="/contact" href="/contact">Contact</a>
+        <a class="cta" href="/proof-lab">Start math</a>
+      </nav>
+      <button class="menu-btn" aria-label="Menu">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+    <div class="mobile-nav">
+      <div class="inner">
+        <a data-nav="/" href="/">Home</a>
+        <a data-nav="/features" href="/features">Features</a>
+        <a data-nav="/learn" href="/learn">Learn</a>
+        <a data-nav="/art-contest" href="/art-contest">Art contest</a>
+        <a data-nav="/about" href="/about">About</a>
+        <a data-nav="/contact" href="/contact">Contact</a>
+        <a class="cta" href="/proof-lab">Start math</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+  <section class="section" style="padding-top:calc(var(--header-h) + 3rem)">
+    <div class="wrap col">
+      <p class="kicker">Features</p>
+      <h1 class="page-title heading-display">One tool. Four ways to work.</h1>
+      <p class="lead" style="margin-top:1rem">Proof Lab combines a visual math editor with a rule-based engine. Solve a supported problem, check your own reasoning, generate practice, or explore the graph.</p>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="wrap col">
+      <div class="modes">
+        <div class="mode">
+          <h3>Solve</h3>
+          <p>Enter an expression, equation, or supported structured problem. See the result, the steps used to reach it, and any domain restrictions. The engine reports when a problem is outside its verified coverage.</p>
+        </div>
+        <div class="mode">
+          <h3>Check work</h3>
+          <p>Write your own steps. Proof Lab checks supported transitions and points to the first problem it can identify. If you make a valid leap, translucent Ghost steps can show the reasoning between your checkpoints.</p>
+        </div>
+        <div class="mode">
+          <h3>Generate</h3>
+          <p>Choose a supported topic and a difficulty from 0.000 to 1.000. Generate a repeatable problem with a seed, try it yourself, then reveal its solution or send it into Check work.</p>
+        </div>
+        <div class="mode">
+          <h3>Graph</h3>
+          <p>Plot multiple expressions, pan and zoom, adjust parameters, and inspect curves. This is numerical exploration: the graph does not replace the proof or certify a result.</p>
+        </div>
+        <div class="mode">
+          <h3>Visual math input</h3>
+          <p>Build fractions, roots, powers, matrices, and piecewise expressions using the math pad. Fill the gray placeholders, or edit the synchronized LaTeX source directly. Outputs are typeset as math too.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap col">
+      <p class="kicker">What verification means</p>
+      <h2 class="block-title heading-display">The proof has to survive the rules</h2>
+      <div class="prose" style="margin-top:1rem">
+        <p>Proof Lab uses its own math engine to parse, solve, and check supported problems. A valid LaTeX expression only means the notation makes sense; mathematical verification is a separate step. Some results are exact and certified, while unsupported or numerical-only cases are labeled as such.</p>
+        <p>No account or progress history is required. Your work stays in the current browser session unless you choose to copy or save it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="wrap col">
+      <p class="kicker">Current coverage</p>
+      <h2 class="block-title heading-display">Algebra, geometry, and precalculus, with clear boundaries</h2>
+      <p class="classes"><span class="now">Proof Lab covers selected Algebra 1, Algebra 2, Geometry, and Precalculus rule families.</span> It handles many equations, inequalities, functions, sequences, matrices, conics, coordinate problems, measurements, and exact bounded trigonometry, polar, vector, and parametric operations. It does not claim every problem in a full curriculum, and calculus notation is not a supported solver feature.</p>
+      <a class="textlink" href="/proof-lab#coverage" style="margin-top:1.3rem;display:inline-flex">Open the coverage list
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-card">
+        <div class="footer-banner">
+          <img class="bg" src="images/footer.svg" alt="" />
+          <div class="shade"></div>
+          <div class="content">
+            <h2 class="heading-display">Bring the math. Show the proof.</h2>
+            <p>Solve a problem, check your own steps, or generate a new one. Proof Lab is free and runs in your browser.</p>
+            <div class="actions">
+              <a class="btn btn-accent" href="/proof-lab">Start math</a>
+              <a class="btn btn-light" href="/features">See the features</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="brand" style="margin-bottom:0.3rem">
+              <img class="mark" src="images/logo.svg" alt="" style="width:32px;height:32px" />
+              <span class="word" style="color:#f1ece4">atom<b>EDU</b></span>
+            </div>
+            <p class="about">A free math proof tool for working through problems, checking reasoning, and seeing where a step goes wrong.</p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="/proof-lab">Proof Lab</a></li>
+              <li><a href="/features">Features</a></li>
+              <li><a href="/learn">How it works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="/legal#privacy">Privacy</a></li>
+              <li><a href="/legal#terms">Terms</a></li>
+              <li><a href="/legal#attributions">Attributions</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>
+            <div class="footer-site">atom-edu.org</div>
+            <span>&copy; <span id="yr"></span> atomEDU. Free for students.</span>
+          </div>
+          <span>Maintained by Avuthu, Awasthi, and Sanikommu.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site-i18n.js?v=founders-3"></script>
+  <script src="site.js?v=proof-lab-4"></script>
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

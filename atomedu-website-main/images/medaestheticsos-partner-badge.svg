@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" width="320" height="64">
+  <rect width="320" height="64" rx="10" fill="#111827"/>
+  <rect x="2" y="2" width="316" height="60" rx="9" fill="none" stroke="#D4AF37" stroke-width="1.5"/>
+  <text x="24" y="27" fill="#D4AF37" font-family="Georgia" font-size="13" font-weight="700">OFFICIAL TECHNOLOGY PARTNER</text>
+  <text x="24" y="48" fill="#fff" font-family="Georgia" font-size="16" font-weight="700">MedAestheticsOS</text>
+  <circle cx="290" cy="32" r="14" fill="#D4AF37"/>
+  <text x="290" y="37" text-anchor="middle" fill="#1a1408" font-family="Georgia" font-size="16" font-weight="900">&#10003;</text>
+</svg>

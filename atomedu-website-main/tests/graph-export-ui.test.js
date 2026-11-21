@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+test('Graph presents a truthful provider handoff below Copy graph link', () => {
+  const app = readFileSync(new URL('../math-lab.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../math-lab.css', import.meta.url), 'utf8');
+  const copy = app.indexOf("node('button', 'graph-share-copy', 'Copy graph link')");
+  const menu = app.indexOf("node('details', 'graph-share-export')");
+  assert(copy >= 0 && menu > copy);
+  for (const name of ['Google Drive', 'Notion', 'Zapier', 'Dropbox', 'GitHub']) assert(app.includes(`'${name}'`));
+  assert.match(app, /Direct saves ask for your approval/);
+  assert.match(app, /window\.Dropbox\.save\(url, 'atom-graph\.json'/);
+  assert.match(app, /buildDirectExportUrl\('github', graph\.getState\(\)\)/);
+  assert.match(app, /buildDirectExportUrl\('notion', graph\.getState\(\), notionInput\.value\.trim\(\)\)/);
+  assert.match(app, /images\/github-mark\.svg/);
+  assert.match(app, /front-static\/logo-ios\.png/);
+  assert.match(app, /requestDriveAccessToken\(window\.google, GOOGLE_DRIVE_CLIENT_ID\)/);
+  assert.match(app, /uploadGraphToDrive\(graphState, token\)/);
+  assert.match(app, /exportList\.append\(driveDirect\)/);
+  assert.doesNotMatch(app, /DRIVE_QA|drive-qa/);
+  assert.ok(app.indexOf("['github', 'GitHub'") < app.indexOf("['notion', 'Notion'"));
+  assert.match(app, /status\?\.providers\?\.github\?\.available/);
+  assert.match(app, /status\?\.providers\?\.notion\?\.available/);
+  assert.match(css, /\.graph-share-export-button\[hidden\]/);
+  assert.doesNotMatch(app, /gapi\.savetodrive|loadDriveSaver/);
+  assert.match(app, /buildPublicGraphDownloadUrl\(graph\.getState\(\)\)/);
+  assert.match(app, /Download graph JSON/);
+  assert.match(app, /prepareGraphExport\(provider, graph\.getState\(\)\)/);
+  assert.match(app, /selectPreparedContent\(prepared\.content\)/);
+  assert.match(css, /\.graph-share-export-list/);
+});

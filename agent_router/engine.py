@@ -67,20 +67,17 @@ STOCKBOT_NOTES = ("This folder runs a live trading bot. Never run the bot, its s
 ORCHESTRATE = """You are Hermes, the orchestrator for the "{project}" project ({path}). You talk with the user
 and decide who does the work. The coders are {coders}. This project's default coder is {default}.
 
-You have full terminal access: run any command you need -- gcloud, ssh, docker, curl, python, npm,
-git, kubectl, or anything else installed on this machine. You can check VM status, read logs, run
-diagnostics, test APIs, query databases, manage cloud resources, etc. Do it yourself instead of
-delegating. The only thing you should NOT do is edit project source files -- file edits you make
-are thrown away because you work in a copy. Only the coders change the real project files.
+You can read any file in the project to understand the code. You cannot edit files -- any edits you
+make are thrown away because you work in a copy. Only the coders change the real project files.
 
 IMPORTANT: Each coder call costs real usage quota. Only delegate when files MUST be created, edited or deleted.
 Handle everything else yourself -- questions, explanations, plans, reviews, debugging advice, reading code,
-running commands, checking what files exist, analyzing errors, and summarizing what was done. If you can
-answer by reading files or running a command, do it yourself. When in doubt, answer yourself first.
+checking what files exist, analyzing errors, and summarizing what was done. If you can answer by reading
+files, do it yourself. When in doubt, answer yourself first.
 
 IMPORTANT: Do not call delegate_task or execute_code functions. Your ONLY way to delegate is the
 plain-text DELEGATE block shown below. Your ONLY way to answer is plain text. You CAN use your
-file-reading and terminal tools normally -- just not delegation tools.
+file-reading tools normally -- just not delegation tools.
 
 IMPORTANT: Never narrate what you are about to do ("I'll check...", "Let me look at...",
 "I will retry..."). Just do it silently and give the answer. The user sees your tool calls
@@ -151,8 +148,8 @@ ROUTING RULES (follow these exactly, in this priority order):
 
 ORCHESTRATE_FOLLOWUP = """Another message from the user in this chat. Same rules as before: answer it yourself
 if it needs no file changes; otherwise reply with only the DELEGATE / REVIEW / BRIEF block(s).
-You have full terminal access -- run any command (gcloud, ssh, docker, curl, etc.) yourself.
-Do not call delegate_task or execute_code -- use the plain-text DELEGATE block to delegate.
+You can read any file in the project. Do not call delegate_task or execute_code -- use the plain-text
+DELEGATE block to delegate.
 If the user splits work across coders, use multiple DELEGATE blocks (one per piece).
 Reminder: if the user names a coder, ALWAYS use that coder. Otherwise use Claude for design/visual
 work and {default} for everything else.
@@ -544,13 +541,20 @@ class Store:
                     m["live"] = False
                     m.update(fields)
                     break
+            else:
+                if fields:
+                    chat["messages"].append({"time": now(), "role": "note", **fields})
             self._save(pid, cid)
 
     def set_session(self, pid, cid, agent, session_id):
-        if not session_id:
-            return
         with self.lock:
-            self._load(pid, cid).setdefault("sessions", {})[agent] = session_id
+            chat = self._load(pid, cid)
+            if session_id:
+                chat.setdefault("sessions", {})[agent] = session_id
+            elif "sessions" in chat and agent in chat["sessions"]:
+                del chat["sessions"][agent]
+            else:
+                return
             self._save(pid, cid)
 
     def search(self, text, limit=30):
@@ -913,7 +917,9 @@ class Engine:
                 parts.append(f"[System: {m.get('text', '').strip()[:500]}]")
             elif m.get("text", "").strip():
                 parts.append(f"{name(m.get('agent', 'agent'))}: {m.get('text', '').strip()[-2000:]}")
-        convo = "\n\n".join(p for p in parts if p)[-limit:]
+        while parts and sum(len(p) for p in parts) + 2 * len(parts) > limit:
+            parts.pop(0)
+        convo = "\n\n".join(p for p in parts if p)
         return f"\n===== CONVERSATION SO FAR =====\n{convo}\n" if convo else ""
 
     def attachment_note(self, files):
@@ -963,12 +969,17 @@ class Engine:
             self.cfg, agent, prompt, echo=lambda t: self.store.append_text(pid, chat_id, t),
             session_id=session, control=lane.control, cwd=folder, extra_dirs=dirs,
             model=self.get_model(agent), cmd_extra=cmd_extra)
-        resume_failed = (code not in (0, 2, 130) and session
-                         and (time.time() - started < 15
+        real_output = any(l.strip() and not re.match(r"^\[.*\]$|^> ", l.strip()) for l in output.splitlines())
+        resume_failed = (session and code != 130
+                         and (code not in (0, 2) and (time.time() - started < 15
                               or "resume" in output.lower()[:500]
                               or "session" in output.lower()[:500]))
+                         or (code == 2 and session and not real_output and time.time() - started < 15))
         if resume_failed:
             self.store.set_session(pid, chat_id, agent, None)
+            self.store.finish_live(pid, chat_id, text="")
+            self.store.add(pid, chat_id, {"role": "agent", "agent": agent, "step": step, "text": "", "live": True,
+                                          **(extra or {})})
             before = router.snapshot(folder)
             started = time.time()
             code, output, new_session = router.run_agent(
@@ -992,6 +1003,9 @@ class Engine:
                  if l.strip() and not l.strip().startswith("[")
                  and not l.strip().startswith(("session_id:", "Session:", "Error: agent exited",
                                                "Error: Session:", "Error: session_id:", "> "))]
+        error_lines = [l for l in lines if re.search(r"error|fail|traceback|exception", l, re.I)]
+        if error_lines:
+            return error_lines[-1][:200]
         return (lines[-1][:200] if lines else f"exited with code {code}")
 
     def write_log(self, project, chat_id, agent, step, prompt, output, code, changed, started):
@@ -1037,7 +1051,7 @@ class Engine:
         clean = re.sub(r"\n?Error: agent exited with code \d+\n?", "", output)
         clean = re.sub(r"\n?Error: Session:.*\n?", "", clean)
         clean = re.sub(r"\n?Error: session_id:.*\n?", "", clean)
-        has_output = len(clean.strip()) > 50 or "> " in clean
+        has_output = any(l.strip() and not re.match(r"^\[.*\]$|^> ", l.strip()) for l in clean.splitlines())
         delegations = parse_delegations(clean) if turn["code"] in (0, 2) or has_output else []
         if not delegations and turn["code"] not in (0, 2, 130):
             # Hermes failed or tried to edit itself: delegate to default coder.
@@ -1054,6 +1068,14 @@ class Engine:
         if not delegations:
             if job.get("auto"):
                 self.store.finish_live(pid, cid, step="delegate", text=f"Auto-routing to {name(default)}.",
+                                       brief=job["text"], coder=default, review=False)
+                job.update(coder=default, brief=job["text"], review=False)
+                return self.lane(pid, "code").submit(job)
+            # Guard: if hermes produced no real text, delegate instead of showing nothing.
+            real = [l for l in clean.splitlines()
+                    if l.strip() and not re.match(r"^\[.*\]$|^> ", l.strip())]
+            if not real:
+                self.store.finish_live(pid, cid, step="delegate", text=f"Handing this to {name(default)}.",
                                        brief=job["text"], coder=default, review=False)
                 job.update(coder=default, brief=job["text"], review=False)
                 return self.lane(pid, "code").submit(job)

@@ -78,7 +78,8 @@ def parse_line(line, repo):
         return codex_item(kind, event.get("item") or {}, repo)
     if kind == "turn.completed" and isinstance(event.get("usage"), dict):
         usage = event["usage"]
-        return f"\n[{usage.get('input_tokens', 0) + usage.get('output_tokens', 0)} tokens]\n"
+        total = usage.get('input_tokens', 0) + usage.get('output_tokens', 0)
+        return f"\n[{total} tokens]\n" if total > 0 else ""
     if kind in ("turn.failed", "error"):
         error = event.get("error") or {}
         message = error.get("message") if isinstance(error, dict) else str(error)
@@ -204,7 +205,7 @@ def run_agent(cfg, agent, prompt, echo=None, session_id=None, control=None, cwd=
         timer.cancel()
         proc.stdout.close()
         if parse:
-            stderr_reader.join(timeout=2)
+            stderr_reader.join(timeout=5)
             proc.stderr.close()
         os.unlink(f.name)
     if control is not None and control.get("stopped"):

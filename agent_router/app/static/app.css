@@ -527,3 +527,131 @@ h4.agent-heading { font-size: 13px; color: var(--muted); }
 .model-btn:hover { border-color: var(--accent); background: var(--hover); }
 .model-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 .model-btn .who .badge { width: 16px; height: 16px; }
+
+/* ---- agent plan view ---- */
+.plan-card {
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+  box-shadow: var(--shadow); overflow: hidden; animation: plan-fadein .3s cubic-bezier(.2,.65,.3,.9);
+}
+@keyframes plan-fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.plan-card .plan-body { padding: 16px; }
+.plan-list { list-style: none; margin: 0; padding: 0; }
+.plan-list > li { animation: plan-item-in .25s cubic-bezier(.2,.65,.3,.9) both; }
+.plan-list > li + li { margin-top: 4px; padding-top: 8px; }
+@keyframes plan-item-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* task row */
+.plan-task-row {
+  display: flex; align-items: center; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  transition: background .2s;
+}
+.plan-task-row:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
+
+.plan-status-icon {
+  width: 18px; height: 18px; flex-shrink: 0; margin-right: 8px; cursor: pointer;
+  transition: transform .15s;
+}
+.plan-status-icon:hover { transform: scale(1.1); }
+.plan-status-icon:active { transform: scale(.9); }
+.plan-status-icon svg { width: 18px; height: 18px; display: block; }
+
+.plan-task-title {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 14px; margin-right: 8px; transition: color .2s;
+}
+.plan-task-title.completed { color: var(--muted); text-decoration: line-through; }
+
+.plan-task-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.plan-dep {
+  display: inline-flex; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;
+  background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: transform .2s, background .2s;
+}
+.plan-dep:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--text) 10%, transparent); }
+
+.plan-status-badge {
+  display: inline-flex; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.plan-status-badge.completed { background: var(--ok-bg); color: var(--ok); }
+.plan-status-badge.in-progress { background: color-mix(in srgb, #3b82f6 15%, transparent); color: #3b82f6; }
+.plan-status-badge.need-help { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+.plan-status-badge.failed { background: var(--bad-bg); color: var(--bad); }
+.plan-status-badge.pending { background: var(--code); color: var(--muted); }
+.plan-status-badge.pop { transform: scale(1.08); }
+
+/* subtasks container */
+.plan-subtasks-wrap {
+  position: relative; overflow: hidden;
+  max-height: 0; opacity: 0;
+  transition: max-height .25s cubic-bezier(.2,.65,.3,.9), opacity .25s cubic-bezier(.2,.65,.3,.9);
+}
+.plan-subtasks-wrap.open { max-height: 2000px; opacity: 1; overflow: visible; }
+
+.plan-connector {
+  position: absolute; top: 0; bottom: 0; left: 20px;
+  border-left: 2px dashed color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.plan-subtasks { list-style: none; margin: 4px 0 6px 12px; padding: 0; }
+.plan-subtasks > li {
+  padding: 2px 0 2px 24px;
+  animation: plan-sub-in .25s cubic-bezier(.2,.65,.3,.9) both;
+}
+@keyframes plan-sub-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+/* subtask row */
+.plan-sub-row {
+  display: flex; align-items: center; padding: 4px; border-radius: 8px; cursor: pointer;
+  transition: background .2s;
+}
+.plan-sub-row:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
+
+.plan-sub-icon {
+  width: 14px; height: 14px; flex-shrink: 0; margin-right: 8px; cursor: pointer;
+  transition: transform .15s;
+}
+.plan-sub-icon:hover { transform: scale(1.1); }
+.plan-sub-icon:active { transform: scale(.9); }
+.plan-sub-icon svg { width: 14px; height: 14px; display: block; }
+
+.plan-sub-title {
+  font-size: 13px; transition: color .2s;
+}
+.plan-sub-title.completed { color: var(--muted); text-decoration: line-through; }
+
+/* subtask details */
+.plan-sub-details {
+  margin-left: 6px; padding-left: 20px; border-left: 1px dashed color-mix(in srgb, var(--text) 20%, transparent);
+  overflow: hidden; max-height: 0; opacity: 0;
+  transition: max-height .25s cubic-bezier(.2,.65,.3,.9), opacity .25s cubic-bezier(.2,.65,.3,.9);
+}
+.plan-sub-details.open { max-height: 500px; opacity: 1; margin-top: 4px; }
+.plan-sub-details p { margin: 4px 0; font-size: 12px; color: var(--muted); }
+
+.plan-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 4px; }
+.plan-tools-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.plan-tool-pill {
+  display: inline-flex; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 500;
+  background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--muted);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: transform .2s, background .2s;
+  animation: plan-pill-in .2s cubic-bezier(.2,.65,.3,.9) both;
+}
+.plan-tool-pill:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--text) 10%, transparent); }
+@keyframes plan-pill-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* status icon colors */
+.plan-icon-completed { color: var(--ok); }
+.plan-icon-in-progress { color: #3b82f6; }
+.plan-icon-need-help { color: var(--warn); }
+.plan-icon-failed { color: var(--bad); }
+.plan-icon-pending { color: var(--muted); }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .plan-card, .plan-list > li, .plan-subtasks > li, .plan-tool-pill { animation-duration: 0s !important; }
+  .plan-subtasks-wrap, .plan-sub-details { transition-duration: 0s !important; }
+  .plan-status-icon, .plan-sub-icon { transition: none !important; }
+}

@@ -362,6 +362,227 @@ function avatar(agent) {
     : `<div class="msg-avatar" style="background:var(--faint);color:#fff;font-size:12px;font-weight:600">${esc(nameOf(agent).charAt(0))}</div>`;
 }
 
+// ---- agent plan view ----
+
+const PLAN_ICONS = {
+  completed: `<svg viewBox="0 0 24 24" width="SIZE" height="SIZE" fill="none"><circle cx="12" cy="12" r="10" fill="currentColor" opacity=".12"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`,
+  "in-progress": `<svg viewBox="0 0 24 24" width="SIZE" height="SIZE" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/><circle cx="12" cy="12" r="4" fill="currentColor" opacity=".3"/></svg>`,
+  "need-help": `<svg viewBox="0 0 24 24" width="SIZE" height="SIZE" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  failed: `<svg viewBox="0 0 24 24" width="SIZE" height="SIZE" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  pending: `<svg viewBox="0 0 24 24" width="SIZE" height="SIZE" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg>`,
+};
+
+function planIcon(status, size) {
+  const tpl = PLAN_ICONS[status] || PLAN_ICONS.pending;
+  return tpl.replace(/SIZE/g, size || "18");
+}
+
+function planStatusClass(status) {
+  return status === "completed" ? "completed"
+    : status === "in-progress" ? "in-progress"
+    : status === "need-help" ? "need-help"
+    : status === "failed" ? "failed"
+    : "pending";
+}
+
+function buildPlanTasks(messages) {
+  if (!messages || !messages.length) return [];
+  const tasks = [];
+  let current = null;
+
+  for (const m of messages) {
+    if (m.role === "user") {
+      current = {
+        id: String(tasks.length + 1),
+        title: (m.text || "").split("\n")[0].slice(0, 80) || "User request",
+        description: (m.text || "").slice(0, 200),
+        status: "pending",
+        priority: "high",
+        level: 0,
+        dependencies: [],
+        subtasks: [],
+      };
+      tasks.push(current);
+    } else if (current && m.role === "agent" && m.step === "orchestrate") {
+      current.status = m.live ? "in-progress" : "completed";
+      current.subtasks.push({
+        id: `${current.id}.1`,
+        title: "Hermes analyzing request",
+        description: "Reading files and deciding who handles this",
+        status: m.live ? "in-progress" : "completed",
+        priority: "high",
+        tools: ["file-system"],
+      });
+    } else if (current && m.role === "agent" && m.step === "delegate") {
+      const coderName = nameOf(m.coder || "coder");
+      current.subtasks.push({
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: `Delegated to ${coderName}`,
+        description: (m.brief || m.text || "").split("\n")[0].slice(0, 200),
+        status: "completed",
+        priority: "high",
+        tools: [m.coder || "coder"],
+      });
+    } else if (current && m.role === "agent" && m.step === "code") {
+      const coderName = nameOf(m.agent || "coder");
+      const sub = {
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: `${coderName} implementing changes`,
+        description: "Writing and editing project files",
+        status: m.live ? "in-progress" : "completed",
+        priority: "high",
+        tools: [m.agent || "coder", "file-system", "shell"],
+      };
+      current.subtasks.push(sub);
+      current.status = m.live ? "in-progress" : current.status;
+    } else if (current && m.role === "agent" && m.step === "fix") {
+      current.subtasks.push({
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: `${nameOf(m.agent || "coder")} fixing check failures`,
+        description: "Fixing issues found by the project check",
+        status: m.live ? "in-progress" : "completed",
+        priority: "high",
+        tools: [m.agent || "coder"],
+      });
+      current.status = m.live ? "in-progress" : current.status;
+    } else if (current && m.role === "agent" && m.step === "review") {
+      current.subtasks.push({
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: "Hermes reviewing changes",
+        description: "Checking the coder's work for quality",
+        status: m.live ? "in-progress" : "completed",
+        priority: "medium",
+        tools: ["file-system"],
+      });
+    } else if (current && m.role === "agent" && m.step === "report") {
+      current.subtasks.push({
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: "Hermes writing update",
+        description: "Summarizing what was done",
+        status: m.live ? "in-progress" : "completed",
+        priority: "low",
+      });
+    } else if (current && m.role === "agent" && m.step === "answer") {
+      current.status = "completed";
+      if (!current.subtasks.length) {
+        current.subtasks.push({
+          id: `${current.id}.1`,
+          title: "Hermes answered directly",
+          description: "No file changes needed",
+          status: "completed",
+          priority: "medium",
+          tools: ["file-system"],
+        });
+      }
+    } else if (current && m.role === "result") {
+      const sub = {
+        id: `${current.id}.${current.subtasks.length + 1}`,
+        title: m.ok ? `Done -- ${(m.files || []).length} file${(m.files || []).length !== 1 ? "s" : ""} changed` : `Failed: ${m.reason || "unknown"}`,
+        description: m.summary || "",
+        status: m.ok ? "completed" : "failed",
+        priority: "high",
+        tools: (m.files || []).slice(0, 4),
+      };
+      current.subtasks.push(sub);
+      current.status = m.ok ? "completed" : "failed";
+    }
+  }
+  // Set any task with live subtasks to in-progress
+  for (const t of tasks) {
+    if (t.subtasks.some((s) => s.status === "in-progress")) t.status = "in-progress";
+    // If all subtasks completed, mark task completed
+    if (t.subtasks.length && t.subtasks.every((s) => s.status === "completed")) t.status = "completed";
+  }
+  // Add dependencies: each task after the first depends on the previous
+  for (let i = 1; i < tasks.length; i++) {
+    tasks[i].dependencies.push(String(i));
+    tasks[i].level = 1;
+  }
+  return tasks;
+}
+
+let planExpanded = {};
+let planSubExpanded = {};
+
+function renderPlan(messages) {
+  const tasks = buildPlanTasks(messages);
+  if (!tasks.length) return "";
+
+  // Default: expand the last task
+  const lastId = tasks[tasks.length - 1].id;
+  if (!(lastId in planExpanded)) planExpanded[lastId] = true;
+
+  const items = tasks.map((task, idx) => {
+    const sc = planStatusClass(task.status);
+    const expanded = planExpanded[task.id];
+    const isCompleted = task.status === "completed";
+
+    const deps = task.dependencies.map((d) =>
+      `<span class="plan-dep">${esc(d)}</span>`
+    ).join("");
+
+    const subtasksHtml = task.subtasks.map((sub, si) => {
+      const ssc = planStatusClass(sub.status);
+      const subKey = `${task.id}-${sub.id}`;
+      const subExpanded = planSubExpanded[subKey];
+
+      const toolPills = (sub.tools || []).map((t, ti) =>
+        `<span class="plan-tool-pill" style="animation-delay:${ti * 50}ms">${esc(t)}</span>`
+      ).join("");
+
+      return `<li style="animation-delay:${si * 50}ms">
+        <div class="plan-sub-row" data-plan-sub="${esc(task.id)}" data-sub-id="${esc(sub.id)}">
+          <span class="plan-sub-icon plan-icon-${ssc}" data-plan-sub-toggle="${esc(task.id)}" data-sub-toggle-id="${esc(sub.id)}">${planIcon(ssc, "14")}</span>
+          <span class="plan-sub-title ${isCompleted || sub.status === "completed" ? "completed" : ""}">${esc(sub.title)}</span>
+        </div>
+        <div class="plan-sub-details ${subExpanded ? "open" : ""}" data-plan-sub-details="${esc(subKey)}">
+          <p>${esc(sub.description)}</p>
+          ${toolPills ? `<div class="plan-tools"><span class="plan-tools-label">MCP Servers:</span>${toolPills}</div>` : ""}
+        </div>
+      </li>`;
+    }).join("");
+
+    return `<li style="animation-delay:${idx * 50}ms">
+      <div class="plan-task-row" data-plan-task="${esc(task.id)}">
+        <span class="plan-status-icon plan-icon-${sc}" data-plan-task-icon="${esc(task.id)}">${planIcon(sc, "18")}</span>
+        <span class="plan-task-title ${isCompleted ? "completed" : ""}">${esc(task.title)}</span>
+        <div class="plan-task-right">
+          ${deps ? `<div style="display:flex;gap:4px">${deps}</div>` : ""}
+          <span class="plan-status-badge ${sc}">${task.status}</span>
+        </div>
+      </div>
+      <div class="plan-subtasks-wrap ${expanded ? "open" : ""}" data-plan-subtasks="${esc(task.id)}">
+        <div class="plan-connector"></div>
+        <ul class="plan-subtasks">${subtasksHtml}</ul>
+      </div>
+    </li>`;
+  }).join("");
+
+  return `<div class="plan-card"><div class="plan-body"><ul class="plan-list">${items}</ul></div></div>`;
+}
+
+// Plan interactivity (delegated click handler)
+document.addEventListener("click", (e) => {
+  // Toggle task expansion
+  const taskRow = e.target.closest("[data-plan-task]");
+  if (taskRow && !e.target.closest("[data-plan-task-icon]")) {
+    const id = taskRow.dataset.planTask;
+    planExpanded[id] = !planExpanded[id];
+    const wrap = document.querySelector(`[data-plan-subtasks="${id}"]`);
+    if (wrap) wrap.classList.toggle("open");
+    return;
+  }
+  // Toggle subtask details
+  const subRow = e.target.closest("[data-plan-sub]");
+  if (subRow && !e.target.closest("[data-plan-sub-toggle]")) {
+    const key = `${subRow.dataset.planSub}-${subRow.dataset.subId}`;
+    planSubExpanded[key] = !planSubExpanded[key];
+    const details = document.querySelector(`[data-plan-sub-details="${key}"]`);
+    if (details) details.classList.toggle("open");
+    return;
+  }
+});
+
 function renderResult(m) {
   const files = (m.files || []).filter(Boolean);
   if (m.answer) {
@@ -454,9 +675,10 @@ function renderMessages(force) {
   const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
   if (!chat) box.innerHTML = renderWelcome();
   else {
+    const plan = renderPlan(chat.messages);
     const parts = chat.messages.map(renderMessage);
     if (chatStatus(pid, cid) === "queued") parts.push(`<div class="working"><span class="spinner"></span>Queued behind other work in ${esc(project(pid)?.name || "")}.</div>`);
-    box.innerHTML = `<div class="thread">${parts.join("")}</div>`;
+    box.innerHTML = `${plan}<div class="thread">${parts.join("")}</div>`;
   }
   ensureScrollFab();
   if ((nearBottom && !userScrolledUp) || force) box.scrollTop = box.scrollHeight;

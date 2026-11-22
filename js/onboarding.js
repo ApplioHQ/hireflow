@@ -117,7 +117,7 @@
       + '.onb-ic-ico svg{width:30px;height:30px;}'
       + '.onb-ic-t{font-size:15px;font-weight:700;margin-bottom:4px;}'
       + '.onb-ic-d{font-size:12px;color:#9a9aa2;}'
-      + '.onb-ta{width:100%;box-sizing:border-box;min-height:180px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#e6e9f5;font-size:14px;line-height:1.55;font-family:inherit;resize:vertical;outline:none;transition:border-color .2s;margin-bottom:12px;}'
+      + '.onb-ta{width:100%;box-sizing:border-box;min-height:180px;max-height:220px;overflow-y:auto;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#e6e9f5;font-size:14px;line-height:1.55;font-family:inherit;resize:none;outline:none;transition:border-color .2s;margin-bottom:12px;}'
       + '.onb-ta:focus{border-color:#6d4dfc;}'
       + '.onb-sum{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px 22px;margin-bottom:24px;}'
       + '.onb-sr{display:flex;justify-content:space-between;padding:8px 0;font-size:14px;}'

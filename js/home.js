@@ -738,7 +738,7 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     var metric = maskCtx.measureText('applio');
     var cap = metric.actualBoundingBoxAscent || fit * .72;
     var x = (width - metric.width) / 2;
-    var y = cap + Math.max(18, height * .03);
+    var y = height + cap * .2;
     maskCtx.fillText('applio', x, y);
 
     var pixels = maskCtx.getImageData(0, 0, width, height).data;
@@ -769,11 +769,14 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
   });
   root.addEventListener('pointerleave', function () { pointer = null; wake(); });
   root.addEventListener('pointerdown', function (event) {
+    if (event.target.closest('a,button')) return;
     if (reduced) return;
     var rect = canvas.getBoundingClientRect();
     ring = { x: event.clientX - rect.left, y: event.clientY - rect.top, time: performance.now() };
     wake();
   });
+  var up = root.querySelector('.hwf-up');
+  if (up) up.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   if (window.ResizeObserver) new ResizeObserver(layout).observe(root);
   layout();
 })();

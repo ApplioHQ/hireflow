@@ -529,22 +529,10 @@
 .footer-seo-links a:hover { color: #fff; }
 @media (max-width: 860px) { .footer-cols { grid-template-columns: repeat(2, 1fr); } }
 .footer-bot { font-size: 12px; color: rgba(255,255,255,.4); padding-top: 24px; border-top: 1px solid rgba(255,255,255,.05); text-align: center; }
-.footer-wordmark { height: 500px; margin-top: 42px; position: relative; overflow: hidden; isolation: isolate; user-select: none; background: #0c0c0f; color: #f4f1ff; }
+.footer-wordmark { height: 500px; width: 100vw; margin: 0 calc(50% - 50vw) -32px; position: relative; overflow: hidden; isolation: isolate; user-select: none; background: #0c0c0f; color: #f4f1ff; }
 .footer-wordmark canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; }
 .footer-wordmark-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.footer-wordmark .hwf-top { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); gap: 24px; padding: clamp(28px, 3.4vw, 42px) clamp(22px, 4vw, 58px) 0; font: 500 11px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; pointer-events: none; }
-.footer-wordmark .hwf-top a, .footer-wordmark .hwf-up { pointer-events: auto; color: inherit; text-decoration: none; opacity: .74; background: transparent; border: 0; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; background-image: linear-gradient(currentColor, currentColor); background-position: 0 100%; background-repeat: no-repeat; background-size: 0 1px; transition: opacity .2s ease, background-size .3s ease; }
-.footer-wordmark .hwf-top a:hover, .footer-wordmark .hwf-up:hover { opacity: 1; background-size: 100% 1px; }
-.footer-wordmark .hwf-top a:focus-visible, .footer-wordmark .hwf-up:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; opacity: 1; }
-.footer-wordmark .hwf-brand { display: grid; gap: 3px; }
-.footer-wordmark .hwf-brand strong { font: 700 15px/1.3 var(--font-display, Inter, system-ui, sans-serif); letter-spacing: -.02em; text-transform: none; }
-.footer-wordmark .hwf-brand strong b { color: #9d84ff; }
-.footer-wordmark .hwf-brand span, .footer-wordmark .hwf-col h3 { opacity: .48; font: inherit; }
-.footer-wordmark .hwf-col h3 { margin: 0; font-weight: 500; }
-.footer-wordmark .hwf-col ul { list-style: none; margin: 0; padding: 0; }
-.footer-wordmark .hwf-rule { position: relative; z-index: 1; display: flex; justify-content: flex-end; margin: clamp(18px, 2.6vw, 30px) clamp(22px, 4vw, 58px) 0; padding-top: 13px; border-top: 1px solid rgba(244,241,255,.16); font: 500 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; pointer-events: none; }
-@media (max-width: 720px) { .footer-wordmark { height: 440px; } .footer-wordmark .hwf-top { grid-template-columns: 1fr 1fr; row-gap: 18px; padding-left: 22px; padding-right: 22px; } .footer-wordmark .hwf-brand { grid-column: 1 / -1; } .footer-wordmark .hwf-rule { margin-left: 22px; margin-right: 22px; } }
-@media (prefers-reduced-motion: reduce) { .footer-wordmark .hwf-top a, .footer-wordmark .hwf-up { transition: none; } }
+@media (max-width: 720px) { .footer-wordmark { height: 440px; } }
 /* ===== Hero trust line ===== */
 .hero-trust-line {
   margin-top: 18px; font-size: 13px; color: rgba(255,255,255,.5); letter-spacing: .01em;

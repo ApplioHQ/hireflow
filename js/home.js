@@ -775,8 +775,6 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     ring = { x: event.clientX - rect.left, y: event.clientY - rect.top, time: performance.now() };
     wake();
   });
-  var up = root.querySelector('.hwf-up');
-  if (up) up.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   if (window.ResizeObserver) new ResizeObserver(layout).observe(root);
   layout();
 })();

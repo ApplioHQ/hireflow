@@ -663,18 +663,22 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, width, height);
     for (var i = 0; i < dots.length; i++) {
-      var dot = dots[i], x = dot.x, y = dot.y;
+      var dot = dots[i], x = dot.x, y = dot.y, heat = 0;
       if (pointer && !reduced) {
         var dx = x - pointer.x, dy = y - pointer.y, distance = Math.hypot(dx, dy) || 1;
-        if (distance < 92) {
-          var force = (1 - distance / 92) * 16;
+        if (distance < 112) {
+          heat = 1 - distance / 112;
+          var force = heat * 24;
           x += dx / distance * force;
           y += dy / distance * force;
         }
       }
-      ctx.fillStyle = pointer && !reduced ? 'rgba(179,157,255,.9)' : 'rgba(255,255,255,.82)';
+      var red = Math.round(244 - 135 * heat);
+      var green = Math.round(241 - 164 * heat);
+      var blue = Math.round(233 + 19 * heat);
+      ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
       ctx.beginPath();
-      ctx.arc(x, y, dot.r, 0, Math.PI * 2);
+      ctx.arc(x, y, dot.r * (1 + heat * .45), 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -692,11 +696,11 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     mask.height = height;
     var maskCtx = mask.getContext('2d', { willReadFrequently: true });
     if (!maskCtx) return;
-    var size = Math.min(height * .78, width / 3.85);
+    var size = Math.min(height * 1.12, width / 3.55);
     maskCtx.font = '800 ' + size + 'px Sora,Arial,sans-serif';
     var metric = maskCtx.measureText('applio');
     var x = (width - metric.width) / 2;
-    var y = (height - (metric.actualBoundingBoxAscent + metric.actualBoundingBoxDescent)) / 2 + metric.actualBoundingBoxAscent;
+    var y = height - metric.actualBoundingBoxDescent - Math.max(10, height * .02);
     maskCtx.fillText('applio', x, y);
 
     var pixels = maskCtx.getImageData(0, 0, width, height).data;

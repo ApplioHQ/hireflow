@@ -739,7 +739,9 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     var metric = maskCtx.measureText('applio');
     var cap = metric.actualBoundingBoxAscent || fit * .72;
     var x = (width - metric.width) / 2;
-    var y = height + cap * .2;
+    // Start the word at the panel's top edge. The short panel preserves the
+    // deliberate 21st.dev-style crop without leaving empty space above it.
+    var y = cap + Math.max(12, height * .02);
     maskCtx.fillText('applio', x, y);
 
     var pixels = maskCtx.getImageData(0, 0, width, height).data;

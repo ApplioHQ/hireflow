@@ -1,0 +1,144 @@
+/* ========== Visual Effects ========== */
+
+/* ===== 1. Grainy Gradient Overlay ===== */
+/* SVG noise filter defined inline in HTML; this applies it */
+.grain-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  opacity: .35;
+  filter: url(#grain-noise);
+  mix-blend-mode: overlay;
+}
+
+/* Animated gradient mesh behind the grain */
+.grain-gradient {
+  position: absolute; inset: -50%; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 50% 50% at 30% 40%, rgba(109,77,252,.4), transparent 70%),
+    radial-gradient(ellipse 40% 60% at 70% 30%, rgba(139,92,246,.3), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(79,70,229,.25), transparent 70%);
+  animation: grain-drift 18s ease-in-out infinite alternate;
+}
+@keyframes grain-drift {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33%  { transform: translate(3%, -2%) rotate(1deg) scale(1.02); }
+  66%  { transform: translate(-2%, 3%) rotate(-1deg) scale(1.01); }
+  100% { transform: translate(1%, -1%) rotate(0.5deg) scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-gradient { animation: none; }
+}
+
+/* ===== 2. Holographic Card Effect ===== */
+.holo-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.holo-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(
+      var(--holo-angle, 135deg),
+      transparent 0%,
+      rgba(109,77,252,.08) 25%,
+      rgba(139,92,246,.12) 40%,
+      rgba(236,72,153,.08) 55%,
+      rgba(34,211,153,.06) 70%,
+      transparent 100%
+    );
+  opacity: 0;
+  transition: opacity .4s ease;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+.holo-card::after {
+  content: "";
+  position: absolute;
+  width: 200%; height: 200%;
+  top: var(--holo-y, -50%); left: var(--holo-x, -50%);
+  background: radial-gradient(
+    circle at center,
+    rgba(255,255,255,.12) 0%,
+    rgba(255,255,255,.04) 30%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity .4s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.holo-card:hover::before,
+.holo-card.holo-active::before {
+  opacity: 1;
+}
+.holo-card:hover::after,
+.holo-card.holo-active::after {
+  opacity: 1;
+}
+/* Rainbow shimmer line at top */
+.holo-card .holo-shine {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(109,77,252,.6) 20%,
+    rgba(139,92,246,.8) 35%,
+    rgba(236,72,153,.6) 50%,
+    rgba(34,211,153,.6) 65%,
+    rgba(109,77,252,.6) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity .4s ease;
+  z-index: 3;
+  pointer-events: none;
+  animation: holo-shimmer 3s linear infinite;
+}
+.holo-card:hover .holo-shine,
+.holo-card.holo-active .holo-shine {
+  opacity: 1;
+}
+@keyframes holo-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .holo-card::before, .holo-card::after { transition: none; }
+  .holo-shine { animation: none; }
+}
+
+/* ===== 3. Pretext-style flowing text wrap ===== */
+/* Pure CSS editorial text wrap using shape-outside */
+.pretext-wrap {
+  position: relative;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(255,255,255,.7);
+}
+.pretext-shape {
+  float: right;
+  width: 180px; height: 180px;
+  shape-outside: circle(50%);
+  clip-path: circle(50%);
+  margin: 0 0 20px 24px;
+  background:
+    radial-gradient(circle at 40% 40%, rgba(109,77,252,.5), rgba(139,92,246,.3) 60%, transparent 80%);
+  animation: pretext-float 8s ease-in-out infinite alternate;
+  border-radius: 50%;
+  filter: blur(20px);
+}
+@keyframes pretext-float {
+  0%   { transform: translateY(0) scale(1); border-radius: 50%; }
+  50%  { transform: translateY(-8px) scale(1.05); border-radius: 48% 52% 50% 50%; }
+  100% { transform: translateY(4px) scale(0.98); border-radius: 52% 48% 50% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pretext-shape { animation: none; }
+}
+@media (max-width: 600px) {
+  .pretext-shape { width: 120px; height: 120px; margin: 0 0 14px 16px; }
+}

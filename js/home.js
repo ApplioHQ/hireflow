@@ -627,3 +627,25 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     spots.forEach(function (s) { io.observe(s); });
   } else { spots.forEach(animateSpot); }
 })();
+
+// ============ Holo card mouse tracking ============
+(function () {
+  var cards = document.querySelectorAll('.holo-card');
+  if (!cards.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  cards.forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var r = card.getBoundingClientRect();
+      var x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      var y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      var angle = Math.atan2(y, x) * (180 / Math.PI) + 180;
+      card.style.setProperty('--holo-angle', angle + 'deg');
+      card.style.setProperty('--holo-x', (x * 30 - 50) + '%');
+      card.style.setProperty('--holo-y', (y * 30 - 50) + '%');
+    });
+    card.addEventListener('mouseleave', function () {
+      card.style.removeProperty('--holo-angle');
+      card.style.removeProperty('--holo-x');
+      card.style.removeProperty('--holo-y');
+    });
+  });
+})();

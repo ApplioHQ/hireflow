@@ -1,3 +1,7 @@
+// API_URL: base URL of the Cloudflare Worker backend (handles auth, Stripe, KV storage).
+// GOOGLE_CLIENT_ID: OAuth client ID for "Sign in with Google" / Google Drive import. Empty disables the feature.
+// LINKEDIN_CLIENT_ID: OAuth client ID for LinkedIn profile import. Empty disables the feature.
+// STRIPE_PUBLISHABLE_KEY: public (safe to expose client-side) Stripe key used to initialize Stripe.js for checkout.
 window.HIREFLOW_CONFIG = {
   API_URL: "https://hireflow-api.pritamavuthu7.workers.dev",
   GOOGLE_CLIENT_ID: "", // <-- Paste your Google OAuth Client ID here to enable Google sign-in

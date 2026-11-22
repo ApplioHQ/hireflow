@@ -140,7 +140,7 @@ function optimize(){
       document.getElementById('out-headline').textContent = j.headline || '';
       document.getElementById('out-about').textContent = j.about || '';
       var tips = document.getElementById('out-tips');
-      tips.innerHTML = '';
+      tips.replaceChildren();
       (j.tips||[]).forEach(function(t){ var li=document.createElement('li'); li.textContent=t; tips.appendChild(li); });
       document.getElementById('lo-tips-block').style.display = (j.tips && j.tips.length) ? '' : 'none';
       document.getElementById('lo-results').classList.remove('hidden');

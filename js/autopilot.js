@@ -126,7 +126,7 @@
   function _atsImprove(resume, d, jd) {
     if (!window.AtsEngine || !resume || !jd || jd.length < 20 || !d.tailor) return null;
     try {
-      var after = JSON.parse(JSON.stringify(resume));
+      var after = structuredClone(resume);
       if (d.tailor.summary && d.tailor.summary.trim()) { after.personal = after.personal || {}; after.personal.summary = d.tailor.summary.trim(); }
       _applyTailoredBullets(after, d.tailor.bulletSuggestions || []);
       var b = AtsEngine.score(_resumeToText(resume), jd).score;

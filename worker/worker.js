@@ -1454,7 +1454,7 @@ const PDF_RENDER_TTL = 180;
 const PDF_RENDER_MAX_BYTES = 350000;
 
 function resumeForPdf(resume) {
-  const clean = JSON.parse(JSON.stringify(resume));
+  const clean = structuredClone(resume);
   delete clean.versions;
   delete clean.tailor;
   return clean;

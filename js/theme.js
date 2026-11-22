@@ -6,6 +6,8 @@
 
   function applyTheme(light) {
     document.documentElement.classList.toggle('light-mode', light);
+    var meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.content = light ? 'light' : 'dark';
     // Update all theme toggles (both full and icon-only variants)
     document.querySelectorAll('.theme-toggle').forEach(function (btn) {
       var iconEl = btn.querySelector('.icon');

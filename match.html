@@ -99,6 +99,7 @@
   .bm-row:nth-child(2){ animation-delay:.06s; }
   .bm-row:nth-child(3){ animation-delay:.12s; }
   .bm-row:nth-child(4){ animation-delay:.18s; }
+  @supports (animation-delay: calc(sibling-index() * 1s)) { .bm-row { animation-delay:calc((sibling-index() - 1) * .06s); } }
   .bm-row:hover { transform:translateY(-1px); box-shadow:var(--sh-2); }
   .bm-row.best { border-color:transparent; background:linear-gradient(180deg, rgba(109,77,252,.08), var(--bg-1)) padding-box, var(--gradient) border-box; box-shadow:var(--sh-2), 0 0 30px rgba(109,77,252,.12); }
   .bm-row-head { display:flex; align-items:center; gap:12px; padding:14px 16px; }
@@ -292,7 +293,7 @@ async function runMatch(){
   if (typeof skeleton === 'function') {
     document.getElementById('bm-results').innerHTML = skeleton('cards', { count: cands.length, cols: cands.length >= 3 ? 3 : 2 });
   } else {
-    document.getElementById('bm-results').innerHTML = '';
+    document.getElementById('bm-results').replaceChildren();
   }
   const scored = [];
   let paywalled = false;
@@ -329,7 +330,7 @@ function _renderResults(scored, paywalled, attempted){
   const hasResults = ok.length || errored.length;
   const wrap = document.querySelector('.bm-wrap');
   if (wrap) wrap.classList.toggle('results-open', !!hasResults);
-  if (!hasResults) { res.innerHTML = ''; return; }
+  if (!hasResults) { res.replaceChildren(); return; }
 
   let html = '';
   if (ok.length) {

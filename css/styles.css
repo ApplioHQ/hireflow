@@ -2,6 +2,7 @@
 /* ========== HireFlow shared styles ========== */
 :root {
   color-scheme: dark light;
+  interpolate-size: allow-keywords;
   --font-display: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
   --bg-0: #111113;
   --bg-1: #1c1c20;
@@ -133,6 +134,9 @@ html.light-mode body::before { opacity: .015; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, textarea, select { font-family: inherit; }
+@supports (field-sizing: content) {
+  textarea { field-sizing: content; }
+}
 
 /* Consistent keyboard focus ring across interactive elements */
 a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
@@ -1514,6 +1518,9 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 .ai-rec:nth-child(3) { animation-delay: .15s; } .ai-rec:nth-child(4) { animation-delay: .21s; }
 .ai-rec:nth-child(5) { animation-delay: .27s; } .ai-rec:nth-child(6) { animation-delay: .33s; }
 .ai-rec:nth-child(7) { animation-delay: .39s; } .ai-rec:nth-child(8) { animation-delay: .45s; }
+@supports (animation-delay: calc(sibling-index() * 1s)) {
+  .ai-rec { animation-delay: calc(sibling-index() * .06s - .03s); }
+}
 @media (prefers-reduced-motion: reduce) { .ai-rec { animation: none; } }
 
 /* AI suggestion modal */
@@ -2340,6 +2347,9 @@ html.light-mode {
 .stagger > *:nth-child(9)  { animation-delay: 320ms; }
 .stagger > *:nth-child(10) { animation-delay: 360ms; }
 .stagger > *:nth-child(n+11) { animation-delay: 400ms; }
+@supports (animation-delay: calc(sibling-index() * 1s)) {
+  .stagger > * { animation-delay: calc(sibling-index() * 40ms); }
+}
 @media (prefers-reduced-motion: reduce) {
   .stagger > * { animation: none; opacity: 1; }
 }

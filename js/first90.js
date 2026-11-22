@@ -126,7 +126,7 @@
       b.addEventListener('click', function () { addCustom(b.getAttribute('data-addbtn')); });
     });
     grid.querySelectorAll('[data-add]').forEach(function (inp) {
-      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') addCustom(inp.getAttribute('data-add')); });
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) addCustom(inp.getAttribute('data-add')); });
     });
   }
 

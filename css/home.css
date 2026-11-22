@@ -218,6 +218,9 @@
 .float-kw-list span:nth-child(3) { animation-delay: .3s; }
 .float-kw-list span:nth-child(4) { animation-delay: .45s; }
 .float-kw-list span:nth-child(5) { animation-delay: .6s; }
+@supports (animation-delay: calc(sibling-index() * 1s)) {
+  .float-kw-list span { animation-delay: calc((sibling-index() - 1) * .15s); }
+}
 @keyframes kw-detect {
   0%, 60%, 100% { background: #f0eefe; color: #5a3ce8; }
   72%           { background: #dcfce7; color: #16a34a; transform: scale(1.08); }

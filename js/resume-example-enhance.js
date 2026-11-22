@@ -124,7 +124,7 @@
       var span = document.createElement('span');
       span.className = 'rx-bul-txt';
       span.innerHTML = highlight(txt);
-      li.innerHTML = '';
+      li.replaceChildren();
       li.appendChild(span);
       var b = document.createElement('button');
       b.type = 'button';

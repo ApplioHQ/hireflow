@@ -332,7 +332,7 @@ document.querySelectorAll('.faq details').forEach(detail => {
   chips.forEach(c => track1.appendChild(c));
   chips.forEach(c => track2.appendChild(c.cloneNode(true)));
   marquee.appendChild(track1); marquee.appendChild(track2);
-  wall.innerHTML = ''; wall.appendChild(marquee);
+  wall.replaceChildren(); wall.appendChild(marquee);
 })();
 
 // ── Parallax: hero floating cards + mock resume on scroll ──

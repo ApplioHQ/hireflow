@@ -236,7 +236,7 @@ function _skRun() {
   });
 
   var chips = document.getElementById('sk-chips');
-  chips.innerHTML = '';
+  chips.replaceChildren();
   if (found.length === 0) {
     chips.innerHTML = '<span style="color:var(--muted);font-size:14px;">No common skills detected. Try pasting a more complete job description.</span>';
   } else {

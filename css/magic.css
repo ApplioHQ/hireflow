@@ -46,8 +46,9 @@
   padding: 1.5px;
   background: conic-gradient(from 0deg, transparent 0deg, transparent 300deg, #ffaa40 340deg, #9c40ff 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
-          mask-composite: exclude;
+  mask-composite: exclude;
   animation: magic-beam-spin 6s linear infinite;
 }
 .magic-border-beam--applio {
@@ -82,8 +83,9 @@
   border-radius: inherit;
   background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(109,77,252,.35));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
-          mask-composite: exclude;
+  mask-composite: exclude;
 }
 
 /* 5. Dot pattern */

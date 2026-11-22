@@ -396,7 +396,7 @@ function _exitPractice() {
   _saveCurrentAnswer();
   clearInterval(_practiceTimer);
   if (_recActive) { _recActive = false; try { _recog && _recog.stop(); } catch(e){} clearInterval(_recTimer); }
-  var res = document.getElementById('results'); if (res) res.innerHTML = '';
+  var res = document.getElementById('results'); if (res) res.replaceChildren();
   var intro = document.getElementById('ip-intro'); if (intro) intro.style.display = '';
   _renderResumeBanner();
   try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo(0, 0); }
@@ -700,7 +700,7 @@ function _wireRecorder() {
 }
 
 // Enter on role input triggers generate
-document.getElementById('role').addEventListener('keydown', function(e) { if (e.key === 'Enter') generate(); });
+document.getElementById('role').addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.isComposing) generate(); });
 
 (async function() {
   try {

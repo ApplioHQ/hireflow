@@ -35,7 +35,7 @@ const DEFAULT_RESUME = {
 };
 
 function _resumeSnapshot(source) {
-  const snapshot = JSON.parse(JSON.stringify(source || {}));
+  const snapshot = structuredClone(source || {});
   delete snapshot.versions;
   return snapshot;
 }
@@ -287,14 +287,14 @@ function hydrate() {
   const _admin = (typeof isAdmin === 'function' && isAdmin());
   if (_admin) {
     planPill.innerHTML = `<span class="pill success" title="Admin, full access">${ICON('crown','ico ico-sm')} Admin</span>`;
-    if (obadge) obadge.innerHTML = '';
+    if (obadge) obadge.replaceChildren();
   } else if (isPaid()) {
     planPill.innerHTML = `<button class="pill success clickable" onclick="openBillingPortal()">${ICON('crown','ico ico-sm')} ${planLabel()}</button>`;
-    if (obadge) obadge.innerHTML = '';
+    if (obadge) obadge.replaceChildren();
   } else {
     // Applio is completely free: no upgrade CTA, no "Pro" badge.
-    planPill.innerHTML = '';
-    if (obadge) obadge.innerHTML = '';
+    planPill.replaceChildren();
+    if (obadge) obadge.replaceChildren();
   }
 
   // Account center identity (avatar initials, email, plan label)
@@ -507,7 +507,7 @@ window._resumeHealth = _resumeHealth;
 let _healthAnim = 0;
 function _renderHealthPanel() {
   const host = document.getElementById('resume-health');
-  if (!host || (typeof IS_ANON !== 'undefined' && IS_ANON)) { if (host) host.innerHTML = ''; return; }
+  if (!host || (typeof IS_ANON !== 'undefined' && IS_ANON)) { if (host) host.replaceChildren(); return; }
   const h = _resumeHealth();
   const scoreClass = h.score >= 80 ? 'good' : h.score >= 55 ? 'warn' : 'bad';
   const label = h.score >= 80 ? 'Strong' : h.score >= 55 ? 'Getting there' : 'Needs work';
@@ -1419,7 +1419,7 @@ function _bindTagInput() {
   }
 
   inp.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' || e.key === ',') {
+    if ((e.key === 'Enter' && !e.isComposing) || e.key === ',') {
       e.preventDefault();
       addSkill(inp.value);
       inp.value = '';
@@ -2656,7 +2656,7 @@ function _showInputModal(title, placeholder, defaultVal, callback) {
   modal.querySelector('.modal-close').onclick = close;
   document.getElementById('input-modal-cancel').onclick = close;
   document.getElementById('input-modal-ok').onclick = submit;
-  field.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+  field.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) submit(); });
 }
 
 function _showFolderPicker(callback) {
@@ -2848,7 +2848,7 @@ function _mountFolders(skipAutoGroup) {
   if (!skipAutoGroup) _autoGroupResumes();
   const container = document.getElementById('rb-folders');
   if (!container) return;
-  container.innerHTML = '';
+  container.replaceChildren();
 
   // Compute folder width: 4 columns with 24px gaps
   const gap = 24;
@@ -3283,7 +3283,7 @@ function renderPreview() {
   let sizer = wrap.querySelector('.preview-sizer');
   let frame = sizer && sizer.querySelector('iframe');
   if (!frame) {
-    wrap.innerHTML = '';
+    wrap.replaceChildren();
     sizer = document.createElement('div');
     sizer.className = 'preview-sizer';
     sizer.style.cssText = 'position:relative; margin:0 auto;';
@@ -3980,7 +3980,10 @@ function schedulePreview() {
 }
 
 // Grow a textarea to fit its content so long bullets aren't cramped in a tiny box.
-function _autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+function _autoGrow(el) {
+  if (CSS.supports('field-sizing', 'content')) return;
+  el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px';
+}
 function _wireAutoGrow() {
   document.querySelectorAll('#main textarea').forEach(el => {
     if (!el._agBound) { el._agBound = true; el.style.overflowY = 'hidden'; el.addEventListener('input', () => _autoGrow(el)); }
@@ -4850,7 +4853,7 @@ function _applyTailorBulletsClone(r, suggestions) {
 function _tailorAtsImprovement(beforeResume, r, jd) {
   if (!window.AtsEngine || !jd || String(jd).trim().length < 20) return null;
   try {
-    const after = JSON.parse(JSON.stringify(beforeResume));
+    const after = structuredClone(beforeResume);
     if (r && r.summary && r.summary.trim()) { after.personal = after.personal || {}; after.personal.summary = r.summary.trim(); }
     _applyTailorBulletsClone(after, (r && r.bulletSuggestions) || []);
     const b = AtsEngine.score(_resumeToText(beforeResume), jd).score;
@@ -4868,7 +4871,7 @@ async function aiTailor() {
     return;
   }
   // Snapshot the resume BEFORE tailoring so we can show the ATS score lift afterward.
-  const _beforeSnap = JSON.parse(JSON.stringify(resume));
+  const _beforeSnap = structuredClone(resume);
   const _host = document.getElementById('tailor-result');
   if (_host) _host.innerHTML = _aiToolLoading('Tailoring your resume to the job description…');
   try {
@@ -4957,9 +4960,9 @@ function _trackerDialog(title, company, jd) {
 function _runJDRedFlags(text) {
   var host = document.getElementById('jd-redflags-result');
   if (!host || !window.scanJDRedFlags) return;
-  if (!text || text.trim().length < 40) { host.innerHTML = ''; return; }
+  if (!text || text.trim().length < 40) { host.replaceChildren(); return; }
   var r = scanJDRedFlags(text);
-  if (!r.flags.length) { host.innerHTML = ''; return; }
+  if (!r.flags.length) { host.replaceChildren(); return; }
   var sevIcon = { red: '<span style="color:#ef4444;">&#9679;</span>', yellow: '<span style="color:#f59e0b;">&#9679;</span>' };
   var html = '<div style="margin:12px 0 4px;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card,var(--bg));">' +
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">' +
@@ -5631,7 +5634,7 @@ async function restoreVersion(i) {
   // Deep-clone so edits don't mutate the archived snapshot, and KEEP the
   // version history (snapshots are stored without it, so a raw assign would
   // wipe every saved version on the next save).
-  resume = _normalizeResume(JSON.parse(JSON.stringify(snap)));   // legacy snapshots may miss keys
+  resume = _normalizeResume(structuredClone(snap));   // legacy snapshots may miss keys
   resume.versions = history;
   save(); closeModal('version'); renderMain();
   toast('Version restored', { type: 'success' });
@@ -5642,7 +5645,7 @@ async function restoreVersion(i) {
 function _renderJDRedFlags(text, hostId) {
   const host = document.getElementById(hostId);
   if (!host || !window.scanJDRedFlags) return;
-  if (!text || text.trim().length < 30) { host.innerHTML = ''; return; }
+  if (!text || text.trim().length < 30) { host.replaceChildren(); return; }
   const r = scanJDRedFlags(text);
   if (!r.flags.length) {
     host.innerHTML = '<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--muted);">' +
@@ -5743,7 +5746,7 @@ async function aiLinkedInGen() {
     }
     html += '</div></div>';
     host.innerHTML = html;
-  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.replaceChildren(); toast(_aiErrMsg(e), { type: 'error' }); } else host.replaceChildren(); }
   finally { aiLoadingDone(); }
 }
 window.aiLinkedInGen = aiLinkedInGen;
@@ -5826,7 +5829,7 @@ async function aiInterviewPrep() {
     const body = typeof r === 'string' ? r : (r && r.text) || '';
     host.innerHTML = '<div class="ai-result-box ai-result-amber"><div class="ai-result-label">✦ Interview Questions</div><div style="padding:14px;">' +
       _renderInterviewResult(body) + '</div></div>';
-  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.innerHTML = ''; toast(_aiErrMsg(e), { type: 'error' }); } else host.innerHTML = ''; }
+  } catch (e) { if (e.message !== 'Premium required' && e.message !== 'Sign up required') { host.replaceChildren(); toast(_aiErrMsg(e), { type: 'error' }); } else host.replaceChildren(); }
   finally { aiLoadingDone(); }
 }
 window.aiInterviewPrep = aiInterviewPrep;
@@ -5866,9 +5869,9 @@ async function ivSubmitAnswer(qId, questionText) {
     fb.innerHTML = _renderFeedbackResult(r);
   } catch (e) {
     if (e.message !== 'Premium required' && e.message !== 'Sign up required') {
-      fb.innerHTML = '';
+      fb.replaceChildren();
       toast(_aiErrMsg(e), { type: 'error' });
-    } else fb.innerHTML = '';
+    } else fb.replaceChildren();
   } finally { aiLoadingDone(); }
 }
 window.ivSubmitAnswer = ivSubmitAnswer;

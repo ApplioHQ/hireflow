@@ -251,8 +251,10 @@
   function paintArt(recipe, seed, w, h, priority, cb) {
     var key = JSON.stringify([recipe, seed, w, h]);
     if (artCache[key]) { artCache[key].then(cb); return; }
-    var resolve;
-    artCache[key] = new Promise(function (r) { resolve = r; });
+    var promise, resolve;
+    if (Promise.withResolvers) ({ promise: promise, resolve: resolve } = Promise.withResolvers());
+    else promise = new Promise(function (r) { resolve = r; });
+    artCache[key] = promise;
     var at = queue.length;
     while (at > 1 && queue[at - 1].priority > priority) at--;
     queue.splice(at, 0, {
@@ -472,7 +474,7 @@
       if (!isOpen) filesDiv.setAttribute('inert', '');
 
       function renderFiles() {
-        filesDiv.innerHTML = '';
+        filesDiv.replaceChildren();
         var start = Math.max(0, files.length - MAX_VISIBLE);
         var visible = files.slice(start);
         visible.forEach(function (file, v) {

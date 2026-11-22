@@ -231,7 +231,7 @@ ${BLOG_CSS}
 
 function hubHTML(){
   const url = `${BASE}/blog`;
-  const sorted = POSTS.slice().sort((a,b)=> a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+  const sorted = POSTS.toSorted((a,b)=> a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
   const ld = [
     { "@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
       {"@type":"ListItem","position":1,"name":"Home","item":`${BASE}/`},

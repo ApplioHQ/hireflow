@@ -780,8 +780,8 @@ document.getElementById('sw-levels').addEventListener('click', function(e){
   b.classList.add('active');
 });
 document.getElementById('sw-go').addEventListener('click', lookup);
-document.getElementById('sw-role').addEventListener('keydown', function(e){ if (e.key === 'Enter') lookup(); });
-document.getElementById('sw-location').addEventListener('keydown', function(e){ if (e.key === 'Enter') lookup(); });
+document.getElementById('sw-role').addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.isComposing) lookup(); });
+document.getElementById('sw-location').addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.isComposing) lookup(); });
 
 (async function() {
   _emptyState();

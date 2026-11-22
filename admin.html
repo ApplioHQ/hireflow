@@ -777,7 +777,7 @@ function renderDailyBreakdown(rows) {
   // Today is the last (newest) row; display newest-first.
   var todayKey = rows[rows.length - 1].day;
   var n = function (v) { return (v || 0).toLocaleString(); };
-  var html = rows.slice().reverse().map(function (r) {
+  var html = rows.toReversed().map(function (r) {
     // Parse the YYYY-MM-DD as a local date so the weekday label doesn't shift.
     var parts = (r.day || '').split('-');
     var dt = new Date(+parts[0], (+parts[1] || 1) - 1, +parts[2] || 1);

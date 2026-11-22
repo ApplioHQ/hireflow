@@ -169,7 +169,7 @@
 
   document.getElementById('sg-run').addEventListener('click', function () { analyze(false); });
   document.getElementById('sg-run-jd').addEventListener('click', function () { analyze(true); });
-  document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(false); });
+  document.getElementById('sg-role').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) analyze(false); });
 
   // ---- One-click gap check on a job from the tracker ----
   var trackedJobs = [], _currentJobId = null;

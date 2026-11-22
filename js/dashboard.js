@@ -375,7 +375,7 @@
           w.text = polished.slice(0, 240); saveProfile(); renderWins();
           if (window.toast) toast('Win polished', { type: 'success' });
         };
-        sug.querySelector('.ws-keep').onclick = function () { sug.hidden = true; sug.innerHTML = ''; };
+        sug.querySelector('.ws-keep').onclick = function () { sug.hidden = true; sug.replaceChildren(); };
       })
       .catch(function () { btn.disabled = false; btn.textContent = 'Polish'; if (window.toast) toast('Network error, try again.', { type: 'error' }); });
   }
@@ -393,7 +393,7 @@
   }
   function wireWins() {
     document.getElementById('win-add').addEventListener('click', addWin);
-    document.getElementById('win-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') addWin(); });
+    document.getElementById('win-input').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) addWin(); });
   }
 
   // ---------- weekly-reminder email consent (opt-in) ----------

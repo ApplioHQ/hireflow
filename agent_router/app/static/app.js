@@ -109,7 +109,11 @@ function ago(iso) {
 // ---- agent text ----
 
 function inline(text) {
-  return esc(text).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  return esc(text)
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
 function hideCodexDiagnostics(text, agent) {
@@ -229,6 +233,11 @@ function renderAgentText(text) {
     if (line.match(/^\s*[-*]\s+/)) {
       flush();
       out.push(`<p class="list-item">${inline(line.replace(/^\s*[-*]\s+/, ""))}</p>`);
+      continue;
+    }
+    if (line.match(/^\s*\d+[.)]\s+/)) {
+      flush();
+      out.push(`<p class="list-item numbered">${inline(line.replace(/^\s*\d+[.)]\s+/, ""))}</p>`);
       continue;
     }
     para.push(line);
@@ -558,11 +567,30 @@ function renderPlan(messages) {
     </li>`;
   }).join("");
 
-  return `<div class="plan-card"><div class="plan-body"><ul class="plan-list">${items}</ul></div></div>`;
+  const done = tasks.filter((t) => t.status === "completed").length;
+  const total = tasks.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const planOpen = !planCollapsed;
+  const chevron = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .2s;transform:rotate(${planOpen ? 0 : -90}deg)"><path d="M6 9l6 6 6-6"/></svg>`;
+  const header = `<div class="plan-header" id="plan-header">
+    <span class="plan-header-left">${chevron}<strong>Plan</strong><span class="plan-progress-text">${done}/${total} done</span></span>
+    <div class="plan-progress-bar"><div class="plan-progress-fill" style="width:${pct}%"></div></div>
+  </div>`;
+  return `<div class="plan-card">${header}<div class="plan-body" style="${planOpen ? "" : "display:none"}" id="plan-body-wrap"><ul class="plan-list">${items}</ul></div></div>`;
 }
+
+let planCollapsed = false;
 
 // Plan interactivity (delegated click handler)
 document.addEventListener("click", (e) => {
+  if (e.target.closest("#plan-header")) {
+    planCollapsed = !planCollapsed;
+    const body = document.getElementById("plan-body-wrap");
+    if (body) body.style.display = planCollapsed ? "none" : "";
+    const svg = e.target.closest("#plan-header")?.querySelector("svg");
+    if (svg) svg.style.transform = `rotate(${planCollapsed ? -90 : 0}deg)`;
+    return;
+  }
   // Toggle task expansion
   const taskRow = e.target.closest("[data-plan-task]");
   if (taskRow && !e.target.closest("[data-plan-task-icon]")) {
@@ -624,7 +652,8 @@ function renderMessage(m) {
       }
       return `<span class="attachment" title="${esc(f)}">${esc(fileName)}</span>`;
     }).join("");
-    return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}</div>`;
+    const ts = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
+    return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}</div>`;
   }
   if (m.role === "note") {
     const shots = (m.screenshots || []).map((s) => {
@@ -661,8 +690,9 @@ function renderMessage(m) {
   const body = visibleText ? renderAgentText(visibleText) : (m.live ? "" : `<div class="empty-agent">No response recorded.</div>`);
   const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
+  const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""}">${avatar(agent)}<div class="msg-body">
-    <div class="msg-name">${esc(nameOf(agent))} ${label}</div>
+    <div class="msg-name">${esc(nameOf(agent))} ${label} ${agentTs}</div>
     <div class="body">${body}</div>${working}</div></div>`;
 }
 
@@ -855,6 +885,10 @@ async function send() {
       const res = await api("/api/chats", { project: target, text, agent: pickedAgent, files });
       go(target, res.chat);
     }
+    inputHistory.push(text);
+    if (inputHistory.length > 50) inputHistory.shift();
+    historyIndex = -1;
+    historyDraft = "";
     input.value = "";
     clearAttachments();
     autosize();
@@ -1248,12 +1282,31 @@ mainEl.addEventListener("drop", (e) => {
   [...e.dataTransfer.files].forEach((f) => attach(f));
   $("#input").focus();
 });
+const inputHistory = [];
+let historyIndex = -1;
+let historyDraft = "";
 $("#input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); return; }
+  if (e.key === "ArrowUp" && !e.shiftKey && $("#input").value === "") {
+    if (inputHistory.length && historyIndex < inputHistory.length - 1) {
+      if (historyIndex === -1) historyDraft = $("#input").value;
+      historyIndex++;
+      $("#input").value = inputHistory[inputHistory.length - 1 - historyIndex];
+      autosize();
+    }
+    e.preventDefault(); return;
+  }
+  if (e.key === "ArrowDown" && !e.shiftKey && historyIndex >= 0) {
+    historyIndex--;
+    $("#input").value = historyIndex >= 0 ? inputHistory[inputHistory.length - 1 - historyIndex] : historyDraft;
+    autosize();
+    e.preventDefault(); return;
+  }
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { $("#panel").hidden = true; $(".app").classList.remove("nav-open"); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#search").focus(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") { e.preventDefault(); go(currentProject()?.id || ""); $("#input").focus(); }
   if (e.ctrlKey && e.key === "`") { e.preventDefault(); $("#term-drawer").hidden ? openTerminal() : closeTerminal(); }
 });
 window.addEventListener("hashchange", () => {
@@ -1391,9 +1444,45 @@ $("#preview-url").addEventListener("keydown", (e) => { if (e.key === "Enter") { 
 $("#preview-size").addEventListener("change", resizePreview);
 
 document.addEventListener("mousedown", (e) => { const m = $("#head-menu"); if (m && !m.hidden && !e.target.closest("#head-more, #head-menu")) m.hidden = true; });
-document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refresh();
+  else {
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(refresh, 15000);
+  }
+});
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; $("#install").hidden = false; });
 window.addEventListener("appinstalled", () => { $("#install").hidden = true; });
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+
+// ---- offline indicator ----
+function updateOnlineStatus() {
+  let banner = document.getElementById("offline-banner");
+  if (!navigator.onLine) {
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "offline-banner";
+      banner.className = "offline-banner";
+      banner.textContent = "You're offline. Changes won't sync until you reconnect.";
+      document.body.prepend(banner);
+    }
+  } else if (banner) {
+    banner.remove();
+  }
+}
+window.addEventListener("online", () => { updateOnlineStatus(); refresh(); });
+window.addEventListener("offline", updateOnlineStatus);
+updateOnlineStatus();
+
+// ---- character count in composer ----
+const charCount = document.createElement("span");
+charCount.className = "char-count";
+charCount.textContent = "";
+$("#composer-box").querySelector(".composer-row").appendChild(charCount);
+$("#input").addEventListener("input", () => {
+  const len = $("#input").value.length;
+  charCount.textContent = len > 100 ? `${len}` : "";
+  charCount.classList.toggle("warn", len > 4000);
+});
 
 refresh(true);

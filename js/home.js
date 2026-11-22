@@ -657,20 +657,28 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
   var ctx = canvas && canvas.getContext('2d');
   if (!ctx) return;
   var dots = [], width = 0, height = 0, ratio = 1, pointer = null, frame = 0;
-  var ring = null, awake = true;
+  var ring = null, awake = true, visible = true, grainTile = null;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var BG = '#0c0c0b';
+  var INK = [233, 228, 218];
+  var WARM = [233, 118, 43];
+  var CROP = 0.2;
+  var GRAIN = 0.5;
+  var GAP = 6;
+  var RADIUS = 80;
 
   function draw(now) {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, width, height);
     var moving = false;
     for (var i = 0; i < dots.length; i++) {
       var dot = dots[i], x = dot.x, y = dot.y, vx = dot.vx, vy = dot.vy;
       if (!reduced) {
         if (pointer) {
           var dx = x - pointer.x, dy = y - pointer.y, distance = Math.hypot(dx, dy) || .001;
-          if (distance < 80) {
-            var force = (1 - distance / 80) * 2.6;
+          if (distance < RADIUS) {
+            var force = (1 - distance / RADIUS) * 2.6;
             vx += dx / distance * force;
             vy += dy / distance * force;
           }
@@ -678,7 +686,8 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
         if (ring && now - ring.time < 900) {
           var rdx = dot.homeX - ring.x, rdy = dot.homeY - ring.y;
           var ringDistance = Math.hypot(rdx, rdy) || .001;
-          var band = 1 - Math.min(1, Math.abs(ringDistance - (now - ring.time) * .9) / 26);
+          var ringR = (now - ring.time) * .9;
+          var band = 1 - Math.min(1, Math.abs(ringDistance - ringR) / 26);
           if (band > 0) {
             var ringForce = band * 3.2 * (1 - (now - ring.time) / 900);
             vx += rdx / ringDistance * ringForce;
@@ -696,27 +705,43 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
         dot.vx = vx;
         dot.vy = vy;
       }
-      var heat = Math.min(1, Math.hypot(x - dot.homeX, y - dot.homeY) / 28);
-      var red = Math.round(233 - 124 * heat);
-      var green = Math.round(228 - 151 * heat);
-      var blue = Math.round(218 + 34 * heat);
-      ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
+      var k = Math.min(1, Math.hypot(x - dot.homeX, y - dot.homeY) / 28);
+      if (k > 0.02) {
+        ctx.fillStyle = 'rgb(' +
+          Math.round(INK[0] + (WARM[0] - INK[0]) * k) + ',' +
+          Math.round(INK[1] + (WARM[1] - INK[1]) * k) + ',' +
+          Math.round(INK[2] + (WARM[2] - INK[2]) * k) + ')';
+      } else {
+        ctx.fillStyle = '#e9e4da';
+      }
       ctx.beginPath();
-      ctx.arc(x, y, dot.r, 0, Math.PI * 2);
+      ctx.arc(x, y, dot.r, 0, 6.2832);
       ctx.fill();
+    }
+    if (grainTile && GRAIN > 0) {
+      ctx.globalAlpha = GRAIN * 0.09;
+      ctx.globalCompositeOperation = 'overlay';
+      var pattern = ctx.createPattern(grainTile, 'repeat');
+      if (pattern) {
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
     }
     awake = moving || !!pointer || !!(ring && now - ring.time < 900);
   }
 
   function loop(now) {
     frame = 0;
+    if (!visible) return;
     draw(now);
     if (awake) frame = requestAnimationFrame(loop);
   }
 
   function wake() {
     awake = true;
-    if (!frame) frame = requestAnimationFrame(loop);
+    if (!frame && visible) frame = requestAnimationFrame(loop);
   }
 
   function layout() {
@@ -732,32 +757,54 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     mask.height = height;
     var maskCtx = mask.getContext('2d', { willReadFrequently: true });
     if (!maskCtx) return;
-    maskCtx.font = '800 100px Sora,Arial,sans-serif';
-    var fit = width / maskCtx.measureText('applio').width * 102;
-    maskCtx.font = '800 ' + fit + 'px Sora,Arial,sans-serif';
-    var metric = maskCtx.measureText('applio');
+    var face = '800 100px "Inter Tight","Inter",Arial,system-ui,sans-serif';
+    maskCtx.font = face;
+    var word = 'applio';
+    var measured = maskCtx.measureText(word).width;
+    var fit = measured > 0 ? (width / measured) * 100 * 1.02 : 0;
+    maskCtx.font = '800 ' + fit + 'px "Inter Tight","Inter",Arial,system-ui,sans-serif';
+    var metric = maskCtx.measureText(word);
     var cap = metric.actualBoundingBoxAscent || fit * .72;
-    var x = (width - metric.width) / 2;
-    var y = cap + Math.max(18, height * .03);
-    maskCtx.fillText('applio', x, y);
+    maskCtx.fillStyle = '#000';
+    maskCtx.textBaseline = 'alphabetic';
+    maskCtx.fillText(word, (width - metric.width) / 2, height + cap * CROP);
 
     var pixels = maskCtx.getImageData(0, 0, width, height).data;
-    var gap = 6;
     dots = [];
-    for (var py = gap / 2; py < height; py += gap) {
-      for (var px = gap / 2; px < width; px += gap) {
-        var coverage = 0;
+    var cols = Math.ceil(width / GAP);
+    var rows = Math.ceil(height / GAP);
+    for (var gy = 0; gy < rows; gy++) {
+      for (var gx = 0; gx < cols; gx++) {
+        var sum = 0;
         for (var sy = 0; sy < 3; sy++) {
           for (var sx = 0; sx < 3; sx++) {
-            var sampleX = Math.min(width - 1, Math.floor(px - gap / 2 + (sx + .5) * gap / 3));
-            var sampleY = Math.min(height - 1, Math.floor(py - gap / 2 + (sy + .5) * gap / 3));
-            coverage += pixels[(sampleY * width + sampleX) * 4 + 3];
+            var sampleX = Math.min(width - 1, Math.floor(gx * GAP + ((sx + 0.5) * GAP) / 3));
+            var sampleY = Math.min(height - 1, Math.floor(gy * GAP + ((sy + 0.5) * GAP) / 3));
+            sum += pixels[(sampleY * width + sampleX) * 4 + 3];
           }
         }
-        coverage /= 9 * 255;
-        if (coverage >= .06) dots.push({ x: px, y: py, vx: 0, vy: 0, homeX: px, homeY: py, r: Math.sqrt(coverage) * gap * .56 });
+        var cov = sum / (9 * 255);
+        if (cov < 0.06) continue;
+        var hx = gx * GAP + GAP / 2;
+        var hy = gy * GAP + GAP / 2;
+        dots.push({ x: hx, y: hy, vx: 0, vy: 0, homeX: hx, homeY: hy, r: Math.sqrt(cov) * GAP * 0.56 });
       }
     }
+
+    grainTile = document.createElement('canvas');
+    grainTile.width = 256;
+    grainTile.height = 256;
+    var g = grainTile.getContext('2d');
+    if (g) {
+      var id = g.createImageData(256, 256);
+      for (var i = 0; i < id.data.length; i += 4) {
+        var v = Math.random() * 255;
+        id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
+        id.data[i + 3] = Math.random() < 0.5 ? 0 : 255;
+      }
+      g.putImageData(id, 0, 0);
+    }
+
     draw(performance.now());
     wake();
   }
@@ -770,10 +817,19 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
   root.addEventListener('pointerleave', function () { pointer = null; wake(); });
   root.addEventListener('pointerdown', function (event) {
     if (reduced) return;
+    if (event.target.closest && event.target.closest('a,button')) return;
     var rect = canvas.getBoundingClientRect();
     ring = { x: event.clientX - rect.left, y: event.clientY - rect.top, time: performance.now() };
     wake();
   });
   if (window.ResizeObserver) new ResizeObserver(layout).observe(root);
+  var io = new IntersectionObserver(function (entries) {
+    visible = entries[0] ? entries[0].isIntersecting : true;
+    if (visible) wake();
+  });
+  io.observe(root);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { layout(); wake(); });
+  }
   layout();
 })();

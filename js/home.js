@@ -662,7 +662,8 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
 
   function draw(now) {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#111113';
+      ctx.fillRect(0, 0, width, height);
     var moving = false;
     for (var i = 0; i < dots.length; i++) {
       var dot = dots[i], x = dot.x, y = dot.y, vx = dot.vx, vy = dot.vy;

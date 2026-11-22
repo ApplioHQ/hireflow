@@ -649,3 +649,74 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     });
   });
 })();
+
+(function () {
+  var root = document.querySelector('.footer-wordmark');
+  if (!root) return;
+  var canvas = root.querySelector('canvas');
+  var ctx = canvas && canvas.getContext('2d');
+  if (!ctx) return;
+  var dots = [], width = 0, height = 0, ratio = 1, pointer = null;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw() {
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    for (var i = 0; i < dots.length; i++) {
+      var dot = dots[i], x = dot.x, y = dot.y;
+      if (pointer && !reduced) {
+        var dx = x - pointer.x, dy = y - pointer.y, distance = Math.hypot(dx, dy) || 1;
+        if (distance < 92) {
+          var force = (1 - distance / 92) * 16;
+          x += dx / distance * force;
+          y += dy / distance * force;
+        }
+      }
+      ctx.fillStyle = pointer && !reduced ? 'rgba(179,157,255,.9)' : 'rgba(255,255,255,.82)';
+      ctx.beginPath();
+      ctx.arc(x, y, dot.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function layout() {
+    var rect = root.getBoundingClientRect();
+    width = Math.max(1, Math.round(rect.width));
+    height = Math.max(1, Math.round(rect.height));
+    ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+
+    var mask = document.createElement('canvas');
+    mask.width = width;
+    mask.height = height;
+    var maskCtx = mask.getContext('2d', { willReadFrequently: true });
+    if (!maskCtx) return;
+    var size = Math.min(height * .78, width / 3.85);
+    maskCtx.font = '800 ' + size + 'px Sora,Arial,sans-serif';
+    var metric = maskCtx.measureText('applio');
+    var x = (width - metric.width) / 2;
+    var y = (height - (metric.actualBoundingBoxAscent + metric.actualBoundingBoxDescent)) / 2 + metric.actualBoundingBoxAscent;
+    maskCtx.fillText('applio', x, y);
+
+    var pixels = maskCtx.getImageData(0, 0, width, height).data;
+    var gap = Math.max(5, Math.round(width / 300));
+    dots = [];
+    for (var py = gap / 2; py < height; py += gap) {
+      for (var px = gap / 2; px < width; px += gap) {
+        var alpha = pixels[(Math.floor(py) * width + Math.floor(px)) * 4 + 3];
+        if (alpha > 20) dots.push({ x: px, y: py, r: gap * .32 });
+      }
+    }
+    draw();
+  }
+
+  root.addEventListener('pointermove', function (event) {
+    var rect = canvas.getBoundingClientRect();
+    pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    draw();
+  });
+  root.addEventListener('pointerleave', function () { pointer = null; draw(); });
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(root);
+  layout();
+})();

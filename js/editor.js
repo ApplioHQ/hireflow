@@ -5982,7 +5982,7 @@ async function importResume(optText) {
     const r = await ai('parse', { text });
     if (r.resume) {
       resume = _normalizeImported(r.resume);
-      save(); renderMain();
+      save(); goSection('personal');
       toast('Resume imported', { type: 'success' });
       track('resume_import');
       ok = true;

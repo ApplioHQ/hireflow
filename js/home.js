@@ -656,31 +656,67 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
   var canvas = root.querySelector('canvas');
   var ctx = canvas && canvas.getContext('2d');
   if (!ctx) return;
-  var dots = [], width = 0, height = 0, ratio = 1, pointer = null;
+  var dots = [], width = 0, height = 0, ratio = 1, pointer = null, frame = 0;
+  var ring = null, awake = true;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function draw() {
+  function draw(now) {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, width, height);
+    var moving = false;
     for (var i = 0; i < dots.length; i++) {
-      var dot = dots[i], x = dot.x, y = dot.y, heat = 0;
-      if (pointer && !reduced) {
-        var dx = x - pointer.x, dy = y - pointer.y, distance = Math.hypot(dx, dy) || 1;
-        if (distance < 112) {
-          heat = 1 - distance / 112;
-          var force = heat * 24;
-          x += dx / distance * force;
-          y += dy / distance * force;
+      var dot = dots[i], x = dot.x, y = dot.y, vx = dot.vx, vy = dot.vy;
+      if (!reduced) {
+        if (pointer) {
+          var dx = x - pointer.x, dy = y - pointer.y, distance = Math.hypot(dx, dy) || .001;
+          if (distance < 80) {
+            var force = (1 - distance / 80) * 2.6;
+            vx += dx / distance * force;
+            vy += dy / distance * force;
+          }
         }
+        if (ring && now - ring.time < 900) {
+          var rdx = dot.homeX - ring.x, rdy = dot.homeY - ring.y;
+          var ringDistance = Math.hypot(rdx, rdy) || .001;
+          var band = 1 - Math.min(1, Math.abs(ringDistance - (now - ring.time) * .9) / 26);
+          if (band > 0) {
+            var ringForce = band * 3.2 * (1 - (now - ring.time) / 900);
+            vx += rdx / ringDistance * ringForce;
+            vy += rdy / ringDistance * ringForce;
+          }
+        }
+        vx = (vx + (dot.homeX - x) * .05) * .84;
+        vy = (vy + (dot.homeY - y) * .05) * .84;
+        x += vx;
+        y += vy;
+        if (Math.abs(vx) + Math.abs(vy) > .02 || Math.abs(x - dot.homeX) + Math.abs(y - dot.homeY) > .05) moving = true;
+        else { x = dot.homeX; y = dot.homeY; vx = 0; vy = 0; }
+        dot.x = x;
+        dot.y = y;
+        dot.vx = vx;
+        dot.vy = vy;
       }
-      var red = Math.round(244 - 135 * heat);
-      var green = Math.round(241 - 164 * heat);
-      var blue = Math.round(233 + 19 * heat);
+      var heat = Math.min(1, Math.hypot(x - dot.homeX, y - dot.homeY) / 28);
+      var red = Math.round(233 - 124 * heat);
+      var green = Math.round(228 - 151 * heat);
+      var blue = Math.round(218 + 34 * heat);
       ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
       ctx.beginPath();
-      ctx.arc(x, y, dot.r * (1 + heat * .45), 0, Math.PI * 2);
+      ctx.arc(x, y, dot.r, 0, Math.PI * 2);
       ctx.fill();
     }
+    awake = moving || !!pointer || !!(ring && now - ring.time < 900);
+  }
+
+  function loop(now) {
+    frame = 0;
+    draw(now);
+    if (awake) frame = requestAnimationFrame(loop);
+  }
+
+  function wake() {
+    awake = true;
+    if (!frame) frame = requestAnimationFrame(loop);
   }
 
   function layout() {
@@ -696,31 +732,48 @@ document.querySelectorAll('.feat-card').forEach(function (card) {
     mask.height = height;
     var maskCtx = mask.getContext('2d', { willReadFrequently: true });
     if (!maskCtx) return;
-    var size = Math.min(height * 1.12, width / 3.55);
-    maskCtx.font = '800 ' + size + 'px Sora,Arial,sans-serif';
+    maskCtx.font = '800 100px Sora,Arial,sans-serif';
+    var fit = width / maskCtx.measureText('applio').width * 102;
+    maskCtx.font = '800 ' + fit + 'px Sora,Arial,sans-serif';
     var metric = maskCtx.measureText('applio');
+    var cap = metric.actualBoundingBoxAscent || fit * .72;
     var x = (width - metric.width) / 2;
-    var y = height - metric.actualBoundingBoxDescent - Math.max(10, height * .02);
+    var y = height + cap * .2;
     maskCtx.fillText('applio', x, y);
 
     var pixels = maskCtx.getImageData(0, 0, width, height).data;
-    var gap = Math.max(5, Math.round(width / 300));
+    var gap = 6;
     dots = [];
     for (var py = gap / 2; py < height; py += gap) {
       for (var px = gap / 2; px < width; px += gap) {
-        var alpha = pixels[(Math.floor(py) * width + Math.floor(px)) * 4 + 3];
-        if (alpha > 20) dots.push({ x: px, y: py, r: gap * .32 });
+        var coverage = 0;
+        for (var sy = 0; sy < 3; sy++) {
+          for (var sx = 0; sx < 3; sx++) {
+            var sampleX = Math.min(width - 1, Math.floor(px - gap / 2 + (sx + .5) * gap / 3));
+            var sampleY = Math.min(height - 1, Math.floor(py - gap / 2 + (sy + .5) * gap / 3));
+            coverage += pixels[(sampleY * width + sampleX) * 4 + 3];
+          }
+        }
+        coverage /= 9 * 255;
+        if (coverage >= .06) dots.push({ x: px, y: py, vx: 0, vy: 0, homeX: px, homeY: py, r: Math.sqrt(coverage) * gap * .56 });
       }
     }
-    draw();
+    draw(performance.now());
+    wake();
   }
 
   root.addEventListener('pointermove', function (event) {
     var rect = canvas.getBoundingClientRect();
     pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-    draw();
+    wake();
   });
-  root.addEventListener('pointerleave', function () { pointer = null; draw(); });
+  root.addEventListener('pointerleave', function () { pointer = null; wake(); });
+  root.addEventListener('pointerdown', function (event) {
+    if (reduced) return;
+    var rect = canvas.getBoundingClientRect();
+    ring = { x: event.clientX - rect.left, y: event.clientY - rect.top, time: performance.now() };
+    wake();
+  });
   if (window.ResizeObserver) new ResizeObserver(layout).observe(root);
   layout();
 })();

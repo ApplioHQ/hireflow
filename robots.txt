@@ -1,6 +1,8 @@
+# Paths that are never useful to index: app pages behind auth, internal
+# renderers, and operational data. Kept in one list and repeated verbatim for
+# the named crawler groups below.
 User-agent: *
 Allow: /
-# App pages live behind auth, no value indexing them
 Disallow: /dashboard
 Disallow: /editor
 Disallow: /export
@@ -11,56 +13,49 @@ Disallow: /login
 Disallow: /success
 Disallow: /testimonial
 Disallow: /email-preferences
-# Internal renderer used by the template PNG generator script — no user value
 Disallow: /preview-shot
-# Operational data, never for crawlers
 Disallow: /backups/
 
-# Allow AI / generative-engine crawlers (GEO), the broader the allowlist, the more
-# assistants can read and cite Applio. App pages stay disallowed via the * rules above.
+# Allow AI / generative-engine crawlers (GEO): the broader the allowlist, the
+# more assistants can read and cite Applio.
+#
+# A crawler obeys ONLY its most specific matching group (RFC 9309), so naming a
+# bot here opts it OUT of the * group above. The disallows must therefore be
+# repeated, or these bots would be free to crawl /admin, /login and /backups/.
 User-agent: GPTBot
-Allow: /
 User-agent: OAI-SearchBot
-Allow: /
 User-agent: ChatGPT-User
-Allow: /
 User-agent: PerplexityBot
-Allow: /
 User-agent: Perplexity-User
-Allow: /
 User-agent: ClaudeBot
-Allow: /
 User-agent: Claude-Web
-Allow: /
 User-agent: Claude-SearchBot
-Allow: /
 User-agent: anthropic-ai
-Allow: /
 User-agent: Google-Extended
-Allow: /
 User-agent: Googlebot
-Allow: /
 User-agent: Bingbot
-Allow: /
 User-agent: Applebot
-Allow: /
 User-agent: Applebot-Extended
-Allow: /
 User-agent: DuckAssistBot
-Allow: /
 User-agent: Amazonbot
-Allow: /
 User-agent: Meta-ExternalAgent
-Allow: /
 User-agent: FacebookBot
-Allow: /
 User-agent: Bytespider
-Allow: /
 User-agent: cohere-ai
-Allow: /
 User-agent: YouBot
-Allow: /
 User-agent: mistralai-user
 Allow: /
+Disallow: /dashboard
+Disallow: /editor
+Disallow: /export
+Disallow: /jobs
+Disallow: /feedback
+Disallow: /admin
+Disallow: /login
+Disallow: /success
+Disallow: /testimonial
+Disallow: /email-preferences
+Disallow: /preview-shot
+Disallow: /backups/
 
 Sitemap: https://appliohq.com/sitemap.xml

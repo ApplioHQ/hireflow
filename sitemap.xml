@@ -4,13 +4,13 @@
   <!-- Core pages -->
   <url>
     <loc>https://appliohq.com/</loc>
-    <lastmod>2026-11-07</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://appliohq.com/connect</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -40,13 +40,13 @@
   </url>
   <url>
     <loc>https://appliohq.com/privacy</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://appliohq.com/terms</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -96,7 +96,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/tools/resume-skills-generator</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -328,7 +328,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/resume-templates/twocolumn</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -424,7 +424,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/tools/resume-template-quiz</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -748,7 +748,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/guides/what-is-an-ats</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -814,7 +814,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/guides/how-to-pass-ats</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -900,13 +900,13 @@
   <!-- Blog -->
   <url>
     <loc>https://appliohq.com/blog/</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://appliohq.com/blog/how-to-beat-the-ats</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -924,7 +924,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/blog/how-to-tailor-your-resume-to-any-job-description</loc>
-    <lastmod>2026-11-04</lastmod>
+    <lastmod>2026-11-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -997,9 +997,9 @@
     <priority>0.7</priority>
   </url>
   <url><loc>https://appliohq.com/salary</loc>
-    <lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+    <lastmod>2026-11-21</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://appliohq.com/salary/software-engineer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/software-engineer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/software-engineer/san-francisco</loc>
@@ -1031,7 +1031,7 @@
   <url><loc>https://appliohq.com/salary/software-engineer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/product-manager/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/product-manager/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/product-manager/san-francisco</loc>
@@ -1063,7 +1063,7 @@
   <url><loc>https://appliohq.com/salary/product-manager/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-scientist/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-scientist/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-scientist/san-francisco</loc>
@@ -1095,7 +1095,7 @@
   <url><loc>https://appliohq.com/salary/data-scientist/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-analyst/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-analyst/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/data-analyst/san-francisco</loc>
@@ -1127,7 +1127,7 @@
   <url><loc>https://appliohq.com/salary/data-analyst/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/ux-designer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/ux-designer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/ux-designer/san-francisco</loc>
@@ -1159,7 +1159,7 @@
   <url><loc>https://appliohq.com/salary/ux-designer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/marketing-manager/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/marketing-manager/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/marketing-manager/san-francisco</loc>
@@ -1191,7 +1191,7 @@
   <url><loc>https://appliohq.com/salary/marketing-manager/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/project-manager/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/project-manager/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/project-manager/san-francisco</loc>
@@ -1223,7 +1223,7 @@
   <url><loc>https://appliohq.com/salary/project-manager/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/business-analyst/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/business-analyst/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/business-analyst/san-francisco</loc>
@@ -1255,7 +1255,7 @@
   <url><loc>https://appliohq.com/salary/business-analyst/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/financial-analyst/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/financial-analyst/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/financial-analyst/san-francisco</loc>
@@ -1287,7 +1287,7 @@
   <url><loc>https://appliohq.com/salary/financial-analyst/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/registered-nurse/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/registered-nurse/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/registered-nurse/san-francisco</loc>
@@ -1319,7 +1319,7 @@
   <url><loc>https://appliohq.com/salary/registered-nurse/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/devops-engineer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/devops-engineer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/devops-engineer/san-francisco</loc>
@@ -1351,7 +1351,7 @@
   <url><loc>https://appliohq.com/salary/devops-engineer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/sales-representative/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/sales-representative/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/sales-representative/san-francisco</loc>
@@ -1383,7 +1383,7 @@
   <url><loc>https://appliohq.com/salary/sales-representative/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/human-resources-manager/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/human-resources-manager/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/human-resources-manager/san-francisco</loc>
@@ -1415,7 +1415,7 @@
   <url><loc>https://appliohq.com/salary/human-resources-manager/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/accountant/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/accountant/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/accountant/san-francisco</loc>
@@ -1447,7 +1447,7 @@
   <url><loc>https://appliohq.com/salary/accountant/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/graphic-designer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/graphic-designer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/graphic-designer/san-francisco</loc>
@@ -1479,7 +1479,7 @@
   <url><loc>https://appliohq.com/salary/graphic-designer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/operations-manager/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/operations-manager/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/operations-manager/san-francisco</loc>
@@ -1511,7 +1511,7 @@
   <url><loc>https://appliohq.com/salary/operations-manager/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/web-developer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/web-developer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/web-developer/san-francisco</loc>
@@ -1543,7 +1543,7 @@
   <url><loc>https://appliohq.com/salary/web-developer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/content-writer/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/content-writer/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/content-writer/san-francisco</loc>
@@ -1575,7 +1575,7 @@
   <url><loc>https://appliohq.com/salary/content-writer/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/cybersecurity-analyst/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/cybersecurity-analyst/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/cybersecurity-analyst/san-francisco</loc>
@@ -1607,7 +1607,7 @@
   <url><loc>https://appliohq.com/salary/cybersecurity-analyst/portland</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/physical-therapist/</loc>
-    <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+    <lastmod>2026-11-22</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/physical-therapist/new-york</loc>
     <lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://appliohq.com/salary/physical-therapist/san-francisco</loc>
@@ -2048,7 +2048,7 @@
   </url>
   <url>
     <loc>https://appliohq.com/wall-of-wins</loc>
-    <lastmod>2026-11-03</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>

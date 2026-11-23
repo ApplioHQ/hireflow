@@ -20,7 +20,29 @@ function sourceFor(url) {
   return candidates.find((file) => fs.existsSync(path.join(ROOT, file))) || null;
 }
 
+// Files edited but not yet committed are still the page's most recent change,
+// so fall back to today for them. Without this, running before a commit would
+// stamp a stale date onto a page that genuinely changed.
+const dirty = (() => {
+  try {
+    return new Set(
+      execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' })
+        .split('\n')
+        .map((line) => line.slice(3).trim())
+        .filter(Boolean)
+    );
+  } catch (_) {
+    return new Set();
+  }
+})();
+const today = (() => {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+})();
+
 function modifiedDate(file) {
+  if (dirty.has(file)) return today;
   try {
     return execFileSync('git', ['log', '-1', '--format=%cs', '--', file], {
       cwd: ROOT,

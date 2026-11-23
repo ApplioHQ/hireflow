@@ -452,9 +452,11 @@ function previews(files) {
 function avatar(agent) {
   const key = String(agent).split("+")[0];
   const icon = AVATARS[key];
+  const model = state.models?.[key]?.selected;
+  const tip = model ? `${nameOf(agent)} (${shortModel(model)})` : nameOf(agent);
   return icon
-    ? `<div class="msg-avatar ${esc(key)}">${icon}</div>`
-    : `<div class="msg-avatar" style="background:var(--faint);color:#fff;font-size:12px;font-weight:600">${esc(nameOf(agent).charAt(0))}</div>`;
+    ? `<div class="msg-avatar ${esc(key)}" title="${esc(tip)}">${icon}</div>`
+    : `<div class="msg-avatar" title="${esc(tip)}" style="background:var(--faint);color:#fff;font-size:12px;font-weight:600">${esc(nameOf(agent).charAt(0))}</div>`;
 }
 
 // ---- agent plan view ----
@@ -780,9 +782,11 @@ function renderMessage(m) {
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";
   const visibleText = hideCodexDiagnostics(m.text, agent);
   const rendered = visibleText ? renderAgentText(visibleText) : (m.live ? "" : `<div class="empty-agent">No response recorded.</div>`);
+  const wordCount = visibleText ? visibleText.split(/\s+/).filter(Boolean).length : 0;
+  const wcTitle = wordCount > 0 ? ` title="${wordCount} words"` : "";
   const body = !m.live && visibleText && visibleText.length > 2000
-    ? `<div class="collapsible-msg collapsed">${rendered}</div><button type="button" class="show-more-btn">Show more</button>`
-    : rendered;
+    ? `<div class="collapsible-msg collapsed"${wcTitle}>${rendered}</div><button type="button" class="show-more-btn">Show more</button>`
+    : `<span${wcTitle}>${rendered}</span>`;
   const working = m.live ? `<div class="working"><span class="typing-dots"><span></span><span></span><span></span></span>${esc(nameOf(agent))} is ${doing}</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   const agentKey = String(agent).split("+")[0];
@@ -807,7 +811,15 @@ function renderMessages(force) {
   if (!chat) box.innerHTML = renderWelcome();
   else {
     const plan = renderPlan(chat.messages);
-    const parts = chat.messages.map(renderMessage);
+    let lastDate = "";
+    const parts = chat.messages.map((m) => {
+      let sep = "";
+      if (m.ts) {
+        const d = new Date(m.ts).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+        if (d !== lastDate) { lastDate = d; sep = `<div class="date-sep"><span>${esc(d)}</span></div>`; }
+      }
+      return sep + renderMessage(m);
+    });
     if (chatStatus(pid, cid) === "queued") parts.push(`<div class="working"><span class="spinner"></span>Queued behind other work in ${esc(project(pid)?.name || "")}.</div>`);
     box.innerHTML = `${plan}<div class="thread">${parts.join("")}</div>`;
   }
@@ -2164,6 +2176,33 @@ document.addEventListener("dragend", () => {
   try { localStorage.setItem("pinnedOrder", JSON.stringify(order)); } catch {}
   draggedPin = null;
 });
+
+// ---- Cmd+Shift+E export all chats as JSON ----
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "E") {
+    e.preventDefault();
+    const data = state.projects.map((p) => ({
+      name: p.name, id: p.id,
+      chats: p.chats.map((c) => ({ id: c.id, title: c.title, updated: c.updated, status: c.status }))
+    }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "agents-chats-export.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("All chats exported as JSON.");
+  }
+});
+
+// ---- auto-collapse sidebar on narrow windows ----
+function checkSidebarWidth() {
+  const app = document.querySelector(".app");
+  if (window.innerWidth < 700 && !app.classList.contains("focus-mode")) {
+    app.classList.remove("nav-open");
+  }
+}
+window.addEventListener("resize", checkSidebarWidth);
 
 // ---- scroll progress indicator ----
 $("#messages").addEventListener("scroll", () => {

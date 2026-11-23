@@ -3105,4 +3105,116 @@ const sessionStartTime = Date.now();
   }, 30000);
 })();
 
+// ---- batch 18: markdown preview in composer ----
+let composerPreview = false;
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "M") {
+    e.preventDefault();
+    composerPreview = !composerPreview;
+    const input = document.getElementById("input");
+    let preview = document.getElementById("composer-preview");
+    if (composerPreview && input) {
+      if (!preview) {
+        preview = document.createElement("div");
+        preview.id = "composer-preview";
+        preview.className = "composer-preview";
+        input.parentElement.appendChild(preview);
+      }
+      const text = input.value || "";
+      preview.innerHTML = text.split("\n").map((l) => `<p>${esc(l) || "&nbsp;"}</p>`).join("");
+      preview.hidden = false;
+      input.hidden = true;
+      toast("Preview mode. Cmd+Shift+M to edit.");
+    } else {
+      if (preview) preview.hidden = true;
+      if (input) input.hidden = false;
+      toast("Edit mode.");
+    }
+  }
+});
+
+// ---- batch 18: responsive font size (Cmd+Shift+= / Cmd+Shift+-) ----
+let msgFontSize = 14;
+try { msgFontSize = parseInt(localStorage.getItem("msgFontSize"), 10) || 14; } catch {}
+function applyFontSize() {
+  document.documentElement.style.setProperty("--msg-font-size", msgFontSize + "px");
+  try { localStorage.setItem("msgFontSize", String(msgFontSize)); } catch {}
+}
+applyFontSize();
+document.addEventListener("keydown", (e) => {
+  if (!(e.metaKey || e.ctrlKey) || !e.shiftKey) return;
+  if (e.key === "+" || e.key === "=") { e.preventDefault(); msgFontSize = Math.min(24, msgFontSize + 1); applyFontSize(); toast(`Font size: ${msgFontSize}px`); }
+  if (e.key === "_" || e.key === "-") { e.preventDefault(); msgFontSize = Math.max(10, msgFontSize - 1); applyFontSize(); toast(`Font size: ${msgFontSize}px`); }
+});
+
+// ---- batch 18: chat activity heatmap on sidebar ----
+const origRenderSidebar = renderSidebar;
+renderSidebar = function() {
+  origRenderSidebar();
+  document.querySelectorAll(".task[data-open]").forEach((task) => {
+    const [pid, cid] = task.dataset.open.split("|");
+    const p = project(pid);
+    const c = p?.chats.find((ch) => ch.id === cid);
+    if (!c || !c.updated) return;
+    const age = (Date.now() - new Date(c.updated).getTime()) / 3600000;
+    let heat = "cold";
+    if (age < 1) heat = "hot";
+    else if (age < 24) heat = "warm";
+    task.classList.add(`heat-${heat}`);
+  });
+};
+
+// ---- batch 18: chat grouping by status in sidebar ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='group-status']");
+  if (!btn) return;
+  const grouped = !document.querySelector(".task-list")?.classList.contains("grouped-by-status");
+  document.querySelector(".task-list")?.classList.toggle("grouped-by-status", grouped);
+  toast(grouped ? "Grouped by status" : "Default order");
+});
+
+// ---- batch 18: quick action toolbar on message hover ----
+let activeToolbar = null;
+document.addEventListener("mouseover", (e) => {
+  const msg = e.target.closest(".msg.agent");
+  if (!msg || msg.querySelector(".hover-toolbar")) return;
+  if (activeToolbar) { activeToolbar.remove(); activeToolbar = null; }
+  const bar = document.createElement("div");
+  bar.className = "hover-toolbar";
+  bar.innerHTML = `<button type="button" class="ht-btn copy-msg" title="Copy">&#x1F4CB;</button><button type="button" class="ht-btn" data-tip="Summarize this response" title="Summarize">&#x1F4DD;</button>`;
+  msg.appendChild(bar);
+  activeToolbar = bar;
+  bar.querySelector("[data-tip]")?.addEventListener("click", () => {
+    const input = document.getElementById("input");
+    if (input) { input.value = bar.querySelector("[data-tip]").dataset.tip; input.focus(); }
+    bar.remove(); activeToolbar = null;
+  });
+});
+document.addEventListener("mouseout", (e) => {
+  if (!activeToolbar) return;
+  const msg = e.target.closest(".msg.agent");
+  if (msg && !msg.contains(e.relatedTarget)) { activeToolbar.remove(); activeToolbar = null; }
+});
+
+// ---- batch 18: simple sentiment dot on agent messages ----
+const origRenderMessages4 = renderMessages;
+renderMessages = function(force) {
+  origRenderMessages4(force);
+  document.querySelectorAll(".msg.agent .body").forEach((body) => {
+    if (body.dataset.sentiment) return;
+    body.dataset.sentiment = "1";
+    const text = body.textContent.toLowerCase();
+    const pos = (text.match(/success|done|fixed|resolved|completed|great|works|passed/g) || []).length;
+    const neg = (text.match(/error|fail|bug|issue|problem|broken|crash|wrong/g) || []).length;
+    let cls = "neutral";
+    if (pos > neg && pos > 1) cls = "positive";
+    else if (neg > pos && neg > 1) cls = "negative";
+    const dot = document.createElement("span");
+    dot.className = `sentiment-dot sentiment-${cls}`;
+    dot.title = cls;
+    const name = body.closest(".msg-body")?.querySelector(".msg-name");
+    if (name) name.appendChild(dot);
+  });
+};
+
 refresh(true);

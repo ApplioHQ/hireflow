@@ -981,3 +981,18 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .code-expand-btn { display: block; width: 100%; text-align: center; background: none; border: none; border-top: 1px solid var(--border); color: var(--accent); font-size: 12px; padding: 4px; cursor: pointer; }
 .code-expand-btn:hover { background: var(--hover); }
 .session-timer { font-size: 11px; color: var(--muted); display: block; padding: 4px 12px; }
+
+/* ---- batch 18: composer preview, font size, heatmap, sentiment, toolbar ---- */
+.msg .body, .msg .bubble { font-size: var(--msg-font-size, 14px); }
+.composer-preview { padding: 10px 14px; font-size: 13px; color: var(--text); background: var(--bg2); border-radius: 8px; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+.composer-preview p { margin: 0 0 4px; }
+.task.heat-hot { border-left: 3px solid var(--accent); }
+.task.heat-warm { border-left: 3px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.task.heat-cold { border-left: 3px solid transparent; }
+.hover-toolbar { position: absolute; top: -28px; right: 8px; display: flex; gap: 2px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,.1); z-index: 10; }
+.ht-btn { background: none; border: none; font-size: 14px; cursor: pointer; padding: 3px 6px; border-radius: 4px; }
+.ht-btn:hover { background: var(--hover); }
+.sentiment-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+.sentiment-positive { background: #4caf50; }
+.sentiment-negative { background: #ef5350; }
+.sentiment-neutral { background: var(--muted); }

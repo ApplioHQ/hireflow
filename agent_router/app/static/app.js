@@ -787,7 +787,7 @@ function renderMessage(m) {
   const body = !m.live && visibleText && visibleText.length > 2000
     ? `<div class="collapsible-msg collapsed"${wcTitle}>${rendered}</div><button type="button" class="show-more-btn">Show more</button>`
     : `<span${wcTitle}>${rendered}</span>`;
-  const working = m.live ? `<div class="working"><span class="typing-dots"><span></span><span></span><span></span></span>${esc(nameOf(agent))} is ${doing}</div>` : "";
+  const working = m.live ? `<div class="working shimmer-wrap"><span class="typing-dots"><span></span><span></span><span></span></span>${esc(nameOf(agent))} is ${doing}</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   const agentKey = String(agent).split("+")[0];
   const modelName = state.models?.[agentKey]?.selected;
@@ -1685,6 +1685,8 @@ function toggleShortcutModal() {
     [mod + "+\\", "Focus mode"],
     [mod + "+Backspace", "Clear input"],
     [mod + "+Shift+P", "Command palette"],
+    [mod + "+Shift+E", "Export all chats"],
+    [mod + "+.", "Stop running agent"],
     ["Up/Down", "Input history"],
     ["Double-click chat", "Rename"],
   ];
@@ -1757,9 +1759,11 @@ function getTheme() {
 }
 function setTheme(t) {
   try { localStorage.setItem("theme", t); } catch { /* private mode */ }
+  document.documentElement.classList.add("theme-transition");
   if (t === "system") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", t);
   if (term) term.options.theme = termTheme();
+  setTimeout(() => document.documentElement.classList.remove("theme-transition"), 400);
 }
 setTheme(getTheme());
 { const t = getTheme(); const lbl = document.querySelector(".theme-label"); if (lbl) lbl.textContent = t === "system" ? "System" : t === "light" ? "Light" : "Dark"; }
@@ -2175,6 +2179,37 @@ document.addEventListener("dragend", () => {
   const order = [...rows].map((btn) => btn.dataset.open);
   try { localStorage.setItem("pinnedOrder", JSON.stringify(order)); } catch {}
   draggedPin = null;
+});
+
+// ---- Cmd+. stop running agent ----
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === ".") {
+    const { pid, cid } = route();
+    if (pid && cid && isBusy(pid, cid)) {
+      e.preventDefault();
+      api("/api/chats/stop", { project: pid, chat: cid }).then(() => toast("Stopping...")).catch(() => {});
+    }
+  }
+});
+
+// ---- code block language filter ----
+document.addEventListener("click", (e) => {
+  const langEl = e.target.closest(".code-lang");
+  if (!langEl) return;
+  const lang = langEl.textContent.trim().toLowerCase();
+  if (!lang) return;
+  const blocks = document.querySelectorAll(".code-block");
+  const allVisible = [...blocks].every((b) => !b.hidden);
+  if (allVisible) {
+    blocks.forEach((b) => {
+      const bLang = b.querySelector(".code-lang")?.textContent.trim().toLowerCase();
+      b.hidden = bLang !== lang;
+    });
+    toast(`Showing only ${lang} blocks. Click any language tag to reset.`);
+  } else {
+    blocks.forEach((b) => { b.hidden = false; });
+    toast("All code blocks visible.");
+  }
 });
 
 // ---- Cmd+Shift+E export all chats as JSON ----

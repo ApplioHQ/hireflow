@@ -219,7 +219,9 @@ function renderAgentText(text) {
         const highlighted = highlightCode(raw, lang);
         const runnable = ["python", "py", "sh", "bash", "shell", "zsh"].includes((codeLang || lang).toLowerCase());
         const runBtn = runnable ? `<button type="button" class="run-btn" data-run="${id}" data-lang="${esc(codeLang || lang)}">Run</button>` : "";
-        out.push(`<div class="code-block"><div class="code-head"><span class="code-lang">${esc(codeLang || lang)}</span>${runBtn}<button type="button" class="copy-btn" data-copy="${id}">Copy</button></div><pre id="${id}"><code>${highlighted}</code></pre></div>`);
+        const lines = highlighted.split("\n");
+        const numbered = lines.length > 3 ? lines.map((l, i) => `<span class="code-line"><span class="line-num">${i + 1}</span>${l}</span>`).join("\n") : highlighted;
+        out.push(`<div class="code-block"><div class="code-head"><span class="code-lang">${esc(codeLang || lang)}</span>${runBtn}<button type="button" class="copy-btn" data-copy="${id}">Copy</button></div><pre id="${id}"><code>${numbered}</code></pre></div>`);
         code = null;
         continue;
       }
@@ -316,7 +318,7 @@ function renderSidebar() {
         <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}${multiSelectMode && selectedChats.has(`${p.id}|${c.id}`) ? " selected" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
           ${multiSelectMode ? `<span class="multi-check">${selectedChats.has(`${p.id}|${c.id}`) ? "&#9745;" : "&#9744;"}</span>` : `<span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>`}
           <span class="task-text"><span class="task-title">${c.pinned ? "&#9733; " : ""}${esc(c.title)}</span>
-          <span class="task-meta">${esc(ago(c.updated))}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
+          <span class="task-meta">${esc(ago(c.updated))}${c.msg_count ? ` - ${c.msg_count} msg` : ""}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
         </button>
         <button type="button" class="row-delete" data-delete="${esc(p.id)}|${esc(c.id)}" title="Delete chat" aria-label="Delete ${esc(c.title)}">&times;</button>
       </div>`;}).join("") : "";
@@ -353,8 +355,8 @@ function renderHead() {
   }
   const status = chatStatus(pid, cid);
   const stopBtn = isBusy(pid, cid) ? `<button type="button" class="icon-btn" data-action="stop" title="${status === "queued" ? "Cancel" : "Stop"}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>` : "";
-  $("#head").innerHTML = `${menu}<div class="head-title"><h1 title="${esc(chat.title)}">${esc(chat.title)}</h1>
-    <div class="head-meta"><span>${esc(p.name)}</span><span class="muted">${esc(p.path)}</span>
+  $("#head").innerHTML = `${menu}<div class="head-title"><div class="breadcrumb"><a href="#/${encodeURIComponent(pid)}" class="breadcrumb-link">${esc(p.name)}</a><span class="breadcrumb-sep">/</span><span>${esc(chat.title)}</span></div>
+    <div class="head-meta"><span class="muted">${esc(p.path)}</span>
     ${status !== "idle" ? `<span class="pill running">${esc(status)}</span>` : ""}${chat.messages ? (() => { const et = elapsedTime(chat.messages); return et ? `<span class="elapsed-time" title="Response time">${esc(et)}</span>` : ""; })() : ""}</div></div>
     <div class="head-actions">${stopBtn}<button type="button" class="icon-btn" data-panel="diff" title="Changes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button><button type="button" class="icon-btn head-more" id="head-more" title="More actions"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button></div>
     <div class="head-menu" id="head-menu" hidden>
@@ -362,6 +364,7 @@ function renderHead() {
       <button type="button" data-action="rename">Rename</button>
       <button type="button" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>
       <button type="button" data-action="export">Export as Markdown</button>
+      <button type="button" data-action="density">Density: ${densityMode}</button>
       <button type="button" data-action="sound">${notifSoundEnabled ? "Sound: on" : "Sound: off"}</button>
       <button type="button" data-action="screenshot">Screenshot</button>
       <button type="button" data-action="multi-delete">Delete multiple chats</button>
@@ -1311,6 +1314,9 @@ document.addEventListener("click", async (e) => {
       if (title && title.trim()) await api("/api/chats/update", { project: pid, chat: cid, title: title.trim() });
     } else if (action === "export") {
       exportChat();
+    } else if (action === "density") {
+      setDensity(densityMode === "comfortable" ? "compact" : "comfortable");
+      renderHead();
     } else if (action === "sound") {
       toggleNotifSound();
     } else if (action === "multi-delete") {
@@ -1428,6 +1434,8 @@ document.addEventListener("keydown", (e) => {
     $("#panel").hidden = true; $(".app").classList.remove("nav-open");
   }
   if ((e.metaKey || e.ctrlKey) && e.key === "/") { e.preventDefault(); toggleShortcutModal(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f" && chat) { e.preventDefault(); toggleChatSearch(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "e") { e.preventDefault(); showChatSwitcher(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#search").focus(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") { e.preventDefault(); go(currentProject()?.id || ""); $("#input").focus(); }
   if (e.ctrlKey && e.key === "`") { e.preventDefault(); $("#term-drawer").hidden ? openTerminal() : closeTerminal(); }
@@ -1607,6 +1615,8 @@ function toggleShortcutModal() {
   const shortcuts = [
     [mod + "+N", "New chat"],
     [mod + "+K", "Search chats"],
+    [mod + "+E", "Switch chat"],
+    [mod + "+F", "Find in chat"],
     [mod + "+/", "Keyboard shortcuts"],
     ["Ctrl+`", "Toggle terminal"],
     ["Escape", "Close panel/modal"],
@@ -1904,6 +1914,124 @@ async function deleteSelectedChats() {
   multiSelectMode = false;
   toast("Chats deleted.");
   refresh(true);
+}
+
+// ---- message search within chat (Cmd+F override) ----
+let chatSearchOpen = false;
+function toggleChatSearch() {
+  let bar = document.getElementById("chat-search-bar");
+  if (bar) { bar.remove(); chatSearchOpen = false; clearChatHighlights(); return; }
+  if (!chat) return;
+  chatSearchOpen = true;
+  bar = document.createElement("div");
+  bar.id = "chat-search-bar";
+  bar.className = "chat-search-bar";
+  bar.innerHTML = `<input type="search" id="chat-search-input" placeholder="Search in chat..." autofocus>
+    <span id="chat-search-count" class="chat-search-count"></span>
+    <button type="button" class="icon-btn" id="chat-search-prev" title="Previous">&uarr;</button>
+    <button type="button" class="icon-btn" id="chat-search-next" title="Next">&darr;</button>
+    <button type="button" class="icon-btn" id="chat-search-close">&times;</button>`;
+  $(".main").insertBefore(bar, $("#messages"));
+  let matches = [], matchIdx = -1;
+  const input = document.getElementById("chat-search-input");
+  const countEl = document.getElementById("chat-search-count");
+  input.addEventListener("input", () => {
+    clearChatHighlights();
+    const q = input.value.trim().toLowerCase();
+    if (!q) { countEl.textContent = ""; matches = []; matchIdx = -1; return; }
+    const msgs = $("#messages").querySelectorAll(".msg .body, .msg .bubble");
+    matches = [];
+    msgs.forEach((el) => {
+      if (el.textContent.toLowerCase().includes(q)) {
+        el.classList.add("chat-search-hit");
+        matches.push(el);
+      }
+    });
+    countEl.textContent = matches.length ? `${matches.length} found` : "No matches";
+    if (matches.length) { matchIdx = 0; scrollToMatch(); }
+  });
+  const scrollToMatch = () => {
+    matches.forEach((m, i) => m.classList.toggle("chat-search-current", i === matchIdx));
+    if (matches[matchIdx]) matches[matchIdx].scrollIntoView({ block: "center", behavior: "smooth" });
+    countEl.textContent = matches.length ? `${matchIdx + 1}/${matches.length}` : "No matches";
+  };
+  document.getElementById("chat-search-next").addEventListener("click", () => {
+    if (matches.length) { matchIdx = (matchIdx + 1) % matches.length; scrollToMatch(); }
+  });
+  document.getElementById("chat-search-prev").addEventListener("click", () => {
+    if (matches.length) { matchIdx = (matchIdx - 1 + matches.length) % matches.length; scrollToMatch(); }
+  });
+  document.getElementById("chat-search-close").addEventListener("click", toggleChatSearch);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); if (matches.length) { matchIdx = (matchIdx + (e.shiftKey ? -1 : 1) + matches.length) % matches.length; scrollToMatch(); } }
+    if (e.key === "Escape") toggleChatSearch();
+  });
+}
+function clearChatHighlights() {
+  document.querySelectorAll(".chat-search-hit, .chat-search-current").forEach((el) => {
+    el.classList.remove("chat-search-hit", "chat-search-current");
+  });
+}
+
+// ---- code block line numbers ----
+// Applied in renderAgentText by wrapping code lines
+
+// ---- chat message count in sidebar ----
+// Added inline in renderSidebar task-meta
+
+// ---- compact/comfortable density toggle ----
+let densityMode = "comfortable";
+try { densityMode = localStorage.getItem("density") || "comfortable"; } catch {}
+function setDensity(mode) {
+  densityMode = mode;
+  document.documentElement.setAttribute("data-density", mode);
+  try { localStorage.setItem("density", mode); } catch {}
+}
+setDensity(densityMode);
+
+// ---- Cmd+E quick switch chat ----
+function showChatSwitcher() {
+  let overlay = document.getElementById("chat-switcher");
+  if (overlay) { overlay.remove(); return; }
+  overlay = document.createElement("div");
+  overlay.id = "chat-switcher";
+  overlay.className = "shortcut-modal";
+  const allChats = [];
+  for (const p of state.projects) {
+    for (const c of p.chats.slice(0, 20)) {
+      allChats.push({ pid: p.id, cid: c.id, title: c.title, project: p.name, status: c.status, updated: c.updated });
+    }
+  }
+  overlay.innerHTML = `<div class="shortcut-dialog" style="min-width:360px">
+    <input type="search" id="switcher-input" class="search" placeholder="Switch to chat..." autofocus style="margin-bottom:8px">
+    <div id="switcher-list" class="switcher-list">${allChats.map((c) =>
+      `<button type="button" class="switcher-item" data-go="${esc(c.pid)}|${esc(c.cid)}">
+        <span class="dot ${esc(c.status === "idle" ? "done" : c.status)}"></span>
+        <span>${esc(c.title)}</span>
+        <span class="muted" style="margin-left:auto;font-size:11px">${esc(c.project)}</span>
+      </button>`
+    ).join("")}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) { overlay.remove(); return; }
+    const btn = e.target.closest("[data-go]");
+    if (btn) { const [p, c] = btn.dataset.go.split("|"); go(p, c); overlay.remove(); }
+  });
+  const filterInput = document.getElementById("switcher-input");
+  filterInput.addEventListener("input", () => {
+    const q = filterInput.value.toLowerCase();
+    document.querySelectorAll(".switcher-item").forEach((el) => {
+      el.hidden = q && !el.textContent.toLowerCase().includes(q);
+    });
+  });
+  filterInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") overlay.remove();
+    if (e.key === "Enter") {
+      const visible = [...document.querySelectorAll(".switcher-item:not([hidden])")];
+      if (visible.length) visible[0].click();
+    }
+  });
 }
 
 refresh(true);

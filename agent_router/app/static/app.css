@@ -787,6 +787,35 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .resize-handle { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 10; }
 .resize-handle:hover, .resize-handle:active { background: var(--accent); opacity: .3; border-radius: 3px; }
 
+/* chat search bar */
+.chat-search-bar { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.chat-search-bar input { flex: 1; border: 1px solid var(--line); background: var(--hover); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none; }
+.chat-search-bar input:focus { border-color: var(--accent); }
+.chat-search-count { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.chat-search-hit { background: color-mix(in srgb, var(--warn) 15%, transparent); border-radius: 4px; }
+.chat-search-current { background: color-mix(in srgb, var(--warn) 35%, transparent); outline: 2px solid var(--warn); outline-offset: -2px; }
+
+/* code line numbers */
+.code-line { display: block; }
+.line-num { display: inline-block; width: 2.5em; text-align: right; padding-right: 1em; color: var(--muted); opacity: .5; user-select: none; font-size: 0.85em; }
+
+/* breadcrumb */
+.breadcrumb { font-size: 14px; display: flex; align-items: center; gap: 4px; }
+.breadcrumb-link { color: var(--muted); text-decoration: none; font-weight: 500; }
+.breadcrumb-link:hover { color: var(--accent); }
+.breadcrumb-sep { color: var(--muted); opacity: .5; }
+
+/* chat switcher */
+.switcher-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.switcher-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 0; background: none; border-radius: 6px; font-size: 13px; color: var(--text); cursor: pointer; text-align: left; width: 100%; }
+.switcher-item:hover { background: var(--hover); }
+
+/* compact density */
+:root[data-density="compact"] .msg { padding: 4px 0; }
+:root[data-density="compact"] .msg-body { gap: 2px; }
+:root[data-density="compact"] .body p { margin: 2px 0; }
+:root[data-density="compact"] .task { padding: 4px 8px; }
+
 /* elapsed response time */
 .elapsed-time { font-size: 11px; color: var(--muted); background: var(--hover); padding: 1px 6px; border-radius: 4px; }
 

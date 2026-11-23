@@ -2679,13 +2679,22 @@ renderMessages = function(force) {
   if (last.live || last.role === "user") return;
   const { pid, cid } = route();
   if (isBusy(pid, cid)) return;
-  if (box.querySelector(".quick-replies")) return;
+  const existing = box.querySelector(".quick-replies");
+  if (existing) existing.remove();
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  if (!atBottom) return;
   const suggestions = ["Looks good, continue", "Can you explain that?", "Fix any issues", "Show me the diff"];
   const bar = document.createElement("div");
   bar.className = "quick-replies";
   bar.innerHTML = suggestions.map((s) => `<button type="button" class="quick-reply" data-reply="${esc(s)}">${esc(s)}</button>`).join("");
   box.appendChild(bar);
 };
+document.getElementById("messages")?.addEventListener("scroll", function() {
+  const qr = this.querySelector(".quick-replies");
+  if (!qr) return;
+  const atBottom = this.scrollHeight - this.scrollTop - this.clientHeight < 80;
+  if (!atBottom) qr.remove();
+});
 
 // ---- batch 14: chat statistics in head menu ----
 document.addEventListener("click", (e) => {

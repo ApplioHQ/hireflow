@@ -399,6 +399,7 @@ function renderHead() {
       <button type="button" data-action="export">Export as Markdown</button>
       <button type="button" data-action="density">Density: ${densityMode}</button>
       <button type="button" data-action="sound">${notifSoundEnabled ? "Sound: on" : "Sound: off"}</button>
+      <button type="button" data-action="stats">Chat stats</button>
       <button type="button" data-action="screenshot">Screenshot</button>
       <button type="button" data-action="multi-delete">Delete multiple chats</button>
       <button type="button" class="bad-text" data-action="delete">Delete</button>
@@ -2650,5 +2651,122 @@ setInterval(() => {
     if (!dot.classList.contains("pulse")) dot.classList.add("pulse");
   });
 }, 2000);
+
+// ---- batch 14: quick reply suggestions after agent response ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".quick-reply");
+  if (!btn) return;
+  const text = btn.dataset.reply;
+  if (!text) return;
+  const input = document.getElementById("input");
+  if (input) { input.value = text; input.focus(); input.dispatchEvent(new Event("input")); }
+});
+const origRenderMessages2 = renderMessages;
+renderMessages = function(force) {
+  origRenderMessages2(force);
+  const box = document.getElementById("messages");
+  if (!box || !chat) return;
+  const msgs = chat.messages;
+  if (!msgs || msgs.length < 2) return;
+  const last = msgs[msgs.length - 1];
+  if (last.live || last.role === "user") return;
+  const { pid, cid } = route();
+  if (isBusy(pid, cid)) return;
+  if (box.querySelector(".quick-replies")) return;
+  const suggestions = ["Looks good, continue", "Can you explain that?", "Fix any issues", "Show me the diff"];
+  const bar = document.createElement("div");
+  bar.className = "quick-replies";
+  bar.innerHTML = suggestions.map((s) => `<button type="button" class="quick-reply" data-reply="${esc(s)}">${esc(s)}</button>`).join("");
+  box.appendChild(bar);
+};
+
+// ---- batch 14: chat statistics in head menu ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='stats']");
+  if (!btn || !chat) return;
+  const msgs = chat.messages || [];
+  const userMsgs = msgs.filter((m) => m.role === "user").length;
+  const agentMsgs = msgs.filter((m) => m.role !== "user" && m.role !== "note").length;
+  const totalWords = msgs.reduce((sum, m) => sum + (m.text || "").split(/\s+/).filter(Boolean).length, 0);
+  const firstTs = msgs.find((m) => m.ts)?.ts;
+  const lastTs = [...msgs].reverse().find((m) => m.ts)?.ts;
+  const duration = firstTs && lastTs ? Math.round((new Date(lastTs) - new Date(firstTs)) / 60000) : 0;
+  toast(`${msgs.length} messages (${userMsgs} user, ${agentMsgs} agent) | ${totalWords} words | ${duration}m span`);
+});
+
+// ---- batch 14: drag to resize sidebar ----
+(function() {
+  const sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
+  const handle = document.createElement("div");
+  handle.className = "sidebar-resize-handle";
+  sidebar.appendChild(handle);
+  let dragging = false, startX = 0, startW = 0;
+  handle.addEventListener("mousedown", (e) => {
+    dragging = true; startX = e.clientX; startW = sidebar.offsetWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const w = Math.max(180, Math.min(500, startW + (e.clientX - startX)));
+    sidebar.style.width = w + "px";
+    sidebar.style.minWidth = w + "px";
+  });
+  document.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    try { localStorage.setItem("sidebarWidth", sidebar.style.width); } catch {}
+  });
+  try {
+    const saved = localStorage.getItem("sidebarWidth");
+    if (saved) { sidebar.style.width = saved; sidebar.style.minWidth = saved; }
+  } catch {}
+})();
+
+// ---- batch 14: zen mode (Cmd+Shift+Z) ----
+let zenMode = false;
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "Z") {
+    e.preventDefault();
+    zenMode = !zenMode;
+    document.querySelector(".app").classList.toggle("zen-mode", zenMode);
+    toast(zenMode ? "Zen mode on" : "Zen mode off");
+  }
+});
+
+// ---- batch 14: quote reply on text selection ----
+document.addEventListener("mouseup", (e) => {
+  const existing = document.querySelector(".quote-popup");
+  if (existing) existing.remove();
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
+  const msgEl = sel.anchorNode?.parentElement?.closest?.(".msg");
+  if (!msgEl) return;
+  const text = sel.toString().trim();
+  if (text.length < 5) return;
+  const popup = document.createElement("button");
+  popup.className = "quote-popup";
+  popup.textContent = "Quote reply";
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  popup.style.top = (rect.top - 32 + window.scrollY) + "px";
+  popup.style.left = (rect.left + rect.width / 2) + "px";
+  document.body.appendChild(popup);
+  popup.addEventListener("click", () => {
+    const input = document.getElementById("input");
+    if (input) {
+      const quote = "> " + text.split("\n").join("\n> ") + "\n\n";
+      input.value = quote + input.value;
+      input.focus();
+      input.dispatchEvent(new Event("input"));
+    }
+    popup.remove();
+  });
+  setTimeout(() => { document.addEventListener("mousedown", () => popup.remove(), { once: true }); }, 100);
+});
 
 refresh(true);

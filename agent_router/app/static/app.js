@@ -737,14 +737,15 @@ function renderMessage(m) {
       const fileName = f.split("/").pop();
       if (IMAGE.test(fileName)) {
         const src = `/api/attachment?project=${encodeURIComponent(pid)}&chat=${encodeURIComponent(cid)}&name=${encodeURIComponent(fileName)}`;
-        return `<a class="attachment-image" href="${esc(src)}" target="_blank" rel="noopener" title="${esc(fileName)}"><img src="${esc(src)}" alt="${esc(fileName)}" loading="lazy"></a>`;
+        return `<a class="attachment-image" href="${esc(src)}" data-lightbox title="${esc(fileName)}"><img src="${esc(src)}" alt="${esc(fileName)}" loading="lazy"></a>`;
       }
       return `<span class="attachment" title="${esc(f)}">${esc(fileName)}</span>`;
     }).join("");
     const ts = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
     const retryBtn = !isBusy(pid, cid) ? `<button type="button" class="msg-action retry-msg" data-retry="${esc(m.text)}" title="Resend">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-12.6L1 10"/></svg></button>` : "";
-    return `<div class="msg user msg-fadein"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
+    const linkedText = esc(m.text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" class="auto-link">$1</a>');
+    return `<div class="msg user msg-fadein"><div class="bubble">${linkedText}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
   }
   if (m.role === "note") {
     const shots = (m.screenshots || []).map((s) => {
@@ -1483,6 +1484,7 @@ document.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#search").focus(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") { e.preventDefault(); go(currentProject()?.id || ""); $("#input").focus(); }
   if (e.ctrlKey && e.key === "`") { e.preventDefault(); $("#term-drawer").hidden ? openTerminal() : closeTerminal(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === "\\") { e.preventDefault(); toggleFocusMode(); }
 });
 window.addEventListener("hashchange", () => {
   chat = null;
@@ -2077,6 +2079,49 @@ function showChatSwitcher() {
     }
   });
 }
+
+// ---- focus mode (Cmd+\) ----
+let focusMode = false;
+function toggleFocusMode() {
+  focusMode = !focusMode;
+  document.querySelector(".app").classList.toggle("focus-mode", focusMode);
+  toast(focusMode ? "Focus mode on" : "Focus mode off");
+}
+
+// ---- image lightbox ----
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-lightbox]");
+  if (link) {
+    e.preventDefault();
+    const src = link.href;
+    const overlay = document.createElement("div");
+    overlay.className = "lightbox";
+    overlay.innerHTML = `<img src="${src}" alt=""><button type="button" class="lightbox-close">&times;</button>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", (ev) => {
+      if (ev.target === overlay || ev.target.classList.contains("lightbox-close")) overlay.remove();
+    });
+    return;
+  }
+});
+
+// ---- auto-refresh relative timestamps every 60s ----
+setInterval(() => {
+  document.querySelectorAll("time.msg-time[datetime]").forEach((el) => {
+    el.textContent = ago(el.getAttribute("datetime"));
+  });
+}, 60000);
+
+// ---- Cmd+Backspace clear input ----
+$("#input").addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Backspace") {
+    e.preventDefault();
+    $("#input").value = "";
+    $("#input").style.height = "auto";
+    const note = $("#composer-note");
+    if (note) note.textContent = "";
+  }
+});
 
 // ---- Cmd+Shift+C: copy last code block ----
 document.addEventListener("keydown", (e) => {

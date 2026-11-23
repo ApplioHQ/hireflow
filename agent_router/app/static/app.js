@@ -113,6 +113,7 @@ function inline(text) {
     .replace(/`([^`\n]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>")
+    .replace(/~~([^~\n]+)~~/g, "<del>$1</del>")
     .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
@@ -228,6 +229,8 @@ function renderAgentText(text) {
     if (tools.length) flushTools();
     const meta = line.match(/^\[(cost \$[\d.]+|\d+ tokens|stopped by user)\]$/);
     if (meta) { flush(); out.push(`<div class="meta-line">${esc(meta[1])}</div>`); continue; }
+    if (/^-{3,}$|^\*{3,}$|^_{3,}$/.test(line.trim())) { flush(); out.push(`<hr class="agent-hr">`); continue; }
+    if (line.match(/^>\s+/)) { flush(); out.push(`<blockquote class="agent-quote">${inline(line.replace(/^>\s+/, ""))}</blockquote>`); continue; }
     const heading = line.match(/^(#{1,4})\s+(.*)$/);
     if (heading) { flush(); const tag = `h${heading[1].length + 2}`; out.push(`<${tag} class="agent-heading">${inline(heading[2])}</${tag}>`); continue; }
     if (line.match(/^\s*[-*]\s+/)) {
@@ -254,10 +257,17 @@ function renderSidebar() {
   const { pid, cid } = route();
   const nav = $("#projects");
   if (searchResults) {
+    const q = $("#search").value.trim().toLowerCase();
+    const hl = (text) => {
+      if (!q) return esc(text);
+      const escaped = esc(text);
+      const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+      return escaped.replace(re, `<mark>$1</mark>`);
+    };
     nav.innerHTML = searchResults.length ? searchResults.map((r) => `
       <button type="button" class="task" data-open="${esc(r.project)}|${esc(r.chat)}">
-        <span class="task-text"><span class="task-title">${esc(r.title)}</span>
-        <span class="task-meta">${esc(project(r.project)?.name || r.project)} - ${esc(r.snippet)}</span></span>
+        <span class="task-text"><span class="task-title">${hl(r.title)}</span>
+        <span class="task-meta">${esc(project(r.project)?.name || r.project)} - ${hl(r.snippet)}</span></span>
       </button>`).join("") : `<div class="list-label">No matches</div>`;
     return;
   }
@@ -265,8 +275,22 @@ function renderSidebar() {
     const avail = !state.unavailable[a];
     return `<span class="agent-chip">${badge(a)}<span class="agent-name">${esc(nameOf(a))}</span><span class="status-dot ${avail ? "available" : "unavailable"}"></span></span>`;
   }).join("")}</div>` : "";
+  const pinned = [];
+  for (const p of state.projects) {
+    for (const c of p.chats) {
+      if (c.pinned) pinned.push({ ...c, projectId: p.id, projectName: p.name });
+    }
+  }
+  const pinnedHtml = pinned.length ? `<div class="pinned-section"><div class="list-label">Pinned</div>${pinned.map((c) => `
+    <div class="task-row">
+      <button type="button" class="task${c.projectId === pid && c.id === cid ? " active" : ""}" data-open="${esc(c.projectId)}|${esc(c.id)}">
+        <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
+        <span class="task-text"><span class="task-title">&#9733; ${esc(c.title)}</span>
+        <span class="task-meta">${esc(c.projectName)} - ${esc(ago(c.updated))}</span></span>
+      </button>
+    </div>`).join("")}</div>` : "";
   const active = pid || state.projects[0]?.id;
-  nav.innerHTML = strip + state.projects.map((p) => {
+  nav.innerHTML = strip + pinnedHtml + state.projects.map((p) => {
     const open = !collapsed[p.id];
     const chats = open ? p.chats.slice(0, 40).map((c) => `
       <div class="task-row">
@@ -289,6 +313,10 @@ function renderSidebar() {
       ${open ? (chats || `<div class="empty-chats">No chats yet</div>`) : ""}
     </div>`;
   }).join("") || `<div class="list-label">Add a project folder to start.</div>`;
+  requestAnimationFrame(() => {
+    const active = nav.querySelector(".task.active");
+    if (active) active.scrollIntoView({ block: "nearest" });
+  });
 }
 
 // ---- header ----
@@ -653,7 +681,9 @@ function renderMessage(m) {
       return `<span class="attachment" title="${esc(f)}">${esc(fileName)}</span>`;
     }).join("");
     const ts = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
-    return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}</div>`;
+    const retryBtn = !isBusy(pid, cid) ? `<button type="button" class="msg-action retry-msg" data-retry="${esc(m.text)}" title="Resend">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-12.6L1 10"/></svg></button>` : "";
+    return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
   }
   if (m.role === "note") {
     const shots = (m.screenshots || []).map((s) => {
@@ -691,9 +721,12 @@ function renderMessage(m) {
   const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
+  const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""}">${avatar(agent)}<div class="msg-body">
     <div class="msg-name">${esc(nameOf(agent))} ${label} ${agentTs}</div>
-    <div class="body">${body}</div>${working}</div></div>`;
+    <div class="body">${body}</div>${working}
+    <div class="msg-actions">${copyMsg}</div></div></div>`;
 }
 
 function renderMessages(force) {
@@ -1019,6 +1052,8 @@ async function refresh(force = false) {
     }
     renderMessages(force);
     checkNotifications();
+    updateTitle();
+    updateActiveBadge();
   } catch (e) {
     toast(e.message);
   }
@@ -1053,6 +1088,23 @@ document.addEventListener("click", async (e) => {
         setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 1500);
       });
     }
+    return;
+  }
+  const copyMsgBtn = e.target.closest(".copy-msg");
+  if (copyMsgBtn) {
+    const body = copyMsgBtn.closest(".msg-body")?.querySelector(".body");
+    if (body) {
+      navigator.clipboard.writeText(body.innerText).then(() => {
+        copyMsgBtn.classList.add("copied");
+        setTimeout(() => copyMsgBtn.classList.remove("copied"), 1500);
+      });
+    }
+    return;
+  }
+  const retryBtn = e.target.closest(".retry-msg");
+  if (retryBtn) {
+    const text = retryBtn.dataset.retry;
+    if (text) { $("#input").value = text; autosize(); $("#input").focus(); }
     return;
   }
   const runBtn = e.target.closest(".run-btn");
@@ -1139,6 +1191,12 @@ function checkNotifications() {
   }
 }
 
+function updateTitle() {
+  const running = state.running.length;
+  const base = chat ? chat.title : "Agents";
+  document.title = running > 0 ? `(${running}) ${base}` : base;
+}
+
 // request notification permission on first send
 function requestNotifPermission() {
   if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
@@ -1153,6 +1211,14 @@ document.addEventListener("click", async (e) => {
   if (el.id === "panel-close") { $("#panel").hidden = true; return; }
   if (el.id === "term-toggle") { $("#term-drawer").hidden ? openTerminal() : closeTerminal(); return; }
   if (el.id === "term-close") { closeTerminal(); return; }
+  if (el.id === "theme-toggle") {
+    const themes = ["system", "light", "dark"];
+    const cur = getTheme();
+    const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+    setTheme(next);
+    el.querySelector(".theme-label").textContent = next === "system" ? "System" : next === "light" ? "Light" : "Dark";
+    return;
+  }
   if (el.id === "install" && installPrompt) { installPrompt.prompt(); installPrompt = null; el.hidden = true; return; }
   if (el.id === "add-project") {
     const path = prompt("Full path of the project folder (for example /Users/you/stockbot):");
@@ -1323,7 +1389,8 @@ let ws = null;
 let termPid = null;
 
 function termTheme() {
-  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = getTheme();
+  const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   return dark
     ? { background: "#1a1918", foreground: "#ecebe8", cursor: "#d97757", selectionBackground: "#3a3836" }
     : { background: "#ffffff", foreground: "#1f1e1c", cursor: "#c96442", selectionBackground: "#e4e1dc" };
@@ -1473,6 +1540,64 @@ function updateOnlineStatus() {
 window.addEventListener("online", () => { updateOnlineStatus(); refresh(); });
 window.addEventListener("offline", updateOnlineStatus);
 updateOnlineStatus();
+
+// ---- theme toggle (light/dark/system) ----
+function getTheme() {
+  try { return localStorage.getItem("theme") || "system"; } catch { return "system"; }
+}
+function setTheme(t) {
+  try { localStorage.setItem("theme", t); } catch { /* private mode */ }
+  if (t === "system") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  if (term) term.options.theme = termTheme();
+}
+setTheme(getTheme());
+{ const t = getTheme(); const lbl = document.querySelector(".theme-label"); if (lbl) lbl.textContent = t === "system" ? "System" : t === "light" ? "Light" : "Dark"; }
+
+// ---- double-click rename chat ----
+document.addEventListener("dblclick", (e) => {
+  const task = e.target.closest(".task[data-open]");
+  if (!task) return;
+  const [pid, cid] = task.dataset.open.split("|");
+  const summary = chatSummary(pid, cid);
+  if (!summary) return;
+  const oldTitle = summary.title;
+  const title = prompt("Rename chat:", oldTitle);
+  if (!title || !title.trim() || title.trim() === oldTitle) return;
+  api("/api/chats/update", { project: pid, chat: cid, title: title.trim() }).then(() => {
+    toastUndo(`Renamed to "${title.trim()}"`, () => {
+      api("/api/chats/update", { project: pid, chat: cid, title: oldTitle }).then(() => refresh(true));
+    });
+    refresh(true);
+  }).catch((err) => toast(err.message));
+});
+
+function toastUndo(message, undoFn) {
+  const el = $("#toast");
+  el.innerHTML = esc(message) + `<button type="button" class="toast-undo">Undo</button>`;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  const handler = () => { undoFn(); el.hidden = true; el.removeEventListener("click", handler); };
+  el.querySelector(".toast-undo").addEventListener("click", handler);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 6000);
+}
+
+// ---- active chat count in sidebar brand ----
+function updateActiveBadge() {
+  const count = state.running.length;
+  let badge = document.getElementById("active-count");
+  if (count > 0) {
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.id = "active-count";
+      badge.className = "active-count";
+      $(".brand").appendChild(badge);
+    }
+    badge.textContent = count;
+  } else if (badge) {
+    badge.remove();
+  }
+}
 
 // ---- character count in composer ----
 const charCount = document.createElement("span");

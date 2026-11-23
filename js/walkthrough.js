@@ -22,8 +22,8 @@
       title: 'LinkedIn optimizer', body: 'Turn your resume into a polished LinkedIn profile -- headline, about, and experience bullets optimized for search.' },
     { find: function () { return document.getElementById('btn-export'); }, place: 'bottom',
       title: 'Export when ready', body: 'Download a clean, ATS-safe PDF in one click.' },
-    { find: function () { return document.querySelector('.app-rail'); }, place: 'right',
-      title: 'More tools in the rail', body: 'Cover Letter, 6-Sec Scan, JD Red Flags, Version Diff, Salary Insights and more. Hover to expand.' }
+    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
+      title: 'More tools in the dock', body: 'Cover Letter, 6-Sec Scan, JD Red Flags, Version Diff, Salary Insights and more. Hover an icon to see its name.' }
   ];
   // Mobile anchors to the always-visible bottom nav + the top Menu, so nothing depends on
   // a drawer being open. Tooltips sit above the bottom nav / below the top Menu.
@@ -34,8 +34,8 @@
       title: 'Preview anytime', body: 'See exactly how your resume looks as you build it.' },
     { find: function () { return document.querySelector('a.mobile-nav-btn[href="export"]'); }, place: 'top',
       title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' },
-    { find: function () { return document.querySelector('.rail-mobtrigger'); }, place: 'bottom',
-      title: 'More tools here', body: 'Autopilot, Cover Letter, JD Red Flags, Version Diff, Salary Insights and more live in this menu.' }
+    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
+      title: 'More tools here', body: 'Autopilot, Cover Letter, JD Red Flags, Version Diff, Salary Insights and more live in the dock. Swipe it sideways to see them all.' }
   ];
 
   function isVisible(el) {

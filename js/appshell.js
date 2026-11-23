@@ -1,15 +1,19 @@
-/* appshell.js, a persistent left navigation rail for the app (VS Code / Slack style).
-   Additive + robust: injects a full-height fixed icon rail on the far left and shifts
-   ALL page content right by padding the <body> (so it can't be defeated by inline or
-   class padding on <main>). Expands on hover to reveal labels, hides the redundant
-   topbar tabs, and falls back to the topbar tabs on mobile. Include on any app page:
+/* appshell.js, a persistent bottom dock for the app (macOS style).
+   A vanilla port of the 21st.dev Apple-style dock: the panel grows on hover, each
+   item magnifies by its distance from the cursor, and a label floats above the
+   hovered item. Applio has no build step, so framer-motion's spring is reproduced
+   here with the same constants rather than imported.
+
+   Additive + robust: injects a fixed dock centred on the bottom edge and pads the
+   <body> so nothing hides behind it. Include on any app page:
      <script src="/js/appshell.js"></script>
-   Self-contained (injects its own CSS); only adds a body class + the rail element. */
+   Self-contained (injects its own CSS); only adds a body class + the dock element. */
 (function () {
   'use strict';
-  if (document.querySelector('.app-rail')) return;
+  if (document.querySelector('.app-dock')) return;
 
-  // Tabler icons (stroke-width 2, currentColor). Only the inner elements, // the rail wraps them with the <svg> element.
+  // Tabler icons (stroke-width 2, currentColor). Only the inner elements, the dock
+  // wraps them with the <svg> element.
   var ICONS = {
     home:      '<path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>',
     builder:   '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/>',
@@ -26,144 +30,185 @@
     salary:    '<path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/>'
   };
   var NAV = [
-    ['dashboard',   'Home',           '/dashboard',    'home'],
-    ['SEP'],
-    ['editor',      'Resume Builder', '/editor',       'builder'],
-    ['autopilot',   'Autopilot',      '/autopilot',    'autopilot'],
-    ['cover-letter','Cover Letter',   '/cover-letter', 'cover'],
-    ['letters',     'Letter Writer',  '/letters',      'letter'],
-    ['match',       'Best Match',     '/match',        'match'],
-    ['SEP'],
-    ['interview',   'Interview Prep', '/interview',    'interview'],
-    ['assistant',   'Career Coach',   '/assistant',    'coach'],
-    ['jobs',        'Job Tracker',    '/jobs',         'jobs'],
-    ['SEP'],
-    ['skill-gap',    'Skill Gap',     '/skill-gap',     'skill'],
-    ['salary',       'Salary Insights','/salary',       'salary'],
-    ['brag-doc',     'Brag Doc',      '/brag-doc',      'brag'],
-    ['first-90-days','First 90 Days', '/first-90-days', 'days90']
+    ['dashboard',    'Home',            '/dashboard',     'home'],
+    ['editor',       'Resume Builder',  '/editor',        'builder'],
+    ['autopilot',    'Autopilot',       '/autopilot',     'autopilot'],
+    ['cover-letter', 'Cover Letter',    '/cover-letter',  'cover'],
+    ['letters',      'Letter Writer',   '/letters',       'letter'],
+    ['match',        'Best Match',      '/match',         'match'],
+    ['interview',    'Interview Prep',  '/interview',     'interview'],
+    ['assistant',    'Career Coach',    '/assistant',     'coach'],
+    ['jobs',         'Job Tracker',     '/jobs',          'jobs'],
+    ['skill-gap',    'Skill Gap',       '/skill-gap',     'skill'],
+    ['salary',       'Salary Insights', '/salary',        'salary'],
+    ['brag-doc',     'Brag Doc',        '/brag-doc',      'brag'],
+    ['first-90-days','First 90 Days',   '/first-90-days', 'days90']
   ];
   var here = location.pathname.replace(/^\//, '').replace(/[?#].*$/, '').replace(/\.html$/, '') || 'dashboard';
 
+  // Dock geometry, matching the reference component exactly.
+  var PANEL_H = 64;          // collapsed panel height
+  var MAGNIFICATION = 80;    // widest an item gets under the cursor
+  var BASE_W = 40;           // resting item width
+  var DISTANCE = 150;        // cursor range over which magnification falls off
+  var DOCK_H = Math.max(128, MAGNIFICATION + MAGNIFICATION / 2 + 4);
+  // framer-motion spring: { mass: 0.1, stiffness: 150, damping: 12 }. Overdamped
+  // (damping 12 > critical 2*sqrt(150*0.1) = 7.75), so it settles without overshoot.
+  var MASS = 0.1, STIFFNESS = 150, DAMPING = 12;
+
   var css =
-    'body.has-rail{--rail-w:60px;padding-left:var(--rail-w);}' +
-    '.app-rail{position:fixed;left:0;top:0;bottom:0;z-index:70;display:flex;flex-direction:column;gap:2px;' +
-      'width:var(--rail-w);background:var(--bg-1);border-right:1px solid var(--border);' +
-      'padding:10px 0;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;' +
-      'transition:width .18s cubic-bezier(.4,0,.2,1),box-shadow .18s;}' +
-    '.app-rail::-webkit-scrollbar{display:none;}' +
-    '.app-rail:hover{width:220px;box-shadow:0 24px 60px rgba(0,0,0,.36);}' +
-    '.rail-top{height:46px;flex-shrink:0;}' +   /* clears the topbar row so items start below it */
-    '.rail-item{display:flex;align-items:center;gap:13px;height:42px;padding:0 19px;color:var(--muted);' +
-      'white-space:nowrap;border-left:2px solid transparent;cursor:pointer;transition:color .14s,background .14s;}' +
-    '.rail-item:hover{color:var(--text);background:var(--bg-2);}' +
-    '.rail-item.active{color:var(--text);border-left-color:var(--accent);background:linear-gradient(90deg,rgba(91,84,232,.14),transparent);}' +
-    '.rail-item svg{width:20px;height:20px;flex-shrink:0;}' +
-    '.rail-item.active svg{color:var(--accent);}' +
-    '.rail-item span{font-size:13.5px;font-weight:550;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;}' +
-    '.app-rail:hover .rail-item span{opacity:1;transform:none;}' +
-    '.rail-sep{height:1px;margin:8px 14px;background:var(--border);}' +
-    // The per-page .topbar-tabs are superseded by this rail's NAV on BOTH desktop
-    // (rail) and mobile (drawer below), so they stay hidden everywhere. One source.
-    'body.has-rail .app-topbar .topbar-tabs{display:none!important;}' +
-    // Mobile drawer (same NAV, slide-in). Trigger lives in the topbar; the rail hides.
-    '.rail-mobtrigger{display:none!important;}' +
-    '.rail-drawer-bd{position:fixed;inset:0;z-index:110;background:rgba(2,4,16,.6);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s;}' +
-    '.rail-drawer-bd.open{opacity:1;pointer-events:auto;}' +
-    '.rail-drawer{position:fixed;top:0;left:0;bottom:0;z-index:111;width:258px;max-width:82vw;background:var(--bg-1);border-right:1px solid var(--border);' +
-      'padding:14px 0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);}' +
-    '.rail-drawer.open{transform:none;}' +
-    '.rail-drawer .rail-head{display:flex;align-items:center;justify-content:space-between;padding:2px 14px 12px 19px;}' +
-    '.rail-drawer .rail-head b{font-size:16px;font-weight:700;}' +
-    '.rail-drawer .rail-close{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;display:inline-flex;}' +
-    '.rail-drawer .rail-item span{opacity:1;transform:none;}' +
-    '@media(max-width:1023px){body.has-rail{padding-left:0;}.app-rail{display:none;}' +
-      '.rail-mobtrigger{display:inline-flex!important;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;border:0;background:none;color:var(--text);cursor:pointer;flex-shrink:0;}' +
-      '.rail-mobtrigger:hover{background:var(--bg-2);}}' +
-    '@media(min-width:1024px){.rail-drawer,.rail-drawer-bd{display:none!important;}}';
+    'body.has-dock{padding-bottom:88px;}' +
+    // Wrapper pins the dock to the bottom edge; the reference uses bottom-2 (8px).
+    '.app-dock{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:70;max-width:100%;' +
+      'pointer-events:none;}' +
+    // Scroll container (mx-2 flex max-w-full items-end overflow-x-auto).
+    '.dock-scroll{margin:0 8px;display:flex;align-items:flex-end;max-width:100%;overflow-x:auto;overflow-y:hidden;' +
+      'scrollbar-width:none;scroll-snap-type:x proximity;pointer-events:auto;}' +
+    '.dock-scroll::-webkit-scrollbar{display:none;}' +
+    // Panel (mx-auto flex w-fit gap-4 rounded-2xl px-4 + demo's items-end pb-3).
+    '.dock-panel{margin:0 auto;display:flex;align-items:flex-end;gap:16px;width:-moz-fit-content;width:fit-content;' +
+      'border-radius:16px;padding:0 16px 12px;background:#171717;border:1px solid transparent;}' +
+    // Item (relative inline-flex items-center justify-center aspect-square rounded-full).
+    '.dock-item{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;' +
+      'aspect-ratio:1;border-radius:9999px;background:#262626;color:#d4d4d4;text-decoration:none;' +
+      'scroll-snap-align:center;min-width:24px;min-height:24px;}' +
+    '.dock-item:focus-visible{outline:2px solid var(--accent,#6d4dfc);outline-offset:3px;}' +
+    // The icon is half the item width, so it grows with the magnification.
+    '.dock-icon{display:flex;align-items:center;justify-content:center;}' +
+    '.dock-icon svg{width:100%;height:100%;display:block;}' +
+    // Label (absolute -top-6 left-1/2 rounded-md border px-2 py-0.5 text-xs).
+    '.dock-label{position:absolute;top:-24px;left:50%;width:-moz-fit-content;width:fit-content;white-space:pre;' +
+      'border-radius:6px;border:1px solid #171717;background:#262626;color:#fff;padding:2px 8px;' +
+      'font-size:12px;line-height:16px;opacity:0;transform:translateX(-50%);pointer-events:none;}' +
+    '.dock-item:hover .dock-label,.dock-item:focus-visible .dock-label{opacity:1;transform:translateX(-50%) translateY(-10px);}' +
+    // Light theme uses the reference's light palette; Applio switches via html.light-mode.
+    'html.light-mode .dock-panel{background:#f9fafb;}' +
+    'html.light-mode .dock-item{background:#e5e7eb;color:#525252;}' +
+    'html.light-mode .dock-label{background:#f3f4f6;border-color:#e5e7eb;color:#404040;}' +
+    // Current page: tint the icon only, so the dock's geometry is untouched. Must
+    // follow (and match the specificity of) the light-mode rule above, which also
+    // sets colour and would otherwise win in light mode.
+    '.dock-item[aria-current="page"],html.light-mode .dock-item[aria-current="page"]{color:var(--accent,#6d4dfc);}' +
+    // Touch targets below 44px are hard to hit, and coarse pointers never magnify.
+    '@media(pointer:coarse){.dock-item{min-width:44px;min-height:44px;}}' +
+    '@media(prefers-reduced-motion:no-preference){.dock-label{transition:opacity .2s,transform .2s;}}' +
+    // Forced colors replaces background, so lean on system colors and a real border.
+    '@media(forced-colors:active){.dock-panel,.dock-item,.dock-label{border-color:ButtonText;}' +
+      '.dock-item{color:ButtonText;}.dock-item[aria-current="page"]{color:Highlight;}}' +
+    // The per-page .topbar-tabs are superseded by this dock. One source of nav.
+    'body.has-dock .app-topbar .topbar-tabs{display:none!important;}';
   var style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
 
   var items = NAV.map(function (n) {
-    if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
-    var active = n[0] === here ? ' active' : '';
-    return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
-      '<span>' + n[1] + '</span></a>';
+    var current = n[0] === here ? ' aria-current="page"' : '';
+    return '<a class="dock-item" href="' + n[2] + '" aria-label="' + n[1] + '"' + current + '>' +
+      '<span class="dock-label" aria-hidden="true">' + n[1] + '</span>' +
+      '<span class="dock-icon">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[n[3]] + '</svg>' +
+      '</span></a>';
   }).join('');
 
-  var rail = document.createElement('nav');
-  rail.className = 'app-rail';
-  rail.setAttribute('aria-label', 'Primary navigation');
-  rail.innerHTML = '<div class="rail-top"></div>' + items;
+  // A <nav> of links, not the reference's role="toolbar" of role="button" divs:
+  // these navigate, so they belong in the tab order as real links.
+  var dock = document.createElement('nav');
+  dock.className = 'app-dock';
+  dock.setAttribute('aria-label', 'Primary');
+  dock.innerHTML = '<div class="dock-scroll"><div class="dock-panel">' + items + '</div></div>';
+  document.body.appendChild(dock);
+  document.body.classList.add('has-dock');
 
-  document.body.appendChild(rail);
-  document.body.classList.add('has-rail');
+  var scroll = dock.querySelector('.dock-scroll');
+  var panel = dock.querySelector('.dock-panel');
+  var nodes = [].slice.call(dock.querySelectorAll('.dock-item'));
 
-  // ---- Mobile drawer: the same NAV, opened from a topbar hamburger ----------
-  // On <=900px the rail hides and this is the only nav, so it must come from the
-  // same NAV array as the rail (no hand-authored per-page tabs to drift from).
-  var drawerItems = NAV.map(function (n) {
-    if (n[0] === 'SEP') return '<div class="rail-sep"></div>';
-    var active = n[0] === here ? ' active' : '';
-    return '<a class="rail-item' + active + '" href="' + n[2] + '" title="' + n[1] + '">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n[3]] + '</svg>' +
-      '<span>' + n[1] + '</span></a>';
-  }).join('');
+  // One spring per animated value: the scroll container's height plus each item's width.
+  function spring(value) { return { x: value, v: 0, target: value }; }
+  var heightSpring = spring(PANEL_H);
+  var widths = nodes.map(function () { return spring(BASE_W); });
+  var icons = nodes.map(function (el) { return el.querySelector('.dock-icon'); });
 
-  var backdrop = document.createElement('div');
-  backdrop.className = 'rail-drawer-bd';
-  var drawer = document.createElement('nav');
-  drawer.className = 'rail-drawer';
-  drawer.id = 'app-navigation-drawer';
-  drawer.setAttribute('aria-label', 'Primary navigation');
-  drawer.innerHTML =
-    '<div class="rail-head"><b>Applio</b>' +
-    '<button class="rail-close" type="button" aria-label="Close menu">' +
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
-    '</button></div>' + drawerItems;
-  document.body.appendChild(backdrop);
-  document.body.appendChild(drawer);
+  var mouseX = Infinity;
+  var hovering = false;
+  var running = false;
+  var lastT = 0;
 
-  function setDrawerOpen(isOpen) {
-    drawer.classList.toggle('open', isOpen);
-    backdrop.classList.toggle('open', isOpen);
-    trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    // Keep focus in a meaningful place for keyboard and screen-reader users.
-    if (isOpen) drawer.querySelector('.rail-close').focus();
-    else trigger.focus();
+  // Magnification curve, matching useTransform's clamped 3-point interpolation:
+  // [-DISTANCE, 0, DISTANCE] -> [BASE_W, MAGNIFICATION, BASE_W].
+  function widthFor(el) {
+    if (!hovering || mouseX === Infinity) return BASE_W;
+    var r = el.getBoundingClientRect();
+    var d = mouseX - r.x - r.width / 2;
+    if (d <= -DISTANCE || d >= DISTANCE) return BASE_W;
+    var t = 1 - Math.abs(d) / DISTANCE;
+    return BASE_W + (MAGNIFICATION - BASE_W) * t;
   }
-  function openDrawer() { setDrawerOpen(true); }
-  function closeDrawer() { setDrawerOpen(false); }
-  backdrop.addEventListener('click', closeDrawer);
-  drawer.querySelector('.rail-close').addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 
-  // Hamburger trigger: drop it into the topbar where the old tabs lived (hidden on
-  // desktop via CSS), so it sits in the nav slot without any per-page markup.
-  var trigger = document.createElement('button');
-  trigger.className = 'rail-mobtrigger';
-  trigger.type = 'button';
-  trigger.setAttribute('aria-label', 'Open menu');
-  trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-controls', 'app-navigation-drawer');
-  trigger.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
-  trigger.addEventListener('click', function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-    setDrawerOpen(!drawer.classList.contains('open'));
-  });
-  var tabs = document.querySelector('.app-topbar .topbar-tabs');
-  if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(trigger, tabs);
-  else {
-    // No topbar-tabs on this page: anchor the trigger after the brand, else at the
-    // start of the topbar, so mobile still has a way into the nav.
-    var bar = document.querySelector('.app-topbar');
-    if (bar) {
-      var brand = bar.querySelector('.brand, .topbar-brand, .app-brand');
-      if (brand && brand.parentNode) brand.parentNode.insertBefore(trigger, brand.nextSibling);
-      else bar.insertBefore(trigger, bar.firstChild);
+  function advance(s, h) {
+    var a = (-STIFFNESS * (s.x - s.target) - DAMPING * s.v) / MASS;
+    s.v += a * h;
+    s.x += s.v * h;
+    if (Math.abs(s.x - s.target) < 0.01 && Math.abs(s.v) < 0.05) { s.x = s.target; s.v = 0; return false; }
+    return true;
+  }
+
+  // Retarget on pointer events only, never per frame. Magnifying an item moves its
+  // own centre, so recomputing every frame feeds that shift back into the distance
+  // and the springs settle well short of MAGNIFICATION. framer-motion derives the
+  // distance from mouseX, so it recomputes exactly when the pointer moves.
+  function retarget() {
+    heightSpring.target = hovering ? DOCK_H : PANEL_H;
+    for (var i = 0; i < nodes.length; i++) widths[i].target = widthFor(nodes[i]);
+  }
+
+  function frame(now) {
+    var dt = lastT ? Math.min((now - lastT) / 1000, 0.064) : 0.016;
+    lastT = now;
+    // Sub-step the integrator: a stiff spring at a low mass is unstable on long frames.
+    var steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+    var h = dt / steps;
+
+    var moving = false;
+    for (var s = 0; s < steps; s++) {
+      if (advance(heightSpring, h)) moving = true;
+      for (var j = 0; j < widths.length; j++) if (advance(widths[j], h)) moving = true;
     }
+
+    scroll.style.height = heightSpring.x + 'px';
+    for (var k = 0; k < nodes.length; k++) {
+      nodes[k].style.width = widths[k].x + 'px';
+      icons[k].style.width = widths[k].x / 2 + 'px';
+      icons[k].style.height = widths[k].x / 2 + 'px';
+    }
+
+    if (moving) requestAnimationFrame(frame);
+    else { running = false; lastT = 0; }
+  }
+  function start() { if (!running) { running = true; lastT = 0; requestAnimationFrame(frame); } }
+
+  // Magnification is a pointer affordance: only wire it where hover really exists,
+  // and leave it off entirely when the user asks for reduced motion.
+  var canHover = window.matchMedia('(hover: hover)').matches;
+  var wantsMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (canHover && wantsMotion) {
+    // clientX pairs with getBoundingClientRect's viewport coordinates; the original
+    // reads pageX against the same rect, which drifts once the page scrolls sideways.
+    panel.addEventListener('mousemove', function (e) { hovering = true; mouseX = e.clientX; retarget(); start(); });
+    panel.addEventListener('mouseleave', function () { hovering = false; mouseX = Infinity; retarget(); start(); });
+  }
+
+  // Resting layout, so the dock is correct before any pointer movement.
+  scroll.style.height = PANEL_H + 'px';
+  nodes.forEach(function (el, i) {
+    el.style.width = BASE_W + 'px';
+    icons[i].style.width = BASE_W / 2 + 'px';
+    icons[i].style.height = BASE_W / 2 + 'px';
+  });
+
+  // Keep the current page in view when the dock overflows a narrow viewport.
+  var active = dock.querySelector('.dock-item[aria-current="page"]');
+  if (active && scroll.scrollWidth > scroll.clientWidth) {
+    scroll.scrollLeft = active.offsetLeft - (scroll.clientWidth - active.offsetWidth) / 2;
   }
 })();

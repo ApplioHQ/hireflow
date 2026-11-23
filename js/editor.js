@@ -6396,7 +6396,7 @@ async function _hydrateFromCloud() {
 
     // Escape: close modals/drawers
     if (e.key === 'Escape') {
-      const backdrop = document.querySelector('.modal-backdrop.open, .app-dialog-bd.app-dialog-bd-in, .rail-drawer-bd.open');
+      const backdrop = document.querySelector('.modal-backdrop.open, .app-dialog-bd.app-dialog-bd-in');
       if (backdrop) backdrop.click();
       const sidebar = document.querySelector('.sidebar.mob-open');
       if (sidebar) sidebar.classList.remove('mob-open');

@@ -1768,7 +1768,7 @@ html.light-mode .bm-track { background: rgba(0,0,0,.08); }
 /* ===== Dashboard mode =====
    When the user is on the Resume Builder home (dashboard), hide the editing
    sidebar items and the right panel so the dashboard fills the screen.
-   The sidebar shows only the Dashboard item + the app-rail nav icons. */
+   The sidebar shows only the Dashboard item; app nav lives in the bottom dock. */
 .dashboard-mode { grid-template-columns: 76px 1fr !important; }
 .dashboard-mode .right-panel { display: none; }
 .dashboard-mode .sidebar { width: 76px; padding-top: 12px; }

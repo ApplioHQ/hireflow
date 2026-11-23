@@ -958,3 +958,14 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .global-hit:hover { background: var(--hover); }
 .minimap { position: absolute; top: 0; right: 0; width: 8px; height: 100%; z-index: 5; cursor: pointer; }
 .minimap-thumb { position: absolute; width: 100%; background: color-mix(in srgb, var(--text) 20%, transparent); border-radius: 4px; min-height: 20px; }
+
+/* ---- batch 16: edit, branch, compare, mute, auto-title ---- */
+.edit-msg-btn, .branch-btn { opacity: 0; transition: opacity .15s; font-size: 12px; }
+.msg:hover .edit-msg-btn, .msg:hover .branch-btn { opacity: 1; }
+.bubble.editing { outline: 2px solid var(--accent); border-radius: 8px; }
+.edited-label { font-size: 11px; color: var(--muted); margin-left: 6px; }
+.auto-title-hint { font-size: 10px; color: var(--muted); }
+.compare-dialog { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 700px; max-width: 90vw; max-height: 70vh; overflow-y: auto; }
+.compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 12px 0; }
+.compare-col h4 { margin: 0 0 8px; font-size: 13px; color: var(--accent); }
+.compare-msg { font-size: 12px; padding: 8px; background: var(--bg2); border-radius: 6px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }

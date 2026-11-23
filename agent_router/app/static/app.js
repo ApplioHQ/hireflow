@@ -401,6 +401,8 @@ function renderHead() {
       <button type="button" data-action="sound">${notifSoundEnabled ? "Sound: on" : "Sound: off"}</button>
       <button type="button" data-action="stats">Chat stats</button>
       <button type="button" data-action="screenshot">Screenshot</button>
+      <button type="button" data-action="mute">${mutedChats.has(`${pid}|${cid}`) ? "Unmute" : "Mute"}</button>
+      <button type="button" data-action="compare">Compare agents</button>
       <button type="button" data-action="save-template">Save as template</button>
       <button type="button" data-action="templates">Templates</button>
       <button type="button" data-action="multi-delete">Delete multiple chats</button>
@@ -750,7 +752,10 @@ function renderMessage(m) {
     const retryBtn = !isBusy(pid, cid) ? `<button type="button" class="msg-action retry-msg" data-retry="${esc(m.text)}" title="Resend">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-12.6L1 10"/></svg></button>` : "";
     const linkedText = esc(m.text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" class="auto-link">$1</a>');
-    return `<div class="msg user msg-fadein"><div class="bubble">${linkedText}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
+    const msgIdx = chat ? chat.messages.indexOf(m) : -1;
+    const editBtn = `<button type="button" class="msg-action edit-msg-btn" title="Edit">&#9998;</button>`;
+    const branchBtn = msgIdx >= 0 ? `<button type="button" class="msg-action branch-btn" data-branch-idx="${msgIdx}" title="Branch from here">&#9095;</button>` : "";
+    return `<div class="msg user msg-fadein"><div class="bubble">${linkedText}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}${editBtn}${branchBtn}</div>`;
   }
   if (m.role === "note") {
     const shots = (m.screenshots || []).map((s) => {
@@ -2903,5 +2908,122 @@ try { Object.assign(chatDrafts, JSON.parse(localStorage.getItem("chatDrafts") ||
     box.scrollTo({ top: pct * box.scrollHeight, behavior: "smooth" });
   });
 })();
+
+// ---- batch 16: mute chat notifications ----
+let mutedChats = new Set();
+try { mutedChats = new Set(JSON.parse(localStorage.getItem("mutedChats") || "[]")); } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='mute']");
+  if (!btn) return;
+  const { pid, cid } = route();
+  const key = `${pid}|${cid}`;
+  if (mutedChats.has(key)) mutedChats.delete(key);
+  else mutedChats.add(key);
+  try { localStorage.setItem("mutedChats", JSON.stringify([...mutedChats])); } catch {}
+  toast(mutedChats.has(key) ? "Chat muted" : "Chat unmuted");
+  renderHead();
+});
+
+// ---- batch 16: conversation branch from message ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".branch-btn");
+  if (!btn || !chat) return;
+  const idx = parseInt(btn.dataset.branchIdx, 10);
+  if (isNaN(idx)) return;
+  const msgs = chat.messages.slice(0, idx + 1);
+  const text = msgs.filter((m) => m.role === "user").map((m) => m.text).join("\n---\n");
+  const input = document.getElementById("input");
+  if (input) {
+    input.value = text;
+    input.focus();
+    toast("Messages copied to input. Send to start a new chat branch.");
+  }
+});
+
+// ---- batch 16: bulk export selected chats ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#export-selected");
+  if (!btn) return;
+  if (!selectedChats || !selectedChats.size) { toast("No chats selected."); return; }
+  const exported = [];
+  for (const key of selectedChats) {
+    const [pid, cid] = key.split("|");
+    const p = project(pid);
+    const c = p?.chats.find((ch) => ch.id === cid);
+    if (c) exported.push({ project: p.name, id: c.id, title: c.title, status: c.status, updated: c.updated });
+  }
+  const blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "selected-chats-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`Exported ${exported.length} chats.`);
+});
+
+// ---- batch 16: auto-title suggestion ----
+let lastAutoTitleCheck = "";
+setInterval(() => {
+  if (!chat || !chat.messages) return;
+  const { pid, cid } = route();
+  const key = `${pid}|${cid}`;
+  if (key === lastAutoTitleCheck) return;
+  if (chat.title && chat.title !== "New chat" && chat.title !== "Untitled") return;
+  const firstUser = chat.messages.find((m) => m.role === "user");
+  if (!firstUser || !firstUser.text) return;
+  lastAutoTitleCheck = key;
+  const suggested = firstUser.text.slice(0, 50).replace(/\n/g, " ").trim();
+  if (suggested.length > 5) {
+    const titleEl = document.querySelector(".breadcrumb > span:last-child");
+    if (titleEl && (titleEl.textContent === "New chat" || titleEl.textContent === "Untitled")) {
+      titleEl.innerHTML = `${esc(suggested)}... <span class="auto-title-hint">(auto)</span>`;
+    }
+  }
+}, 3000);
+
+// ---- batch 16: message edit indicator on user messages ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".edit-msg-btn");
+  if (!btn) return;
+  const bubble = btn.closest(".msg")?.querySelector(".bubble");
+  if (!bubble) return;
+  const original = bubble.textContent;
+  bubble.contentEditable = "true";
+  bubble.focus();
+  bubble.classList.add("editing");
+  const finish = () => {
+    bubble.contentEditable = "false";
+    bubble.classList.remove("editing");
+    if (bubble.textContent !== original) {
+      bubble.insertAdjacentHTML("afterend", '<span class="edited-label">(edited)</span>');
+      toast("Message edited locally.");
+    }
+  };
+  bubble.addEventListener("blur", finish, { once: true });
+  bubble.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); bubble.blur(); } if (ev.key === "Escape") { bubble.textContent = original; bubble.blur(); } }, { once: true });
+});
+
+// ---- batch 16: agent comparison side-by-side ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='compare']");
+  if (!btn || !chat) return;
+  const agents = {};
+  for (const m of chat.messages) {
+    if (m.role !== "user" && m.agent && m.text) {
+      const name = nameOf(m.agent);
+      if (!agents[name]) agents[name] = [];
+      agents[name].push(m.text.slice(0, 200));
+    }
+  }
+  const names = Object.keys(agents);
+  if (names.length < 2) { toast("Need responses from 2+ agents to compare."); return; }
+  const overlay = document.createElement("div");
+  overlay.className = "template-overlay";
+  overlay.innerHTML = `<div class="compare-dialog"><h3>Agent Comparison</h3>
+    <div class="compare-grid">${names.map((n) => `<div class="compare-col"><h4>${esc(n)}</h4>${agents[n].map((t) => `<div class="compare-msg">${esc(t)}</div>`).join("")}</div>`).join("")}</div>
+    <button type="button" class="template-close">Close</button></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (ev) => { if (ev.target.closest(".template-close") || ev.target === overlay) overlay.remove(); });
+});
 
 refresh(true);

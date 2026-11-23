@@ -401,6 +401,8 @@ function renderHead() {
       <button type="button" data-action="sound">${notifSoundEnabled ? "Sound: on" : "Sound: off"}</button>
       <button type="button" data-action="stats">Chat stats</button>
       <button type="button" data-action="screenshot">Screenshot</button>
+      <button type="button" data-action="save-template">Save as template</button>
+      <button type="button" data-action="templates">Templates</button>
       <button type="button" data-action="multi-delete">Delete multiple chats</button>
       <button type="button" class="bad-text" data-action="delete">Delete</button>
     </div>`;
@@ -2768,5 +2770,138 @@ document.addEventListener("mouseup", (e) => {
   });
   setTimeout(() => { document.addEventListener("mousedown", () => popup.remove(), { once: true }); }, 100);
 });
+
+// ---- batch 15: chat templates ----
+let chatTemplates = [];
+try { chatTemplates = JSON.parse(localStorage.getItem("chatTemplates") || "[]"); } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='save-template']");
+  if (!btn) return;
+  const input = document.getElementById("input");
+  const text = input?.value?.trim();
+  if (!text) { toast("Type a prompt first."); return; }
+  const name = prompt("Template name:");
+  if (!name) return;
+  chatTemplates.push({ name: name.trim(), text });
+  try { localStorage.setItem("chatTemplates", JSON.stringify(chatTemplates)); } catch {}
+  toast(`Template "${name}" saved.`);
+});
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='templates']");
+  if (!btn) return;
+  if (!chatTemplates.length) { toast("No templates saved. Type a prompt and use Save Template."); return; }
+  const overlay = document.createElement("div");
+  overlay.className = "template-overlay";
+  overlay.innerHTML = `<div class="template-dialog"><h3>Chat Templates</h3>
+    ${chatTemplates.map((t, i) => `<div class="template-item"><button type="button" class="template-use" data-tidx="${i}">${esc(t.name)}</button><button type="button" class="template-del" data-tdel="${i}">&times;</button></div>`).join("")}
+    <button type="button" class="template-close">Close</button></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (ev) => {
+    const use = ev.target.closest("[data-tidx]");
+    if (use) {
+      const t = chatTemplates[parseInt(use.dataset.tidx, 10)];
+      if (t) { document.getElementById("input").value = t.text; document.getElementById("input").focus(); }
+      overlay.remove();
+      return;
+    }
+    const del = ev.target.closest("[data-tdel]");
+    if (del) { chatTemplates.splice(parseInt(del.dataset.tdel, 10), 1); try { localStorage.setItem("chatTemplates", JSON.stringify(chatTemplates)); } catch {} overlay.remove(); toast("Template deleted."); return; }
+    if (ev.target.closest(".template-close") || ev.target === overlay) overlay.remove();
+  });
+});
+
+// ---- batch 15: token estimate per message ----
+function estimateTokens(text) {
+  if (!text) return 0;
+  return Math.ceil(text.length / 4);
+}
+
+// ---- batch 15: global search across all chats (Cmd+Shift+F) ----
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "F") {
+    e.preventDefault();
+    const overlay = document.createElement("div");
+    overlay.className = "global-search-overlay";
+    overlay.innerHTML = `<div class="global-search-dialog"><h3>Search all chats</h3>
+      <input type="text" class="global-search-input" placeholder="Search..." autofocus>
+      <div class="global-search-results"></div>
+      <button type="button" class="template-close">Close</button></div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector("input");
+    const results = overlay.querySelector(".global-search-results");
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q || q.length < 2) { results.innerHTML = ""; return; }
+      const hits = [];
+      for (const p of (state.projects || [])) {
+        for (const c of (p.chats || [])) {
+          if ((c.title || "").toLowerCase().includes(q)) {
+            hits.push({ pid: p.id, cid: c.id, title: c.title, match: "title" });
+          }
+        }
+      }
+      results.innerHTML = hits.length ? hits.slice(0, 20).map((h) =>
+        `<div class="global-hit" data-open="${esc(h.pid)}|${esc(h.cid)}"><strong>${esc(h.title)}</strong> <span class="muted">(${esc(h.match)})</span></div>`
+      ).join("") : `<div class="muted">No matches</div>`;
+    });
+    overlay.addEventListener("click", (ev) => {
+      const hit = ev.target.closest("[data-open]");
+      if (hit) { location.hash = "#/" + hit.dataset.open.replace("|", "/"); overlay.remove(); return; }
+      if (ev.target.closest(".template-close") || ev.target === overlay) overlay.remove();
+    });
+    input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") overlay.remove(); });
+  }
+});
+
+// ---- batch 15: auto-save draft per chat ----
+const chatDrafts = {};
+try { Object.assign(chatDrafts, JSON.parse(localStorage.getItem("chatDrafts") || "{}")); } catch {}
+(function() {
+  const input = document.getElementById("input");
+  if (!input) return;
+  let lastRoute = "";
+  input.addEventListener("input", () => {
+    const { pid, cid } = route();
+    const key = `${pid}|${cid}`;
+    if (input.value.trim()) chatDrafts[key] = input.value;
+    else delete chatDrafts[key];
+    try { localStorage.setItem("chatDrafts", JSON.stringify(chatDrafts)); } catch {}
+  });
+  setInterval(() => {
+    const { pid, cid } = route();
+    const key = `${pid}|${cid}`;
+    if (key !== lastRoute) {
+      lastRoute = key;
+      const saved = chatDrafts[key];
+      if (saved && !input.value.trim()) { input.value = saved; input.dispatchEvent(new Event("input")); }
+    }
+  }, 500);
+})();
+
+// ---- batch 15: minimap scrollbar ----
+(function() {
+  const box = document.getElementById("messages");
+  if (!box) return;
+  const minimap = document.createElement("div");
+  minimap.className = "minimap";
+  box.parentElement.appendChild(minimap);
+  const thumb = document.createElement("div");
+  thumb.className = "minimap-thumb";
+  minimap.appendChild(thumb);
+  function updateMinimap() {
+    if (!box.scrollHeight || box.scrollHeight <= box.clientHeight) { minimap.hidden = true; return; }
+    minimap.hidden = false;
+    const ratio = box.clientHeight / box.scrollHeight;
+    const thumbH = Math.max(20, ratio * minimap.clientHeight);
+    thumb.style.height = thumbH + "px";
+    thumb.style.top = (box.scrollTop / box.scrollHeight) * minimap.clientHeight + "px";
+  }
+  box.addEventListener("scroll", updateMinimap);
+  setInterval(updateMinimap, 2000);
+  minimap.addEventListener("click", (e) => {
+    const pct = e.offsetY / minimap.clientHeight;
+    box.scrollTo({ top: pct * box.scrollHeight, behavior: "smooth" });
+  });
+})();
 
 refresh(true);

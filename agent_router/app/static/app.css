@@ -942,3 +942,19 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .app.zen-mode .main { max-width: 100%; }
 .app.zen-mode .messages { height: 100vh; }
 .quote-popup { position: absolute; transform: translateX(-50%); background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,.2); white-space: nowrap; }
+
+/* ---- batch 15: templates, global search, minimap, drafts ---- */
+.template-overlay, .global-search-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; padding-top: 10vh; }
+.template-dialog, .global-search-dialog { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 400px; max-height: 70vh; overflow-y: auto; }
+.template-dialog h3, .global-search-dialog h3 { margin: 0 0 12px; font-size: 16px; }
+.template-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.template-use { flex: 1; background: none; border: none; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; padding: 4px 8px; border-radius: 6px; }
+.template-use:hover { background: var(--hover); }
+.template-del { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; }
+.template-close { display: block; margin-top: 12px; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px 16px; color: var(--text); cursor: pointer; width: 100%; }
+.global-search-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 14px; outline: none; margin-bottom: 12px; box-sizing: border-box; }
+.global-search-input:focus { border-color: var(--accent); }
+.global-hit { padding: 8px; cursor: pointer; border-radius: 6px; }
+.global-hit:hover { background: var(--hover); }
+.minimap { position: absolute; top: 0; right: 0; width: 8px; height: 100%; z-index: 5; cursor: pointer; }
+.minimap-thumb { position: absolute; width: 100%; background: color-mix(in srgb, var(--text) 20%, transparent); border-radius: 4px; min-height: 20px; }

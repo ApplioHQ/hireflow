@@ -106,6 +106,19 @@ function ago(iso) {
   return `${Math.floor(secs / 86400)}d`;
 }
 
+function dateGroup(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today - 86400000);
+  const weekAgo = new Date(today - 6 * 86400000);
+  if (d >= today) return "Today";
+  if (d >= yesterday) return "Yesterday";
+  if (d >= weekAgo) return "This week";
+  if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) return "This month";
+  return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+}
+
 // ---- agent text ----
 
 function inline(text) {
@@ -292,7 +305,12 @@ function renderSidebar() {
   const active = pid || state.projects[0]?.id;
   nav.innerHTML = strip + pinnedHtml + state.projects.map((p) => {
     const open = !collapsed[p.id];
-    const chats = open ? p.chats.slice(0, 40).map((c) => `
+    let lastGroup = "";
+    const chats = open ? p.chats.slice(0, 40).map((c) => {
+      const group = dateGroup(c.updated);
+      const groupHtml = group !== lastGroup ? `<div class="list-label date-group">${esc(group)}</div>` : "";
+      lastGroup = group;
+      return groupHtml + `
       <div class="task-row">
         <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
           <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
@@ -300,7 +318,7 @@ function renderSidebar() {
           <span class="task-meta">${esc(ago(c.updated))}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
         </button>
         <button type="button" class="row-delete" data-delete="${esc(p.id)}|${esc(c.id)}" title="Delete chat" aria-label="Delete ${esc(c.title)}">&times;</button>
-      </div>`).join("") : "";
+      </div>`;}).join("") : "";
     return `<div class="project${p.id === active ? " current" : ""}">
       <div class="project-row">
         <button type="button" class="project-name" data-toggle="${esc(p.id)}" title="${esc(p.path)}">
@@ -717,8 +735,11 @@ function renderMessage(m) {
   const labels = { orchestrate: "deciding", code: "coding", fix: "fixing the check", review: "reviewing", report: "update" };
   const doing = { orchestrate: "thinking", code: "working", fix: "fixing", review: "reviewing", report: "writing an update" }[m.step] || "working";
   const visibleText = hideCodexDiagnostics(m.text, agent);
-  const body = visibleText ? renderAgentText(visibleText) : (m.live ? "" : `<div class="empty-agent">No response recorded.</div>`);
-  const working = m.live ? `<div class="working"><span class="spinner"></span>${esc(nameOf(agent))} is ${doing}...</div>` : "";
+  const rendered = visibleText ? renderAgentText(visibleText) : (m.live ? "" : `<div class="empty-agent">No response recorded.</div>`);
+  const body = !m.live && visibleText && visibleText.length > 2000
+    ? `<div class="collapsible-msg collapsed">${rendered}</div><button type="button" class="show-more-btn">Show more</button>`
+    : rendered;
+  const working = m.live ? `<div class="working"><span class="typing-dots"><span></span><span></span><span></span></span>${esc(nameOf(agent))} is ${doing}</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
   const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
@@ -1101,6 +1122,15 @@ document.addEventListener("click", async (e) => {
     }
     return;
   }
+  const showMore = e.target.closest(".show-more-btn");
+  if (showMore) {
+    const wrap = showMore.previousElementSibling;
+    if (wrap?.classList.contains("collapsible-msg")) {
+      wrap.classList.toggle("collapsed");
+      showMore.textContent = wrap.classList.contains("collapsed") ? "Show more" : "Show less";
+    }
+    return;
+  }
   const retryBtn = e.target.closest(".retry-msg");
   if (retryBtn) {
     const text = retryBtn.dataset.retry;
@@ -1370,7 +1400,14 @@ $("#input").addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { $("#panel").hidden = true; $(".app").classList.remove("nav-open"); }
+  if (e.key === "Escape") {
+    const modal = document.getElementById("shortcut-modal");
+    if (modal) { modal.remove(); return; }
+    const ctx = document.getElementById("ctx-menu");
+    if (ctx) { ctx.remove(); return; }
+    $("#panel").hidden = true; $(".app").classList.remove("nav-open");
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === "/") { e.preventDefault(); toggleShortcutModal(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#search").focus(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") { e.preventDefault(); go(currentProject()?.id || ""); $("#input").focus(); }
   if (e.ctrlKey && e.key === "`") { e.preventDefault(); $("#term-drawer").hidden ? openTerminal() : closeTerminal(); }
@@ -1541,6 +1578,86 @@ window.addEventListener("online", () => { updateOnlineStatus(); refresh(); });
 window.addEventListener("offline", updateOnlineStatus);
 updateOnlineStatus();
 
+// ---- keyboard shortcut help modal ----
+function toggleShortcutModal() {
+  let modal = document.getElementById("shortcut-modal");
+  if (modal) { modal.remove(); return; }
+  const isMac = /Mac/.test(navigator.platform);
+  const mod = isMac ? "Cmd" : "Ctrl";
+  const shortcuts = [
+    [mod + "+N", "New chat"],
+    [mod + "+K", "Search chats"],
+    [mod + "+/", "Keyboard shortcuts"],
+    ["Ctrl+`", "Toggle terminal"],
+    ["Escape", "Close panel/modal"],
+    ["Enter", "Send message"],
+    ["Shift+Enter", "New line"],
+    ["Up/Down", "Input history"],
+    ["Double-click chat", "Rename"],
+  ];
+  modal = document.createElement("div");
+  modal.id = "shortcut-modal";
+  modal.className = "shortcut-modal";
+  modal.innerHTML = `<div class="shortcut-dialog">
+    <div class="shortcut-header"><h3>Keyboard shortcuts</h3><button type="button" class="icon-btn" id="shortcut-close">&times;</button></div>
+    <div class="shortcut-list">${shortcuts.map(([key, desc]) =>
+      `<div class="shortcut-row"><span class="shortcut-desc">${esc(desc)}</span><kbd class="shortcut-key">${esc(key)}</kbd></div>`
+    ).join("")}</div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", (e) => { if (e.target === modal || e.target.id === "shortcut-close") modal.remove(); });
+}
+
+// ---- right-click context menu on chats ----
+document.addEventListener("contextmenu", (e) => {
+  const task = e.target.closest(".task[data-open]");
+  if (!task) return;
+  e.preventDefault();
+  const old = document.getElementById("ctx-menu");
+  if (old) old.remove();
+  const [pid, cid] = task.dataset.open.split("|");
+  const summary = chatSummary(pid, cid);
+  if (!summary) return;
+  const menu = document.createElement("div");
+  menu.id = "ctx-menu";
+  menu.className = "ctx-menu";
+  menu.style.left = e.clientX + "px";
+  menu.style.top = e.clientY + "px";
+  menu.innerHTML = [
+    `<button data-ctx="pin">${summary.pinned ? "Unpin" : "Pin"}</button>`,
+    `<button data-ctx="rename">Rename</button>`,
+    `<button data-ctx="delete" class="bad-text">Delete</button>`,
+  ].join("");
+  document.body.appendChild(menu);
+  const rect = menu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 8) + "px";
+  if (rect.bottom > window.innerHeight) menu.style.top = (window.innerHeight - rect.height - 8) + "px";
+  const handler = async (ev) => {
+    const btn = ev.target.closest("[data-ctx]");
+    if (!btn) { if (!ev.target.closest("#ctx-menu")) { menu.remove(); document.removeEventListener("mousedown", handler); } return; }
+    menu.remove();
+    document.removeEventListener("mousedown", handler);
+    if (btn.dataset.ctx === "pin") {
+      await api("/api/chats/update", { project: pid, chat: cid, pinned: !summary.pinned });
+      refresh(true);
+    } else if (btn.dataset.ctx === "rename") {
+      const title = prompt("Rename chat:", summary.title);
+      if (title && title.trim()) { await api("/api/chats/update", { project: pid, chat: cid, title: title.trim() }); refresh(true); }
+    } else if (btn.dataset.ctx === "delete") {
+      deleteChat(pid, cid);
+    }
+  };
+  setTimeout(() => document.addEventListener("mousedown", handler), 0);
+});
+
+// ---- typing indicator dots (replaces spinner text) ----
+// Handled via CSS animation on .typing-dots spans
+
+// ---- auto-focus input on chat switch ----
+window.addEventListener("hashchange", () => {
+  requestAnimationFrame(() => { const inp = $("#input"); if (inp && !inp.disabled) inp.focus(); });
+}, { capture: false });
+
 // ---- theme toggle (light/dark/system) ----
 function getTheme() {
   try { return localStorage.getItem("theme") || "system"; } catch { return "system"; }
@@ -1597,6 +1714,32 @@ function updateActiveBadge() {
   } else if (badge) {
     badge.remove();
   }
+}
+
+// ---- drag-to-resize sidebar ----
+{
+  const sidebar = document.querySelector(".sidebar");
+  const handle = document.createElement("div");
+  handle.className = "resize-handle";
+  sidebar.appendChild(handle);
+  let startX, startW;
+  handle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    const onMove = (ev) => {
+      const w = Math.max(180, Math.min(480, startW + ev.clientX - startX));
+      sidebar.style.width = w + "px";
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      try { localStorage.setItem("sidebarWidth", sidebar.style.width); } catch {}
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+  try { const saved = localStorage.getItem("sidebarWidth"); if (saved) sidebar.style.width = saved; } catch {}
 }
 
 // ---- character count in composer ----

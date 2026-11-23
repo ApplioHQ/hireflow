@@ -753,6 +753,40 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 /* smooth scroll for sidebar */
 .task-list { scroll-behavior: smooth; }
 
+/* keyboard shortcut modal */
+.shortcut-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.shortcut-dialog { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; min-width: 320px; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+.shortcut-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.shortcut-header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.shortcut-list { display: flex; flex-direction: column; gap: 6px; }
+.shortcut-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+.shortcut-desc { font-size: 13px; color: var(--muted); }
+.shortcut-key { font-family: inherit; font-size: 11px; background: var(--hover); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; color: var(--text); white-space: nowrap; }
+
+/* right-click context menu */
+.ctx-menu { position: fixed; z-index: 150; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.2); min-width: 140px; }
+.ctx-menu button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; color: var(--text); cursor: pointer; }
+.ctx-menu button:hover { background: var(--hover); }
+
+/* typing indicator dots */
+.typing-dots { display: inline-flex; gap: 3px; align-items: center; vertical-align: middle; }
+.typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); animation: bounce .9s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+
+/* sidebar date group labels */
+.date-group { font-size: 11px; color: var(--muted); padding: 10px 12px 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+/* collapsible long messages */
+.collapsible-msg.collapsed { max-height: 300px; overflow: hidden; mask-image: linear-gradient(to bottom, #000 60%, transparent); -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent); }
+.show-more-btn { border: 0; background: none; color: var(--accent); font-size: 13px; cursor: pointer; padding: 4px 0; font-weight: 500; }
+.show-more-btn:hover { text-decoration: underline; }
+
+/* sidebar resize handle */
+.resize-handle { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 10; }
+.resize-handle:hover, .resize-handle:active { background: var(--accent); opacity: .3; border-radius: 3px; }
+
 /* reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .plan-card, .plan-list > li, .plan-subtasks > li, .plan-tool-pill { animation-duration: 0s !important; }

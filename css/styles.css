@@ -941,6 +941,13 @@ dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }
   color: #111;
 }
 
+/* ===== AI tool split layouts ===== */
+.tailor-split, .ats-split { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 860px) {
+  .tailor-split, .ats-split { grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+}
+.tailor-input, .tailor-output, .ats-input, .ats-output { min-width: 0; }
+
 /* ===== AI sections: Tailor / ATS / Analysis ===== */
 .ai-card { padding: 0 !important; overflow: hidden; }
 .ai-card-header {

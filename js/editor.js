@@ -2179,32 +2179,37 @@ function _aiToolLoading(label) {
 
 function renderTailor() {
   const wc = _jdWordCount(resume.tailor.jobDescription);
+  const hasResult = resume.tailor.result || resume.tailor.tailoredSummary;
   return `
     <div class="section-card ai-card ai-card-indigo">
       ${_aiHead('indigo', 'target', 'Tailor to a Job', 'Rewrites your bullets and summary to match a posting &middot; ~30s', 'aiTailor()', 'Tailor', 'btn-primary')}
       <div class="ai-card-body">
-        <div class="ats-console tailor-console">
-          <div class="ats-console-head">
-            <span class="ats-console-dots"><i></i><i></i><i></i></span>
-            <span class="ats-console-title">Paste the job description</span>
-            <button type="button" class="tailor-paste-btn" onclick="_tailorPaste()">${ICON('doc','ico ico-sm')} Paste</button>
-            <span id="tailor-wc" class="ats-wc">${wc}</span>
-          </div>
-          <textarea data-bind="tailor.jobDescription" rows="9"
-            placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
-            oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value);_renderJDRedFlags(this.value,'tailor-redflags')"
-          >${esc(resume.tailor.jobDescription)}</textarea>
-        </div>
-        <div id="tailor-redflags" style="margin-top:14px;"></div>
-        <div id="tailor-result" style="margin-top:18px;">
-        ${(resume.tailor.result || resume.tailor.tailoredSummary) ? `
-          <div class="ai-result-box ai-result-indigo">
-            <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-              <span>✦ Tailoring Results</span>
-              <button class="btn btn-ghost btn-xs" onclick="saveTailorToTracker()" style="white-space:nowrap;">${ICON('briefcase','ico ico-sm')} Save to Job Tracker</button>
+        <div class="tailor-split">
+          <div class="tailor-input">
+            <div class="ats-console tailor-console">
+              <div class="ats-console-head">
+                <span class="ats-console-dots"><i></i><i></i><i></i></span>
+                <span class="ats-console-title">Paste the job description</span>
+                <button type="button" class="tailor-paste-btn" onclick="_tailorPaste()">${ICON('doc','ico ico-sm')} Paste</button>
+                <span id="tailor-wc" class="ats-wc">${wc}</span>
+              </div>
+              <textarea data-bind="tailor.jobDescription" rows="9"
+                placeholder="Paste the full job description here: title, responsibilities, and requirements. The more detail, the better the tailoring."
+                oninput="document.getElementById('tailor-wc').textContent=_jdWordCount(this.value);_renderJDRedFlags(this.value,'tailor-redflags')"
+              >${esc(resume.tailor.jobDescription)}</textarea>
             </div>
-            <div style="padding:14px;">${resume.tailor.result ? _renderTailorStructured(resume.tailor.result) : _renderTailorResult(resume.tailor.tailoredSummary)}</div>
-          </div>` : _tailorEmptyState()}
+            <div id="tailor-redflags" style="margin-top:14px;"></div>
+          </div>
+          <div class="tailor-output" id="tailor-result">
+          ${hasResult ? `
+            <div class="ai-result-box ai-result-indigo">
+              <div class="ai-result-label" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                <span>&#10022; Tailoring Results</span>
+                <button class="btn btn-ghost btn-xs" onclick="saveTailorToTracker()" style="white-space:nowrap;">${ICON('briefcase','ico ico-sm')} Save to Job Tracker</button>
+              </div>
+              <div style="padding:14px;">${resume.tailor.result ? _renderTailorStructured(resume.tailor.result) : _renderTailorResult(resume.tailor.tailoredSummary)}</div>
+            </div>` : _tailorEmptyState()}
+          </div>
         </div>
         ${navRow('publications','ats')}
       </div>
@@ -2233,19 +2238,23 @@ function renderATS() {
     <div class="section-card ai-card ai-card-emerald">
       ${_aiHead('emerald', 'check', 'ATS Check', 'Scan for parse errors and missing keywords before a recruiter does', 'aiATS()', 'Run scan', 'btn-success')}
       <div class="ai-card-body">
-        <div class="ats-console">
-          <div class="ats-console-head">
-            <span class="ats-console-dots"><i></i><i></i><i></i></span>
-            <span class="ats-console-title">Paste the job description</span>
-            <button type="button" class="ats-paste-btn" onclick="_atsPaste()">${ICON('doc','ico ico-sm')} Paste</button>
-            <span id="ats-wc" class="ats-wc"></span>
+        <div class="ats-split">
+          <div class="ats-input">
+            <div class="ats-console">
+              <div class="ats-console-head">
+                <span class="ats-console-dots"><i></i><i></i><i></i></span>
+                <span class="ats-console-title">Paste the job description</span>
+                <button type="button" class="ats-paste-btn" onclick="_atsPaste()">${ICON('doc','ico ico-sm')} Paste</button>
+                <span id="ats-wc" class="ats-wc"></span>
+              </div>
+              <textarea id="ats-jd" rows="9"
+                placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
+                oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value);_runJDRedFlags(this.value)"></textarea>
+            </div>
+            <div id="jd-redflags-result"></div>
           </div>
-          <textarea id="ats-jd" rows="9"
-            placeholder="Paste the full job description here: title, responsibilities, and requirements. We'll keyword-match it against your resume and score ATS compatibility."
-            oninput="document.getElementById('ats-wc').textContent=_jdWordCount(this.value);_runJDRedFlags(this.value)"></textarea>
+          <div class="ats-output" id="ats-result">${_atsEmptyState()}</div>
         </div>
-        <div id="jd-redflags-result"></div>
-        <div id="ats-result" style="margin-top:18px;">${_atsEmptyState()}</div>
         ${navRow('tailor','analysis')}
       </div>
     </div>`;

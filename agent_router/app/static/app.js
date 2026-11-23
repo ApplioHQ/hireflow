@@ -793,6 +793,14 @@ function renderMessage(m) {
   const modelName = state.models?.[agentKey]?.selected;
   const modelBadge = modelName ? `<span class="model-badge">${esc(shortModel(modelName))}</span>` : "";
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
+  let respTime = "";
+  if (m.ts && !m.live && chat && msgIdx > 0) {
+    const prev = chat.messages[msgIdx - 1];
+    if (prev?.ts) {
+      const dur = (new Date(m.ts) - new Date(prev.ts)) / 1000;
+      if (dur > 0 && dur < 3600) respTime = `<span class="resp-time">${dur < 60 ? dur.toFixed(1) + "s" : Math.round(dur / 60) + "m"}</span>`;
+    }
+  }
   const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : "";
   const msgIdx = chat ? chat.messages.indexOf(m) : -1;
@@ -801,9 +809,11 @@ function renderMessage(m) {
   const bookmarkBtn = !m.live && msgIdx >= 0 ? `<button type="button" class="msg-action bookmark-btn${isBookmarked ? " active" : ""}" data-bookmark="${esc(bmKey)}" title="${isBookmarked ? "Remove bookmark" : "Bookmark"}">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""} msg-fadein">${avatar(agent)}<div class="msg-body">
-    <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs}</div>
+    <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs} ${respTime}</div>
     <div class="body">${body}</div>${working}
-    <div class="msg-actions">${bookmarkBtn}${copyMsg}</div></div></div>`;
+    <div class="msg-actions">${bookmarkBtn}${copyMsg}${!m.live && visibleText ? `<button type="button" class="msg-action react-btn" data-react="${esc(bmKey)}" title="React">&#x1F44D;</button>` : ""}</div>
+    ${!m.live && msgIdx >= 0 ? `<div class="msg-reactions" data-rkey="${esc(bmKey)}">${(reactions[bmKey] || []).map((r) => `<span class="reaction">${r}</span>`).join("")}</div>` : ""}
+    </div></div>`;
 }
 
 function renderMessages(force) {
@@ -2454,6 +2464,79 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     showCommandPalette();
   }
+});
+
+// ---- batch 12: message reactions ----
+let reactions = {};
+try { reactions = JSON.parse(localStorage.getItem("reactions") || "{}"); } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".react-btn");
+  if (!btn) return;
+  const key = btn.dataset.react;
+  if (!key) return;
+  const emojis = ["\u{1F44D}", "\u{2764}\u{FE0F}", "\u{1F389}", "\u{1F914}", "\u{1F44E}"];
+  const picker = document.createElement("div");
+  picker.className = "emoji-picker";
+  picker.innerHTML = emojis.map((em) => `<button type="button" class="emoji-opt">${em}</button>`).join("");
+  picker.style.position = "absolute";
+  const rect = btn.getBoundingClientRect();
+  picker.style.top = (rect.bottom + 4) + "px";
+  picker.style.left = rect.left + "px";
+  document.body.appendChild(picker);
+  picker.addEventListener("click", (ev) => {
+    const opt = ev.target.closest(".emoji-opt");
+    if (!opt) return;
+    if (!reactions[key]) reactions[key] = [];
+    const emoji = opt.textContent;
+    const idx = reactions[key].indexOf(emoji);
+    if (idx >= 0) reactions[key].splice(idx, 1);
+    else reactions[key].push(emoji);
+    try { localStorage.setItem("reactions", JSON.stringify(reactions)); } catch {}
+    picker.remove();
+    renderMessages(true);
+  });
+  setTimeout(() => {
+    const dismiss = (ev) => { if (!picker.contains(ev.target)) { picker.remove(); document.removeEventListener("click", dismiss); } };
+    document.addEventListener("click", dismiss);
+  }, 0);
+});
+
+// ---- batch 12: collapsible tool call groups ----
+document.addEventListener("click", (e) => {
+  const header = e.target.closest(".tool-group .tool-header");
+  if (!header) return;
+  const group = header.closest(".tool-group");
+  if (!group) return;
+  group.classList.toggle("tool-collapsed");
+});
+
+// ---- batch 12: input character counter ----
+(function() {
+  const input = document.getElementById("input");
+  if (!input) return;
+  const counter = document.createElement("span");
+  counter.className = "char-counter";
+  input.parentElement.appendChild(counter);
+  input.addEventListener("input", () => {
+    const len = input.value.length;
+    counter.textContent = len > 100 ? `${len}` : "";
+    counter.classList.toggle("warn", len > 4000);
+  });
+})();
+
+// ---- batch 12: J/K keyboard nav between messages ----
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) return;
+  if (e.key !== "j" && e.key !== "k") return;
+  const msgs = [...document.querySelectorAll(".msg")];
+  if (!msgs.length) return;
+  const current = document.querySelector(".msg.msg-focused");
+  let idx = current ? msgs.indexOf(current) : -1;
+  if (e.key === "j") idx = Math.min(idx + 1, msgs.length - 1);
+  else idx = Math.max(idx - 1, 0);
+  if (current) current.classList.remove("msg-focused");
+  msgs[idx].classList.add("msg-focused");
+  msgs[idx].scrollIntoView({ block: "nearest", behavior: "smooth" });
 });
 
 refresh(true);

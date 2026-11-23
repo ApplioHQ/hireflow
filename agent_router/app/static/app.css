@@ -863,3 +863,19 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
 .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 4px 32px rgba(0,0,0,.5); }
 .lightbox-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; line-height: 1; }
+
+/* ---- batch 8: scroll progress ---- */
+.scroll-progress { height: 2px; background: var(--accent); transition: width .15s, opacity .3s; position: sticky; top: 0; z-index: 5; border-radius: 1px; }
+
+/* ---- batch 8: unread indicator ---- */
+.task.unread .task-title { font-weight: 700; }
+.task.unread::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); position: absolute; right: 28px; top: 50%; transform: translateY(-50%); }
+.task { position: relative; }
+
+/* ---- batch 8: command palette ---- */
+.cmd-palette { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; padding-top: 20vh; }
+.cmd-dialog { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; width: min(480px, 90vw); overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.3); }
+.cmd-input { width: 100%; border: none; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); padding: 12px 16px; font-size: 15px; outline: none; }
+.cmd-list { max-height: 320px; overflow-y: auto; }
+.cmd-item { display: block; width: 100%; text-align: left; padding: 8px 16px; background: none; border: none; color: var(--text); font-size: 13px; cursor: pointer; }
+.cmd-item:hover, .cmd-item:focus { background: var(--hover); }

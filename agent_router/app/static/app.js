@@ -1669,6 +1669,10 @@ function toggleShortcutModal() {
     ["Enter", "Send message"],
     ["Shift+Enter", "New line"],
     [mod + "+D", "Resend last message"],
+    [mod + "+Shift+C", "Copy last code block"],
+    [mod + "+\\", "Focus mode"],
+    [mod + "+Backspace", "Clear input"],
+    [mod + "+Shift+P", "Command palette"],
     ["Up/Down", "Input history"],
     ["Double-click chat", "Rename"],
   ];
@@ -2159,6 +2163,124 @@ document.addEventListener("dragend", () => {
   const order = [...rows].map((btn) => btn.dataset.open);
   try { localStorage.setItem("pinnedOrder", JSON.stringify(order)); } catch {}
   draggedPin = null;
+});
+
+// ---- scroll progress indicator ----
+$("#messages").addEventListener("scroll", () => {
+  const el = $("#messages");
+  const pct = el.scrollHeight <= el.clientHeight ? 100 : Math.round((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100);
+  let bar = document.getElementById("scroll-progress");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "scroll-progress";
+    bar.className = "scroll-progress";
+    el.parentElement.insertBefore(bar, el);
+  }
+  bar.style.width = pct + "%";
+  bar.style.opacity = pct >= 100 ? "0" : "1";
+});
+
+// ---- double-click agent message to copy text ----
+document.addEventListener("dblclick", (e) => {
+  const msg = e.target.closest(".msg.agent .body");
+  if (!msg) return;
+  const sel = window.getSelection();
+  if (sel && sel.toString().length > 0) return;
+  navigator.clipboard.writeText(msg.innerText).then(() => toast("Message copied."));
+});
+
+// ---- keyboard nav in sidebar (up/down when search focused) ----
+$("#search").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  e.preventDefault();
+  const tasks = [...document.querySelectorAll("#projects .task")];
+  if (!tasks.length) return;
+  const active = document.querySelector("#projects .task.active");
+  const idx = active ? tasks.indexOf(active) : -1;
+  const next = e.key === "ArrowDown" ? Math.min(idx + 1, tasks.length - 1) : Math.max(idx - 1, 0);
+  tasks[next]?.click();
+  tasks[next]?.scrollIntoView({ block: "nearest" });
+});
+
+// ---- unread message indicator ----
+let lastSeenCounts = {};
+try { lastSeenCounts = JSON.parse(localStorage.getItem("lastSeenCounts") || "{}"); } catch {}
+function checkUnread() {
+  for (const p of state.projects) {
+    for (const c of p.chats) {
+      const key = `${p.id}|${c.id}`;
+      const count = c.msg_count || 0;
+      const seen = lastSeenCounts[key] || 0;
+      const btn = document.querySelector(`.task[data-open="${CSS.escape(p.id)}|${CSS.escape(c.id)}"]`);
+      if (btn) btn.classList.toggle("unread", count > seen);
+    }
+  }
+}
+function markRead() {
+  const { pid, cid } = route();
+  if (!pid || !cid || !chat) return;
+  lastSeenCounts[`${pid}|${cid}`] = chat.messages?.length || 0;
+  try { localStorage.setItem("lastSeenCounts", JSON.stringify(lastSeenCounts)); } catch {}
+}
+window.addEventListener("hashchange", markRead);
+setInterval(() => { checkUnread(); markRead(); }, 2000);
+
+// ---- Cmd+Shift+P command palette ----
+function showCommandPalette() {
+  let overlay = document.getElementById("cmd-palette");
+  if (overlay) { overlay.remove(); return; }
+  const commands = [
+    { label: "New chat", action: () => { go(currentProject()?.id || ""); $("#input").focus(); } },
+    { label: "Search chats", action: () => $("#search").focus() },
+    { label: "Switch chat", action: () => showChatSwitcher() },
+    { label: "Find in chat", action: () => toggleChatSearch() },
+    { label: "Export as Markdown", action: () => exportChat() },
+    { label: "Toggle focus mode", action: () => toggleFocusMode() },
+    { label: "Toggle theme", action: () => { const t = getTheme(); setTheme(t === "dark" ? "light" : t === "light" ? "system" : "dark"); } },
+    { label: "Density: toggle", action: () => setDensity(densityMode === "comfortable" ? "compact" : "comfortable") },
+    { label: "Sound: toggle", action: () => toggleNotifSound() },
+    { label: "Keyboard shortcuts", action: () => toggleShortcutModal() },
+    { label: "Open terminal", action: () => openTerminal() },
+    { label: "Agents panel", action: () => openPanel("doctor") },
+    { label: "Models panel", action: () => openPanel("models") },
+    { label: "Memory panel", action: () => openPanel("memory") },
+    { label: "Changes panel", action: () => openPanel("diff") },
+  ];
+  overlay = document.createElement("div");
+  overlay.id = "cmd-palette";
+  overlay.className = "cmd-palette";
+  overlay.innerHTML = `<div class="cmd-dialog">
+    <input type="search" id="cmd-input" class="cmd-input" placeholder="Type a command..." autofocus>
+    <div class="cmd-list">${commands.map((c, i) =>
+      `<button type="button" class="cmd-item" data-cmd="${i}">${esc(c.label)}</button>`
+    ).join("")}</div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) { overlay.remove(); return; }
+    const btn = e.target.closest("[data-cmd]");
+    if (btn) { overlay.remove(); commands[+btn.dataset.cmd].action(); }
+  });
+  const input = document.getElementById("cmd-input");
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase();
+    overlay.querySelectorAll(".cmd-item").forEach((el) => {
+      el.hidden = q && !el.textContent.toLowerCase().includes(q);
+    });
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") overlay.remove();
+    if (e.key === "Enter") {
+      const visible = [...overlay.querySelectorAll(".cmd-item:not([hidden])")];
+      if (visible.length) visible[0].click();
+    }
+  });
+}
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "P") {
+    e.preventDefault();
+    showCommandPalette();
+  }
 });
 
 refresh(true);

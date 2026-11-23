@@ -795,10 +795,15 @@ function renderMessage(m) {
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
   const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : "";
+  const msgIdx = chat ? chat.messages.indexOf(m) : -1;
+  const bmKey = chat ? `${route().pid}|${route().cid}|${msgIdx}` : "";
+  const isBookmarked = bookmarks.has(bmKey);
+  const bookmarkBtn = !m.live && msgIdx >= 0 ? `<button type="button" class="msg-action bookmark-btn${isBookmarked ? " active" : ""}" data-bookmark="${esc(bmKey)}" title="${isBookmarked ? "Remove bookmark" : "Bookmark"}">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""} msg-fadein">${avatar(agent)}<div class="msg-body">
     <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs}</div>
     <div class="body">${body}</div>${working}
-    <div class="msg-actions">${copyMsg}</div></div></div>`;
+    <div class="msg-actions">${bookmarkBtn}${copyMsg}</div></div></div>`;
 }
 
 function renderMessages(force) {
@@ -1251,7 +1256,7 @@ function ensureScrollFab() {
   fab.id = "scroll-fab";
   fab.className = "scroll-fab";
   fab.type = "button";
-  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 16l-6-6h12z" fill="currentColor"/></svg>';
+  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 16l-6-6h12z" fill="currentColor"/></svg><span class="fab-badge" id="fab-badge" hidden></span>';
   fab.addEventListener("click", () => { msgBox.scrollTop = msgBox.scrollHeight; userScrolledUp = false; fab.classList.remove("visible"); });
   wrapper.appendChild(fab);
 }
@@ -1260,7 +1265,18 @@ msgBox.addEventListener("scroll", () => {
   const gap = msgBox.scrollHeight - msgBox.scrollTop - msgBox.clientHeight;
   userScrolledUp = gap > 200;
   const fab = document.getElementById("scroll-fab");
-  if (fab) fab.classList.toggle("visible", userScrolledUp);
+  if (fab) {
+    fab.classList.toggle("visible", userScrolledUp);
+    const badge = document.getElementById("fab-badge");
+    if (badge && userScrolledUp) {
+      const msgs = msgBox.querySelectorAll(".msg");
+      const bottom = msgBox.scrollTop + msgBox.clientHeight;
+      let below = 0;
+      msgs.forEach((m) => { if (m.offsetTop > bottom) below++; });
+      badge.textContent = below;
+      badge.hidden = below === 0;
+    } else if (badge) { badge.hidden = true; }
+  }
 });
 
 // ---- browser notifications ----
@@ -2180,6 +2196,89 @@ document.addEventListener("dragend", () => {
   try { localStorage.setItem("pinnedOrder", JSON.stringify(order)); } catch {}
   draggedPin = null;
 });
+
+// ---- message bookmarks ----
+let bookmarks = new Set();
+try { bookmarks = new Set(JSON.parse(localStorage.getItem("bookmarks") || "[]")); } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-bookmark]");
+  if (!btn) return;
+  const key = btn.dataset.bookmark;
+  if (bookmarks.has(key)) bookmarks.delete(key);
+  else bookmarks.add(key);
+  try { localStorage.setItem("bookmarks", JSON.stringify([...bookmarks])); } catch {}
+  renderMessages(true);
+});
+
+// ---- Cmd+Shift+T reopen last deleted chat ----
+let lastDeletedChat = null;
+const origDeleteChat = deleteChat;
+deleteChat = async function(pid, cid) {
+  const summary = chatSummary(pid, cid);
+  lastDeletedChat = { pid, cid, title: summary?.title || "chat" };
+  return origDeleteChat(pid, cid);
+};
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "T") {
+    e.preventDefault();
+    if (lastDeletedChat) {
+      toast(`Last deleted: "${lastDeletedChat.title}" (cannot restore, but noted).`);
+    } else {
+      toast("No recently deleted chat.");
+    }
+  }
+});
+
+// ---- hover preview tooltip on sidebar chats ----
+let hoverTimer = null;
+let hoverTooltip = null;
+document.addEventListener("mouseover", (e) => {
+  const task = e.target.closest(".task[data-open]");
+  if (!task) return;
+  clearTimeout(hoverTimer);
+  hoverTimer = setTimeout(() => {
+    const [pid, cid] = task.dataset.open.split("|");
+    const p = project(pid);
+    const c = p?.chats.find((ch) => ch.id === cid);
+    if (!c) return;
+    if (hoverTooltip) hoverTooltip.remove();
+    hoverTooltip = document.createElement("div");
+    hoverTooltip.className = "chat-tooltip";
+    const info = [c.title, `Status: ${c.status}`, c.msg_count ? `${c.msg_count} messages` : "", `Updated ${ago(c.updated)}`].filter(Boolean).join("\n");
+    hoverTooltip.textContent = info;
+    const rect = task.getBoundingClientRect();
+    hoverTooltip.style.top = rect.top + "px";
+    hoverTooltip.style.left = (rect.right + 8) + "px";
+    document.body.appendChild(hoverTooltip);
+  }, 600);
+});
+document.addEventListener("mouseout", (e) => {
+  const task = e.target.closest(".task[data-open]");
+  if (task || e.relatedTarget?.closest?.(".chat-tooltip")) return;
+  clearTimeout(hoverTimer);
+  if (hoverTooltip) { hoverTooltip.remove(); hoverTooltip = null; }
+});
+
+// ---- agent response streaming progress (line count in working indicator) ----
+// This enhances the existing renderMessage - we track live message line counts
+setInterval(() => {
+  document.querySelectorAll(".working .typing-dots").forEach((dots) => {
+    const msgBody = dots.closest(".msg-body");
+    if (!msgBody) return;
+    const body = msgBody.querySelector(".body");
+    if (!body) return;
+    const lines = body.querySelectorAll("p, .code-block, .tool-group, .list-item, blockquote, h3, h4, h5, h6");
+    if (lines.length > 0) {
+      let counter = dots.parentElement.querySelector(".stream-count");
+      if (!counter) {
+        counter = document.createElement("span");
+        counter.className = "stream-count";
+        dots.parentElement.appendChild(counter);
+      }
+      counter.textContent = ` (${lines.length} blocks)`;
+    }
+  });
+}, 1000);
 
 // ---- Cmd+. stop running agent ----
 document.addEventListener("keydown", (e) => {

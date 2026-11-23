@@ -830,4 +830,23 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
   .plan-subtasks-wrap, .plan-sub-details { transition-duration: 0s !important; }
   .plan-status-icon, .plan-sub-icon { transition: none !important; }
   .plan-progress-fill { transition: none !important; }
+  .msg-fadein { animation: none !important; }
 }
+
+/* ---- batch 6: markdown tables ---- */
+.table-wrap { overflow-x: auto; margin: 8px 0; }
+.agent-table { border-collapse: collapse; font-size: 13px; width: 100%; }
+.agent-table th, .agent-table td { border: 1px solid var(--line); padding: 5px 10px; text-align: left; }
+.agent-table th { background: var(--hover); font-weight: 600; }
+.agent-table tr:nth-child(even) td { background: color-mix(in srgb, var(--hover) 50%, transparent); }
+
+/* ---- batch 6: model badge ---- */
+.model-badge { font-size: 10px; background: var(--hover); color: var(--muted); padding: 1px 6px; border-radius: 4px; font-weight: 500; letter-spacing: .02em; }
+
+/* ---- batch 6: fade-in animation ---- */
+@keyframes msg-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.msg-fadein { animation: msg-fadein .25s ease-out; }
+
+/* ---- batch 6: drag-to-reorder pinned ---- */
+.pinned-section .task-row[draggable="true"] { cursor: grab; }
+.pinned-section .task-row.dragging { opacity: .4; }

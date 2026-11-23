@@ -210,7 +210,28 @@ function renderAgentText(text) {
     out.push(`<details class="tool-group"><summary class="tool-summary">${count} tool call${count > 1 ? "s" : ""}</summary><div class="tool-list">${tools.join("")}</div></details>`);
     tools = [];
   };
-  for (const line of text.split("\n")) {
+  const allLines = text.split("\n");
+  for (let lineIdx = 0; lineIdx < allLines.length; lineIdx++) {
+    const line = allLines[lineIdx];
+    // ---- markdown table detection ----
+    if (code === null && line.match(/^\|.+\|$/) && allLines[lineIdx + 1]?.match(/^\|[\s:|-]+\|$/)) {
+      flush(); flushTools();
+      const tableLines = [];
+      while (lineIdx < allLines.length && allLines[lineIdx].match(/^\|.+\|$/)) {
+        tableLines.push(allLines[lineIdx]);
+        lineIdx++;
+      }
+      lineIdx--;
+      if (tableLines.length >= 2) {
+        const headerCells = tableLines[0].split("|").slice(1, -1).map((c) => `<th>${inline(c.trim())}</th>`).join("");
+        const rows = tableLines.slice(2).map((r) => {
+          const cells = r.split("|").slice(1, -1).map((c) => `<td>${inline(c.trim())}</td>`).join("");
+          return `<tr>${cells}</tr>`;
+        }).join("");
+        out.push(`<div class="table-wrap"><table class="agent-table"><thead><tr>${headerCells}</tr></thead><tbody>${rows}</tbody></table></div>`);
+      }
+      continue;
+    }
     if (code !== null) {
       if (line.trim().startsWith("```")) {
         const id = `code-${++codeBlockId}`;
@@ -296,8 +317,20 @@ function renderSidebar() {
       if (c.pinned) pinned.push({ ...c, projectId: p.id, projectName: p.name });
     }
   }
+  let pinnedOrder = [];
+  try { pinnedOrder = JSON.parse(localStorage.getItem("pinnedOrder") || "[]"); } catch {}
+  if (pinnedOrder.length) {
+    pinned.sort((a, b) => {
+      const ai = pinnedOrder.indexOf(`${a.projectId}|${a.id}`);
+      const bi = pinnedOrder.indexOf(`${b.projectId}|${b.id}`);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  }
   const pinnedHtml = pinned.length ? `<div class="pinned-section"><div class="list-label">Pinned</div>${pinned.map((c) => `
-    <div class="task-row">
+    <div class="task-row" draggable="true">
       <button type="button" class="task${c.projectId === pid && c.id === cid ? " active" : ""}" data-open="${esc(c.projectId)}|${esc(c.id)}">
         <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
         <span class="task-text"><span class="task-title">&#9733; ${esc(c.title)}</span>
@@ -570,9 +603,12 @@ function renderPlan(messages) {
   const tasks = buildPlanTasks(messages);
   if (!tasks.length) return "";
 
-  // Default: expand the last task
+  // Default: expand the last task, auto-collapse completed
   const lastId = tasks[tasks.length - 1].id;
   if (!(lastId in planExpanded)) planExpanded[lastId] = true;
+  for (const t of tasks) {
+    if (!(t.id in planExpanded) && t.status === "completed") planExpanded[t.id] = false;
+  }
 
   const items = tasks.map((task, idx) => {
     const sc = planStatusClass(task.status);
@@ -708,7 +744,7 @@ function renderMessage(m) {
     const ts = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
     const retryBtn = !isBusy(pid, cid) ? `<button type="button" class="msg-action retry-msg" data-retry="${esc(m.text)}" title="Resend">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-12.6L1 10"/></svg></button>` : "";
-    return `<div class="msg user"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
+    return `<div class="msg user msg-fadein"><div class="bubble">${esc(m.text)}</div>${files ? `<div class="attachments">${files}</div>` : ""}${ts}${retryBtn}</div>`;
   }
   if (m.role === "note") {
     const shots = (m.screenshots || []).map((s) => {
@@ -748,11 +784,14 @@ function renderMessage(m) {
     : rendered;
   const working = m.live ? `<div class="working"><span class="typing-dots"><span></span><span></span><span></span></span>${esc(nameOf(agent))} is ${doing}</div>` : "";
   const label = labels[m.step] ? `<span class="step">${esc(labels[m.step])}</span>` : "";
+  const agentKey = String(agent).split("+")[0];
+  const modelName = state.models?.[agentKey]?.selected;
+  const modelBadge = modelName ? `<span class="model-badge">${esc(shortModel(modelName))}</span>` : "";
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
   const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : "";
-  return `<div class="msg agent${m.step === "report" ? " report" : ""}">${avatar(agent)}<div class="msg-body">
-    <div class="msg-name">${esc(nameOf(agent))} ${label} ${agentTs}</div>
+  return `<div class="msg agent${m.step === "report" ? " report" : ""} msg-fadein">${avatar(agent)}<div class="msg-body">
+    <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs}</div>
     <div class="body">${body}</div>${working}
     <div class="msg-actions">${copyMsg}</div></div></div>`;
 }
@@ -1071,7 +1110,12 @@ async function refresh(force = false) {
       catch { nextChat = null; }
     }
     const key = JSON.stringify(next);
+    const prevModels = state.models;
     state = next;
+    if (!state.models) state.models = prevModels;
+    if (!state.models) {
+      try { state.models = await api("/api/models"); } catch {}
+    }
     chat = nextChat;
     if (key !== lastStateKey || force) {
       lastStateKey = key;
@@ -2033,5 +2077,43 @@ function showChatSwitcher() {
     }
   });
 }
+
+// ---- Cmd+Shift+C: copy last code block ----
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "C") {
+    e.preventDefault();
+    const blocks = document.querySelectorAll("#messages pre code");
+    if (!blocks.length) { toast("No code blocks to copy."); return; }
+    const last = blocks[blocks.length - 1];
+    navigator.clipboard.writeText(last.innerText).then(() => toast("Last code block copied."));
+  }
+});
+
+// ---- drag-to-reorder pinned chats ----
+let draggedPin = null;
+document.addEventListener("dragstart", (e) => {
+  const row = e.target.closest(".pinned-section .task-row");
+  if (!row) return;
+  draggedPin = row;
+  row.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+});
+document.addEventListener("dragover", (e) => {
+  if (!draggedPin) return;
+  const row = e.target.closest(".pinned-section .task-row");
+  if (!row || row === draggedPin) return;
+  e.preventDefault();
+  const rect = row.getBoundingClientRect();
+  if (e.clientY > rect.top + rect.height / 2) row.after(draggedPin);
+  else row.before(draggedPin);
+});
+document.addEventListener("dragend", () => {
+  if (!draggedPin) return;
+  draggedPin.classList.remove("dragging");
+  const rows = document.querySelectorAll(".pinned-section .task-row .task[data-open]");
+  const order = [...rows].map((btn) => btn.dataset.open);
+  try { localStorage.setItem("pinnedOrder", JSON.stringify(order)); } catch {}
+  draggedPin = null;
+});
 
 refresh(true);

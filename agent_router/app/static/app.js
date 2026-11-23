@@ -811,7 +811,7 @@ function renderMessage(m) {
   return `<div class="msg agent${m.step === "report" ? " report" : ""} msg-fadein">${avatar(agent)}<div class="msg-body">
     <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs} ${respTime}</div>
     <div class="body">${body}</div>${working}
-    <div class="msg-actions">${bookmarkBtn}${copyMsg}${!m.live && visibleText ? `<button type="button" class="msg-action react-btn" data-react="${esc(bmKey)}" title="React">&#x1F44D;</button>` : ""}</div>
+    <div class="msg-actions">${bookmarkBtn}${copyMsg}${!m.live && visibleText ? `<button type="button" class="msg-action react-btn" data-react="${esc(bmKey)}" title="React">&#x1F44D;</button>` : ""}${!m.live && msgIdx >= 0 ? `<button type="button" class="msg-action pin-msg-btn${pinnedMsgs.has(bmKey) ? " active" : ""}" data-pinmsg="${esc(bmKey)}" title="${pinnedMsgs.has(bmKey) ? "Unpin" : "Pin to top"}">&#x1F4CC;</button>` : ""}</div>
     ${!m.live && msgIdx >= 0 ? `<div class="msg-reactions" data-rkey="${esc(bmKey)}">${(reactions[bmKey] || []).map((r) => `<span class="reaction">${r}</span>`).join("")}</div>` : ""}
     </div></div>`;
 }
@@ -2538,5 +2538,117 @@ document.addEventListener("keydown", (e) => {
   msgs[idx].classList.add("msg-focused");
   msgs[idx].scrollIntoView({ block: "nearest", behavior: "smooth" });
 });
+
+// ---- batch 13: pinned messages ----
+let pinnedMsgs = new Set();
+try { pinnedMsgs = new Set(JSON.parse(localStorage.getItem("pinnedMsgs") || "[]")); } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-pinmsg]");
+  if (!btn) return;
+  const key = btn.dataset.pinmsg;
+  if (pinnedMsgs.has(key)) pinnedMsgs.delete(key);
+  else pinnedMsgs.add(key);
+  try { localStorage.setItem("pinnedMsgs", JSON.stringify([...pinnedMsgs])); } catch {}
+  renderMessages(true);
+});
+
+// ---- batch 13: pinned messages bar at top of chat ----
+const origRenderMessages = renderMessages;
+renderMessages = function(force) {
+  origRenderMessages(force);
+  const box = document.getElementById("messages");
+  if (!box || !chat) return;
+  let bar = document.getElementById("pinned-msgs-bar");
+  const { pid, cid } = route();
+  const prefix = `${pid}|${cid}|`;
+  const pins = [...pinnedMsgs].filter((k) => k.startsWith(prefix));
+  if (!pins.length) { if (bar) bar.remove(); return; }
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "pinned-msgs-bar";
+    bar.className = "pinned-msgs-bar";
+    box.prepend(bar);
+  }
+  bar.innerHTML = pins.map((k) => {
+    const idx = parseInt(k.split("|")[2], 10);
+    const m = chat.messages[idx];
+    if (!m) return "";
+    const preview = (m.text || "").slice(0, 80).replace(/\n/g, " ");
+    return `<div class="pinned-msg-item" data-scroll-to="${idx}"><span class="pin-icon">&#x1F4CC;</span> <strong>${esc(nameOf(m.agent || "user"))}</strong>: ${esc(preview)}</div>`;
+  }).join("");
+};
+
+document.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-scroll-to]");
+  if (!item) return;
+  const idx = parseInt(item.dataset.scrollTo, 10);
+  const msgs = document.querySelectorAll(".msg");
+  if (msgs[idx]) msgs[idx].scrollIntoView({ block: "center", behavior: "smooth" });
+});
+
+// ---- batch 13: double-click chat title to rename inline ----
+document.addEventListener("dblclick", (e) => {
+  const span = e.target.closest(".breadcrumb > span:last-child");
+  if (!span || !chat) return;
+  const { pid, cid } = route();
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "inline-rename";
+  input.value = chat.title;
+  span.replaceWith(input);
+  input.focus();
+  input.select();
+  const done = async () => {
+    const val = input.value.trim();
+    if (val && val !== chat.title) {
+      await api("/api/chats/rename", { project: pid, chat: cid, title: val });
+      toast("Chat renamed.");
+    }
+    renderHead();
+  };
+  input.addEventListener("blur", done);
+  input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") input.blur(); if (ev.key === "Escape") { input.value = chat.title; input.blur(); } });
+});
+
+// ---- batch 13: click timestamp to copy ISO time ----
+document.addEventListener("click", (e) => {
+  const time = e.target.closest("time.msg-time");
+  if (!time) return;
+  const dt = time.getAttribute("datetime");
+  if (!dt) return;
+  navigator.clipboard.writeText(dt).then(() => toast("Timestamp copied."));
+});
+
+// ---- batch 13: new messages below banner ----
+let newMsgsBanner = null;
+(function() {
+  const box = document.getElementById("messages");
+  if (!box) return;
+  newMsgsBanner = document.createElement("div");
+  newMsgsBanner.className = "new-msgs-banner";
+  newMsgsBanner.hidden = true;
+  newMsgsBanner.textContent = "New messages below";
+  newMsgsBanner.addEventListener("click", () => { box.scrollTo({ top: box.scrollHeight, behavior: "smooth" }); newMsgsBanner.hidden = true; });
+  box.parentElement.appendChild(newMsgsBanner);
+  let lastMsgCount = 0;
+  setInterval(() => {
+    if (!chat) return;
+    const count = chat.messages?.length || 0;
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 100;
+    if (count > lastMsgCount && !atBottom) {
+      newMsgsBanner.hidden = false;
+    }
+    if (atBottom) newMsgsBanner.hidden = true;
+    lastMsgCount = count;
+  }, 1500);
+})();
+
+// ---- batch 13: agent busy dots in sidebar ----
+// Enhance existing sidebar dots: add pulse animation to running agents
+setInterval(() => {
+  document.querySelectorAll(".task .dot.running, .task .dot.working").forEach((dot) => {
+    if (!dot.classList.contains("pulse")) dot.classList.add("pulse");
+  });
+}, 2000);
 
 refresh(true);

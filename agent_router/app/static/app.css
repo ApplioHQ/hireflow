@@ -918,3 +918,16 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .resp-time { font-size: 11px; color: var(--muted); margin-left: 6px; }
 .char-counter { position: absolute; bottom: 6px; right: 60px; font-size: 11px; color: var(--muted); pointer-events: none; }
 .char-counter.warn { color: var(--danger, #e55); }
+
+/* ---- batch 13: pinned messages, inline rename, new msgs banner, pulse dots ---- */
+.pin-msg-btn { opacity: 0; transition: opacity .15s; font-size: 12px; }
+.msg:hover .pin-msg-btn { opacity: 1; }
+.pin-msg-btn.active { opacity: 1; }
+.pinned-msgs-bar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--accent) 8%, var(--bg)); border-bottom: 1px solid var(--border); padding: 4px 16px; }
+.pinned-msg-item { font-size: 12px; padding: 3px 0; cursor: pointer; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pinned-msg-item:hover { text-decoration: underline; }
+.pin-icon { font-size: 11px; }
+.inline-rename { background: var(--bg); border: 1px solid var(--accent); border-radius: 4px; color: var(--text); font-size: inherit; padding: 2px 6px; outline: none; min-width: 120px; }
+.new-msgs-banner { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+.dot.pulse { animation: pulse-dot 1.5s ease-in-out infinite; }

@@ -787,6 +787,14 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .resize-handle { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 10; }
 .resize-handle:hover, .resize-handle:active { background: var(--accent); opacity: .3; border-radius: 3px; }
 
+/* elapsed response time */
+.elapsed-time { font-size: 11px; color: var(--muted); background: var(--hover); padding: 1px 6px; border-radius: 4px; }
+
+/* multi-select bar */
+.multi-bar { display: flex; gap: 6px; padding: 6px 12px; align-items: center; }
+.multi-check { font-size: 16px; line-height: 1; color: var(--accent); }
+.task.selected { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
 /* reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .plan-card, .plan-list > li, .plan-subtasks > li, .plan-tool-pill { animation-duration: 0s !important; }

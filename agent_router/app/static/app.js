@@ -303,7 +303,8 @@ function renderSidebar() {
       </button>
     </div>`).join("")}</div>` : "";
   const active = pid || state.projects[0]?.id;
-  nav.innerHTML = strip + pinnedHtml + state.projects.map((p) => {
+  const multiBar = multiSelectMode ? `<div class="multi-bar"><button type="button" class="btn small bad-text" id="delete-selected">Delete selected (${selectedChats.size})</button><button type="button" class="btn small" id="cancel-multi">Cancel</button></div>` : "";
+  nav.innerHTML = strip + pinnedHtml + multiBar + state.projects.map((p) => {
     const open = !collapsed[p.id];
     let lastGroup = "";
     const chats = open ? p.chats.slice(0, 40).map((c) => {
@@ -312,8 +313,8 @@ function renderSidebar() {
       lastGroup = group;
       return groupHtml + `
       <div class="task-row">
-        <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
-          <span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>
+        <button type="button" class="task${p.id === pid && c.id === cid ? " active" : ""}${multiSelectMode && selectedChats.has(`${p.id}|${c.id}`) ? " selected" : ""}" data-open="${esc(p.id)}|${esc(c.id)}">
+          ${multiSelectMode ? `<span class="multi-check">${selectedChats.has(`${p.id}|${c.id}`) ? "&#9745;" : "&#9744;"}</span>` : `<span class="dot ${esc(c.status === "idle" ? (c.failed ? "blocked" : "done") : c.status)}"></span>`}
           <span class="task-text"><span class="task-title">${c.pinned ? "&#9733; " : ""}${esc(c.title)}</span>
           <span class="task-meta">${esc(ago(c.updated))}${c.status !== "idle" ? " - " + esc(c.status) : ""}</span></span>
         </button>
@@ -354,13 +355,16 @@ function renderHead() {
   const stopBtn = isBusy(pid, cid) ? `<button type="button" class="icon-btn" data-action="stop" title="${status === "queued" ? "Cancel" : "Stop"}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>` : "";
   $("#head").innerHTML = `${menu}<div class="head-title"><h1 title="${esc(chat.title)}">${esc(chat.title)}</h1>
     <div class="head-meta"><span>${esc(p.name)}</span><span class="muted">${esc(p.path)}</span>
-    ${status !== "idle" ? `<span class="pill running">${esc(status)}</span>` : ""}</div></div>
+    ${status !== "idle" ? `<span class="pill running">${esc(status)}</span>` : ""}${chat.messages ? (() => { const et = elapsedTime(chat.messages); return et ? `<span class="elapsed-time" title="Response time">${esc(et)}</span>` : ""; })() : ""}</div></div>
     <div class="head-actions">${stopBtn}<button type="button" class="icon-btn" data-panel="diff" title="Changes"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button><button type="button" class="icon-btn head-more" id="head-more" title="More actions"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button></div>
     <div class="head-menu" id="head-menu" hidden>
       <button type="button" data-action="pin">${chat.pinned ? "Unpin" : "Pin"}</button>
       <button type="button" data-action="rename">Rename</button>
       <button type="button" data-action="archive">${chat.archived ? "Unarchive" : "Archive"}</button>
+      <button type="button" data-action="export">Export as Markdown</button>
+      <button type="button" data-action="sound">${notifSoundEnabled ? "Sound: on" : "Sound: off"}</button>
       <button type="button" data-action="screenshot">Screenshot</button>
+      <button type="button" data-action="multi-delete">Delete multiple chats</button>
       <button type="button" class="bad-text" data-action="delete">Delete</button>
     </div>`;
 }
@@ -1261,7 +1265,17 @@ document.addEventListener("click", async (e) => {
     } catch (err) { toast(err.message); }
     return;
   }
-  if (el.dataset.open) { const [p, c] = el.dataset.open.split("|"); searchResults = null; $("#search").value = ""; go(p, c); return; }
+  if (el.id === "delete-selected") { deleteSelectedChats(); return; }
+  if (el.id === "cancel-multi") { multiSelectMode = false; selectedChats.clear(); renderSidebar(); return; }
+  if (el.dataset.open) {
+    if (multiSelectMode) {
+      const key = el.dataset.open;
+      if (selectedChats.has(key)) selectedChats.delete(key); else selectedChats.add(key);
+      renderSidebar();
+      return;
+    }
+    const [p, c] = el.dataset.open.split("|"); searchResults = null; $("#search").value = ""; go(p, c); return;
+  }
   if (el.dataset.toggle) {
     collapsed[el.dataset.toggle] = !collapsed[el.dataset.toggle];
     try { localStorage.setItem("collapsed", JSON.stringify(collapsed)); } catch { /* private mode */ }
@@ -1295,6 +1309,12 @@ document.addEventListener("click", async (e) => {
     } else if (action === "rename") {
       const title = prompt("Chat name:", chat.title);
       if (title && title.trim()) await api("/api/chats/update", { project: pid, chat: cid, title: title.trim() });
+    } else if (action === "export") {
+      exportChat();
+    } else if (action === "sound") {
+      toggleNotifSound();
+    } else if (action === "multi-delete") {
+      toggleMultiSelect();
     } else if (action === "screenshot") {
       const url = prompt("URL to screenshot:", "http://localhost:3000");
       if (url) {
@@ -1592,6 +1612,7 @@ function toggleShortcutModal() {
     ["Escape", "Close panel/modal"],
     ["Enter", "Send message"],
     ["Shift+Enter", "New line"],
+    [mod + "+D", "Resend last message"],
     ["Up/Down", "Input history"],
     ["Double-click chat", "Rename"],
   ];
@@ -1752,5 +1773,137 @@ $("#input").addEventListener("input", () => {
   charCount.textContent = len > 100 ? `${len}` : "";
   charCount.classList.toggle("warn", len > 4000);
 });
+
+// ---- export chat as markdown ----
+function exportChat() {
+  if (!chat) return;
+  const lines = [`# ${chat.title}\n`];
+  for (const m of chat.messages) {
+    if (m.role === "user") lines.push(`## You\n${m.text}\n`);
+    else if (m.role === "agent") {
+      const name = nameOf(m.agent || "agent");
+      const text = hideCodexDiagnostics(m.text || "", m.agent);
+      lines.push(`## ${name} (${m.step || "message"})\n${text}\n`);
+    } else if (m.role === "result") {
+      const files = (m.files || []).join(", ");
+      lines.push(`## Result\n${m.ok ? "Done" : "Failed"}: ${files || m.reason || ""}\n${m.summary || ""}\n`);
+    } else if (m.role === "note") {
+      lines.push(`> ${m.text}\n`);
+    }
+  }
+  const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${chat.title.replace(/[^a-z0-9]+/gi, "-").slice(0, 50)}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Chat exported.");
+}
+
+// ---- agent response time ----
+function elapsedTime(messages) {
+  if (!messages || messages.length < 2) return "";
+  const userMsg = [...messages].reverse().find(m => m.role === "user" && m.ts);
+  const lastAgent = [...messages].reverse().find(m => (m.role === "agent" || m.role === "result") && m.ts && !m.live);
+  if (!userMsg || !lastAgent) return "";
+  const ms = new Date(lastAgent.ts) - new Date(userMsg.ts);
+  if (ms < 1000) return "";
+  if (ms < 60000) return `${Math.round(ms / 1000)}s`;
+  return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`;
+}
+
+// ---- scroll position memory per chat ----
+const scrollPositions = {};
+{
+  const box = $("#messages");
+  let lastRouteKey = "";
+  box.addEventListener("scroll", () => {
+    const r = route();
+    const key = `${r.pid}/${r.cid}`;
+    if (key !== "/") scrollPositions[key] = box.scrollTop;
+  });
+  window.addEventListener("hashchange", () => {
+    const r = route();
+    const key = `${r.pid}/${r.cid}`;
+    if (key !== lastRouteKey && key !== "/") {
+      requestAnimationFrame(() => {
+        const saved = scrollPositions[key];
+        if (saved !== undefined) box.scrollTop = saved;
+      });
+    }
+    lastRouteKey = key;
+  });
+}
+
+// ---- notification sound toggle ----
+let notifSoundEnabled = false;
+try { notifSoundEnabled = localStorage.getItem("notifSound") === "1"; } catch {}
+function playNotifSound() {
+  if (!notifSoundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = "sine";
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch {}
+}
+function toggleNotifSound() {
+  notifSoundEnabled = !notifSoundEnabled;
+  try { localStorage.setItem("notifSound", notifSoundEnabled ? "1" : "0"); } catch {}
+  toast(notifSoundEnabled ? "Notification sound on" : "Notification sound off");
+  if (notifSoundEnabled) playNotifSound();
+}
+{
+  let prevRunning = new Set();
+  setInterval(() => {
+    const nowRunning = new Set(state.running.map(r => `${r.project}/${r.chat}`));
+    for (const key of prevRunning) {
+      if (!nowRunning.has(key)) playNotifSound();
+    }
+    prevRunning = nowRunning;
+  }, 2000);
+}
+
+// ---- Cmd+D duplicate last message ----
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d" && !e.shiftKey) {
+    if (document.activeElement === $("#input") && !$("#input").value) {
+      e.preventDefault();
+      if (inputHistory.length) {
+        $("#input").value = inputHistory[inputHistory.length - 1];
+        autosize();
+      }
+    }
+  }
+});
+
+// ---- multi-select delete chats ----
+let multiSelectMode = false;
+let selectedChats = new Set();
+function toggleMultiSelect() {
+  multiSelectMode = !multiSelectMode;
+  selectedChats.clear();
+  renderSidebar();
+  if (multiSelectMode) toast("Select chats to delete, then click 'Delete selected'.");
+}
+async function deleteSelectedChats() {
+  if (!selectedChats.size) { toast("No chats selected."); return; }
+  if (!confirm(`Delete ${selectedChats.size} chat${selectedChats.size > 1 ? "s" : ""}? This can't be undone.`)) return;
+  for (const key of selectedChats) {
+    const [p, c] = key.split("|");
+    try { await api("/api/chats/delete", { project: p, chat: c }); } catch {}
+  }
+  selectedChats.clear();
+  multiSelectMode = false;
+  toast("Chats deleted.");
+  refresh(true);
+}
 
 refresh(true);

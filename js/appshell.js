@@ -61,13 +61,20 @@
     // Wrapper pins the dock to the bottom edge; the reference uses bottom-2 (8px).
     '.app-dock{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:70;max-width:100%;' +
       'pointer-events:none;}' +
-    // Scroll container (mx-2 flex max-w-full items-end overflow-x-auto).
-    '.dock-scroll{margin:0 8px;display:flex;align-items:flex-end;max-width:100%;overflow-x:auto;overflow-y:hidden;' +
+    // Scroll container (mx-2 flex max-w-full items-end overflow-x-auto). overflow-y
+    // is deliberately left visible (the reference never sets it): the panel below
+    // is pinned to a fixed height, so a magnified item is taller than the panel and
+    // has to overflow upward, past its rounded top edge, to produce the "pops out
+    // of the dock" look. Clipping the y-axis here would hide that entirely.
+    '.dock-scroll{margin:0 8px;display:flex;align-items:flex-end;max-width:100%;overflow-x:auto;' +
       'scrollbar-width:none;scroll-snap-type:x proximity;pointer-events:auto;}' +
     '.dock-scroll::-webkit-scrollbar{display:none;}' +
     // Panel (mx-auto flex w-fit gap-4 rounded-2xl px-4 + demo's items-end pb-3).
+    // height is fixed at PANEL_H, never animated (only the scroll container's height
+    // springs open) -- that mismatch between a growing item and a static panel is
+    // exactly what makes the magnified icon spill out above the bar.
     '.dock-panel{margin:0 auto;display:flex;align-items:flex-end;gap:16px;width:-moz-fit-content;width:fit-content;' +
-      'border-radius:16px;padding:0 16px 12px;background:#171717;border:1px solid transparent;}' +
+      'height:64px;border-radius:16px;padding:0 16px 12px;background:#171717;border:1px solid transparent;}' +
     // Item (relative inline-flex items-center justify-center aspect-square rounded-full).
     '.dock-item{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;' +
       'aspect-ratio:1;border-radius:9999px;background:#262626;color:#d4d4d4;text-decoration:none;' +

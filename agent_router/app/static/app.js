@@ -800,6 +800,7 @@ function renderMessage(m) {
   const agentKey = String(agent).split("+")[0];
   const modelName = state.models?.[agentKey]?.selected;
   const modelBadge = modelName ? `<span class="model-badge">${esc(shortModel(modelName))}</span>` : "";
+  const msgIdx = chat ? chat.messages.indexOf(m) : -1;
   const agentTs = m.ts ? `<time class="msg-time" title="${esc(new Date(m.ts).toLocaleString())}" datetime="${esc(m.ts)}">${ago(m.ts)}</time>` : "";
   let respTime = "";
   if (m.ts && !m.live && chat && msgIdx > 0) {
@@ -811,13 +812,12 @@ function renderMessage(m) {
   }
   const copyMsg = visibleText && !m.live ? `<button type="button" class="msg-action copy-msg" title="Copy message">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>` : "";
-  const msgIdx = chat ? chat.messages.indexOf(m) : -1;
   const bmKey = chat ? `${route().pid}|${route().cid}|${msgIdx}` : "";
   const isBookmarked = bookmarks.has(bmKey);
   const bookmarkBtn = !m.live && msgIdx >= 0 ? `<button type="button" class="msg-action bookmark-btn${isBookmarked ? " active" : ""}" data-bookmark="${esc(bmKey)}" title="${isBookmarked ? "Remove bookmark" : "Bookmark"}">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></button>` : "";
   return `<div class="msg agent${m.step === "report" ? " report" : ""} msg-fadein">${avatar(agent)}<div class="msg-body">
-    <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs} ${respTime}</div>
+    <div class="msg-name">${esc(nameOf(agent))} ${modelBadge} ${label} ${agentTs} ${respTime}${wordCount > 200 ? `<span class="read-time">${Math.ceil(wordCount / 200)} min read</span>` : ""}${msgIdx >= 0 ? `<button type="button" class="msg-action anchor-btn" data-anchor="${msgIdx}" title="Copy link to message">#</button>` : ""}</div>
     <div class="body">${body}</div>${working}
     <div class="msg-actions">${bookmarkBtn}${copyMsg}${!m.live && visibleText ? `<button type="button" class="msg-action react-btn" data-react="${esc(bmKey)}" title="React">&#x1F44D;</button>` : ""}${!m.live && msgIdx >= 0 ? `<button type="button" class="msg-action pin-msg-btn${pinnedMsgs.has(bmKey) ? " active" : ""}" data-pinmsg="${esc(bmKey)}" title="${pinnedMsgs.has(bmKey) ? "Unpin" : "Pin to top"}">&#x1F4CC;</button>` : ""}</div>
     ${!m.live && msgIdx >= 0 ? `<div class="msg-reactions" data-rkey="${esc(bmKey)}">${(reactions[bmKey] || []).map((r) => `<span class="reaction">${r}</span>`).join("")}</div>` : ""}
@@ -3025,5 +3025,84 @@ document.addEventListener("click", (e) => {
   document.body.appendChild(overlay);
   overlay.addEventListener("click", (ev) => { if (ev.target.closest(".template-close") || ev.target === overlay) overlay.remove(); });
 });
+
+// ---- batch 17: anchor link to message ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".anchor-btn");
+  if (!btn) return;
+  const { pid, cid } = route();
+  const idx = btn.dataset.anchor;
+  const link = `${location.origin}/#/${pid}/${cid}?msg=${idx}`;
+  navigator.clipboard.writeText(link).then(() => toast("Message link copied."));
+});
+
+// ---- batch 17: scroll to top button ----
+(function() {
+  const box = document.getElementById("messages");
+  if (!box) return;
+  const topBtn = document.createElement("button");
+  topBtn.className = "scroll-top-btn";
+  topBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 8l-6 6h12z" fill="currentColor"/></svg>';
+  topBtn.title = "Scroll to top";
+  topBtn.hidden = true;
+  box.parentElement.appendChild(topBtn);
+  box.addEventListener("scroll", () => { topBtn.hidden = box.scrollTop < 300; });
+  topBtn.addEventListener("click", () => { box.scrollTo({ top: 0, behavior: "smooth" }); });
+})();
+
+// ---- batch 17: chat sort options ----
+let chatSortMode = "date";
+try { chatSortMode = localStorage.getItem("chatSort") || "date"; } catch {}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-action='sort-chats']");
+  if (!btn) return;
+  const modes = ["date", "name", "status"];
+  const idx = (modes.indexOf(chatSortMode) + 1) % modes.length;
+  chatSortMode = modes[idx];
+  try { localStorage.setItem("chatSort", chatSortMode); } catch {}
+  toast(`Chats sorted by ${chatSortMode}`);
+  renderSidebar();
+});
+
+// ---- batch 17: compact code blocks (auto-collapse >20 lines) ----
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".code-expand-btn");
+  if (!btn) return;
+  const block = btn.closest(".code-block");
+  if (!block) return;
+  block.classList.toggle("code-collapsed");
+  btn.textContent = block.classList.contains("code-collapsed") ? "Expand" : "Collapse";
+});
+const origRenderMessages3 = renderMessages;
+renderMessages = function(force) {
+  origRenderMessages3(force);
+  document.querySelectorAll(".code-block pre code").forEach((code) => {
+    const block = code.closest(".code-block");
+    if (!block || block.dataset.collapsified) return;
+    block.dataset.collapsified = "1";
+    const lines = code.textContent.split("\n");
+    if (lines.length > 20) {
+      block.classList.add("code-collapsed");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "code-expand-btn";
+      btn.textContent = "Expand";
+      block.appendChild(btn);
+    }
+  });
+};
+
+// ---- batch 17: session duration timer ----
+const sessionStartTime = Date.now();
+(function() {
+  const timer = document.createElement("span");
+  timer.className = "session-timer";
+  timer.title = "Session duration";
+  document.querySelector(".side-foot")?.prepend(timer);
+  setInterval(() => {
+    const mins = Math.floor((Date.now() - sessionStartTime) / 60000);
+    timer.textContent = mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  }, 30000);
+})();
 
 refresh(true);

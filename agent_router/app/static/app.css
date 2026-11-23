@@ -969,3 +969,15 @@ mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inhe
 .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 12px 0; }
 .compare-col h4 { margin: 0 0 8px; font-size: 13px; color: var(--accent); }
 .compare-msg { font-size: 12px; padding: 8px; background: var(--bg2); border-radius: 6px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+
+/* ---- batch 17: reading time, anchor, scroll top, code collapse, session timer ---- */
+.read-time { font-size: 10px; color: var(--muted); margin-left: 6px; }
+.anchor-btn { opacity: 0; transition: opacity .15s; font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; }
+.msg:hover .anchor-btn { opacity: 1; }
+.scroll-top-btn { position: absolute; top: 8px; right: 20px; z-index: 10; background: var(--bg2); border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+.scroll-top-btn:hover { background: var(--hover); }
+.code-block.code-collapsed pre { max-height: 120px; overflow: hidden; position: relative; }
+.code-block.code-collapsed pre::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, var(--bg2)); pointer-events: none; }
+.code-expand-btn { display: block; width: 100%; text-align: center; background: none; border: none; border-top: 1px solid var(--border); color: var(--accent); font-size: 12px; padding: 4px; cursor: pointer; }
+.code-expand-btn:hover { background: var(--hover); }
+.session-timer { font-size: 11px; color: var(--muted); display: block; padding: 4px 12px; }

@@ -631,11 +631,11 @@ html:has(body.app-body) { overflow: hidden; }
 }
 .score-reveal-ring { position: relative; width: 132px; height: 132px; margin: 0 auto 6px; }
 .score-reveal-num {
-  position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; gap: 1px;
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   font-weight: 800; line-height: 1;
 }
 .score-reveal-num > span:first-child { font-size: 42px; }
-.score-reveal-den { font-size: 15px; color: var(--muted, #9aa0b4); font-weight: 700; }
+.score-reveal-den { font-size: 14px; color: var(--muted, #9aa0b4); font-weight: 700; margin-top: 4px; }
 .score-reveal-label { font-size: 17px; font-weight: 800; margin: 2px 0 8px; }
 .score-reveal-feedback { font-size: 13.5px; line-height: 1.55; color: var(--muted, #6b7280); margin: 0 auto 16px; max-width: 340px; }
 .score-reveal-fixes { text-align: left; background: var(--bg-2, #f6f7fb); border: 1px solid var(--border, #e6e8f0); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }

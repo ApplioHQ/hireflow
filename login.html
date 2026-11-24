@@ -145,6 +145,50 @@
     .auth-rise-7 { animation-delay: .35s; } .auth-rise-8 { animation-delay: .4s; }
   }
   @keyframes auth-rise { to { opacity: 1; filter: blur(0); transform: translateY(0); } }
+
+  /* 21st.dev SignInPage composition: form left, image/testimonial stage right. */
+  .auth-body { min-height:100dvh; background:var(--bg-0); }
+  .auth-split { min-height:100dvh; background:var(--bg-0); overflow:auto; }
+  .auth-split .auth-card {
+    order:1; flex:1 1 50%; padding:32px 8vw; background:var(--bg-0);
+    align-items:center; justify-content:center;
+  }
+  .auth-split .auth-card > div { max-width:448px; }
+  .auth-split .auth-card h2 { color:var(--text); font-size:clamp(40px,4vw,52px); line-height:1.08; letter-spacing:-.045em; text-align:left; margin:0; }
+  .auth-split .auth-card .sub { font-size:16px; line-height:1.55; text-align:left; margin:0 0 28px; max-width:38ch; }
+  .auth-card .form-field { margin-bottom:20px; }
+  .auth-card .form-field label { font-size:14px; margin-bottom:8px; }
+  .auth-card .form-field input, .auth-card .form-field select {
+    min-height:56px; padding:15px 18px; border-radius:16px; background:color-mix(in srgb, var(--text) 5%, transparent);
+  }
+  .auth-card .form-field:focus-within input, .auth-card .form-field:focus-within select {
+    border-color:rgba(139,92,246,.7); background:rgba(139,92,246,.1); box-shadow:none;
+  }
+  .auth-card .btn-primary.btn-block, .auth-card .btn-google { min-height:56px; border-radius:16px; }
+  .auth-remember-row { margin:-2px 0 20px; }
+  .oauth-block { display:block; margin:24px 0 0; }
+  .oauth-divider { margin:0 0 20px; }
+  .auth-foot.auth-foot-center { margin-top:22px; }
+  .auth-aside {
+    order:2; flex:1 1 50%; max-width:none; margin:16px; padding:0; min-height:calc(100dvh - 32px);
+    border-radius:24px; overflow:hidden; isolation:isolate;
+  }
+  .auth-aside-bg { background-image:linear-gradient(180deg,rgba(10,8,24,.08),rgba(10,8,24,.7)),url('https://cdn.21st.dev/assets/mirror/ec/ecff1664e7fc3185d0e947571f984ea5fa3de9580fb0e73a03cd9c9b3461cb09.jpg'); background-size:cover; background-position:center; }
+  .auth-aside-pattern, .auth-orb, .auth-aside > .brand, .auth-aside-title, .auth-aside-sub, .auth-trust { display:none; }
+  .auth-aside-content { position:absolute; inset:auto 0 32px; z-index:1; max-width:none; margin:0; padding:0 32px; }
+  .auth-quote-block { max-width:320px; margin:0 auto; padding:20px; border-radius:24px; background:rgba(25,24,35,.42); border:1px solid rgba(255,255,255,.18); box-shadow:0 18px 48px rgba(0,0,0,.18); }
+  .auth-quote-stars { display:none; }
+  .auth-quote { font-size:14px; line-height:1.5; margin:0 0 16px; }
+  .auth-quote-avatar { width:40px; height:40px; border-radius:16px; }
+  .auth-quote-author strong { font-size:14px; }
+  .auth-quote-author span { font-size:12px; }
+  .auth-perks { display:none; }
+  @media (max-width:820px) {
+    .auth-split .auth-card { order:1; padding:40px 24px; min-height:100dvh; }
+    .auth-aside { display:none; }
+    .auth-split .auth-card > .brand { display:none; }
+    .auth-split .auth-card h2 { font-size:42px; }
+  }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#111113">
@@ -195,19 +239,19 @@
 
     <!-- Sign in -->
     <div id="view-signin">
-      <h2 class="auth-rise auth-rise-1">Welcome back</h2>
-      <p class="sub auth-rise auth-rise-2">Sign in to continue</p>
+      <h2 class="auth-rise auth-rise-1">Welcome</h2>
+      <p class="sub auth-rise auth-rise-2">Access your account and continue your journey with Applio.</p>
       <div id="msg-signin" class="auth-msg"></div>
       <form id="form-signin">
         <div class="form-field auth-rise auth-rise-3">
-          <label for="si-email">Email or username</label>
+          <label for="si-email">Email address</label>
           <!-- type=text (not email): accounts are looked up by identifier and some
                (e.g. ADMIN) aren't email addresses, so don't force '@' on sign-in. -->
-          <input id="si-email" type="text" name="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" autocomplete="username" required>
+          <input id="si-email" type="text" name="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="Enter your email address" autocomplete="username" required>
         </div>
         <div class="form-field auth-rise auth-rise-4">
           <label for="si-pw">Password</label>
-          <input id="si-pw" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+          <input id="si-pw" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
         </div>
         <div class="auth-remember-row auth-rise auth-rise-5">
           <label><input type="checkbox" name="rememberMe" checked> Keep me signed in</label>
@@ -228,7 +272,7 @@
         </button>
       </div>
       <div class="auth-foot auth-foot-center auth-rise auth-rise-8">
-        <span>Need an account? <a href="#" onclick="showView('signup');return false;">Sign up</a></span>
+        <span>New to Applio? <a href="#" onclick="showView('signup');return false;">Create account</a></span>
       </div>
     </div>
 

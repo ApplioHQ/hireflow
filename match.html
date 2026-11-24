@@ -41,7 +41,7 @@
 }
 </script>
 <style>
-  .bm-wrap { max-width:860px; margin:0 auto; padding:28px 20px 80px; }
+  .bm-wrap { max-width:1280px; margin:0 auto; padding:28px 20px 80px; }
 
   /* ---- Hero ---- */
   .bm-hero { text-align:center; margin-bottom:24px; }
@@ -59,10 +59,13 @@
 
   /* ---- Form card ---- */
   .bm-form { background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r-lg); padding:24px; }
+  .bm-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:860px) { .bm-form-grid { grid-template-columns:1fr; } }
   .bm-field { margin-bottom:14px; }
   .bm-field label { display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--muted); }
   .bm-ta { width:100%; box-sizing:border-box; min-height:120px; padding:12px 14px; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r-md); color:var(--text); font-size:13.5px; line-height:1.55; resize:vertical; font-family:inherit; transition:border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
   .bm-ta:focus { outline:none; border-color:var(--accent); box-shadow:var(--ring); }
+  .bm-form-grid .bm-ta { min-height:200px; }
 
   /* ---- Candidates ---- */
   .bm-cand { border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-2); padding:12px; margin-bottom:12px; }
@@ -175,20 +178,24 @@
 
   <!-- Form -->
   <div class="bm-form">
-    <div class="bm-field">
-      <label>Job Description</label>
-      <textarea id="bm-jd" class="bm-ta" rows="5" placeholder="Paste the full job posting here..."></textarea>
+    <div class="bm-form-grid">
+      <div class="bm-form-col">
+        <div class="bm-field">
+          <label>Job Description</label>
+          <textarea id="bm-jd" class="bm-ta" rows="5" placeholder="Paste the full job posting here..."></textarea>
+        </div>
+      </div>
+      <div class="bm-form-col">
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">Resumes to compare</label>
+        <div id="bm-candidates"></div>
+        <div class="bm-cand-actions">
+          <button class="btn btn-ghost btn-sm" id="bm-add"></button>
+          <button class="btn btn-ghost btn-sm" id="bm-use-saved"></button>
+        </div>
+      </div>
     </div>
 
-    <label style="display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">Resumes to compare</label>
-    <div id="bm-candidates"></div>
-
-    <div class="bm-cand-actions">
-      <button class="btn btn-ghost btn-sm" id="bm-add"></button>
-      <button class="btn btn-ghost btn-sm" id="bm-use-saved"></button>
-    </div>
-
-    <div class="bm-run-wrap">
+    <div class="bm-run-wrap" style="margin-top:16px;">
       <button class="btn btn-primary" id="bm-run" style="flex:1;"></button>
     </div>
     <div id="bm-banner"></div>

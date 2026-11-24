@@ -41,7 +41,7 @@
 }
 </script>
 <style>
-  .ip-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+  .ip-wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
 
   /* ---- Hero ---- */
   .ip-hero-head { text-align: center; margin-bottom: 24px; }
@@ -114,6 +114,8 @@
   @media (prefers-reduced-motion: reduce) { .ip-practice-card, .ip-resume-banner, .ip-fb-reveal { animation: none !important; } }
 
   .ip-practice-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; animation: ipFadeUp .4s var(--ease-out) both; }
+  .ip-practice-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 860px) { .ip-practice-split { grid-template-columns: 1fr; } }
   .ip-practice-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .ip-practice-left { display: flex; align-items: center; gap: 10px; }
   .ip-practice-right { display: flex; align-items: center; gap: 8px; }
@@ -477,15 +479,20 @@ function _renderPracticeQuestion() {
   // Progress bar
   html += '<div class="ip-progress"><div class="ip-progress-fill" style="width:'+pct+'%;"></div></div>';
 
-  // Question
+  // Split layout: question left, answer right
+  html += '<div class="ip-practice-split">';
+
+  // Left column: question + coaching tip + all questions
+  html += '<div class="ip-practice-left-col">';
   html += '<div class="ip-question-text">'+esc(q.question)+'</div>';
-
-  // Coaching tip
   if (q.tip) {
-    html += '<details class="ip-tip"><summary>'+ICON('bulb','ico ico-sm')+' Coaching tip</summary><p>'+esc(q.tip)+'</p></details>';
+    html += '<details class="ip-tip" open><summary>'+ICON('bulb','ico ico-sm')+' Coaching tip</summary><p>'+esc(q.tip)+'</p></details>';
   }
+  html += '<button class="btn btn-ghost btn-sm" id="_pall" style="margin-top:14px;">'+ICON('grid','ico ico-sm')+' All Questions</button>';
+  html += '</div>';
 
-  // Answer area
+  // Right column: answer area + feedback
+  html += '<div class="ip-practice-right-col">';
   html += '<div style="margin-bottom:4px;"><label style="font-size:12px;font-weight:600;color:var(--muted);">Your answer <span style="font-weight:400;">- speak out loud or type (aim for STAR: Situation, Task, Action, Result)</span></label></div>';
 
   // Voice recorder row
@@ -505,11 +512,13 @@ function _renderPracticeQuestion() {
     + '<button class="btn btn-primary btn-sm" id="_psubmit">'+ICON('sparkle','ico ico-sm')+' Get AI Feedback</button>';
   if (_practiceIdx > 0) html += '<button class="btn btn-ghost btn-sm" id="_pprev">'+ICON('arrow-left','ico ico-sm')+' Previous</button>';
   if (_practiceIdx < total - 1) html += '<button class="btn btn-secondary btn-sm" id="_pnext">Next '+ICON('arrow-right','ico ico-sm')+'</button>';
-  html += '<button class="btn btn-ghost btn-sm" id="_pall" style="margin-left:auto;">'+ICON('grid','ico ico-sm')+' All Questions</button>';
   html += '</div>';
 
   // Feedback slot
   html += '<div id="_pfeedback"></div>';
+  html += '</div>'; // end right col
+
+  html += '</div>'; // end ip-practice-split
 
   html += '</div>'; // end ip-practice-card
 

@@ -167,6 +167,22 @@ Your brief is the coder's ONLY instruction -- vague means wrong.
 {text}
 """
 
+HERMES_ONLY = """You are Hermes, answering the user directly for the "{project}" project ({path}).
+You can read any file in the project to understand the code. You cannot edit files.
+
+IMPORTANT: In this mode you answer EVERYTHING yourself. Do NOT delegate to any coder.
+Do NOT output any DELEGATE blocks. The user chose Hermes-only mode, meaning they want YOUR
+analysis, explanation, plan, or answer -- not code changes from a coder.
+
+Never narrate what you are about to do. Never add disclaimers about committing or pushing.
+{availability}{images}{notes}
+===== PROJECT MEMORY =====
+{memory}
+{conversation}
+===== MESSAGE FROM THE USER =====
+{text}
+"""
+
 CODER = """You are {coder}, a coding agent working in the "{project}" project at {path}. Hermes, the
 orchestrator, assigned you this work from a chat with the user.
 
@@ -788,8 +804,8 @@ class Engine:
     def check_agent(self, agent):
         if agent in (None, "", self.orchestrator):
             return None
-        if agent == "auto":
-            return "auto"
+        if agent in ("auto", "hermes_only"):
+            return agent
         if agent not in self.coders:
             raise ChatError(f"Unknown agent '{agent}'. Use {', '.join([self.orchestrator, 'auto', *self.coders])}.")
         return agent
@@ -843,7 +859,11 @@ class Engine:
             self.store.add(pid, cid, {"role": "note",
                                       "text": f"That has an image {name(self.orchestrator)} can't see, "
                                               f"so it goes to {name(agent)}."})
-        if agent == "auto":
+        if agent == "hermes_only":
+            job["hermes_only"] = True
+            job["agent"] = None
+            self.lane(pid, "chat").submit(job)
+        elif agent == "auto":
             has_images = any(Path(f).suffix.lower() in IMAGE_TYPES for f in saved)
             if has_images and not self.orchestrator_sees_images():
                 pick = self.auto_pick_coder(project, text)
@@ -1034,7 +1054,9 @@ class Engine:
                   "availability": self.availability(project), "images": image_note,
                   "notes": self.project_notes(project), "memory": self.store.memory(pid),
                   "conversation": self.conversation(chat), "text": job["text"]}
-        if job.get("auto"):
+        if job.get("hermes_only"):
+            template = HERMES_ONLY
+        elif job.get("auto"):
             template = AUTO_SELECT
         else:
             template = ORCHESTRATE_FOLLOWUP if session else ORCHESTRATE
@@ -1052,6 +1074,9 @@ class Engine:
         clean = re.sub(r"\n?Error: Session:.*\n?", "", clean)
         clean = re.sub(r"\n?Error: session_id:.*\n?", "", clean)
         has_output = any(l.strip() and not re.match(r"^\[.*\]$|^> ", l.strip()) for l in clean.splitlines())
+        if job.get("hermes_only"):
+            self.store.finish_live(pid, cid, step="answer")
+            return
         delegations = parse_delegations(clean) if turn["code"] in (0, 2) or has_output else []
         if not delegations and turn["code"] not in (0, 2, 130):
             # Hermes failed or tried to edit itself: delegate to default coder.

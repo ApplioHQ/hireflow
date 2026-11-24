@@ -20,10 +20,6 @@
   .auth-perks li { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text); }
   .auth-perks li svg { flex:none; color:#10b981; }
   .auth-socialproof { text-align:center; font-size:12px; color:var(--muted); margin:16px 0 0; }
-  /* Google sign-in block (hidden until GOOGLE_CLIENT_ID is configured) */
-  .oauth-block { display:none; margin:20px 0 6px; }
-  .oauth-divider { display:flex; align-items:center; gap:12px; margin:16px 0 4px; color:var(--muted); font-size:12px; }
-  .oauth-divider::before, .oauth-divider::after { content:""; flex:1; height:1px; background:var(--border); }
   /* Show/hide password + Caps Lock warning */
   .pw-wrap { position:relative; }
   .pw-wrap input { padding-right:44px !important; }
@@ -111,12 +107,6 @@
     background: var(--accent-soft); box-shadow: var(--ring);
   }
   .auth-card .btn-primary.btn-block { border-radius: var(--r-lg); padding: 14px 18px; }
-  .auth-card .btn-google {
-    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-    border: 1px solid var(--border); background: transparent; color: var(--text);
-    font-weight: 600; font-size: var(--fs-base); border-radius: var(--r-lg); padding: 13px 18px; cursor: pointer;
-  }
-  .auth-card .btn-google:hover { background: var(--bg-2); }
   .pw-toggle svg { display: block; width: 18px; height: 18px; }
 
   /* "Keep me signed in" + reset password, between the password field and submit */
@@ -164,22 +154,25 @@
   .auth-card .form-field:focus-within input, .auth-card .form-field:focus-within select {
     border-color:rgba(139,92,246,.7); background:rgba(139,92,246,.1); box-shadow:none;
   }
-  .auth-card .btn-primary.btn-block, .auth-card .btn-google { min-height:56px; border-radius:16px; }
+  .auth-card .btn-primary.btn-block { min-height:56px; border-radius:16px; }
   .auth-remember-row { margin:-2px 0 20px; }
-  .oauth-block { display:block; margin:24px 0 0; }
-  .oauth-divider { margin:0 0 20px; }
   .auth-foot.auth-foot-center { margin-top:22px; }
   .auth-aside {
     order:2; flex:1 1 50%; max-width:none; margin:16px; padding:0; min-height:calc(100dvh - 32px);
     border-radius:24px; overflow:hidden; isolation:isolate;
   }
-  .auth-aside-bg { background-image:linear-gradient(180deg,rgba(10,8,24,.08),rgba(10,8,24,.7)),url('https://cdn.21st.dev/assets/mirror/ec/ecff1664e7fc3185d0e947571f984ea5fa3de9580fb0e73a03cd9c9b3461cb09.jpg'); background-size:cover; background-position:center; }
-  .auth-aside-pattern, .auth-orb, .auth-aside > .brand, .auth-aside-title, .auth-aside-sub, .auth-trust { display:none; }
-  .auth-aside-content { position:absolute; inset:auto 0 32px; z-index:1; max-width:none; margin:0; padding:0 32px; }
-  .auth-quote-block { max-width:320px; margin:0 auto; padding:20px; border-radius:24px; background:rgba(25,24,35,.42); border:1px solid rgba(255,255,255,.18); box-shadow:0 18px 48px rgba(0,0,0,.18); }
-  .auth-quote-stars { display:none; }
-  .auth-quote { font-size:14px; line-height:1.5; margin:0 0 16px; }
-  .auth-quote-avatar { width:40px; height:40px; border-radius:16px; }
+  /* Applio's own brand gradient + aurora orbs (no external image dependency, no
+     off-brand stock photo) -- the testimonial card then floats on something that
+     actually belongs to the product instead of a random hotlinked photo. */
+  .auth-aside > .brand, .auth-aside-title, .auth-aside-sub, .auth-trust { display:none; }
+  .auth-aside-content { position:absolute; inset:0; z-index:1; max-width:none; margin:0; padding:0 40px; display:flex; align-items:center; justify-content:center; }
+  .auth-quote-block {
+    max-width:360px; padding:24px; border-radius:20px;
+    background:rgba(255,255,255,.08); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.14); box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .auth-quote { font-size:14.5px; line-height:1.55; margin:0 0 16px; }
+  .auth-quote-avatar { width:40px; height:40px; border-radius:50%; }
   .auth-quote-author strong { font-size:14px; }
   .auth-quote-author span { font-size:12px; }
   .auth-perks { display:none; }
@@ -259,19 +252,7 @@
         </div>
         <button type="submit" class="btn btn-primary btn-block auth-rise auth-rise-6">Sign in</button>
       </form>
-      <div class="oauth-block auth-rise auth-rise-7">
-        <div class="oauth-divider"><span>Or continue with</span></div>
-        <button type="button" id="gbtn-signin" class="btn-google">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-2.641-.21-5.236-.611-7.743z"/>
-            <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-            <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-            <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.022 35.026 44 30.038 44 24c0-2.641-.21-5.236-.611-7.743z"/>
-          </svg>
-          Continue with Google
-        </button>
-      </div>
-      <div class="auth-foot auth-foot-center auth-rise auth-rise-8">
+      <div class="auth-foot auth-foot-center auth-rise auth-rise-7">
         <span>New to Applio? <a href="#" onclick="showView('signup');return false;">Create account</a></span>
       </div>
     </div>
@@ -313,18 +294,6 @@
         <button type="submit" class="btn btn-primary btn-block">Create free account →</button>
         <p class="consent-legal">By creating an account you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</p>
       </form>
-      <div class="oauth-block">
-        <div class="oauth-divider"><span>Or continue with</span></div>
-        <button type="button" id="gbtn-signup" class="btn-google">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-2.641-.21-5.236-.611-7.743z"/>
-            <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-            <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-            <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.022 35.026 44 30.038 44 24c0-2.641-.21-5.236-.611-7.743z"/>
-          </svg>
-          Continue with Google
-        </button>
-      </div>
       <ul class="auth-perks">
         <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Full resume builder + 31 templates</li>
         <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Free ATS checker &amp; job tracker</li>
@@ -337,48 +306,6 @@
   <script src="js/config.js"></script>
   <script src="js/notify.js"></script>
   <script src="js/auth.js"></script>
-  <!-- Google Identity Services (only initializes if a Client ID is configured) -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script>
-    (function () {
-      var CFG = window.HIREFLOW_CONFIG || {};
-      var CID = CFG.GOOGLE_CLIENT_ID || '';
-      if (!CID) return;   // not configured yet -> leave the .oauth-block hidden
-      function onGoogle(resp) {
-        fetch(CFG.API_URL + '/auth/google', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: resp.credential, referralCode: localStorage.getItem('hf_ref') || undefined })
-        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-          .then(function (x) {
-            if (!x.ok) { notify({ title: 'Google sign-in failed', body: (x.d && x.d.error) || 'Please try again.' }); return; }
-            localStorage.setItem('hf_token', x.d.token);
-            if (x.d.email) localStorage.setItem('hf_email', x.d.email);
-            if (x.d.promoEarlyBird) localStorage.setItem('hf_promo_earlybird', '1');
-            // First-run onboarding is signup-only: a brand-new Google account gets the
-            // one-shot flag; a returning user is marked done so it never re-triggers.
-            try {
-              if (x.d.isNew) { localStorage.setItem('hf_onboard_new', '1'); localStorage.setItem('hf_welcome', '1'); localStorage.removeItem('hf_onboarded'); }
-              else { localStorage.setItem('hf_onboarded', '1'); localStorage.removeItem('hf_onboard_new'); }
-            } catch (e) {}
-            localStorage.removeItem('hf_ref');
-            location.href = (x.d.role === 'admin' || x.d.role === 'super') ? 'admin' : 'editor';
-          }).catch(function () { notify({ title: 'Google sign-in failed', body: 'Network error, please try again.' }); });
-      }
-      function init() {
-        if (!(window.google && google.accounts && google.accounts.id)) { return setTimeout(init, 250); }
-        google.accounts.id.initialize({ client_id: CID, callback: onGoogle });
-        // Custom button (not Google's own renderButton output), so it can match the
-        // card's own visual language. google.accounts.id.prompt() is the documented
-        // way to drive Google Identity Services sign-in from a non-Google button.
-        ['gbtn-signin', 'gbtn-signup'].forEach(function (id) {
-          var el = document.getElementById(id); if (!el) return;
-          el.addEventListener('click', function () { google.accounts.id.prompt(); });
-        });
-        document.querySelectorAll('.oauth-block').forEach(function (b) { b.style.display = 'block'; });
-      }
-      init();
-    })();
-  </script>
   <script>
     // initial view from ?mode=signup
     const params = new URLSearchParams(location.search);

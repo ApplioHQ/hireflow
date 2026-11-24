@@ -1,41 +1,32 @@
 /* walkthrough.js, interactive guided tour of the editor. Runs ONCE after onboarding
    (or on first editor visit for already-onboarded users), spotlighting real UI elements
-   with anchored tooltips so users learn where the tools are. Desktop-focused: below
-   900px the rail collapses and the sidebar becomes a drawer, so the anchors aren't
-   reliable, we mark it done there rather than show a broken tour. Self-contained. */
+   with anchored tooltips so users learn where the tools are. Self-contained. */
 (function () {
   'use strict';
   var FLAG = 'hf_walkthrough_done';
 
-  // Steps anchor to real elements. `find` returns the element (or null to skip a step
-  // whose target isn't on the page). Desktop walks left-to-right: build -> optimize -> ship.
   var STEPS_DESKTOP = [
+    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
+      title: 'Your tool dock', body: 'Everything lives here -- Resume Builder, Interview Prep, Cover Letter, Salary Insights, and more. Hover any icon to see its name.' },
     { find: function () { return document.querySelector('.sidebar'); }, place: 'right',
       title: 'Build your resume here', body: 'Add each section of your resume on the left. It saves and previews as you go.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="tailor"]'); }, place: 'right',
       title: 'Tailor to any job', body: 'Paste a job description and AI rewrites your bullets to match. Hit "I applied" to save it to your tracker.' },
     { find: function () { return document.querySelector('.sidebar-item[data-section="ats"]'); }, place: 'right',
       title: 'ATS score + keyword heatmap', body: 'See how your resume scores against ATS filters, with matched and missing keywords highlighted right on your preview.' },
-    { find: function () { return document.querySelector('.sidebar-item[data-section="interview"]'); }, place: 'right',
-      title: 'Interview practice', body: 'Generate role-specific questions, practice your answers, and get AI scoring on structure, impact, and clarity.' },
-    { find: function () { return document.querySelector('.sidebar-item[data-section="linkedin"]'); }, place: 'right',
-      title: 'LinkedIn optimizer', body: 'Turn your resume into a polished LinkedIn profile -- headline, about, and experience bullets optimized for search.' },
     { find: function () { return document.getElementById('btn-export'); }, place: 'bottom',
-      title: 'Export when ready', body: 'Download a clean, ATS-safe PDF in one click.' },
-    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
-      title: 'More tools in the dock', body: 'Cover Letter, 6-Sec Scan, JD Red Flags, Version Diff, Salary Insights and more. Hover an icon to see its name.' }
+      title: 'Export when ready', body: 'Download a clean, ATS-safe PDF in one click.' }
   ];
-  // Mobile anchors to the always-visible bottom nav + the top Menu, so nothing depends on
-  // a drawer being open. Tooltips sit above the bottom nav / below the top Menu.
+
   var STEPS_MOBILE = [
+    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
+      title: 'Your tool dock', body: 'All your tools are here -- Resume Builder, Interview Prep, Cover Letter, and more. Swipe sideways to see them all.' },
     { find: function () { return document.getElementById('mob-menu-btn'); }, place: 'top',
-      title: 'Build your resume', body: 'Tap Sections to add each part of your resume, plus ATS Check, Tailor, Interview Practice, and more.' },
+      title: 'Build your resume', body: 'Tap Sections to add each part of your resume, plus ATS Check, Tailor, and more.' },
     { find: function () { return document.getElementById('mob-preview-btn'); }, place: 'top',
       title: 'Preview anytime', body: 'See exactly how your resume looks as you build it.' },
     { find: function () { return document.querySelector('a.mobile-nav-btn[href="export"]'); }, place: 'top',
-      title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' },
-    { find: function () { return document.querySelector('.app-dock'); }, place: 'top',
-      title: 'More tools here', body: 'Autopilot, Cover Letter, JD Red Flags, Version Diff, Salary Insights and more live in the dock. Swipe it sideways to see them all.' }
+      title: 'Export a PDF', body: 'When you are ready, download a clean, recruiter-ready PDF here.' }
   ];
 
   function isVisible(el) {
@@ -100,8 +91,6 @@
     hole.style.top = (r.top - pad) + 'px';
     hole.style.width = (r.width + pad * 2) + 'px';
     hole.style.height = (r.height + pad * 2) + 'px';
-    // Place the tooltip on the step's preferred side when it fits, else the first side
-    // that does, then clamp into the viewport.
     var tr = tip.getBoundingClientRect();
     var vw = window.innerWidth, vh = window.innerHeight, gap = 14;
     var fits = {
@@ -116,7 +105,7 @@
     if (side === 'right') { x = r.right + gap; y = r.top; }
     else if (side === 'left') { x = r.left - gap - tr.width; y = r.top; }
     else if (side === 'top') { x = r.left + r.width / 2 - tr.width / 2; y = r.top - gap - tr.height; }
-    else { x = r.left + r.width / 2 - tr.width / 2; y = r.bottom + gap; }   // bottom
+    else { x = r.left + r.width / 2 - tr.width / 2; y = r.bottom + gap; }
     x = Math.max(12, Math.min(x, vw - tr.width - 12));
     y = Math.max(12, Math.min(y, vh - tr.height - 12));
     tip.style.left = x + 'px';
@@ -125,12 +114,8 @@
 
   function show() {
     var s = steps[i];
-    // Bring the target into view (sidebar items may be below the fold), then position.
     try { s.el.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (e) {}
     renderTip();
-    // Position synchronously (reading getBoundingClientRect forces the layout we need),
-    // then again shortly after in case the scrollIntoView is still settling. Not relying
-    // on requestAnimationFrame, which is throttled in background/inactive tabs.
     position();
     setTimeout(position, 80);
   }
@@ -138,11 +123,9 @@
   function next() { if (i < steps.length - 1) { i++; show(); } else { done(); } }
 
   function start(force) {
-    if (document.getElementById('wt-overlay')) return;            // already running: never stack overlays
+    if (document.getElementById('wt-overlay')) return;
     try { if (!force && localStorage.getItem(FLAG)) return; } catch (e) { return; }
-    // Pick the step set for the layout: desktop rail + sidebar, or mobile bottom nav + Menu.
     var SET = window.innerWidth < 900 ? STEPS_MOBILE : STEPS_DESKTOP;
-    // Resolve which steps have a live target right now.
     steps = SET.map(function (s) { var el = s.find(); return isVisible(el) ? Object.assign({}, s, { el: el }) : null; }).filter(Boolean);
     if (!steps.length) return;
     injectCSS();
@@ -163,15 +146,12 @@
     i = 0; show();
   }
 
-  // Public hook: onboarding calls this right after it finishes.
   window.startAppWalkthrough = function () { setTimeout(function () { start(false); }, 400); };
 
-  // Auto-run for users who are already onboarded but haven't seen the walkthrough
-  // (e.g. existing users, or someone who onboarded on another device).
   function autoRun() {
     try {
       if (!localStorage.getItem('hf_token')) return;
-      if (!localStorage.getItem('hf_onboarded')) return;   // onboarding will call us when it finishes
+      if (!localStorage.getItem('hf_onboarded')) return;
       if (localStorage.getItem(FLAG)) return;
     } catch (e) { return; }
     function tryStart() {
@@ -179,8 +159,8 @@
         setTimeout(tryStart, 500);
         return;
       }
-      var sidebar = document.querySelector('.sidebar');
-      if (!sidebar || !isVisible(sidebar)) {
+      var dock = document.querySelector('.app-dock');
+      if (!dock || !isVisible(dock)) {
         setTimeout(tryStart, 1000);
         return;
       }

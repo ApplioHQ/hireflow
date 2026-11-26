@@ -289,11 +289,11 @@
 
     <div class="dash-grid">
       <div class="section-card">
-        <div class="section-hd"><div><h2>Traffic Channels</h2><span class="section-sub">First-touch attribution</span></div></div>
+        <div class="section-hd"><div><h2>Traffic Channels</h2><span class="section-sub">First-touch attribution</span></div><span class="chip" id="acq-channel-chip" style="background:rgba(109,77,252,.2);font-size:10px"></span></div>
         <div class="section-bd" id="channel-bars"></div>
       </div>
       <div class="section-card">
-        <div class="section-hd"><div><h2>Signup Sources</h2><span class="section-sub">Self-reported</span></div></div>
+        <div class="section-hd"><div><h2>Signup Sources</h2><span class="section-sub">Self-reported</span></div><span class="chip" id="acq-source-chip" style="background:rgba(138,115,248,.2);font-size:10px"></span></div>
         <div class="section-bd" id="attribution-bars"></div>
       </div>
     </div>
@@ -419,15 +419,16 @@
     <div class="band-hd"><h2>Users &amp; Feedback</h2><span class="band-note">Aggregate only</span></div>
     <div class="section-card">
       <div class="section-hd"><div><h2>Users</h2><div class="sub" id="user-summary">Loading...</div></div></div>
+      <div class="section-bd" id="user-stats-row" style="display:none;padding-top:0"></div>
     </div>
     <div class="section-card">
       <div class="section-hd">
         <div><h2>User Feedback</h2><div class="sub" id="fb-count">Loading...</div></div>
-        <div id="fb-filters">
-          <button class="pill success" data-f="all" onclick="setFbFilter('all')">All</button>
-          <button class="pill" data-f="up" onclick="setFbFilter('up')">&#128077;</button>
-          <button class="pill" data-f="down" onclick="setFbFilter('down')">&#128078;</button>
-          <button class="pill" data-f="msg" onclick="setFbFilter('msg')">With message</button>
+        <div class="seg" id="fb-filters" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+          <button data-f="all" aria-pressed="true" onclick="setFbFilter('all')" style="font-size:11.5px;padding:0 10px">All</button>
+          <button data-f="up" aria-pressed="false" onclick="setFbFilter('up')" style="font-size:11.5px;padding:0 10px">Positive</button>
+          <button data-f="down" aria-pressed="false" onclick="setFbFilter('down')" style="font-size:11.5px;padding:0 10px">Negative</button>
+          <button data-f="msg" aria-pressed="false" onclick="setFbFilter('msg')" style="font-size:11.5px;padding:0 10px">Messages</button>
         </div>
       </div>
       <div id="fb-body" style="padding:16px 20px;max-height:70vh;overflow-y:auto;">Loading...</div>
@@ -898,11 +899,13 @@ function _renderHBars(id,data,color){
   if(!keys.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;">No data yet</div>';return;}
   keys.sort(function(a,b){return(data[b]||0)-(data[a]||0);});
   var max=data[keys[0]]||1;
-  el.innerHTML=keys.slice(0,10).map(function(k,i){
-    var pct=Math.round((data[k]/max)*100);
-    return'<div class="hbar-row"><div class="hbar-label">'+esc(k)+'</div><div class="hbar-track"><div class="hbar-fill" style="width:0%;background:'+color+';transition-delay:'+(i*50)+'ms" data-w="'+pct+'"></div></div><div class="hbar-val">'+data[k]+'</div></div>';
+  var total=keys.reduce(function(s,k){return s+(data[k]||0);},0);
+  var top=keys.slice(0,10);
+  el.innerHTML=top.map(function(k,i){
+    var v=data[k]||0;var pct=total?Math.round(v/total*100):0;
+    return'<div class="row" style="padding:9px 0;'+(i?'border-top:1px solid rgba(255,255,255,.06)':'')+'"><div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px"><div style="width:4px;height:28px;border-radius:2px;background:'+color+';opacity:'+(.9-i*.06).toFixed(2)+';flex:0 0 4px"></div><div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(k)+'</div><div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="width:48px;height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;width:0%;background:'+color+';border-radius:2px;opacity:.7;transition:width .7s var(--ease) '+(i*40)+'ms" data-w="'+Math.round(v/max*100)+'"></div></div><span class="muted" style="font-size:10px">'+pct+'%</span></div></div></div><span class="mono" style="font-size:14px;font-weight:700;min-width:40px;text-align:right">'+v.toLocaleString()+'</span></div>';
   }).join('');
-  requestAnimationFrame(function(){requestAnimationFrame(function(){el.querySelectorAll('.hbar-fill').forEach(function(f){f.style.width=f.dataset.w+'%';});});});
+  requestAnimationFrame(function(){requestAnimationFrame(function(){el.querySelectorAll('[data-w]').forEach(function(f){f.style.width=f.dataset.w+'%';});});});
 }
 
 function _miniStat(label,val,sub,accentColor){
@@ -917,22 +920,28 @@ function _miniStat(label,val,sub,accentColor){
 }
 
 function renderGeoMap(geo){
-  // The geo map SVG paths are loaded dynamically from the existing geo data
   var svg=document.getElementById('geo-map-svg');
   var tipEl=document.getElementById('geo-map-tip');
   if(!svg||!geo)return;
   var countries=geo||{};
   var vals=Object.values(countries);
   var max=Math.max.apply(null,vals)||1;
-  // Fetch and render world map paths (simplified -- we keep the original map rendering)
-  // For now we render a placeholder with country stats
+  var totalUsers=vals.reduce(function(s,v){return s+v;},0);
   var sorted=Object.keys(countries).sort(function(a,b){return countries[b]-countries[a];});
   var wrap=document.getElementById('geo-map-wrap');
   if(wrap&&!svg.children.length){
-    wrap.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">'+sorted.slice(0,20).map(function(c,i){
+    // Hero stat + segmented bar for top 5
+    var top5=sorted.slice(0,5);
+    var colors=['#6d4dfc','#8a73f8','#A9B2FF','#FFB37A','#14b8a6'];
+    var heroHtml='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px"><span style="font-size:32px;font-weight:200;letter-spacing:-.03em;line-height:1;font-family:Geist,sans-serif">'+totalUsers.toLocaleString()+'</span><span class="cap" style="font-size:11px">users across '+sorted.length+' countries</span></div>';
+    heroHtml+='<div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px">'+top5.map(function(c,i){
+      return'<div style="flex:0 0 '+(countries[c]/totalUsers*100)+'%;background:'+colors[i]+';transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
+    heroHtml+='<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">'+top5.map(function(c,i){
+      return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)"><i style="width:7px;height:7px;border-radius:50%;background:'+colors[i]+'"></i>'+esc(c)+' '+Math.round(countries[c]/totalUsers*100)+'%</span>';}).join('')+'</div>';
+
+    wrap.innerHTML=heroHtml+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">'+sorted.slice(0,20).map(function(c,i){
       var v=countries[c],pct=Math.round(v/max*100);
-      var alpha=(.06+pct/100*.12).toFixed(2);
-      return'<div class="geo-tile" style="opacity:0;transform:translateY(10px);transition:all .5s var(--ease) '+(i*40)+'ms"><div style="font-size:13px;font-weight:700;">'+esc(c)+'</div><div style="font-size:22px;font-weight:800;margin:4px 0;font-family:Geist Mono,monospace;">'+v+'</div><div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--acc);border-radius:3px;transition:width .8s var(--ease) '+(200+i*40)+'ms" data-w="'+pct+'"></div></div></div>';
+      return'<div class="geo-tile" style="opacity:0;transform:translateY(10px);transition:all .5s var(--ease) '+(i*40)+'ms"><div style="font-size:12px;font-weight:700;color:var(--t2)">'+esc(c)+'</div><div style="font-size:20px;font-weight:800;margin:4px 0;font-family:Geist Mono,monospace;">'+v.toLocaleString()+'</div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--acc);border-radius:2px;transition:width .8s var(--ease) '+(200+i*40)+'ms" data-w="'+pct+'"></div></div></div>';
     }).join('')+'</div>';
     requestAnimationFrame(function(){requestAnimationFrame(function(){
       wrap.querySelectorAll('.geo-tile').forEach(function(t){t.style.opacity='1';t.style.transform='none';});
@@ -952,7 +961,9 @@ function _labelMap(data,map){var out={};Object.keys(data||{}).forEach(function(k
 function renderOnboarding(o){
   o=o||{};
   var sub=document.getElementById('onb-sub');
-  if(sub)sub.textContent=(o.answered||0)+' of '+(o.totalUsers||0)+' completed the question flow';
+  var answered=o.answered||0,tot=o.totalUsers||0;
+  var rate=tot?Math.round(answered/tot*1000)/10:0;
+  if(sub)sub.innerHTML='<span style="font-size:11px">'+answered.toLocaleString()+' of '+tot.toLocaleString()+' completed</span> <span class="chip" style="background:rgba(109,77,252,.2);font-size:10px;margin-left:6px">'+rate+'% rate</span>';
   _renderHBars('onb-category-bars',_labelMap(o.category,_ONB_CATEGORY_LABELS),'#6d4dfc');
   _renderHBars('onb-source-bars',o.attribution||{},'#8a73f8');
   _renderHBars('onb-stage-bars',o.stage||{},'#f59e0b');
@@ -963,13 +974,16 @@ function renderOnboarding(o){
 function renderProfileOnboarding(o){
   o=o||{};var p=o.profile||{};var total=p.totalUsers||0;
   var sub=document.getElementById('profile-onb-sub');
-  if(sub)sub.textContent='Company: '+(p.hasCompany||0)+'/'+total+' · Role: '+(p.hasRole||0)+'/'+total;
+  if(sub){var compPct=total?Math.round((p.hasCompany||0)/total*1000)/10:0;var rolePct=total?Math.round((p.hasRole||0)/total*1000)/10:0;
+    sub.innerHTML='<span style="font-size:11px">'+total.toLocaleString()+' users</span> <span class="chip" style="background:rgba(109,77,252,.2);font-size:10px;margin-left:6px">'+compPct+'% have company</span> <span class="chip" style="background:rgba(138,115,248,.2);font-size:10px;margin-left:4px">'+rolePct+'% have role</span>';}
   if(total){
-    var setKPI=function(id,val,pctId){var el=document.getElementById(id);if(el)el.textContent=val;var pct=document.getElementById(pctId);if(pct)pct.textContent=total?(Math.round((val/total)*1000)/10)+'% of users':'';};
-    setKPI('pob-has-company',p.hasCompany||0,'pob-has-company-pct');
-    setKPI('pob-has-role',p.hasRole||0,'pob-has-role-pct');
-    setKPI('pob-optin',p.companyOptInCount||0,'pob-optin-pct');
-    setKPI('pob-email',p.emailConsentCount||0,'pob-email-pct');
+    var setKPI=function(id,val,pctId,color){var el=document.getElementById(id);if(el)el.textContent=val.toLocaleString();
+      var pct=document.getElementById(pctId);var rate=total?Math.round(val/total*1000)/10:0;
+      if(pct)pct.innerHTML=rate+'% of users'+_tickGauge(rate/100,color||'var(--acc)',100);};
+    setKPI('pob-has-company',p.hasCompany||0,'pob-has-company-pct','#6d4dfc');
+    setKPI('pob-has-role',p.hasRole||0,'pob-has-role-pct','#8a73f8');
+    setKPI('pob-optin',p.companyOptInCount||0,'pob-optin-pct','#10b981');
+    setKPI('pob-email',p.emailConsentCount||0,'pob-email-pct','#FFB37A');
   }
   var bars=function(data){if(!Array.isArray(data))return data||{};return data.reduce(function(out,row){if(Array.isArray(row)&&row.length===2)out[row[0]]=row[1];return out;},{});};
   _renderHBars('pob-companies-bars',bars(p.topCompanies),'#6d4dfc');
@@ -1065,7 +1079,11 @@ function renderFeatureBars(byFeature,byUser,last7){
 }
 
 function renderTemplateBars(picks){
-  _renderHBars('template-bars',picks,'#8a73f8');
+  var el=document.getElementById('template-bars');if(!el)return;
+  var total=Object.values(picks||{}).reduce(function(s,v){return s+v;},0);
+  var count=Object.keys(picks||{}).length;
+  el.innerHTML='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px"><span style="font-size:32px;font-weight:200;letter-spacing:-.03em;line-height:1;font-family:Geist,sans-serif">'+total.toLocaleString()+'</span><span class="cap" style="font-size:11px">total picks across '+count+' templates</span></div><div id="template-bars-inner"></div>';
+  _renderHBars('template-bars-inner',picks,'#8a73f8');
 }
 
 function renderDailyBreakdown(bd){
@@ -1090,6 +1108,11 @@ function renderUsers(){
   if(!el)return;
   var n=ALL_USERS.length;
   el.innerHTML='<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:40px;font-weight:200;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;font-family:Geist,sans-serif">'+n.toLocaleString()+'</span><span class="cap" style="font-size:11px">total accounts</span></div>';
+  var row=document.getElementById('user-stats-row');
+  if(row&&LAST_ANALYTICS){var d=LAST_ANALYTICS;row.style.display='grid';row.style.gridTemplateColumns='repeat(auto-fit,minmax(120px,1fr))';row.style.gap='10px';
+    var today=d.signupsToday||0,wk=d.last7Signups||0,mo=d.last30Signups||0,act=d.activationRate||0;
+    row.innerHTML=[['Today',today,'#6d4dfc'],['This week',wk,'#8a73f8'],['This month',mo,'#A9B2FF'],['Activation',act+'%','#10b981']].map(function(r){
+      return'<div style="display:flex;align-items:center;gap:8px;padding:8px 0"><i style="width:4px;height:24px;border-radius:2px;background:'+r[2]+';flex:0 0 4px"></i><div><div style="font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em">'+r[0]+'</div><div class="mono" style="font-size:16px;font-weight:700;margin-top:2px">'+r[1]+'</div></div></div>';}).join('');}
 }
 
 function renderStatus(s){
@@ -1174,7 +1197,7 @@ var ALL_FEEDBACK=[];var FB_FILTER='all';
 var _RATING={up:{icon:'👍',color:'#22c55e'},down:{icon:'👎',color:'#ef4444'},none:{icon:'💬',color:'#64748b'}};
 function _rk(f){return f.rating==='up'?'up':f.rating==='down'?'down':'none';}
 function _fbDate(ts){if(!ts)return'';var d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}
-function setFbFilter(f){FB_FILTER=f;document.querySelectorAll('#fb-filters [data-f]').forEach(function(b){b.classList.toggle('success',b.dataset.f===f);});renderFeedback();}
+function setFbFilter(f){FB_FILTER=f;document.querySelectorAll('#fb-filters [data-f]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f);});renderFeedback();}
 async function loadFeedback(){
   try{var data=await apiGet('/feedback/list');ALL_FEEDBACK=Array.isArray(data.feedback)?data.feedback:[];renderFeedback();}
   catch(e){document.getElementById('fb-count').textContent='';document.getElementById('fb-body').innerHTML='<div style="color:var(--c-danger);font-size:13px;">Could not load feedback: '+esc(e.message)+'</div>';}
@@ -1184,7 +1207,7 @@ function renderFeedback(){
   var up=ALL_FEEDBACK.filter(function(f){return f.rating==='up';}).length;
   var down=ALL_FEEDBACK.filter(function(f){return f.rating==='down';}).length;
   var withMsg=ALL_FEEDBACK.filter(function(f){return(f.message||'').trim();}).length;
-  document.getElementById('fb-count').innerHTML=ALL_FEEDBACK.length+' total · <span style="color:#22c55e;">'+up+' 👍</span> · <span style="color:#ef4444;">'+down+' 👎</span> · '+withMsg+' with message';
+  document.getElementById('fb-count').innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="chip" style="background:rgba(255,255,255,.1);font-size:10.5px">'+ALL_FEEDBACK.length+' total</span><span class="chip" style="background:rgba(34,197,94,.15);color:#22c55e;font-size:10.5px">'+up+' positive</span><span class="chip" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:10.5px">'+down+' negative</span><span class="chip" style="background:rgba(255,255,255,.08);font-size:10.5px">'+withMsg+' with message</span></div>';
   var list=ALL_FEEDBACK.filter(function(f){if(FB_FILTER==='all')return true;if(FB_FILTER==='msg')return(f.message||'').trim();return _rk(f)===FB_FILTER;});
   if(!list.length){body.innerHTML='<div style="text-align:center;color:var(--t3);font-size:13px;padding:28px;">No feedback in this view.</div>';return;}
   body.innerHTML=list.map(function(f,i){var r=_RATING[_rk(f)];var where=[f.context,f.page].filter(Boolean).map(esc).join(' · ');
@@ -1238,6 +1261,16 @@ async function loadAnalytics(){
   renderOutcomes(d);
   renderTemplateBars(d.templatePicks||{});
   renderDailyBreakdown(d.dailyBreakdown||[]);
+
+  // Populate acquisition hero chips
+  var chCh=document.getElementById('acq-channel-chip');
+  if(chCh){var chTotal=Object.values(d.channels||{}).reduce(function(s,v){return s+v;},0);chCh.textContent=chTotal.toLocaleString()+' total';}
+  var srcCh=document.getElementById('acq-source-chip');
+  if(srcCh){var srcTotal=Object.values(d.attribution||{}).reduce(function(s,v){return s+v;},0);srcCh.textContent=srcTotal.toLocaleString()+' responses';}
+  // Daily breakdown hero
+  var dsub=document.getElementById('daily-sub');
+  if(dsub&&d.dailyBreakdown&&d.dailyBreakdown.length){var bd=d.dailyBreakdown;var totalS=bd.reduce(function(s,r){return s+(r.signups||0);},0);
+    dsub.innerHTML='<span style="font-size:11px">'+bd.length+' days</span> <span class="chip" style="background:rgba(109,77,252,.2);font-size:10px;margin-left:6px">'+totalS.toLocaleString()+' signups total</span>';}
 }
 
 /* ================================================================

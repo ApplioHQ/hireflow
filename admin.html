@@ -306,15 +306,7 @@
     <div class="section-card" style="margin-top:18px;">
       <div class="section-hd"><div><h2>Users by Country</h2><span class="section-sub">Hover a country for details</span></div></div>
       <div class="section-bd">
-        <div id="geo-map-wrap" style="position:relative;">
-          <svg id="geo-map-svg" viewBox="0 0 900 440.71" style="width:100%;height:auto;display:block;"></svg>
-          <div id="geo-map-tip" class="geo-tip" style="display:none;"></div>
-        </div>
-        <div id="geo-map-legend" style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:var(--t3);">
-          <span>Fewer users</span>
-          <div id="geo-map-ramp" style="flex:0 0 140px;height:8px;border-radius:4px;background:linear-gradient(to right,rgba(255,255,255,.06),var(--acc));"></div>
-          <span>More users</span>
-        </div>
+        <div id="geo-map-wrap" style="position:relative;"></div>
       </div>
     </div>
 
@@ -952,6 +944,106 @@ function _miniStat(label,val,sub,accentColor){
     +'</div>';
 }
 
+var WORLD_PATHS={
+"Canada":"M130,65 L135,58 L150,52 L165,48 L180,42 L195,38 L210,42 L225,38 L232,35 L240,38 L250,42 L258,38 L265,35 L275,38 L280,42 L288,48 L295,52 L300,55 L305,52 L310,48 L318,45 L325,48 L330,52 L338,55 L342,60 L338,65 L330,68 L322,72 L315,75 L308,78 L300,82 L292,85 L282,88 L270,90 L258,88 L248,85 L238,88 L228,90 L218,88 L208,85 L198,88 L188,90 L175,88 L165,85 L155,82 L148,78 L142,75 L135,72 Z",
+"United States":"M135,100 L142,95 L155,90 L165,88 L175,90 L188,92 L198,90 L210,88 L222,90 L232,92 L240,95 L248,98 L255,100 L260,105 L268,108 L275,112 L280,118 L275,122 L268,128 L260,132 L252,135 L240,138 L228,140 L218,138 L208,135 L195,132 L185,128 L175,125 L165,122 L155,118 L148,115 L140,110 L135,105 Z M108,115 L102,108 L95,105 L88,108 L82,112 L78,118 L82,125 L88,130 L95,135 L102,138 L108,135 L115,130 L118,125 L115,118 Z",
+"Mexico":"M148,138 L155,135 L165,132 L175,135 L182,138 L190,142 L195,148 L200,152 L205,158 L208,162 L205,168 L200,172 L192,175 L185,172 L178,168 L170,165 L162,162 L155,158 L150,152 L148,145 Z",
+"Brazil":"M305,215 L315,208 L325,205 L335,208 L342,215 L348,222 L352,230 L355,240 L352,250 L348,260 L342,268 L335,275 L328,280 L318,282 L310,278 L302,272 L295,265 L290,258 L288,248 L290,238 L295,228 L300,220 Z",
+"Argentina":"M290,290 L295,282 L302,278 L310,282 L315,288 L318,295 L320,305 L318,315 L315,325 L310,335 L305,342 L298,348 L292,352 L285,348 L280,342 L278,332 L280,322 L282,312 L285,302 Z",
+"Colombia":"M268,178 L275,172 L285,170 L292,175 L298,180 L302,188 L305,195 L302,202 L295,208 L288,212 L280,210 L272,205 L268,198 L265,190 L265,182 Z",
+"Peru":"M268,218 L275,212 L282,215 L288,222 L290,230 L288,240 L282,248 L275,252 L268,248 L262,242 L260,232 L262,225 Z",
+"Chile":"M278,295 L282,288 L285,298 L282,310 L280,322 L278,335 L275,348 L272,358 L268,365 L265,358 L268,345 L270,332 L272,318 L275,305 Z",
+"Venezuela":"M282,172 L290,168 L298,170 L305,175 L310,180 L308,188 L302,192 L295,190 L288,185 L282,180 Z",
+"Greenland":"M310,25 L325,20 L340,18 L355,22 L365,28 L370,38 L365,48 L355,55 L342,58 L328,55 L318,48 L312,38 L310,30 Z",
+"Iceland":"M378,52 L385,48 L392,50 L395,55 L390,60 L382,62 L378,58 Z",
+"United Kingdom":"M420,72 L424,68 L428,70 L430,75 L428,80 L424,82 L420,80 L418,76 Z",
+"Ireland":"M414,72 L418,70 L420,74 L418,78 L414,80 L412,76 Z",
+"France":"M428,82 L435,78 L442,80 L445,85 L442,92 L435,95 L428,92 L426,88 Z",
+"Spain":"M418,92 L425,88 L432,90 L438,95 L435,100 L428,102 L420,100 L418,96 Z",
+"Portugal":"M414,95 L418,92 L420,98 L418,102 L414,100 Z",
+"Germany":"M438,75 L445,72 L452,74 L455,80 L452,85 L445,88 L438,85 L436,80 Z",
+"Italy":"M445,88 L448,85 L452,88 L455,95 L452,102 L448,108 L445,105 L442,98 L442,92 Z",
+"Netherlands":"M432,72 L436,70 L440,72 L438,76 L434,76 Z",
+"Belgium":"M432,76 L436,74 L440,76 L438,80 L434,80 Z",
+"Switzerland":"M438,85 L442,83 L446,85 L444,88 L440,88 Z",
+"Austria":"M446,82 L452,80 L458,82 L456,86 L450,86 L446,84 Z",
+"Poland":"M452,72 L462,70 L470,72 L472,78 L468,82 L460,84 L452,82 L450,78 Z",
+"Czech Republic":"M448,78 L455,76 L460,78 L458,82 L452,82 L448,80 Z",
+"Romania":"M468,82 L476,80 L482,82 L480,88 L474,90 L468,88 Z",
+"Ukraine":"M472,72 L485,68 L498,70 L502,76 L498,82 L488,85 L478,84 L472,80 Z",
+"Sweden":"M448,48 L452,42 L456,38 L460,42 L462,50 L460,58 L456,65 L452,68 L448,62 L446,55 Z",
+"Norway":"M438,42 L442,35 L448,32 L452,38 L450,48 L446,55 L442,60 L438,55 L436,48 Z",
+"Finland":"M462,42 L468,38 L474,40 L476,48 L474,55 L470,62 L465,65 L462,58 L460,50 Z",
+"Denmark":"M438,68 L442,65 L446,68 L444,72 L440,72 Z",
+"Greece":"M468,95 L474,92 L478,95 L480,100 L476,105 L472,108 L468,105 L466,100 Z",
+"Turkey":"M478,88 L488,85 L500,86 L510,88 L515,92 L510,96 L502,98 L492,96 L482,95 L478,92 Z",
+"Russia":"M472,30 L498,22 L530,18 L570,15 L610,12 L650,15 L690,18 L720,22 L750,28 L770,35 L780,42 L775,52 L765,58 L750,62 L730,65 L710,68 L690,70 L670,68 L650,65 L630,62 L610,60 L590,58 L570,55 L550,52 L530,50 L510,52 L498,55 L490,60 L485,65 L480,58 L478,48 L475,38 Z",
+"Egypt":"M478,118 L488,115 L498,118 L500,125 L498,132 L492,138 L485,140 L478,135 L476,128 Z",
+"South Africa":"M478,290 L488,285 L498,288 L505,295 L502,305 L496,312 L488,315 L480,312 L475,305 L475,298 Z",
+"Nigeria":"M448,178 L455,175 L462,178 L465,185 L462,192 L455,195 L448,192 L446,185 Z",
+"Kenya":"M508,205 L515,200 L522,202 L525,208 L522,215 L515,218 L508,215 L506,210 Z",
+"Ethiopia":"M505,185 L515,180 L525,182 L528,190 L525,198 L518,202 L510,200 L505,195 Z",
+"Morocco":"M408,112 L415,108 L425,110 L428,115 L425,120 L418,122 L410,120 L408,116 Z",
+"Algeria":"M425,108 L438,105 L448,108 L452,115 L448,122 L438,125 L428,122 L425,115 Z",
+"Libya":"M448,112 L460,108 L472,110 L475,118 L472,125 L462,128 L452,126 L448,118 Z",
+"Sudan":"M488,145 L498,140 L508,142 L512,150 L510,160 L502,165 L492,162 L488,155 Z",
+"DR Congo":"M472,200 L482,195 L492,198 L495,208 L492,218 L484,222 L475,220 L472,210 Z",
+"Tanzania":"M502,218 L510,215 L518,218 L520,228 L516,235 L508,238 L502,235 L500,225 Z",
+"India":"M578,118 L590,112 L600,115 L608,122 L612,132 L615,145 L612,158 L608,168 L600,175 L592,180 L585,178 L578,172 L572,162 L568,150 L568,138 L572,128 Z",
+"China":"M610,68 L630,62 L650,65 L670,70 L685,75 L695,82 L700,90 L698,100 L692,108 L682,115 L670,118 L658,120 L645,118 L632,115 L620,110 L612,105 L608,98 L610,88 L612,78 Z",
+"Japan":"M728,88 L732,82 L736,85 L738,92 L736,100 L732,105 L728,102 L726,95 Z M730,105 L734,102 L736,108 L734,112 L730,110 Z",
+"South Korea":"M712,98 L716,95 L720,98 L720,104 L716,106 L712,104 Z",
+"North Korea":"M712,90 L716,86 L720,88 L720,95 L716,96 L712,94 Z",
+"Mongolia":"M630,62 L650,58 L670,60 L680,65 L675,72 L662,75 L648,74 L635,72 L630,68 Z",
+"Pakistan":"M565,112 L575,105 L585,108 L590,115 L588,125 L582,132 L574,135 L568,130 L565,122 Z",
+"Afghanistan":"M558,100 L568,95 L578,98 L580,105 L575,112 L568,115 L560,112 L558,106 Z",
+"Iran":"M528,98 L540,92 L552,95 L560,100 L558,110 L552,118 L542,120 L532,118 L528,110 Z",
+"Iraq":"M515,98 L525,95 L532,98 L535,105 L530,112 L522,115 L515,110 L514,105 Z",
+"Saudi Arabia":"M510,118 L522,112 L535,115 L542,122 L540,132 L535,142 L525,148 L515,145 L508,138 L508,128 Z",
+"Thailand":"M628,155 L634,148 L640,150 L642,158 L640,168 L636,175 L630,178 L626,172 L625,162 Z",
+"Vietnam":"M638,148 L644,142 L648,148 L650,158 L648,168 L644,175 L638,172 L636,162 L636,155 Z",
+"Myanmar":"M618,138 L625,132 L632,135 L635,145 L632,155 L626,162 L620,158 L616,148 Z",
+"Indonesia":"M638,210 L650,205 L665,208 L678,210 L690,212 L700,215 L710,218 L700,222 L688,225 L675,224 L662,222 L650,220 L640,218 Z M712,218 L720,215 L728,218 L730,222 L725,225 L718,224 Z",
+"Philippines":"M698,162 L702,158 L706,160 L708,168 L705,175 L700,178 L696,175 L695,168 Z",
+"Malaysia":"M638,195 L648,192 L658,195 L660,200 L655,205 L645,205 L638,202 Z",
+"Bangladesh":"M600,138 L606,135 L612,138 L612,145 L608,148 L602,148 L598,145 Z",
+"Nepal":"M590,122 L600,118 L608,120 L608,126 L600,128 L592,126 Z",
+"Sri Lanka":"M598,180 L602,178 L605,182 L602,188 L598,186 Z",
+"Australia":"M680,268 L700,258 L720,252 L740,250 L758,252 L772,258 L780,268 L782,280 L778,292 L770,302 L758,308 L742,312 L725,310 L710,305 L698,298 L688,290 L682,280 Z",
+"New Zealand":"M792,310 L796,305 L800,308 L802,315 L798,322 L794,325 L790,320 L790,315 Z M796,325 L800,322 L804,328 L800,335 L796,332 Z",
+"Papua New Guinea":"M758,215 L768,210 L778,212 L782,218 L778,225 L770,228 L762,225 L758,220 Z",
+"Kazakhstan":"M530,65 L548,60 L565,62 L578,65 L585,72 L582,80 L572,85 L558,88 L542,86 L530,82 L526,75 Z",
+"Uzbekistan":"M548,80 L558,76 L568,78 L570,84 L565,88 L555,90 L548,88 L546,84 Z",
+"Israel":"M500,108 L504,105 L506,110 L504,115 L500,112 Z",
+"Jordan":"M502,108 L508,105 L512,110 L510,118 L504,118 L502,112 Z",
+"UAE":"M540,138 L548,135 L552,138 L550,142 L544,142 L540,140 Z",
+"Ghana":"M432,188 L438,185 L442,188 L442,195 L438,198 L432,196 Z",
+"Cameroon":"M448,192 L455,188 L462,192 L462,200 L456,205 L448,202 Z",
+"Angola":"M458,232 L468,228 L476,232 L478,242 L474,252 L466,255 L458,252 L456,242 Z",
+"Mozambique":"M498,252 L505,248 L510,252 L512,262 L508,272 L502,278 L496,275 L494,265 Z",
+"Madagascar":"M520,268 L526,262 L530,268 L530,280 L526,288 L520,285 L518,278 Z",
+"Cuba":"M230,152 L242,148 L252,150 L258,155 L252,158 L242,160 L232,158 Z",
+"Guatemala":"M192,162 L198,160 L202,162 L202,168 L198,170 L192,168 Z",
+"Honduras":"M202,162 L208,160 L212,163 L210,168 L206,168 L202,166 Z",
+"Ecuador":"M252,200 L258,195 L265,198 L268,205 L264,212 L258,215 L252,210 Z",
+"Bolivia":"M282,245 L290,240 L298,242 L300,250 L296,258 L288,262 L282,258 L280,250 Z",
+"Paraguay":"M300,265 L308,260 L315,262 L315,272 L310,278 L302,276 L298,270 Z",
+"Uruguay":"M310,295 L316,290 L320,295 L318,302 L312,305 L308,300 Z",
+"Taiwan":"M692,132 L696,128 L698,132 L696,138 L692,136 Z",
+"Cambodia":"M634,168 L640,165 L646,168 L646,175 L640,178 L634,175 Z",
+"Laos":"M630,145 L636,140 L642,142 L642,152 L638,158 L632,155 L630,150 Z",
+"Somalia":"M520,178 L528,172 L534,175 L536,185 L532,195 L525,200 L518,198 L518,188 Z",
+"Ivory Coast":"M425,188 L432,185 L435,190 L432,196 L425,196 Z",
+"Senegal":"M400,170 L408,168 L412,172 L410,178 L404,178 L400,175 Z",
+"Tunisia":"M442,102 L448,100 L450,105 L448,110 L444,110 L442,106 Z",
+"Uganda":"M498,195 L505,192 L510,196 L508,205 L502,208 L496,205 Z"
+};
+
+function _geoColor(frac){
+  var r=Math.round(109+(255-109)*frac),g=Math.round(77+(255-77)*(1-frac)*0.3),b=Math.round(252-(252-80)*frac);
+  return'rgb('+r+','+g+','+b+')';
+}
+
 function renderGeoMap(geo){
   var svg=document.getElementById('geo-map-svg');
   var tipEl=document.getElementById('geo-map-tip');
@@ -962,25 +1054,67 @@ function renderGeoMap(geo){
   var totalUsers=vals.reduce(function(s,v){return s+v;},0);
   var sorted=Object.keys(countries).sort(function(a,b){return countries[b]-countries[a];});
   var wrap=document.getElementById('geo-map-wrap');
-  if(wrap&&!svg.children.length){
-    // Hero stat + segmented bar for top 5
-    var top5=sorted.slice(0,5);
-    var colors=['#6d4dfc','#8a73f8','#A9B2FF','#FFB37A','#14b8a6'];
-    var heroHtml='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px"><span style="font-size:32px;font-weight:200;letter-spacing:-.03em;line-height:1;font-family:Geist,sans-serif">'+totalUsers.toLocaleString()+'</span><span class="cap" style="font-size:11px">users across '+sorted.length+' countries</span></div>';
-    heroHtml+='<div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px">'+top5.map(function(c,i){
-      return'<div style="flex:0 0 '+(countries[c]/totalUsers*100)+'%;background:'+colors[i]+';transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
-    heroHtml+='<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">'+top5.map(function(c,i){
-      return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)"><i style="width:7px;height:7px;border-radius:50%;background:'+colors[i]+'"></i>'+esc(c)+' '+Math.round(countries[c]/totalUsers*100)+'%</span>';}).join('')+'</div>';
+  if(!wrap)return;
 
-    wrap.innerHTML=heroHtml+'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">'+sorted.slice(0,20).map(function(c,i){
-      var v=countries[c],pct=Math.round(v/max*100);
-      return'<div class="geo-tile" style="opacity:0;transform:translateY(10px);transition:all .5s var(--ease) '+(i*40)+'ms"><div style="font-size:12px;font-weight:700;color:var(--t2)">'+esc(c)+'</div><div style="font-size:20px;font-weight:800;margin:4px 0;font-family:Geist Mono,monospace;">'+v.toLocaleString()+'</div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--acc);border-radius:2px;transition:width .8s var(--ease) '+(200+i*40)+'ms" data-w="'+pct+'"></div></div></div>';
-    }).join('')+'</div>';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      wrap.querySelectorAll('.geo-tile').forEach(function(t){t.style.opacity='1';t.style.transform='none';});
-      wrap.querySelectorAll('[data-w]').forEach(function(f){f.style.width=f.dataset.w+'%';});
-    });});
+  // Hero stat + segmented bar for top 5
+  var top5=sorted.slice(0,5);
+  var colors=['#6d4dfc','#8a73f8','#A9B2FF','#FFB37A','#14b8a6'];
+  var heroHtml='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px"><span style="font-size:32px;font-weight:200;letter-spacing:-.03em;line-height:1;font-family:Geist,sans-serif">'+totalUsers.toLocaleString()+'</span><span class="cap" style="font-size:11px">users across '+sorted.length+' countries</span></div>';
+  heroHtml+='<div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px">'+top5.map(function(c,i){
+    return'<div style="flex:0 0 '+(countries[c]/totalUsers*100)+'%;background:'+colors[i]+';transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
+  heroHtml+='<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">'+top5.map(function(c,i){
+    return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)"><i style="width:7px;height:7px;border-radius:50%;background:'+colors[i]+'"></i>'+esc(c)+' '+Math.round(countries[c]/totalUsers*100)+'%</span>';}).join('')+'</div>';
+
+  // SVG world map
+  var svgPaths='';
+  Object.keys(WORLD_PATHS).forEach(function(name){
+    var count=countries[name]||0;
+    var frac=count?Math.pow(count/max,0.4):0;
+    var fill=count?_geoColor(frac):'rgba(255,255,255,.06)';
+    var opacity=count?(.3+frac*.7).toFixed(2):'1';
+    svgPaths+='<path class="geo-country" d="'+WORLD_PATHS[name]+'" fill="'+fill+'" opacity="'+opacity+'" data-name="'+esc(name)+'" data-count="'+count+'"/>';
+  });
+
+  var mapHtml='<svg id="geo-map-svg" viewBox="0 0 900 440" style="width:100%;height:auto;display:block;border-radius:16px;background:rgba(0,0,0,.2)">'+svgPaths+'</svg>'
+    +'<div id="geo-map-tip" class="geo-tip" style="display:none;"></div>';
+
+  // Color ramp legend
+  var legendHtml='<div style="display:flex;align-items:center;gap:8px;margin:12px 0 20px;font-size:11px;color:var(--t3);">'
+    +'<span>0 users</span>'
+    +'<div style="flex:0 0 140px;height:8px;border-radius:4px;background:linear-gradient(to right,rgba(255,255,255,.06),#6d4dfc,#ff6d50);"></div>'
+    +'<span>'+max.toLocaleString()+'</span></div>';
+
+  // Country tiles
+  var tilesHtml='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">'+sorted.slice(0,20).map(function(c,i){
+    var v=countries[c],pct=Math.round(v/max*100);
+    return'<div class="geo-tile" style="opacity:0;transform:translateY(10px);transition:all .5s var(--ease) '+(i*40)+'ms"><div style="font-size:12px;font-weight:700;color:var(--t2)">'+esc(c)+'</div><div style="font-size:20px;font-weight:800;margin:4px 0;font-family:Geist Mono,monospace;">'+v.toLocaleString()+'</div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--acc);border-radius:2px;transition:width .8s var(--ease) '+(200+i*40)+'ms" data-w="'+pct+'"></div></div></div>';
+  }).join('')+'</div>';
+
+  wrap.innerHTML=heroHtml+mapHtml+legendHtml+tilesHtml;
+
+  // Tooltip on map hover
+  var newSvg=document.getElementById('geo-map-svg');
+  var newTip=document.getElementById('geo-map-tip');
+  if(newSvg&&newTip){
+    newSvg.addEventListener('pointermove',function(e){
+      var t=e.target.closest('.geo-country');
+      if(!t){newTip.style.display='none';return;}
+      var name=t.dataset.name,count=+t.dataset.count;
+      var pct=totalUsers?Math.round(count/totalUsers*1000)/10:0;
+      newTip.innerHTML='<strong>'+name+'</strong>'+count.toLocaleString()+' users ('+pct+'%)';
+      newTip.style.display='';
+      var rect=wrap.getBoundingClientRect();
+      newTip.style.left=(e.clientX-rect.left)+'px';
+      newTip.style.top=(e.clientY-rect.top-50)+'px';
+    });
+    newSvg.addEventListener('pointerleave',function(){newTip.style.display='none';});
   }
+
+  // Animate tiles in
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    wrap.querySelectorAll('.geo-tile').forEach(function(t){t.style.opacity='1';t.style.transform='none';});
+    wrap.querySelectorAll('[data-w]').forEach(function(f){f.style.width=f.dataset.w+'%';});
+  });});
 }
 
 // Onboarding, profile, retention, outcomes, exports, AI bars, feature bars, templates, users, status, feedback, testimonials

@@ -1045,16 +1045,14 @@ function _geoColor(frac){
 }
 
 function renderGeoMap(geo){
-  var svg=document.getElementById('geo-map-svg');
-  var tipEl=document.getElementById('geo-map-tip');
-  if(!svg||!geo)return;
+  if(!geo)return;
+  var wrap=document.getElementById('geo-map-wrap');
+  if(!wrap)return;
   var countries=geo||{};
   var vals=Object.values(countries);
   var max=Math.max.apply(null,vals)||1;
   var totalUsers=vals.reduce(function(s,v){return s+v;},0);
   var sorted=Object.keys(countries).sort(function(a,b){return countries[b]-countries[a];});
-  var wrap=document.getElementById('geo-map-wrap');
-  if(!wrap)return;
 
   // Hero stat + segmented bar for top 5
   var top5=sorted.slice(0,5);

@@ -333,10 +333,10 @@
     <div class="section-card">
       <div class="section-hd"><div><h2>Profile Completion</h2><span class="section-sub" id="profile-onb-sub">Users who have filled in their company, role, and consent preferences</span></div></div>
       <div class="section-bd" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
-        <div class="mini-stat"><div class="ms-label">Has Company</div><div class="ms-num" id="pob-has-company">0</div><div class="ms-sub" id="pob-has-company-pct"></div></div>
-        <div class="mini-stat"><div class="ms-label">Has Role</div><div class="ms-num" id="pob-has-role">0</div><div class="ms-sub" id="pob-has-role-pct"></div></div>
-        <div class="mini-stat"><div class="ms-label">Aggregate Opt-in</div><div class="ms-num" id="pob-optin">0</div><div class="ms-sub" id="pob-optin-pct"></div></div>
-        <div class="mini-stat"><div class="ms-label">Email Consent</div><div class="ms-num" id="pob-email">0</div><div class="ms-sub" id="pob-email-pct"></div></div>
+        <div class="mini-stat" style="--ms-accent:#6d4dfc"><div class="ms-label">Has Company</div><div class="ms-num" id="pob-has-company">0</div><div class="ms-sub" id="pob-has-company-pct"></div></div>
+        <div class="mini-stat" style="--ms-accent:#8a73f8"><div class="ms-label">Has Role</div><div class="ms-num" id="pob-has-role">0</div><div class="ms-sub" id="pob-has-role-pct"></div></div>
+        <div class="mini-stat" style="--ms-accent:#10b981"><div class="ms-label">Aggregate Opt-in</div><div class="ms-num" id="pob-optin">0</div><div class="ms-sub" id="pob-optin-pct"></div></div>
+        <div class="mini-stat" style="--ms-accent:#FFB37A"><div class="ms-label">Email Consent</div><div class="ms-num" id="pob-email">0</div><div class="ms-sub" id="pob-email-pct"></div></div>
       </div>
     </div>
     <div class="dash-grid">
@@ -907,7 +907,13 @@ function _renderHBars(id,data,color){
 
 function _miniStat(label,val,sub,accentColor){
   var c=accentColor||'var(--acc)';
-  return'<div class="mini-stat" style="--ms-accent:'+c+'"><div class="ms-label">'+label+'</div><div class="ms-num" data-tw="'+(typeof val==='number'?val:'')+'">'+val+'</div>'+(sub?'<div class="ms-sub">'+sub+'</div>':'')+'</div>';
+  var numVal=typeof val==='number'?val:parseInt(String(val).replace(/[^0-9]/g,''),10);
+  var display=typeof val==='number'?val.toLocaleString():val;
+  return'<div class="mini-stat" style="--ms-accent:'+c+'">'
+    +'<div class="ms-label">'+label+'</div>'
+    +'<div class="ms-num" data-tw="'+(!isNaN(numVal)?numVal:'')+'">'+display+'</div>'
+    +(sub?'<div class="ms-sub">'+sub+'</div>':'')
+    +'</div>';
 }
 
 function renderGeoMap(geo){
@@ -970,27 +976,38 @@ function renderProfileOnboarding(o){
   _renderHBars('pob-roles-bars',bars(p.topRoles),'#8a73f8');
 }
 
+function _tickGauge(frac,color,w){
+  w=w||120;var n=28,s='';
+  for(var i=0;i<n;i++){var on=i/n<=frac;var x=1+i*(w-2)/(n-1);
+    s+='<line x1="'+x+'" x2="'+x+'" y1="'+(i%7===0?0:3)+'" y2="10" stroke="'+(on?color:'rgba(255,255,255,.18)')+'" stroke-width="1.4" stroke-linecap="round" style="opacity:0;animation:tk .3s '+(i*12)+'ms forwards"/>';}
+  return'<svg width="'+w+'" height="10" style="display:block;margin-top:8px"><style>@keyframes tk{to{opacity:1}}</style>'+s+'</svg>';
+}
+
 function renderRetention(d){
   var el=document.getElementById('retention-grid');if(!el)return;
-  el.innerHTML=_miniStat('Weekly Active',d.wau||0,(d.activeToday||0)+' today','#6d4dfc')
-    +_miniStat('Monthly Active',d.mau||0,(d.stickiness||0)+'% stickiness','#8a73f8')
-    +_miniStat('Returning Users',d.returning||0,(d.returnRate||0)+'% came back','#10b981')
-    +_miniStat('Repeat AI Users',d.aiRepeat||0,(d.aiRepeatRate||0)+'% of AI users','#FFB37A');
+  var stk=(d.stickiness||0)/100,ret=(d.returnRate||0)/100,aiRep=(d.aiRepeatRate||0)/100;
+  el.innerHTML=
+    '<div class="mini-stat" style="--ms-accent:#6d4dfc"><div class="ms-label">Weekly Active</div><div class="ms-num">'+(d.wau||0).toLocaleString()+'</div><div class="ms-sub">'+(d.activeToday||0)+' today</div></div>'
+    +'<div class="mini-stat" style="--ms-accent:#8a73f8"><div class="ms-label">Stickiness</div><div class="row" style="gap:10px;align-items:baseline;margin-top:2px"><span class="ms-num">'+(d.stickiness||0)+'%</span><span class="muted" style="font-size:11px">WAU/MAU</span></div>'+_tickGauge(stk,'#8a73f8')+'<div class="ms-sub">'+(d.mau||0).toLocaleString()+' monthly active</div></div>'
+    +'<div class="mini-stat" style="--ms-accent:#10b981"><div class="ms-label">Return Rate</div><div class="row" style="gap:10px;align-items:baseline;margin-top:2px"><span class="ms-num">'+(d.returnRate||0)+'%</span></div>'+_tickGauge(ret,'#10b981')+'<div class="ms-sub">'+(d.returning||0).toLocaleString()+' came back on day 2+</div></div>'
+    +'<div class="mini-stat" style="--ms-accent:#FFB37A"><div class="ms-label">AI Repeat Rate</div><div class="row" style="gap:10px;align-items:baseline;margin-top:2px"><span class="ms-num">'+(d.aiRepeatRate||0)+'%</span></div>'+_tickGauge(aiRep,'#FFB37A')+'<div class="ms-sub">'+(d.aiRepeat||0).toLocaleString()+' used AI 2+ times</div></div>';
 }
 
 function renderOutcomes(d){
   var o=d.outcomes||{};
   var el=document.getElementById('outcomes-grid');
   if(el){var winRate=d.total?Math.round((o.interviewUsers||0)/d.total*1000)/10:0;
-    el.innerHTML=_miniStat('Users Reporting Wins',o.interviewUsers||0,winRate+'% of all users','#22c55e')
+    el.innerHTML=
+      '<div class="mini-stat" style="--ms-accent:#22c55e"><div class="ms-label">Win Rate</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:2px"><span class="ms-num">'+winRate+'%</span><span class="muted" style="font-size:11px">of all users</span></div>'+_tickGauge(winRate/100,'#22c55e')+'<div class="ms-sub">'+(o.interviewUsers||0).toLocaleString()+' users reporting wins</div></div>'
       +_miniStat('Interviews Landed',o.interviewEvents||0,'self-reported','#10b981')
       +_miniStat('Offers Landed',o.offerEvents||0,'self-reported','#a3c400')
-      +_miniStat('Total Wins',o.winsTotal||0,(o.winsLast30||0)+' in last 30 days','#6d4dfc');}
+      +'<div class="mini-stat" style="--ms-accent:#6d4dfc"><div class="ms-label">Total Wins</div><div class="ms-num">'+(o.winsTotal||0).toLocaleString()+'</div><div class="ms-sub"><span class="chip" style="background:rgba(109,77,252,.2);font-size:10px">'+(o.winsLast30||0)+' in last 30d</span></div></div>';}
   var jt=document.getElementById('jobtracker-grid');
   if(jt){var avg=o.jobTrackerUsers?Math.round((o.jobTrackerJobsTotal||0)/o.jobTrackerUsers*10)/10:0;
     var pct=d.total?Math.round((o.jobTrackerUsers||0)/d.total*1000)/10:0;
-    jt.innerHTML=_miniStat('Job Tracker Users',o.jobTrackerUsers||0,pct+'% of all users','#8a73f8')
-      +_miniStat('Jobs Tracked',o.jobTrackerJobsTotal||0,avg+' avg per user','#FFB37A')
+    jt.innerHTML=
+      '<div class="mini-stat" style="--ms-accent:#8a73f8"><div class="ms-label">Adoption</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:2px"><span class="ms-num">'+pct+'%</span><span class="muted" style="font-size:11px">of users</span></div>'+_tickGauge(pct/100,'#8a73f8')+'<div class="ms-sub">'+(o.jobTrackerUsers||0).toLocaleString()+' tracker users</div></div>'
+      +'<div class="mini-stat" style="--ms-accent:#FFB37A"><div class="ms-label">Jobs Tracked</div><div class="ms-num">'+(o.jobTrackerJobsTotal||0).toLocaleString()+'</div><div class="ms-sub">'+avg+' avg per user</div></div>'
       +_miniStat('Tracker Opens',o.jobTrackerOpens||0,'all time','#14b8a6')
       +_miniStat('Save Actions',o.jobTrackerSaves||0,'all time','#f59e0b');}
 }
@@ -999,12 +1016,18 @@ function renderExports(d){
   var el=document.getElementById('exports-grid');if(!el)return;
   var fu=d.featureUsage||{},fl7=d.featureLast7||{};
   var pdf=fu.download_pdf||0,gdoc=fu.export_gdoc||0,print=fu.export_print||0;
-  var total=pdf+gdoc+print;
+  var total=pdf+gdoc+print||1;
   var usersExported=d.exportedUsers||0;
-  el.innerHTML=_miniStat('Total Exports',total,usersExported+' users have exported','#6d4dfc')
-    +_miniStat('PDF Downloads',pdf,(fl7.download_pdf||0)+' last 7d','#ff2a85')
-    +_miniStat('Google Docs',gdoc,(fl7.export_gdoc||0)+' last 7d','#36956f')
-    +_miniStat('Print',print,'all time','#c2683a');
+  var convRate=d.total?Math.round(usersExported/d.total*1000)/10:0;
+  // Bento-style: hero number + segmented bar + row breakdown
+  var segHtml='<div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin:12px 0 16px">'+[['#ff2a85',pdf],['#36956f',gdoc],['#c2683a',print]].map(function(x){
+    return'<div style="flex:0 0 '+(x[1]/total*100)+'%;background:'+x[0]+';transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
+  el.innerHTML='<div class="mini-stat" style="--ms-accent:#6d4dfc;grid-column:1/-1"><div class="ms-label">Total Exports</div>'
+    +'<div style="display:flex;align-items:baseline;gap:12px;margin-top:4px"><span style="font-size:36px;font-weight:200;letter-spacing:-.04em;line-height:1;font-family:Geist,sans-serif">'+(pdf+gdoc+print).toLocaleString()+'</span><span class="chip" style="background:rgba(255,255,255,.12)">'+convRate+'% conversion</span></div>'
+    +segHtml
+    +[['PDF Downloads',pdf,fl7.download_pdf||0,'#ff2a85'],['Google Docs',gdoc,fl7.export_gdoc||0,'#36956f'],['Print',print,0,'#c2683a']].map(function(r,i){
+      return'<div class="row" style="padding:8px 0;'+(i?'border-top:1px solid rgba(255,255,255,.06)':'')+'"><i style="width:8px;height:8px;border-radius:50%;background:'+r[3]+';flex:0 0 8px"></i><span style="flex:1;font-size:13px;font-weight:600">'+r[0]+'</span>'+(r[2]?'<span class="muted mono" style="font-size:11px;width:50px;text-align:right">'+r[2]+' /7d</span>':'')+'<span class="mono" style="width:60px;text-align:right;font-size:13px;font-weight:600">'+r[1].toLocaleString()+'</span></div>';
+    }).join('')+'</div>';
 }
 
 var _AI_LABELS={tailor:'Tailor to Job',ats:'ATS Check',analyze:'Resume Analysis',improve:'AI Improve','cover-letter':'Cover Letter',letter:'Letter Writer',interview:'Interview Prep','interview-feedback':'Interview Feedback',assistant:'Career Coach',autopilot:'Autopilot',skills:'Suggest Skills','skill-gap':'Skill Gap',salary:'Salary Insights',win:'Win Polish',parse:'Resume Import',linkedin:'LinkedIn Optimizer',modernize:'Resume Modernizer'};
@@ -1019,9 +1042,13 @@ function renderAiBars(byAction,byUser){
   var keys=Object.keys(byAction).concat(Object.keys(byUser)).filter(function(k,i,a){return a.indexOf(k)===i;});
   if(!keys.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;">No AI usage yet</div>';return;}
   keys.sort(function(a,b){return(byAction[b]||0)-(byAction[a]||0);});
-  var max=byAction[keys[0]]||1;
-  el.innerHTML=keys.map(function(k){var uses=byAction[k]||0,users=byUser[k]||0;var pct=Math.round((uses/max)*100);
-    return'<div class="hbar-row"><div class="hbar-label">'+_aiLabel(k)+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:#8a73f8;"></div></div><div class="hbar-val">'+uses+' <span style="color:var(--t3);font-size:10px;">'+users+'u</span></div></div>';}).join('');
+  var total=keys.reduce(function(s,k){return s+(byAction[k]||0);},0);
+  // Segmented bar at top
+  var segHtml='<div style="display:flex;gap:2px;height:6px;margin-bottom:16px;border-radius:3px;overflow:hidden">'+keys.slice(0,6).map(function(k,i){
+    var pct=total?(byAction[k]||0)/total*100:0;
+    return'<div style="flex:0 0 '+pct+'%;background:rgba(138,115,248,'+(.9-i*.12)+');transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
+  el.innerHTML=segHtml+keys.map(function(k,i){var uses=byAction[k]||0,users=byUser[k]||0;
+    return'<div class="row" style="padding:10px 0;'+(i?'border-top:1px solid rgba(255,255,255,.06)':'')+'"><div style="width:28px;height:28px;border-radius:9px;background:rgba(138,115,248,.15);display:grid;place-items:center;flex:0 0 28px"><span style="font:700 12px Geist;color:#8a73f8">'+_aiLabel(k).charAt(0)+'</span></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_aiLabel(k)+'</div><div class="muted" style="font-size:11px">'+users+' users</div></div><div style="text-align:right"><div class="mono" style="font-size:14px;font-weight:700">'+uses.toLocaleString()+'</div></div></div>';}).join('');
 }
 
 function renderFeatureBars(byFeature,byUser,last7){
@@ -1029,9 +1056,12 @@ function renderFeatureBars(byFeature,byUser,last7){
   var keys=Object.keys(byFeature).concat(Object.keys(byUser)).filter(function(k,i,a){return a.indexOf(k)===i;});
   if(!keys.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;">No feature usage yet</div>';return;}
   keys.sort(function(a,b){return(byFeature[b]||0)-(byFeature[a]||0);});
-  var max=byFeature[keys[0]]||1;
-  el.innerHTML=keys.map(function(k){var uses=byFeature[k]||0,users=byUser[k]||0,w=last7[k]||0;var pct=Math.round((uses/max)*100);
-    return'<div class="hbar-row"><div class="hbar-label">'+_featureLabel(k)+'</div><div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:#14b8a6;"></div></div><div class="hbar-val">'+uses+' <span style="color:var(--t3);font-size:10px;">'+users+'u'+(w?' '+w+'/7d':'')+'</span></div></div>';}).join('');
+  var total=keys.reduce(function(s,k){return s+(byFeature[k]||0);},0);
+  var segHtml='<div style="display:flex;gap:2px;height:6px;margin-bottom:16px;border-radius:3px;overflow:hidden">'+keys.slice(0,6).map(function(k,i){
+    var pct=total?(byFeature[k]||0)/total*100:0;
+    return'<div style="flex:0 0 '+pct+'%;background:rgba(20,184,166,'+(.9-i*.12)+');transition:flex .8s var(--ease)"></div>';}).join('')+'</div>';
+  el.innerHTML=segHtml+keys.map(function(k,i){var uses=byFeature[k]||0,users=byUser[k]||0,w=last7[k]||0;
+    return'<div class="row" style="padding:10px 0;'+(i?'border-top:1px solid rgba(255,255,255,.06)':'')+'"><div style="width:28px;height:28px;border-radius:9px;background:rgba(20,184,166,.15);display:grid;place-items:center;flex:0 0 28px"><span style="font:700 12px Geist;color:#14b8a6">'+_featureLabel(k).charAt(0)+'</span></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_featureLabel(k)+'</div><div class="muted" style="font-size:11px">'+users+' users'+(w?' / '+w+' last 7d':'')+'</div></div><div style="text-align:right"><div class="mono" style="font-size:14px;font-weight:700">'+uses.toLocaleString()+'</div></div></div>';}).join('');
 }
 
 function renderTemplateBars(picks){
@@ -1043,25 +1073,34 @@ function renderDailyBreakdown(bd){
   if(!bd||!bd.length){tbody.innerHTML='<tr><td colspan="5" style="color:var(--t3);">No data</td></tr>';return;}
   var rev=bd.slice().reverse();
   var maxS=Math.max.apply(null,rev.map(function(r){return r.signups||0;}))||1;
+  var maxV=Math.max.apply(null,rev.map(function(r){return r.visitors||0;}))||1;
   tbody.innerHTML=rev.map(function(r){
     var sPct=Math.round((r.signups||0)/maxS*100);
-    return'<tr><td style="font-weight:600;">'+r.day+'</td><td style="text-align:right;"><div style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;"><span style="display:block;height:100%;width:'+sPct+'%;background:var(--acc);border-radius:2px;"></span></span>'+(r.signups||0)+'</div></td><td style="text-align:right;">'+(r.visitors||0)+'</td><td style="text-align:right;">'+(r.aiUses||0)+'</td><td style="text-align:right;">'+(r.exports||0)+'</td></tr>';
+    var vPct=Math.round((r.visitors||0)/maxV*100);
+    return'<tr><td style="font-weight:600;font-family:Geist Mono,monospace;font-size:12px;letter-spacing:-.01em">'+r.day.slice(5)+'</td>'
+      +'<td style="text-align:right;"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div style="width:48px;height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;width:'+sPct+'%;background:var(--acc);border-radius:3px;transition:width .6s var(--ease)"></div></div><span class="mono" style="font-size:12.5px;font-weight:600;min-width:28px">'+(r.signups||0)+'</span></div></td>'
+      +'<td style="text-align:right;"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div style="width:48px;height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden"><div style="height:100%;width:'+vPct+'%;background:rgba(255,255,255,.5);border-radius:3px;transition:width .6s var(--ease)"></div></div><span class="mono" style="font-size:12.5px;min-width:36px">'+(r.visitors||0)+'</span></div></td>'
+      +'<td style="text-align:right;" class="mono">'+(r.aiUses||0)+'</td>'
+      +'<td style="text-align:right;" class="mono">'+(r.exports||0)+'</td></tr>';
   }).join('');
 }
 
 function renderUsers(){
   var el=document.getElementById('user-summary');
-  if(el)el.innerHTML='<span style="font-size:22px;font-weight:800;font-family:Geist Mono,monospace;color:#fff;" id="user-count">'+ALL_USERS.length.toLocaleString()+'</span> <span style="font-size:13px;color:var(--t3);">total accounts</span>';
+  if(!el)return;
+  var n=ALL_USERS.length;
+  el.innerHTML='<div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:40px;font-weight:200;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;font-family:Geist,sans-serif">'+n.toLocaleString()+'</span><span class="cap" style="font-size:11px">total accounts</span></div>';
 }
 
 function renderStatus(s){
   var r=document.getElementById('status-readout');if(!r)return;
-  var row=function(label,isOn,onText,offText,extra){
-    return'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'+(extra?'':'border-bottom:1px solid rgba(255,255,255,.06)')+'"><span style="flex:1;font-size:12px;font-weight:600;color:var(--t2);">'+label+'</span>'+(isOn?'<span class="status-on">'+onText+'</span>':'<span class="status-off">'+offText+'</span>')+'</div>';
+  var row=function(label,isOn,onText,offText,isLast){
+    return'<div class="row" style="padding:10px 0;'+(isLast?'':'border-bottom:1px solid rgba(255,255,255,.06)')+'"><span style="flex:1;font-size:13px;font-weight:600;">'+label+'</span>'
+      +(isOn?'<span class="status-on" style="font-size:12px">'+onText+'</span>':'<span class="status-off" style="font-size:12px">'+offText+'</span>')+'</div>';
   };
-  r.innerHTML=row('AI System',s.aiDisabled,'DISABLED until '+fmtUnix(s.aiDisabledUntil),'Enabled','')
-    +row('Site Status',s.maintenance,'OFFLINE until '+fmtUnix(s.maintenanceUntil),'Online','')
-    +row('Admin Tier',s.adminEnabled===false,'DISABLED','Enabled','last');
+  r.innerHTML=row('AI System',s.aiDisabled,'DISABLED until '+fmtUnix(s.aiDisabledUntil),'Enabled')
+    +row('Site Status',s.maintenance,'OFFLINE until '+fmtUnix(s.maintenanceUntil),'Online')
+    +row('Admin Tier',s.adminEnabled===false,'DISABLED','Enabled',true);
 }
 
 async function renderTestimonials(){

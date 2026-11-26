@@ -1339,6 +1339,8 @@ async function loadAnalytics(){
   renderOutcomes(d);
   renderTemplateBars(d.templatePicks||{});
   renderDailyBreakdown(d.dailyBreakdown||[]);
+  _renderHBars('channel-bars',d.channels||{},'#6d9dfc');
+  _renderHBars('attribution-bars',d.attribution||{},'#8a73f8');
 
   // Populate acquisition hero chips
   var chCh=document.getElementById('acq-channel-chip');

@@ -43,21 +43,43 @@
 <style>
   .ap-wrap { max-width: 1200px; margin: 0 auto; padding: 20px 20px 80px; }
 
-  /* ---- Compact input strip ---- */
-  .ap-input-area { margin-bottom: 16px; }
-  .ap-input-strip { display: flex; gap: 10px; align-items: flex-end; }
-  .ap-ta { width: 100%; box-sizing: border-box; min-height: 52px; max-height: 52px; padding: 13px 16px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); color: var(--text); font-size: 13.5px; line-height: 1.5; resize: none; font-family: inherit; transition: min-height .3s var(--ease-out), max-height .3s var(--ease-out), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
-  .ap-ta:focus, .ap-ta.has-text { min-height: 120px; max-height: 200px; resize: vertical; }
-  .ap-ta:focus, .ap-input:focus, .ap-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
-  .ap-run-btn { flex-shrink: 0; height: 52px; padding: 0 24px; }
-  .ap-opts-strip { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
-  .ap-opt-field { display: flex; align-items: center; gap: 0; }
-  .ap-opt-field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding-right: 6px; white-space: nowrap; }
-  .ap-input, .ap-select { box-sizing: border-box; padding: 7px 10px; font: inherit; font-size: 12.5px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); width: 120px; transition: border-color var(--dur) var(--ease); }
-  .ap-select { width: 130px; }
-  .ap-resume-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); padding: 5px 10px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-full); margin-left: auto; }
+  /* ---- Centered empty state ---- */
+  .ap-input-area { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 180px); transition: min-height .4s var(--ease-out); }
+  .ap-input-area.ap-has-results { min-height: 0; justify-content: flex-start; }
+  .ap-hero { text-align: center; margin-bottom: 24px; }
+  .ap-hero h1 { font-size: 22px; font-weight: 800; color: var(--text); margin: 0 0 6px; }
+  .ap-hero p { font-size: 14px; color: var(--muted); max-width: 420px; margin: 0 auto; line-height: 1.5; }
+
+  /* ---- Textarea card with integrated toolbar ---- */
+  .ap-ta-card { width: 100%; max-width: 660px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .ap-ta-card:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
+  .ap-ta { display: block; width: 100%; box-sizing: border-box; min-height: 100px; max-height: 240px; padding: 14px 16px; background: transparent; border: none; color: var(--text); font-size: 13.5px; line-height: 1.6; resize: vertical; font-family: inherit; }
+  .ap-ta:focus { outline: none; }
+  .ap-ta-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-top: 1px solid var(--border); }
+  .ap-ta-left { display: flex; gap: 6px; }
+  .ap-paste-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 5px 10px; cursor: pointer; font-family: inherit; transition: background var(--dur) var(--ease); }
+  .ap-paste-btn:hover { background: var(--bg-3); color: var(--text); }
+  .ap-run-btn { flex-shrink: 0; padding: 8px 22px; }
+
+  /* ---- Options row ---- */
+  .ap-opts-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; width: 100%; max-width: 660px; }
+  .ap-opt-field { display: flex; align-items: center; gap: 0; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+  .ap-opt-field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 6px 0 10px; white-space: nowrap; }
+  .ap-input, .ap-select { box-sizing: border-box; padding: 7px 10px 7px 0; font: inherit; font-size: 12.5px; background: transparent; border: none; color: var(--text); width: 100px; }
+  .ap-select { width: 110px; }
+  .ap-input:focus, .ap-select:focus { outline: none; }
+  .ap-resume-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-left: auto; }
   .ap-resume-pill a { color: var(--accent); font-weight: 600; }
   .ap-resume-pill .ap-rp-ok { color: #22c55e; }
+
+  /* ---- Feature indicators ---- */
+  .ap-features { display: flex; gap: 18px; justify-content: center; margin-top: 22px; }
+  .ap-feat { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+  .ap-feat .ico { opacity: .6; }
+  .ap-shortcut { text-align: center; margin-top: 14px; font-size: 11px; color: var(--muted); }
+  .ap-shortcut kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; font-size: 10px; font-family: var(--font-mono, monospace); background: var(--bg-1); margin: 0 1px; }
+
+  /* ---- Loading ---- */
   .ap-loading { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin-top: 10px; }
   .ap-loading.show { display: flex; }
   .ap-spin { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
@@ -178,12 +200,21 @@
 </header>
 
 <main class="ap-wrap">
-  <div class="ap-input-area">
-    <div class="ap-input-strip">
-      <textarea id="ap-jd" class="ap-ta" placeholder="Paste a job description and get a fit verdict, tailored resume, cover letter, and missing keywords..."></textarea>
-      <button class="btn btn-primary ap-run-btn" id="ap-run"></button>
+  <div class="ap-input-area" id="ap-input-area">
+    <div class="ap-hero" id="ap-hero-block">
+      <h1>Application Autopilot</h1>
+      <p>Paste a job description. Get a fit verdict, tailored resume, cover letter, and missing keywords.</p>
     </div>
-    <div class="ap-opts-strip">
+    <div class="ap-ta-card">
+      <textarea id="ap-jd" class="ap-ta" placeholder="Paste the full job description here..."></textarea>
+      <div class="ap-ta-toolbar">
+        <div class="ap-ta-left">
+          <button class="ap-paste-btn" id="ap-paste-clip" type="button"></button>
+        </div>
+        <button class="btn btn-primary ap-run-btn" id="ap-run"></button>
+      </div>
+    </div>
+    <div class="ap-opts-row">
       <div class="ap-opt-field">
         <label for="ap-role">Role</label>
         <input id="ap-role" class="ap-input" type="text" placeholder="e.g. Senior PM" maxlength="120">
@@ -203,6 +234,13 @@
       </div>
       <span class="ap-resume-pill" id="ap-resume-note"></span>
     </div>
+    <div class="ap-features" id="ap-features">
+      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-target"></span> Fit score</span>
+      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-arrows"></span> Tailored bullets</span>
+      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-mail"></span> Cover letter</span>
+      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-tag"></span> Missing keywords</span>
+    </div>
+    <div class="ap-shortcut" id="ap-shortcut"><kbd>Cmd</kbd> + <kbd>Enter</kbd> to run</div>
     <div class="ap-loading" id="ap-loading"><span class="ap-spin"></span> <span id="ap-loading-text">Tailoring your application... this takes ~15 seconds</span></div>
   </div>
 
@@ -218,7 +256,6 @@
 <script src="js/jobsync.js"></script>
 <script src="js/skeleton.js"></script>
 <script>
-// Set icons before autopilot.js runs
 (async function() {
   try {
     await loadCurrentUser();
@@ -229,11 +266,39 @@
   } catch(e) {
     document.getElementById('ap-run').innerHTML = ICON('sparkle') + ' <span>Run Autopilot</span>';
   }
+  // Feature icons
+  var fi = {target:'ap-feat-target',arrows:'ap-feat-arrows',mail:'ap-feat-mail',tag:'ap-feat-tag'};
+  var names = {target:'target',arrows:'arrows-exchange',mail:'mail',tag:'tag'};
+  for (var k in fi) { var el = document.getElementById(fi[k]); if (el && typeof ICON === 'function') el.innerHTML = ICON(names[k],'ico ico-sm'); }
+  // Paste button icon
+  var pb = document.getElementById('ap-paste-clip');
+  if (pb && typeof ICON === 'function') pb.innerHTML = ICON('clipboard','ico ico-sm') + ' Paste from clipboard';
 })();
-// Auto-expand textarea when it has content
-document.getElementById('ap-jd').addEventListener('input', function() {
-  this.classList.toggle('has-text', this.value.trim().length > 0);
+// Paste from clipboard button
+document.getElementById('ap-paste-clip').addEventListener('click', function() {
+  navigator.clipboard.readText().then(function(text) {
+    if (text && text.trim()) {
+      var ta = document.getElementById('ap-jd');
+      ta.value = text.trim();
+      ta.dispatchEvent(new Event('input'));
+      ta.focus();
+    }
+  }).catch(function() {});
 });
+// Cmd+Enter to run
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    var run = document.getElementById('ap-run');
+    if (run && !run.disabled) run.click();
+  }
+});
+// Detect platform for shortcut hint
+(function() {
+  var sc = document.getElementById('ap-shortcut');
+  if (sc && !/Mac|iPhone|iPad/.test(navigator.userAgent)) {
+    sc.innerHTML = '<kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run';
+  }
+})();
 </script>
 <script src="js/autopilot.js"></script>
 <script src="js/acctcenter.js"></script>

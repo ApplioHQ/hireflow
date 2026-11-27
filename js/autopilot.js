@@ -24,20 +24,17 @@
     resumeNote: document.getElementById('ap-resume-note'),
     inputArea: document.getElementById('ap-input-area'),
     heroBlock: document.getElementById('ap-hero-block'),
-    features: document.getElementById('ap-features'),
     shortcut: document.getElementById('ap-shortcut')
   };
 
   function collapseInput() {
     if (els.inputArea) els.inputArea.classList.add('ap-has-results');
     if (els.heroBlock) els.heroBlock.style.display = 'none';
-    if (els.features) els.features.style.display = 'none';
     if (els.shortcut) els.shortcut.style.display = 'none';
   }
   function expandInput() {
     if (els.inputArea) els.inputArea.classList.remove('ap-has-results');
     if (els.heroBlock) els.heroBlock.style.display = '';
-    if (els.features) els.features.style.display = '';
     if (els.shortcut) els.shortcut.style.display = '';
   }
 

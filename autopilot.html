@@ -62,21 +62,19 @@
   .ap-run-btn { flex-shrink: 0; padding: 8px 22px; }
 
   /* ---- Options row ---- */
-  .ap-opts-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; width: 100%; max-width: 660px; }
-  .ap-opt-field { display: flex; align-items: center; gap: 0; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
-  .ap-opt-field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 6px 0 10px; white-space: nowrap; }
-  .ap-input, .ap-select { box-sizing: border-box; padding: 7px 10px 7px 0; font: inherit; font-size: 12.5px; background: transparent; border: none; color: var(--text); width: 100px; }
-  .ap-select { width: 110px; }
-  .ap-input:focus, .ap-select:focus { outline: none; }
-  .ap-resume-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); margin-left: auto; }
+  .ap-opts-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; width: 100%; max-width: 660px; }
+  .ap-opt-field { display: inline-flex; align-items: center; gap: 0; }
+  .ap-opt-field label { font-size: 11px; font-weight: 600; color: var(--muted); padding-right: 5px; white-space: nowrap; }
+  .ap-input, .ap-select { box-sizing: border-box; padding: 5px 8px; font: inherit; font-size: 12px; background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); width: 90px; }
+  .ap-select { width: 105px; }
+  .ap-input:focus, .ap-select:focus { outline: none; border-color: var(--accent); }
+  .ap-opts-sep { width: 1px; height: 16px; background: var(--border); margin: 0 2px; }
+  .ap-resume-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); margin-left: auto; }
   .ap-resume-pill a { color: var(--accent); font-weight: 600; }
   .ap-resume-pill .ap-rp-ok { color: #22c55e; }
 
-  /* ---- Feature indicators ---- */
-  .ap-features { display: flex; gap: 18px; justify-content: center; margin-top: 22px; }
-  .ap-feat { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
-  .ap-feat .ico { opacity: .6; }
-  .ap-shortcut { text-align: center; margin-top: 14px; font-size: 11px; color: var(--muted); }
+  /* ---- Shortcut hint (features removed - redundant with description) ---- */
+  .ap-shortcut { text-align: center; margin-top: 18px; font-size: 11px; color: var(--muted); opacity: .5; }
   .ap-shortcut kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; font-size: 10px; font-family: var(--font-mono, monospace); background: var(--bg-1); margin: 0 1px; }
 
   /* ---- Loading ---- */
@@ -232,13 +230,8 @@
           <option value="warm">Warm</option>
         </select>
       </div>
+      <span class="ap-opts-sep"></span>
       <span class="ap-resume-pill" id="ap-resume-note"></span>
-    </div>
-    <div class="ap-features" id="ap-features">
-      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-target"></span> Fit score</span>
-      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-arrows"></span> Tailored bullets</span>
-      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-mail"></span> Cover letter</span>
-      <span class="ap-feat"><span class="ico ico-sm" id="ap-feat-tag"></span> Missing keywords</span>
     </div>
     <div class="ap-shortcut" id="ap-shortcut"><kbd>Cmd</kbd> + <kbd>Enter</kbd> to run</div>
     <div class="ap-loading" id="ap-loading"><span class="ap-spin"></span> <span id="ap-loading-text">Tailoring your application... this takes ~15 seconds</span></div>
@@ -266,10 +259,6 @@
   } catch(e) {
     document.getElementById('ap-run').innerHTML = ICON('sparkle') + ' <span>Run Autopilot</span>';
   }
-  // Feature icons
-  var fi = {target:'ap-feat-target',arrows:'ap-feat-arrows',mail:'ap-feat-mail',tag:'ap-feat-tag'};
-  var names = {target:'target',arrows:'arrows-exchange',mail:'mail',tag:'tag'};
-  for (var k in fi) { var el = document.getElementById(fi[k]); if (el && typeof ICON === 'function') el.innerHTML = ICON(names[k],'ico ico-sm'); }
   // Paste button icon
   var pb = document.getElementById('ap-paste-clip');
   if (pb && typeof ICON === 'function') pb.innerHTML = ICON('clipboard','ico ico-sm') + ' Paste from clipboard';

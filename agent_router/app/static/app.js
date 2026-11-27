@@ -252,7 +252,7 @@ function renderAgentText(text) {
     const fenceMatch = line.trim().match(/^```(\w*)/);
     if (fenceMatch) { flush(); flushTools(); code = []; codeLang = fenceMatch[1] || ""; continue; }
     if (/^\W*(DELEGATE|REVIEW|TITLE|BLOCKED):/.test(line)) continue;
-    const tool = line.match(/^> (\S+)\s*(.*)$/);
+    const tool = line.match(/^> ([A-Z]\w+|[a-z]+_[a-z_]+)\s*(.*)$/);
     if (tool) {
       flush();
       tools.push(`<div class="tool"><span class="tool-name">${esc(tool[1])}</span><span class="tool-arg" title="${esc(tool[2])}">${esc(tool[2])}</span></div>`);
